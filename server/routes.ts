@@ -14,15 +14,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // User routes
   app.get("/api/users/me", async (req, res) => {
-    // For now, return a mock user - in real app this would check authentication
-    const mockUser = await storage.createUser({
-      username: "john_doe",
-      email: "john@example.com",
-      password: "hashed_password",
-      firstName: "John",
-      lastName: "Doe"
-    });
-    res.json(mockUser);
+    try {
+      // Return the demo user (or create if needed)
+      const user = await storage.createDemoUserIfNeeded();
+      res.json(user);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
   });
 
   app.get("/api/users/:id", async (req, res) => {
@@ -41,21 +39,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/dashboard/stats", async (req, res) => {
     try {
       // For demo, use first user or create one
-      const users = Array.from((storage as any).users.values()) as any[];
-      let userId = users.length > 0 ? users[0].id : null;
-      
-      if (!userId) {
-        const user = await storage.createUser({
-          username: "demo_user",
-          email: "demo@example.com",
-          password: "demo_password",
-          firstName: "Demo",
-          lastName: "User"
-        });
-        userId = user.id;
-      }
-
-      const stats = await storage.getUserStats(userId);
+      const user = await storage.createDemoUserIfNeeded();
+      const stats = await storage.getUserStats(user.id);
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message });

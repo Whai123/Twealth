@@ -12,17 +12,29 @@ import {
   type Transaction,
   type InsertTransaction,
   type GoalContribution,
-  type InsertGoalContribution
+  type InsertGoalContribution,
+  users,
+  groups,
+  groupMembers,
+  events,
+  financialGoals,
+  transactions,
+  goalContributions
 } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, and, desc, gte, sql } from "drizzle-orm";
+import bcrypt from "bcrypt";
+
+// Safe user type without password
+export type SafeUser = Omit<User, 'password'>;
 
 export interface IStorage {
   // User methods
-  getUser(id: string): Promise<User | undefined>;
+  getUser(id: string): Promise<SafeUser | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: string, updates: Partial<User>): Promise<User>;
+  createUser(user: InsertUser): Promise<SafeUser>;
+  updateUser(id: string, updates: Partial<User>): Promise<SafeUser>;
 
   // Group methods
   getGroup(id: string): Promise<Group | undefined>;
@@ -72,282 +84,276 @@ export interface IStorage {
     monthlyIncome: number;
     upcomingEvents: number;
   }>;
+
+  // Utility methods for user management
+  getFirstUser(): Promise<SafeUser | undefined>;
+  createDemoUserIfNeeded(): Promise<SafeUser>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User> = new Map();
-  private groups: Map<string, Group> = new Map();
-  private groupMembers: Map<string, GroupMember> = new Map();
-  private events: Map<string, Event> = new Map();
-  private financialGoals: Map<string, FinancialGoal> = new Map();
-  private transactions: Map<string, Transaction> = new Map();
-  private goalContributions: Map<string, GoalContribution> = new Map();
-
-  constructor() {
-    // Initialize with empty maps
-  }
-
+export class DatabaseStorage implements IStorage {
   // User methods
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: string): Promise<SafeUser | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    if (!user) return undefined;
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { 
-      ...insertUser,
-      firstName: insertUser.firstName || null,
-      lastName: insertUser.lastName || null,
-      avatar: insertUser.avatar || null,
-      id,
-      createdAt: new Date()
-    };
-    this.users.set(id, user);
-    return user;
+  async createUser(insertUser: InsertUser): Promise<SafeUser> {
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    
+    const [user] = await db
+      .insert(users)
+      .values({
+        ...insertUser,
+        password: hashedPassword,
+        firstName: insertUser.firstName || null,
+        lastName: insertUser.lastName || null,
+        avatar: insertUser.avatar || null,
+      })
+      .returning();
+    
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
-  async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const user = this.users.get(id);
-    if (!user) throw new Error("User not found");
-    const updatedUser = { ...user, ...updates };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+  async updateUser(id: string, updates: Partial<User>): Promise<SafeUser> {
+    // If password is being updated, hash it
+    const updateData = { ...updates };
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+    
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning();
+    
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   // Group methods
   async getGroup(id: string): Promise<Group | undefined> {
-    return this.groups.get(id);
+    const [group] = await db.select().from(groups).where(eq(groups.id, id));
+    return group || undefined;
   }
 
   async getGroupsByUserId(userId: string): Promise<Group[]> {
-    const userGroups: Group[] = [];
-    const memberships = Array.from(this.groupMembers.values()).filter(m => m.userId === userId);
+    const userGroups = await db
+      .select({ group: groups })
+      .from(groups)
+      .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+      .where(eq(groupMembers.userId, userId));
     
-    for (const membership of memberships) {
-      const group = this.groups.get(membership.groupId);
-      if (group) userGroups.push(group);
-    }
-    
-    return userGroups;
+    return userGroups.map(ug => ug.group);
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const id = randomUUID();
-    const group: Group = { 
-      ...insertGroup,
-      description: insertGroup.description || null,
-      color: insertGroup.color || "#3B82F6",
-      status: insertGroup.status || "active",
-      id,
-      createdAt: new Date()
-    };
-    this.groups.set(id, group);
-
-    // Add creator as owner
-    await this.addGroupMember({
-      groupId: id,
-      userId: insertGroup.ownerId,
-      role: "owner"
-    });
-
+    const [group] = await db
+      .insert(groups)
+      .values({
+        ...insertGroup,
+        description: insertGroup.description || null,
+        color: insertGroup.color || "#3B82F6",
+        status: insertGroup.status || "active",
+      })
+      .returning();
     return group;
   }
 
   async updateGroup(id: string, updates: Partial<Group>): Promise<Group> {
-    const group = this.groups.get(id);
-    if (!group) throw new Error("Group not found");
-    const updatedGroup = { ...group, ...updates };
-    this.groups.set(id, updatedGroup);
-    return updatedGroup;
+    const [group] = await db
+      .update(groups)
+      .set(updates)
+      .where(eq(groups.id, id))
+      .returning();
+    return group;
   }
 
   async deleteGroup(id: string): Promise<void> {
-    this.groups.delete(id);
-    // Also remove all group members
-    Array.from(this.groupMembers.values())
-      .filter(m => m.groupId === id)
-      .forEach(m => this.groupMembers.delete(m.id));
+    await db.delete(groups).where(eq(groups.id, id));
   }
 
   // Group member methods
   async getGroupMembers(groupId: string): Promise<GroupMember[]> {
-    return Array.from(this.groupMembers.values()).filter(m => m.groupId === groupId);
+    return await db.select().from(groupMembers).where(eq(groupMembers.groupId, groupId));
   }
 
   async addGroupMember(insertMember: InsertGroupMember): Promise<GroupMember> {
-    const id = randomUUID();
-    const member: GroupMember = { 
-      ...insertMember,
-      role: insertMember.role || "member",
-      id,
-      joinedAt: new Date()
-    };
-    this.groupMembers.set(id, member);
+    const [member] = await db
+      .insert(groupMembers)
+      .values({
+        ...insertMember,
+        role: insertMember.role || "member",
+      })
+      .returning();
     return member;
   }
 
   async removeGroupMember(groupId: string, userId: string): Promise<void> {
-    const member = Array.from(this.groupMembers.values())
-      .find(m => m.groupId === groupId && m.userId === userId);
-    if (member) {
-      this.groupMembers.delete(member.id);
-    }
+    await db
+      .delete(groupMembers)
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)));
   }
 
   async updateGroupMemberRole(groupId: string, userId: string, role: string): Promise<GroupMember> {
-    const member = Array.from(this.groupMembers.values())
-      .find(m => m.groupId === groupId && m.userId === userId);
-    if (!member) throw new Error("Group member not found");
-    const updatedMember = { ...member, role };
-    this.groupMembers.set(member.id, updatedMember);
-    return updatedMember;
+    const [member] = await db
+      .update(groupMembers)
+      .set({ role })
+      .where(and(eq(groupMembers.groupId, groupId), eq(groupMembers.userId, userId)))
+      .returning();
+    return member;
   }
 
   // Event methods
   async getEvent(id: string): Promise<Event | undefined> {
-    return this.events.get(id);
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
   }
 
   async getEventsByUserId(userId: string): Promise<Event[]> {
-    return Array.from(this.events.values()).filter(e => 
-      e.createdBy === userId || (e.attendees as string[]).includes(userId)
-    );
+    return await db.select().from(events).where(eq(events.createdBy, userId));
   }
 
   async getEventsByGroupId(groupId: string): Promise<Event[]> {
-    return Array.from(this.events.values()).filter(e => e.groupId === groupId);
+    return await db.select().from(events).where(eq(events.groupId, groupId));
   }
 
   async getUpcomingEvents(userId: string, limit: number = 10): Promise<Event[]> {
-    const now = new Date();
-    return Array.from(this.events.values())
-      .filter(e => 
-        e.startTime > now && 
-        (e.createdBy === userId || (e.attendees as string[]).includes(userId))
-      )
-      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
-      .slice(0, limit);
+    return await db
+      .select()
+      .from(events)
+      .where(and(eq(events.createdBy, userId), gte(events.startTime, new Date())))
+      .orderBy(events.startTime)
+      .limit(limit);
   }
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
-    const id = randomUUID();
-    const event: Event = { 
-      ...insertEvent,
-      description: insertEvent.description || null,
-      location: insertEvent.location || null,
-      groupId: insertEvent.groupId || null,
-      status: insertEvent.status || "scheduled",
-      attendees: insertEvent.attendees || [],
-      id,
-      createdAt: new Date()
-    };
-    this.events.set(id, event);
+    const [event] = await db
+      .insert(events)
+      .values({
+        ...insertEvent,
+        description: insertEvent.description || null,
+        location: insertEvent.location || null,
+        groupId: insertEvent.groupId || null,
+        status: insertEvent.status || "scheduled",
+        attendees: insertEvent.attendees || [],
+      })
+      .returning();
     return event;
   }
 
   async updateEvent(id: string, updates: Partial<Event>): Promise<Event> {
-    const event = this.events.get(id);
-    if (!event) throw new Error("Event not found");
-    const updatedEvent = { ...event, ...updates };
-    this.events.set(id, updatedEvent);
-    return updatedEvent;
+    const [event] = await db
+      .update(events)
+      .set(updates)
+      .where(eq(events.id, id))
+      .returning();
+    return event;
   }
 
   async deleteEvent(id: string): Promise<void> {
-    this.events.delete(id);
+    await db.delete(events).where(eq(events.id, id));
   }
 
   // Financial goal methods
   async getFinancialGoal(id: string): Promise<FinancialGoal | undefined> {
-    return this.financialGoals.get(id);
+    const [goal] = await db.select().from(financialGoals).where(eq(financialGoals.id, id));
+    return goal || undefined;
   }
 
   async getFinancialGoalsByUserId(userId: string): Promise<FinancialGoal[]> {
-    return Array.from(this.financialGoals.values()).filter(g => g.userId === userId);
+    return await db.select().from(financialGoals).where(eq(financialGoals.userId, userId));
   }
 
   async createFinancialGoal(insertGoal: InsertFinancialGoal): Promise<FinancialGoal> {
-    const id = randomUUID();
-    const goal: FinancialGoal = { 
-      ...insertGoal,
-      description: insertGoal.description || null,
-      currentAmount: insertGoal.currentAmount || "0",
-      category: insertGoal.category || null,
-      priority: insertGoal.priority || "medium",
-      status: insertGoal.status || "active",
-      id,
-      createdAt: new Date()
-    };
-    this.financialGoals.set(id, goal);
+    const [goal] = await db
+      .insert(financialGoals)
+      .values({
+        ...insertGoal,
+        description: insertGoal.description || null,
+        currentAmount: insertGoal.currentAmount || "0",
+        category: insertGoal.category || null,
+        priority: insertGoal.priority || "medium",
+        status: insertGoal.status || "active",
+      })
+      .returning();
     return goal;
   }
 
   async updateFinancialGoal(id: string, updates: Partial<FinancialGoal>): Promise<FinancialGoal> {
-    const goal = this.financialGoals.get(id);
-    if (!goal) throw new Error("Financial goal not found");
-    const updatedGoal = { ...goal, ...updates };
-    this.financialGoals.set(id, updatedGoal);
-    return updatedGoal;
+    const [goal] = await db
+      .update(financialGoals)
+      .set(updates)
+      .where(eq(financialGoals.id, id))
+      .returning();
+    return goal;
   }
 
   async deleteFinancialGoal(id: string): Promise<void> {
-    this.financialGoals.delete(id);
+    await db.delete(financialGoals).where(eq(financialGoals.id, id));
   }
 
   // Transaction methods
   async getTransaction(id: string): Promise<Transaction | undefined> {
-    return this.transactions.get(id);
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
   }
 
-  async getTransactionsByUserId(userId: string, limit: number = 50): Promise<Transaction[]> {
-    return Array.from(this.transactions.values())
-      .filter(t => t.userId === userId)
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, limit);
+  async getTransactionsByUserId(userId: string, limit: number = 100): Promise<Transaction[]> {
+    return await db
+      .select()
+      .from(transactions)
+      .where(eq(transactions.userId, userId))
+      .orderBy(desc(transactions.date))
+      .limit(limit);
   }
 
   async getTransactionsByGoalId(goalId: string): Promise<Transaction[]> {
-    return Array.from(this.transactions.values()).filter(t => t.goalId === goalId);
+    return await db.select().from(transactions).where(eq(transactions.goalId, goalId));
   }
 
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    const id = randomUUID();
-    const transaction: Transaction = { 
-      ...insertTransaction,
-      description: insertTransaction.description || null,
-      goalId: insertTransaction.goalId || null,
-      id,
-      createdAt: new Date()
-    };
-    this.transactions.set(id, transaction);
+    const [transaction] = await db
+      .insert(transactions)
+      .values({
+        ...insertTransaction,
+        description: insertTransaction.description || null,
+        goalId: insertTransaction.goalId || null,
+      })
+      .returning();
 
     // If this transaction is for a goal, update the goal's current amount
     if (transaction.goalId && transaction.type === "transfer") {
-      const goal = this.financialGoals.get(transaction.goalId);
+      const goal = await this.getFinancialGoal(transaction.goalId);
       if (goal) {
-        const newAmount = parseFloat(goal.currentAmount) + parseFloat(transaction.amount.toString());
-        if (transaction.goalId) {
-          await this.updateFinancialGoal(transaction.goalId, { 
-            currentAmount: newAmount.toString() 
-          });
-        }
+        const newAmount = parseFloat(goal.currentAmount || "0") + parseFloat(transaction.amount.toString());
+        await this.updateFinancialGoal(transaction.goalId, { 
+          currentAmount: newAmount.toString() 
+        });
 
         // Create goal contribution record
-        if (transaction.goalId) {
-          await this.createGoalContribution({
-            goalId: transaction.goalId,
-            transactionId: id,
-            amount: transaction.amount
-          });
-        }
+        await this.createGoalContribution({
+          goalId: transaction.goalId,
+          transactionId: transaction.id,
+          amount: transaction.amount
+        });
       }
     }
 
@@ -355,30 +361,28 @@ export class MemStorage implements IStorage {
   }
 
   async updateTransaction(id: string, updates: Partial<Transaction>): Promise<Transaction> {
-    const transaction = this.transactions.get(id);
-    if (!transaction) throw new Error("Transaction not found");
-    const updatedTransaction = { ...transaction, ...updates };
-    this.transactions.set(id, updatedTransaction);
-    return updatedTransaction;
+    const [transaction] = await db
+      .update(transactions)
+      .set(updates)
+      .where(eq(transactions.id, id))
+      .returning();
+    return transaction;
   }
 
   async deleteTransaction(id: string): Promise<void> {
-    this.transactions.delete(id);
+    await db.delete(transactions).where(eq(transactions.id, id));
   }
 
   // Goal contribution methods
   async getGoalContributions(goalId: string): Promise<GoalContribution[]> {
-    return Array.from(this.goalContributions.values()).filter(c => c.goalId === goalId);
+    return await db.select().from(goalContributions).where(eq(goalContributions.goalId, goalId));
   }
 
   async createGoalContribution(insertContribution: InsertGoalContribution): Promise<GoalContribution> {
-    const id = randomUUID();
-    const contribution: GoalContribution = { 
-      ...insertContribution, 
-      id,
-      createdAt: new Date()
-    };
-    this.goalContributions.set(id, contribution);
+    const [contribution] = await db
+      .insert(goalContributions)
+      .values(insertContribution)
+      .returning();
     return contribution;
   }
 
@@ -389,26 +393,68 @@ export class MemStorage implements IStorage {
     monthlyIncome: number;
     upcomingEvents: number;
   }> {
-    const goals = await this.getFinancialGoalsByUserId(userId);
-    const totalSavings = goals.reduce((sum, goal) => sum + parseFloat(goal.currentAmount), 0);
-    const activeGoals = goals.filter(g => g.status === "active").length;
-    
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const transactions = await this.getTransactionsByUserId(userId);
-    const monthlyIncome = transactions
-      .filter(t => t.type === "income" && t.date >= startOfMonth)
-      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-    
-    const upcomingEvents = (await this.getUpcomingEvents(userId, 30)).length;
+    const [userGoals] = await db
+      .select({
+        activeGoals: sql<number>`count(*)`,
+        totalSavings: sql<number>`coalesce(sum(cast(${financialGoals.currentAmount} as decimal)), 0)`,
+      })
+      .from(financialGoals)
+      .where(and(eq(financialGoals.userId, userId), eq(financialGoals.status, "active")));
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const [incomeData] = await db
+      .select({
+        monthlyIncome: sql<number>`coalesce(sum(cast(${transactions.amount} as decimal)), 0)`,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, "income"),
+          gte(transactions.date, thirtyDaysAgo)
+        )
+      );
+
+    const [eventData] = await db
+      .select({
+        upcomingEvents: sql<number>`count(*)`,
+      })
+      .from(events)
+      .where(
+        and(
+          eq(events.createdBy, userId),
+          gte(events.startTime, new Date())
+        )
+      );
 
     return {
-      totalSavings,
-      activeGoals,
-      monthlyIncome,
-      upcomingEvents
+      totalSavings: parseFloat(userGoals?.totalSavings?.toString() || "0"),
+      activeGoals: userGoals?.activeGoals || 0,
+      monthlyIncome: parseFloat(incomeData?.monthlyIncome?.toString() || "0"),
+      upcomingEvents: eventData?.upcomingEvents || 0,
     };
+  }
+
+  // Utility methods
+  async getFirstUser(): Promise<SafeUser | undefined> {
+    const [user] = await db.select().from(users).limit(1);
+    if (!user) return undefined;
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  async createDemoUserIfNeeded(): Promise<SafeUser> {
+    let user = await this.getFirstUser();
+    if (!user) {
+      user = await this.createUser({
+        username: "demo_user",
+        email: "demo@example.com",
+        password: "demo_password"
+      });
+    }
+    return user;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
