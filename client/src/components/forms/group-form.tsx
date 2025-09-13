@@ -11,6 +11,7 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/userContext";
 
 const groupFormSchema = z.object({
   name: z.string().min(1, "Group name is required"),
@@ -29,6 +30,7 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isLoading: userLoading } = useUser();
 
   const {
     register,
@@ -48,7 +50,7 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
     mutationFn: (data: GroupFormData) => 
       apiRequest("POST", "/api/groups", {
         ...data,
-        ownerId: "demo", // In real app, this would come from auth
+        ownerId: user?.id, // Use actual user ID from context
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
@@ -71,6 +73,14 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
   });
 
   const onSubmit = (data: GroupFormData) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a group.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsSubmitting(true);
     createGroupMutation.mutate(data);
   };
@@ -151,10 +161,10 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
         <div className="flex justify-end space-x-2 pt-4">
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || userLoading || !user}
             data-testid="button-submit-group"
           >
-            {isSubmitting ? "Creating..." : "Create Group"}
+            {isSubmitting ? "Creating..." : userLoading ? "Loading..." : "Create Group"}
           </Button>
         </div>
       </form>

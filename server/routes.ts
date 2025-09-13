@@ -50,12 +50,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Group routes
   app.get("/api/groups", async (req, res) => {
     try {
-      const userId = req.query.userId as string;
-      if (!userId) {
-        return res.status(400).json({ message: "User ID required" });
-      }
-      
-      const groups = await storage.getGroupsByUserId(userId);
+      // Use authenticated user from session
+      const user = await storage.createDemoUserIfNeeded();
+      const groups = await storage.getGroupsByUserId(user.id);
       res.json(groups);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -135,16 +132,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Event routes
   app.get("/api/events", async (req, res) => {
     try {
-      const userId = req.query.userId as string;
       const groupId = req.query.groupId as string;
       
       let events;
       if (groupId) {
         events = await storage.getEventsByGroupId(groupId);
-      } else if (userId) {
-        events = await storage.getEventsByUserId(userId);
       } else {
-        return res.status(400).json({ message: "User ID or Group ID required" });
+        // Use authenticated user from session
+        const user = await storage.createDemoUserIfNeeded();
+        events = await storage.getEventsByUserId(user.id);
       }
       
       res.json(events);
@@ -155,14 +151,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/events/upcoming", async (req, res) => {
     try {
-      const userId = req.query.userId as string;
       const limit = parseInt(req.query.limit as string) || 10;
       
-      if (!userId) {
-        return res.status(400).json({ message: "User ID required" });
-      }
-      
-      const events = await storage.getUpcomingEvents(userId, limit);
+      // Use authenticated user from session
+      const user = await storage.createDemoUserIfNeeded();
+      const events = await storage.getUpcomingEvents(user.id, limit);
       res.json(events);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -212,12 +205,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Financial goal routes
   app.get("/api/financial-goals", async (req, res) => {
     try {
-      const userId = req.query.userId as string;
-      if (!userId) {
-        return res.status(400).json({ message: "User ID required" });
-      }
-      
-      const goals = await storage.getFinancialGoalsByUserId(userId);
+      // Use authenticated user from session
+      const user = await storage.createDemoUserIfNeeded();
+      const goals = await storage.getFinancialGoalsByUserId(user.id);
       res.json(goals);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -267,17 +257,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Transaction routes
   app.get("/api/transactions", async (req, res) => {
     try {
-      const userId = req.query.userId as string;
       const goalId = req.query.goalId as string;
       const limit = parseInt(req.query.limit as string) || 50;
       
       let transactions;
       if (goalId) {
         transactions = await storage.getTransactionsByGoalId(goalId);
-      } else if (userId) {
-        transactions = await storage.getTransactionsByUserId(userId, limit);
       } else {
-        return res.status(400).json({ message: "User ID or Goal ID required" });
+        // Use authenticated user from session
+        const user = await storage.createDemoUserIfNeeded();
+        transactions = await storage.getTransactionsByUserId(user.id, limit);
       }
       
       res.json(transactions);

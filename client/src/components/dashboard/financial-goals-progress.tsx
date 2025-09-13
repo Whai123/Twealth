@@ -7,7 +7,7 @@ import { Lightbulb } from "lucide-react";
 export default function FinancialGoalsProgress() {
   const { data: goals, isLoading } = useQuery({
     queryKey: ["/api/financial-goals"],
-    queryFn: () => fetch("/api/financial-goals?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
   });
 
   if (isLoading) {

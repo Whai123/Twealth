@@ -7,7 +7,7 @@ import { Plus, Calendar } from "lucide-react";
 export default function UpcomingEvents() {
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events/upcoming"],
-    queryFn: () => fetch("/api/events/upcoming?userId=demo&limit=5").then(res => res.json()),
+    queryFn: () => fetch("/api/events/upcoming?limit=5").then(res => res.json()),
   });
 
   if (isLoading) {

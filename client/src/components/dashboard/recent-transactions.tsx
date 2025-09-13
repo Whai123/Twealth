@@ -27,7 +27,7 @@ const getTransactionColor = (type: string) => {
 export default function RecentTransactions() {
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions"],
-    queryFn: () => fetch("/api/transactions?userId=demo&limit=10").then(res => res.json()),
+    queryFn: () => fetch("/api/transactions?limit=10").then(res => res.json()),
   });
 
   if (isLoading) {

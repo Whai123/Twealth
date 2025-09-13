@@ -29,7 +29,7 @@ const getGroupColor = (status: string) => {
 export default function GroupsOverview() {
   const { data: groups, isLoading } = useQuery({
     queryKey: ["/api/groups"],
-    queryFn: () => fetch("/api/groups?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/groups").then(res => res.json()),
   });
 
   if (isLoading) {

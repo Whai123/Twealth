@@ -11,6 +11,7 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/userContext";
 
 const transactionFormSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be a valid positive number"),
@@ -57,10 +58,11 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isLoading: userLoading } = useUser();
 
   const { data: goals } = useQuery({
     queryKey: ["/api/financial-goals"],
-    queryFn: () => fetch("/api/financial-goals?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
   });
 
   const {
@@ -85,7 +87,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
     mutationFn: (data: TransactionFormData) => 
       apiRequest("POST", "/api/transactions", {
         ...data,
-        userId: "demo", // In real app, this would come from auth
+        userId: user?.id, // Use actual user ID from context
         amount: parseFloat(data.amount),
         date: new Date(data.date).toISOString(),
       }),
@@ -112,6 +114,15 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
   });
 
   const onSubmit = (data: TransactionFormData) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to add a transaction.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Validate date is not in the future
     if (new Date(data.date) > new Date()) {
       toast({

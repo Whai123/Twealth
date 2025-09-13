@@ -11,6 +11,7 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/userContext";
 
 const eventFormSchema = z.object({
   title: z.string().min(1, "Event title is required"),
@@ -31,10 +32,11 @@ export default function EventForm({ onSuccess }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isLoading: userLoading } = useUser();
 
   const { data: groups } = useQuery({
     queryKey: ["/api/groups"],
-    queryFn: () => fetch("/api/groups?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/groups").then(res => res.json()),
   });
 
   const {
@@ -57,7 +59,7 @@ export default function EventForm({ onSuccess }: EventFormProps) {
         ...data,
         startTime: new Date(data.startTime).toISOString(),
         endTime: new Date(data.endTime).toISOString(),
-        createdBy: "demo", // In real app, this would come from auth
+        createdBy: user?.id, // Use actual user ID from auth
         attendees: [],
       }),
     onSuccess: () => {
@@ -82,6 +84,15 @@ export default function EventForm({ onSuccess }: EventFormProps) {
   });
 
   const onSubmit = (data: EventFormData) => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create an event.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Validate end time is after start time
     if (new Date(data.endTime) <= new Date(data.startTime)) {
       toast({

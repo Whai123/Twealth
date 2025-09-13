@@ -10,15 +10,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import GroupForm from "@/components/forms/group-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUserId } from "@/lib/userContext";
 
 export default function Groups() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const userId = useUserId();
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ["/api/groups"],
-    queryFn: () => fetch("/api/groups?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/groups").then(res => res.json()),
   });
 
   const deleteGroupMutation = useMutation({

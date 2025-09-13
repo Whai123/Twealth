@@ -22,7 +22,7 @@ export default function MoneyTracking() {
 
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions", filterType, filterCategory, timeRange],
-    queryFn: () => fetch(`/api/transactions?userId=demo&limit=100`).then(res => res.json()),
+    queryFn: () => fetch(`/api/transactions?limit=100`).then(res => res.json()),
   });
 
   const { data: stats } = useQuery({

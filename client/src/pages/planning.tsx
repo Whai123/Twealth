@@ -22,12 +22,12 @@ export default function Planning() {
 
   const { data: goals } = useQuery({
     queryKey: ["/api/financial-goals"],
-    queryFn: () => fetch("/api/financial-goals?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
   });
 
   const { data: transactions } = useQuery({
     queryKey: ["/api/transactions"],
-    queryFn: () => fetch("/api/transactions?userId=demo&limit=100").then(res => res.json()),
+    queryFn: () => fetch("/api/transactions?limit=100").then(res => res.json()),
   });
 
   const { data: stats } = useQuery({

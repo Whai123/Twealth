@@ -11,6 +11,7 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/userContext";
 
 const goalFormSchema = z.object({
   title: z.string().min(1, "Goal title is required"),
@@ -43,6 +44,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isLoading: userLoading } = useUser();
 
   const {
     register,
@@ -63,7 +65,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
     mutationFn: (data: GoalFormData) => 
       apiRequest("POST", "/api/financial-goals", {
         ...data,
-        userId: "demo", // In real app, this would come from auth
+        userId: user?.id, // Use actual user ID from context
         targetAmount: parseFloat(data.targetAmount),
         currentAmount: data.currentAmount ? parseFloat(data.currentAmount) : 0,
         targetDate: new Date(data.targetDate).toISOString(),
@@ -112,6 +114,15 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a goal.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     createGoalMutation.mutate(data);
   };

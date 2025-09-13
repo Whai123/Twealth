@@ -18,7 +18,7 @@ export default function Calendar() {
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events"],
-    queryFn: () => fetch("/api/events?userId=demo").then(res => res.json()),
+    queryFn: () => fetch("/api/events").then(res => res.json()),
   });
 
   const navigateMonth = (direction: 'prev' | 'next') => {
