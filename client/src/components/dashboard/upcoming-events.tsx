@@ -1,0 +1,99 @@
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Plus, Calendar } from "lucide-react";
+
+export default function UpcomingEvents() {
+  const { data: events, isLoading } = useQuery({
+    queryKey: ["/api/events/upcoming"],
+    queryFn: () => fetch("/api/events/upcoming?userId=demo&limit=5").then(res => res.json()),
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="p-6 shadow-sm">
+        <div className="animate-pulse">
+          <div className="h-6 bg-muted rounded w-1/2 mb-6"></div>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="p-3 border rounded-lg">
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  const upcomingEvents = events || [];
+
+  return (
+    <Card className="p-6 shadow-sm">
+      <CardHeader className="p-0 mb-6">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
+          <Button variant="ghost" size="sm" data-testid="button-view-calendar">
+            View Calendar
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-0">
+        {upcomingEvents.length === 0 ? (
+          <div className="text-center py-8">
+            <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground mb-4">No upcoming events</p>
+            <Button data-testid="button-schedule-first-event">
+              <Plus size={16} className="mr-2" />
+              Schedule Event
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {upcomingEvents.slice(0, 3).map((event: any) => (
+              <div key={event.id} className="flex items-start space-x-3 p-3 rounded-lg border border-border">
+                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm text-foreground" data-testid={`text-event-${event.id}`}>
+                    {event.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    {event.groupId ? "Group Event" : "Personal"} • {new Date(event.startTime).toLocaleString()}
+                  </p>
+                  {event.attendees && event.attendees.length > 0 && (
+                    <div className="flex items-center mt-2 space-x-2">
+                      <div className="flex -space-x-1">
+                        {event.attendees.slice(0, 3).map((attendee: string, index: number) => (
+                          <Avatar key={index} className="w-6 h-6 border-2 border-background">
+                            <AvatarFallback className="text-xs">
+                              {attendee.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        ))}
+                        {event.attendees.length > 3 && (
+                          <Avatar className="w-6 h-6 border-2 border-background">
+                            <AvatarFallback className="text-xs">
+                              +{event.attendees.length - 3}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button variant="outline" className="w-full mt-4" data-testid="button-schedule-new-event">
+          <Plus size={16} className="mr-2" />
+          Schedule New Event
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
