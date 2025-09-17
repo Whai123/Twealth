@@ -14,13 +14,15 @@ export default function Dashboard() {
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Manage your schedule and finances</p>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              🚀 Twealth Dashboard
+            </h1>
+            <p className="text-muted-foreground font-medium">AI-powered wealth building & collaborative planning</p>
           </div>
           <div className="flex items-center space-x-4">
-            <Button className="hidden sm:flex" data-testid="button-new-goal">
+            <Button className="hidden sm:flex bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" data-testid="button-new-goal">
               <Plus size={16} className="mr-2" />
-              New Goal
+              💰 New Wealth Goal
             </Button>
             <Button variant="outline" size="icon" data-testid="button-notifications">
               <Bell size={16} />
