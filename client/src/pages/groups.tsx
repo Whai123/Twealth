@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import GroupForm from "@/components/forms/group-form";
+import EventForm from "@/components/forms/event-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserId } from "@/lib/userContext";
@@ -97,8 +98,8 @@ export default function Groups() {
                 🎯 Create Event
               </Button>
             </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <GroupForm onSuccess={() => setIsCreateDialogOpen(false)} />
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
           </DialogContent>
         </Dialog>
         </div>
@@ -152,8 +153,8 @@ export default function Groups() {
                 🚀 Create Your First Event
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <GroupForm onSuccess={() => setIsCreateDialogOpen(false)} />
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+              <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
