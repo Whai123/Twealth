@@ -83,7 +83,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/groups/:id", async (req, res) => {
     try {
-      const group = await storage.updateGroup(req.params.id, req.body);
+      const updateData = insertGroupSchema.partial().parse(req.body);
+      const group = await storage.updateGroup(req.params.id, updateData);
       res.json(group);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -193,7 +194,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/events/:id", async (req, res) => {
     try {
-      const event = await storage.updateEvent(req.params.id, req.body);
+      // Convert string dates to Date objects for validation if present
+      const eventData = {
+        ...req.body,
+        ...(req.body.startTime && { startTime: new Date(req.body.startTime) }),
+        ...(req.body.endTime && { endTime: new Date(req.body.endTime) }),
+      };
+      
+      const updateData = insertEventSchema.partial().parse(eventData);
+      const event = await storage.updateEvent(req.params.id, updateData);
       res.json(event);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -245,7 +254,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/financial-goals/:id", async (req, res) => {
     try {
-      const goal = await storage.updateFinancialGoal(req.params.id, req.body);
+      // Convert string date to Date object for validation if present
+      const goalData = {
+        ...req.body,
+        ...(req.body.targetDate && { targetDate: new Date(req.body.targetDate) }),
+      };
+      
+      const updateData = insertFinancialGoalSchema.partial().parse(goalData);
+      const goal = await storage.updateFinancialGoal(req.params.id, updateData);
       res.json(goal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -306,7 +322,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/transactions/:id", async (req, res) => {
     try {
-      const transaction = await storage.updateTransaction(req.params.id, req.body);
+      // Convert string date to Date object for validation if present
+      const transactionData = {
+        ...req.body,
+        ...(req.body.date && { date: new Date(req.body.date) }),
+      };
+      
+      const updateData = insertTransactionSchema.partial().parse(transactionData);
+      const transaction = await storage.updateTransaction(req.params.id, updateData);
       res.json(transaction);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

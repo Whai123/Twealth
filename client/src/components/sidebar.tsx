@@ -31,7 +31,7 @@ export default function Sidebar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <CalendarX2 className="text-primary-foreground" size={16} />
           </div>
-          <span className="font-bold text-lg text-foreground">ScheduleMoney</span>
+          <span className="font-bold text-lg text-foreground">Twealth</span>
         </div>
       </div>
       
@@ -42,9 +42,9 @@ export default function Sidebar() {
             return (
               <li key={item.name}>
                 <Link href={item.href}>
-                  <a
+                  <div
                     className={cn(
-                      "flex items-center space-x-3 px-3 py-2 rounded-md transition-colors",
+                      "flex items-center space-x-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
                       isActive
                         ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -53,7 +53,7 @@ export default function Sidebar() {
                   >
                     <item.icon size={20} />
                     <span>{item.name}</span>
-                  </a>
+                  </div>
                 </Link>
               </li>
             );
