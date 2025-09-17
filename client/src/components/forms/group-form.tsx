@@ -121,7 +121,7 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
             {...register("description")}
             placeholder="Enter group description"
             rows={3}
-            data-testid="input-group-description"
+            data-testid="textarea-group-description"
           />
         </div>
 

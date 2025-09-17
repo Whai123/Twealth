@@ -1,0 +1,35 @@
+🌍 Twealth – AI Platform for the Future of Work & Wealth
+1. Problem
+AI is increasingly replacing a large number of jobs.
+Freelancers, SMEs, and the general public lack the tools to use AI to generate income and secure financial stability.
+Existing AI platforms are mostly expensive, complex, and not localized for the Asian/Thai market.
+2. Solution
+Twealth = AI + Wealth Platform
+AI Tools Marketplace – A curated marketplace of easy-to-use AI tools for businesses and individuals.
+Wealth Hub – Personal finance and investment management system with AI-driven financial guidance.
+Community + Learning – Build a community and offer courses to teach people how to earn with AI.
+Freemium Model – Free basic features, with paid Pro features (e.g., AI Automation, Advanced Investment Insights).
+3. Market Opportunity
+AI & Automation market in Southeast Asia: $10B+ (growing 30% per year)
+Personal Finance & WealthTech in Thailand: over $1.5B and still growing
+Pain Point: Workers, SMEs, and individual investors need simple, affordable, and practical tools.
+4. Business Model
+Subscription – Pro Plan starting at 299–499 THB/month
+Commission – Take a cut from the marketplace (AI Tools, Financial Services)
+Premium Courses – Courses teaching AI & investment strategies
+Enterprise Plan – For businesses or organizations needing AI automation
+5. Competitive Advantage
+Localized for Thai/Asian markets (Thai language + financial insights tailored to the market)
+All-in-one solution (AI Tools + Wealth + Community) in a single platform
+Accessible, affordable, and practical for real-life application
+6. Traction
+MVP (first 6 months) → Free + Pro version launch
+Year 1 → 5,000 users, 500 Pro users, revenue ~3M THB
+Year 3 → 100,000 users, revenue >100M THB, preparing to expand across SEA
+7. Financials
+MVP Development: 500K–1M THB
+ROI: Break-even in 18–24 months (from subscriptions + commissions)
+Long-term Margin: >70% (Digital Product, Low OPEX)
+8. Call to Action
+Twealth combines AI + Finance + Community → enabling people to survive, grow, and thrive in a world dominated by AI.
+💡 We’re not just building a platform; we’re creating the infrastructure for future financial prosperity.
