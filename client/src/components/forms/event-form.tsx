@@ -62,17 +62,15 @@ export default function EventForm({ onSuccess }: EventFormProps) {
 
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
-      return apiRequest("/api/events", {
-        method: "POST",
-        body: JSON.stringify({
-          ...data,
-          startTime: new Date(data.startTime).toISOString(),
-          endTime: new Date(data.endTime).toISOString(),
-          createdBy: user?.id,
-          attendees: [],
-          groupId: data.groupId === "personal" ? null : data.groupId,
-        }),
+      const response = await apiRequest("POST", "/api/events", {
+        ...data,
+        startTime: new Date(data.startTime),
+        endTime: new Date(data.endTime),
+        createdBy: user?.id,
+        attendees: [],
+        groupId: data.groupId === "personal" ? null : data.groupId,
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
