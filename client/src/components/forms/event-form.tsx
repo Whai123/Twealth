@@ -258,12 +258,12 @@ export default function EventForm({ onSuccess }: EventFormProps) {
 
         <div>
           <Label htmlFor="groupId">Group (Optional)</Label>
-          <Select value={watch("groupId") || ""} onValueChange={(value) => setValue("groupId", value || undefined)}>
+          <Select value={watch("groupId") || "personal"} onValueChange={(value) => setValue("groupId", value === "personal" ? undefined : value)}>
             <SelectTrigger data-testid="select-event-group">
               <SelectValue placeholder="Select a group (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Personal Event</SelectItem>
+              <SelectItem value="personal">Personal Event</SelectItem>
               {groups?.map((group: any) => (
                 <SelectItem key={group.id} value={group.id}>
                   {group.name}
