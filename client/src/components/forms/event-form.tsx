@@ -22,9 +22,6 @@ const eventFormSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
   location: z.string().max(200, "Location too long").optional(),
-  category: z.enum(["finance", "business", "networking", "education", "social", "other"]).default("business"),
-  priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-  maxAttendees: z.number().min(1, "At least 1 attendee").max(1000, "Too many attendees").optional(),
   groupId: z.string().optional(),
 });
 
@@ -59,21 +56,24 @@ export default function EventForm({ onSuccess }: EventFormProps) {
       startTime: new Date().toISOString().slice(0, 16),
       endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
       location: "",
-      category: "business",
-      priority: "medium",
-      maxAttendees: 50,
+      groupId: undefined,
     },
   });
 
   const createEventMutation = useMutation({
-    mutationFn: (data: EventFormData) => 
-      apiRequest("POST", "/api/events", {
-        ...data,
-        startTime: new Date(data.startTime).toISOString(),
-        endTime: new Date(data.endTime).toISOString(),
-        createdBy: user?.id,
-        attendees: [],
-      }),
+    mutationFn: async (data: EventFormData) => {
+      return apiRequest("/api/events", {
+        method: "POST",
+        body: JSON.stringify({
+          ...data,
+          startTime: new Date(data.startTime).toISOString(),
+          endTime: new Date(data.endTime).toISOString(),
+          createdBy: user?.id,
+          attendees: [],
+          groupId: data.groupId === "personal" ? null : data.groupId,
+        }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
@@ -120,26 +120,6 @@ export default function EventForm({ onSuccess }: EventFormProps) {
     createEventMutation.mutate(data);
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case "finance": return "💰";
-      case "business": return "🏢";
-      case "networking": return "🤝";
-      case "education": return "📚";
-      case "social": return "🎉";
-      default: return "📅";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "critical": return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200";
-      case "high": return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-200";
-      case "medium": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200";
-      case "low": return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-200";
-      default: return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200";
-    }
-  };
 
   return (
     <div className="max-w-2xl mx-auto">
