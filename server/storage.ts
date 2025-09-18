@@ -35,6 +35,15 @@ import { randomBytes } from "crypto";
 // Safe user type without password
 export type SafeUser = Omit<User, 'password'>;
 
+// Event with group information for calendar display
+export type EventWithGroup = Event & {
+  group?: {
+    id: string;
+    name: string;
+    color: string;
+  } | null;
+};
+
 export interface IStorage {
   // User methods
   getUser(id: string): Promise<SafeUser | undefined>;
@@ -60,6 +69,7 @@ export interface IStorage {
   getEvent(id: string): Promise<Event | undefined>;
   getEventsByUserId(userId: string): Promise<Event[]>;
   getEventsByGroupId(groupId: string): Promise<Event[]>;
+  getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]>;
   getUpcomingEvents(userId: string, limit?: number): Promise<Event[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, updates: Partial<Event>): Promise<Event>;
@@ -263,6 +273,108 @@ export class DatabaseStorage implements IStorage {
   async getEventsByGroupId(groupId: string): Promise<Event[]> {
     return await db.select().from(events).where(eq(events.groupId, groupId));
   }
+
+  async getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]> {
+    // Get personal events (events created by the user with no group)
+    const personalEvents = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        startTime: events.startTime,
+        endTime: events.endTime,
+        location: events.location,
+        groupId: events.groupId,
+        createdBy: events.createdBy,
+        attendees: events.attendees,
+        status: events.status,
+        createdAt: events.createdAt,
+        groupName: sql<string | null>`NULL`,
+        groupColor: sql<string | null>`NULL`,
+      })
+      .from(events)
+      .where(and(eq(events.createdBy, userId), sql`group_id IS NULL`));
+
+    // Get group events (events from groups the user belongs to)
+    const groupEvents = await db
+      .select({
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        startTime: events.startTime,
+        endTime: events.endTime,
+        location: events.location,
+        groupId: events.groupId,
+        createdBy: events.createdBy,
+        attendees: events.attendees,
+        status: events.status,
+        createdAt: events.createdAt,
+        groupName: groups.name,
+        groupColor: groups.color,
+      })
+      .from(events)
+      .innerJoin(groups, eq(events.groupId, groups.id))
+      .innerJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+      .where(eq(groupMembers.userId, userId));
+
+    // Combine and format the results
+    const combinedEvents: EventWithGroup[] = [
+      ...personalEvents.map(event => ({
+        ...event,
+        group: null as null,
+      })),
+      ...groupEvents.map(event => ({
+        ...event,
+        group: event.groupName && event.groupColor ? {
+          id: event.groupId!,
+          name: event.groupName,
+          color: event.groupColor,
+        } : null,
+      }))
+    ];
+
+    return combinedEvents;
+  }
+
+  async getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]> {
+    // Get events created by user (personal events) and events from groups the user belongs to
+    const eventsWithGroups = await db
+      .select({
+        // Event fields
+        id: events.id,
+        title: events.title,
+        description: events.description,
+        startTime: events.startTime,
+        endTime: events.endTime,
+        location: events.location,
+        groupId: events.groupId,
+        createdBy: events.createdBy,
+        attendees: events.attendees,
+        status: events.status,
+        createdAt: events.createdAt,
+        // Group fields (will be null for personal events)
+        groupName: groups.name,
+        groupColor: groups.color,
+      })
+      .from(events)
+      .leftJoin(groups, eq(events.groupId, groups.id))
+      .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
+      .where(
+        // User can see events if:
+        // 1. They created the event (personal event)
+        // 2. They are a member of the group that owns the event
+        sql`${events.createdBy} = ${userId} OR ${groupMembers.userId} = ${userId}`
+      );
+
+    // Transform to EventWithGroup format
+    const uniqueEvents = new Map<string, EventWithGroup>();
+    
+    for (const row of eventsWithGroups) {
+      if (!uniqueEvents.has(row.id)) {
+        uniqueEvents.set(row.id, {
+          id: row.id,
+          title: row.title,
+          description: row.de
 
   async getUpcomingEvents(userId: string, limit: number = 10): Promise<Event[]> {
     return await db
