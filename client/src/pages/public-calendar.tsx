@@ -20,15 +20,7 @@ export default function PublicCalendar() {
 
   // Fetch shared calendar events
   const { data: events, isLoading, error } = useQuery({
-    queryKey: [`/api/public/calendar/${token}`],
-    queryFn: () => fetch(`/api/public/calendar/${token}`, {
-      credentials: "include"
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error("Calendar not found or expired");
-      }
-      return res.json();
-    }),
+    queryKey: ['/api/public/calendar', token],
     enabled: !!token,
   });
 
@@ -62,7 +54,7 @@ export default function PublicCalendar() {
   };
 
   const getEventsForDate = (date: Date) => {
-    if (!events) return [];
+    if (!events || !Array.isArray(events)) return [];
     return events.filter((event: any) => {
       const eventDate = new Date(event.startTime);
       return eventDate.toDateString() === date.toDateString();
@@ -245,7 +237,7 @@ export default function PublicCalendar() {
                   </div>
                 ))}
               </div>
-            ) : events && events.length > 0 ? (
+            ) : events && Array.isArray(events) && events.length > 0 ? (
               <div className="space-y-4">
                 {events
                   .filter((event: any) => new Date(event.startTime) > new Date())

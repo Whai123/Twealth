@@ -32,12 +32,10 @@ export default function Calendar() {
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events"],
-    queryFn: () => fetch("/api/events").then(res => res.json()),
   });
 
   const { data: groups } = useQuery({
     queryKey: ["/api/groups"],
-    queryFn: () => fetch("/api/groups").then(res => res.json()),
   });
 
   const { data: eventFinancials } = useQuery({
@@ -65,6 +63,8 @@ export default function Calendar() {
         description: "The share link has been copied to your clipboard.",
       });
       setIsShareDialogOpen(false);
+      // Invalidate calendar shares cache
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/shares"] });
     },
     onError: (error: any) => {
       toast({
@@ -124,7 +124,7 @@ export default function Calendar() {
   };
 
   const getEventsForDate = (date: Date) => {
-    if (!events) return [];
+    if (!events || !Array.isArray(events)) return [];
     return events.filter((event: any) => {
       const eventDate = new Date(event.startTime);
       return eventDate.toDateString() === date.toDateString();
@@ -204,7 +204,7 @@ export default function Calendar() {
                         <SelectValue placeholder="Choose a group..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {groups?.map((group: any) => (
+                        {(groups as any[])?.map((group: any) => (
                           <SelectItem key={group.id} value={group.id}>
                             <div className="flex items-center">
                               <div 
@@ -452,7 +452,7 @@ export default function Calendar() {
                 </div>
               ))}
             </div>
-          ) : events && events.length > 0 ? (
+          ) : events && Array.isArray(events) && events.length > 0 ? (
             <div className="space-y-4">
               {events
                 .filter((event: any) => new Date(event.startTime) > new Date())
