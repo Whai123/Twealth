@@ -70,7 +70,7 @@ export default function PublicCalendar() {
   };
 
   const handleDownloadICS = () => {
-    const icsUrl = `/api/public/calendar/${token}.ics`;
+    const icsUrl = `/api/public/calendar/${token}/ics`;
     const link = document.createElement('a');
     link.href = icsUrl;
     link.download = 'calendar.ics';

@@ -466,9 +466,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/public/calendar/:token.ics", async (req, res) => {
+  app.get("/api/public/calendar/:token/ics", async (req, res) => {
+    const token = req.params.token;
     try {
-      const events = await storage.getEventsForShare(req.params.token);
+      const events = await storage.getEventsForShare(token);
       
       // Generate ICS content
       const icsLines = [

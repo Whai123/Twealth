@@ -96,7 +96,7 @@ export default function Groups() {
       return await response.json();
     },
     onSuccess: (data: any) => {
-      const shareUrl = `${window.location.origin}/public/calendar/${data.share.token}`;
+      const shareUrl = `${window.location.origin}/shared/calendar/${data.share.token}`;
       navigator.clipboard.writeText(shareUrl);
       toast({
         title: "Calendar shared successfully!",

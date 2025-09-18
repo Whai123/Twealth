@@ -18,13 +18,13 @@ function Router() {
   const [location] = useLocation();
   
   // Public routes that don't need sidebar
-  const isPublicRoute = location.startsWith('/public/');
+  const isPublicRoute = location.startsWith('/shared/');
   
   if (isPublicRoute) {
     return (
       <main className="min-h-screen">
         <Switch>
-          <Route path="/public/calendar/:token" component={PublicCalendar} />
+          <Route path="/shared/calendar/:token" component={PublicCalendar} />
           <Route component={NotFound} />
         </Switch>
       </main>
