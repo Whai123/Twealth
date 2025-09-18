@@ -41,7 +41,7 @@ export const events = pgTable("events", {
   location: text("location"),
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
   createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
-  attendees: jsonb("attendees").default([]), // array of user IDs
+  attendees: jsonb("attendees").default([]), // array of {userId: string, status: 'yes'|'no'|'maybe'}
   status: text("status").default("scheduled"), // scheduled, completed, cancelled
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -161,6 +161,14 @@ export const insertCalendarShareSchema = createInsertSchema(calendarShares).omit
 }, {
   message: "scope='user' requires userId only, scope='group' requires groupId only",
 });
+
+// Event attendee schema for type consistency
+export const eventAttendeeSchema = z.object({
+  userId: z.string(),
+  status: z.enum(["yes", "no", "maybe"]),
+});
+
+export type EventAttendee = z.infer<typeof eventAttendeeSchema>;
 
 // Types
 export type User = typeof users.$inferSelect;

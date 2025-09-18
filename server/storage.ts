@@ -13,17 +13,24 @@ import {
   type InsertTransaction,
   type GoalContribution,
   type InsertGoalContribution,
+  type GroupInvite,
+  type InsertGroupInvite,
+  type CalendarShare,
+  type InsertCalendarShare,
   users,
   groups,
   groupMembers,
   events,
   financialGoals,
   transactions,
-  goalContributions
+  goalContributions,
+  groupInvites,
+  calendarShares
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
 import bcrypt from "bcrypt";
+import { randomBytes } from "crypto";
 
 // Safe user type without password
 export type SafeUser = Omit<User, 'password'>;
@@ -85,6 +92,20 @@ export interface IStorage {
     upcomingEvents: number;
   }>;
 
+  // Group invite methods
+  createGroupInvite(invite: InsertGroupInvite): Promise<{ invite: GroupInvite; inviteUrl: string }>;
+  getGroupInviteByToken(token: string): Promise<GroupInvite | undefined>;
+  acceptGroupInvite(token: string, userId: string): Promise<GroupMember>;
+  revokeGroupInvite(token: string): Promise<void>;
+
+  // Calendar share methods  
+  createCalendarShare(share: InsertCalendarShare): Promise<{ share: CalendarShare; shareUrl: string }>;
+  getCalendarShareByToken(token: string): Promise<CalendarShare | undefined>;
+  getEventsForShare(token: string): Promise<Event[]>;
+
+  // RSVP methods
+  updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event>;
+  
   // Utility methods for user management
   getFirstUser(): Promise<SafeUser | undefined>;
   createDemoUserIfNeeded(): Promise<SafeUser>;
@@ -174,6 +195,14 @@ export class DatabaseStorage implements IStorage {
         status: insertGroup.status || "active",
       })
       .returning();
+    
+    // Auto-add owner as admin member
+    await this.addGroupMember({
+      groupId: group.id,
+      userId: group.ownerId,
+      role: "admin",
+    });
+    
     return group;
   }
 
@@ -454,6 +483,157 @@ export class DatabaseStorage implements IStorage {
       });
     }
     return user;
+  }
+
+  // Helper method to generate secure tokens
+  private generateToken(): string {
+    return randomBytes(32).toString('hex');
+  }
+
+  // Group invite methods
+  async createGroupInvite(insertInvite: InsertGroupInvite): Promise<{ invite: GroupInvite; inviteUrl: string }> {
+    const token = this.generateToken();
+    
+    const [invite] = await db
+      .insert(groupInvites)
+      .values({
+        ...insertInvite,
+        token,
+      })
+      .returning();
+
+    const inviteUrl = `/invite/${token}`;
+    return { invite, inviteUrl };
+  }
+
+  async getGroupInviteByToken(token: string): Promise<GroupInvite | undefined> {
+    const [invite] = await db
+      .select()
+      .from(groupInvites)
+      .where(and(
+        eq(groupInvites.token, token),
+        gte(groupInvites.expiresAt, new Date()),
+        // Only return invites that haven't been accepted (single-use)
+        sql`${groupInvites.acceptedBy} IS NULL`
+      ));
+    return invite || undefined;
+  }
+
+  async acceptGroupInvite(token: string, userId: string): Promise<GroupMember> {
+    // Atomically consume the invite token (prevents race conditions)
+    const updatedInvites = await db
+      .update(groupInvites)
+      .set({
+        acceptedBy: userId,
+        acceptedAt: new Date(),
+      })
+      .where(and(
+        eq(groupInvites.token, token),
+        gte(groupInvites.expiresAt, new Date()),
+        sql`${groupInvites.acceptedBy} IS NULL`
+      ))
+      .returning();
+
+    if (updatedInvites.length === 0) {
+      throw new Error("Invalid, expired, or already used invite");
+    }
+
+    const invite = updatedInvites[0];
+
+    // Check if user is already a member
+    const existingMembership = await db
+      .select()
+      .from(groupMembers)
+      .where(and(
+        eq(groupMembers.groupId, invite.groupId),
+        eq(groupMembers.userId, userId)
+      ));
+
+    if (existingMembership.length > 0) {
+      throw new Error("User is already a member of this group");
+    }
+
+    // Add user to group
+    const member = await this.addGroupMember({
+      groupId: invite.groupId,
+      userId,
+      role: invite.role || "member",
+    });
+
+    return member;
+  }
+
+  async revokeGroupInvite(token: string): Promise<void> {
+    await db.delete(groupInvites).where(eq(groupInvites.token, token));
+  }
+
+  // Calendar share methods
+  async createCalendarShare(insertShare: InsertCalendarShare): Promise<{ share: CalendarShare; shareUrl: string }> {
+    const token = this.generateToken();
+    
+    const [share] = await db
+      .insert(calendarShares)
+      .values({
+        ...insertShare,
+        token,
+      })
+      .returning();
+
+    const shareUrl = `/public/calendar/${token}`;
+    return { share, shareUrl };
+  }
+
+  async getCalendarShareByToken(token: string): Promise<CalendarShare | undefined> {
+    const [share] = await db
+      .select()
+      .from(calendarShares)
+      .where(eq(calendarShares.token, token));
+    
+    // Check if share exists and not expired
+    if (!share) return undefined;
+    if (share.expiresAt && new Date() > share.expiresAt) return undefined;
+    
+    return share;
+  }
+
+  async getEventsForShare(token: string): Promise<Event[]> {
+    const share = await this.getCalendarShareByToken(token);
+    if (!share) {
+      throw new Error("Invalid or expired share token");
+    }
+
+    if (share.scope === "user" && share.userId) {
+      return await this.getEventsByUserId(share.userId);
+    } else if (share.scope === "group" && share.groupId) {
+      return await this.getEventsByGroupId(share.groupId);
+    }
+
+    return [];
+  }
+
+  // RSVP methods
+  async updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event> {
+    const event = await this.getEvent(eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    // Parse current attendees
+    let attendees = Array.isArray(event.attendees) ? event.attendees : [];
+    
+    // Find existing RSVP
+    const existingIndex = attendees.findIndex((a: any) => a.userId === userId);
+    
+    if (existingIndex >= 0) {
+      // Update existing RSVP
+      attendees[existingIndex] = { userId, status };
+    } else {
+      // Add new RSVP
+      attendees.push({ userId, status });
+    }
+
+    // Update event with new attendees
+    return await this.updateEvent(eventId, { attendees });
   }
 }
 
