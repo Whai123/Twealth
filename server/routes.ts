@@ -427,6 +427,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Calendar share routes
+  app.get("/api/calendar/shares", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const shares = await storage.getCalendarSharesByUserId(user.id);
+      res.json(shares);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/calendar/shares", async (req, res) => {
     try {
       const user = await storage.createDemoUserIfNeeded();
@@ -447,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Public calendar access routes
-  app.get("/public/calendar/:token", async (req, res) => {
+  app.get("/api/public/calendar/:token", async (req, res) => {
     try {
       const events = await storage.getEventsForShare(req.params.token);
       res.json(events);
@@ -456,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/public/calendar/:token.ics", async (req, res) => {
+  app.get("/api/public/calendar/:token.ics", async (req, res) => {
     try {
       const events = await storage.getEventsForShare(req.params.token);
       

@@ -28,7 +28,7 @@ import {
   calendarShares
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, sql } from "drizzle-orm";
+import { eq, and, desc, gte, sql, or, exists } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 
@@ -336,64 +336,6 @@ export class DatabaseStorage implements IStorage {
     return combinedEvents;
   }
 
-  async getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]> {
-    // Get events created by user (personal events) and events from groups the user belongs to
-    const eventsWithGroups = await db
-      .select({
-        // Event fields
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        startTime: events.startTime,
-        endTime: events.endTime,
-        location: events.location,
-        groupId: events.groupId,
-        createdBy: events.createdBy,
-        attendees: events.attendees,
-        status: events.status,
-        createdAt: events.createdAt,
-        // Group fields (will be null for personal events)
-        groupName: groups.name,
-        groupColor: groups.color,
-      })
-      .from(events)
-      .leftJoin(groups, eq(events.groupId, groups.id))
-      .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-      .where(
-        // User can see events if:
-        // 1. They created the event (personal event)
-        // 2. They are a member of the group that owns the event
-        sql`${events.createdBy} = ${userId} OR ${groupMembers.userId} = ${userId}`
-      );
-
-    // Transform to EventWithGroup format
-    const uniqueEvents = new Map<string, EventWithGroup>();
-    
-    for (const row of eventsWithGroups) {
-      if (!uniqueEvents.has(row.id)) {
-        uniqueEvents.set(row.id, {
-          id: row.id,
-          title: row.title,
-          description: row.description,
-          startTime: row.startTime,
-          endTime: row.endTime,
-          location: row.location,
-          groupId: row.groupId,
-          createdBy: row.createdBy,
-          attendees: row.attendees,
-          status: row.status,
-          createdAt: row.createdAt,
-          group: row.groupName && row.groupColor ? {
-            id: row.groupId!,
-            name: row.groupName,
-            color: row.groupColor,
-          } : null,
-        });
-      }
-    }
-
-    return Array.from(uniqueEvents.values());
-  }
 
   async getUpcomingEvents(userId: string, limit: number = 10): Promise<Event[]> {
     return await db
@@ -725,6 +667,29 @@ export class DatabaseStorage implements IStorage {
     if (share.expiresAt && new Date() > share.expiresAt) return undefined;
     
     return share;
+  }
+
+  async getCalendarSharesByUserId(userId: string): Promise<CalendarShare[]> {
+    const shares = await db
+      .select()
+      .from(calendarShares)
+      .where(
+        or(
+          eq(calendarShares.userId, userId),
+          // Also include shares for groups the user owns or is admin of
+          exists(
+            db.select().from(groupMembers)
+              .where(and(
+                eq(groupMembers.groupId, calendarShares.groupId!),
+                eq(groupMembers.userId, userId),
+                // User must be owner or admin to see group shares
+                sql`${groupMembers.role} IN ('owner', 'admin')`
+              ))
+          )
+        )
+      );
+    
+    return shares;
   }
 
   async getEventsForShare(token: string): Promise<Event[]> {
