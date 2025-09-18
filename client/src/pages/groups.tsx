@@ -20,9 +20,11 @@ import { useUserId } from "@/lib/userContext";
 export default function Groups() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [calendarShareDialogOpen, setCalendarShareDialogOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [inviteRole, setInviteRole] = useState<string>("member");
   const [inviteExpiry, setInviteExpiry] = useState<string>("7");
+  const [calendarShareExpiry, setCalendarShareExpiry] = useState<string>("30");
   const [generatedInvite, setGeneratedInvite] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -82,6 +84,35 @@ export default function Groups() {
     },
   });
 
+  const createCalendarShareMutation = useMutation({
+    mutationFn: async ({ groupId, expiry }: { groupId: string; expiry: string }) => {
+      const expiryDays = parseInt(expiry);
+      const expiresAt = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+      const response = await apiRequest('POST', '/api/calendar/shares', {
+        scope: 'group',
+        groupId,
+        expiresAt,
+      });
+      return await response.json();
+    },
+    onSuccess: (data: any) => {
+      const shareUrl = `${window.location.origin}/public/calendar/${data.share.token}`;
+      navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Calendar shared successfully!",
+        description: "The calendar share link has been copied to your clipboard.",
+      });
+      setCalendarShareDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error creating calendar share",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const rsvpMutation = useMutation({
     mutationFn: ({ eventId, status }: { eventId: string; status: string }) =>
       apiRequest("POST", `/api/events/${eventId}/rsvp`, { status }),
@@ -113,12 +144,26 @@ export default function Groups() {
     setInviteDialogOpen(true);
   };
 
+  const handleCreateCalendarShare = (groupId: string) => {
+    setSelectedGroupId(groupId);
+    setCalendarShareDialogOpen(true);
+  };
+
   const handleGenerateInvite = () => {
     if (selectedGroupId) {
       createInviteMutation.mutate({
         groupId: selectedGroupId,
         role: inviteRole,
         expiry: inviteExpiry,
+      });
+    }
+  };
+
+  const handleGenerateCalendarShare = () => {
+    if (selectedGroupId) {
+      createCalendarShareMutation.mutate({
+        groupId: selectedGroupId,
+        expiry: calendarShareExpiry,
       });
     }
   };
@@ -342,6 +387,10 @@ export default function Groups() {
                           <DropdownMenuItem onClick={() => handleCreateInvite(group.id)}>
                             <UserPlus size={16} className="mr-2" />
                             Create Invite Link
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCreateCalendarShare(group.id)}>
+                            <Calendar size={16} className="mr-2" />
+                            Share Group Calendar
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive"
@@ -588,6 +637,49 @@ export default function Groups() {
                 </Button>
               </>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Calendar Share Dialog */}
+      <Dialog open={calendarShareDialogOpen} onOpenChange={setCalendarShareDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Group Calendar</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="calendar-expiry">Link expires in</Label>
+              <Select value={calendarShareExpiry} onValueChange={setCalendarShareExpiry}>
+                <SelectTrigger data-testid="select-calendar-expiry">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 days</SelectItem>
+                  <SelectItem value="30">30 days</SelectItem>
+                  <SelectItem value="90">3 months</SelectItem>
+                  <SelectItem value="365">1 year</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={handleGenerateCalendarShare} 
+              disabled={createCalendarShareMutation.isPending}
+              className="w-full"
+              data-testid="button-generate-calendar-share"
+            >
+              {createCalendarShareMutation.isPending ? (
+                <>
+                  <Clock size={16} className="mr-2 animate-spin" />
+                  Creating Share Link...
+                </>
+              ) : (
+                <>
+                  <Calendar size={16} className="mr-2" />
+                  Generate Calendar Share Link
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
