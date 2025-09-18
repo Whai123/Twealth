@@ -7,7 +7,10 @@ import {
   insertGroupMemberSchema,
   insertEventSchema,
   insertFinancialGoalSchema,
-  insertTransactionSchema
+  insertTransactionSchema,
+  insertGroupInviteSchema,
+  insertCalendarShareSchema,
+  eventAttendeeSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -130,6 +133,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Group invite routes
+  app.post("/api/groups/:id/invites", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const inviteData = {
+        ...req.body,
+        groupId: req.params.id,
+        createdBy: user.id,
+        expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
+      };
+      
+      const validatedData = insertGroupInviteSchema.parse(inviteData);
+      const result = await storage.createGroupInvite(validatedData);
+      res.status(201).json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/invites/:token", async (req, res) => {
+    try {
+      const invite = await storage.getGroupInviteByToken(req.params.token);
+      if (!invite) {
+        return res.status(404).json({ message: "Invalid or expired invite" });
+      }
+      
+      // Return invite metadata without sensitive information
+      const group = await storage.getGroup(invite.groupId);
+      res.json({
+        id: invite.id,
+        group: {
+          id: group?.id,
+          name: group?.name,
+          description: group?.description,
+        },
+        role: invite.role,
+        expiresAt: invite.expiresAt,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/invites/:token/accept", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const member = await storage.acceptGroupInvite(req.params.token, user.id);
+      res.status(201).json(member);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/invites/:token", async (req, res) => {
+    try {
+      await storage.revokeGroupInvite(req.params.token);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Event routes
   app.get("/api/events", async (req, res) => {
     try {
@@ -215,6 +280,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // RSVP routes
+  app.post("/api/events/:id/rsvp", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      
+      // Validate RSVP data using Zod schema
+      const rsvpSchema = eventAttendeeSchema.pick({ status: true });
+      const { status } = rsvpSchema.parse(req.body);
+      
+      const event = await storage.updateEventRSVP(req.params.id, user.id, status);
+      res.json(event);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 
@@ -342,6 +423,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Calendar share routes
+  app.post("/api/calendar/shares", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const shareData = {
+        ...req.body,
+        // If scope is user and no userId provided, use current user
+        ...(req.body.scope === "user" && !req.body.userId && { userId: user.id }),
+        // Set default expiry to 30 days if not provided
+        ...(req.body.expiresAt ? { expiresAt: new Date(req.body.expiresAt) } : { expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
+      };
+      
+      const validatedData = insertCalendarShareSchema.parse(shareData);
+      const result = await storage.createCalendarShare(validatedData);
+      res.status(201).json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Public calendar access routes
+  app.get("/public/calendar/:token", async (req, res) => {
+    try {
+      const events = await storage.getEventsForShare(req.params.token);
+      res.json(events);
+    } catch (error: any) {
+      res.status(404).json({ message: error.message });
+    }
+  });
+
+  app.get("/public/calendar/:token.ics", async (req, res) => {
+    try {
+      const events = await storage.getEventsForShare(req.params.token);
+      
+      // Generate ICS content
+      const icsLines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//ScheduleMoney//EN",
+        "CALSCALE:GREGORIAN",
+        "METHOD:PUBLISH",
+      ];
+
+      for (const event of events) {
+        const startDate = new Date(event.startTime).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const endDate = new Date(event.endTime).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const uid = `${event.id}@schedulmoney.app`;
+        
+        icsLines.push(
+          "BEGIN:VEVENT",
+          `UID:${uid}`,
+          `DTSTART:${startDate}`,
+          `DTEND:${endDate}`,
+          `SUMMARY:${event.title.replace(/,/g, '\\,')}`,
+          ...(event.description ? [`DESCRIPTION:${event.description.replace(/,/g, '\\,')}`] : []),
+          ...(event.location ? [`LOCATION:${event.location.replace(/,/g, '\\,')}`] : []),
+          `STATUS:${event.status?.toUpperCase() || 'CONFIRMED'}`,
+          "END:VEVENT"
+        );
+      }
+
+      icsLines.push("END:VCALENDAR");
+      
+      const icsContent = icsLines.join('\r\n');
+      
+      res.set({
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="calendar.ics"',
+      });
+      res.send(icsContent);
+    } catch (error: any) {
+      res.status(404).json({ message: error.message });
     }
   });
 
