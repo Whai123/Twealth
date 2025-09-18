@@ -43,6 +43,11 @@ export const events = pgTable("events", {
   createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
   attendees: jsonb("attendees").default([]), // array of {userId: string, status: 'yes'|'no'|'maybe'}
   status: text("status").default("scheduled"), // scheduled, completed, cancelled
+  // Financial fields
+  budget: decimal("budget", { precision: 10, scale: 2 }), // planned budget for this event
+  actualCost: decimal("actual_cost", { precision: 10, scale: 2 }).default("0"), // total spent on this event
+  linkedGoalId: varchar("linked_goal_id").references(() => financialGoals.id, { onDelete: "set null" }), // link to financial goal
+  costSharingType: text("cost_sharing_type").default("none"), // none, equal, custom
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -99,6 +104,30 @@ export const calendarShares = pgTable("calendar_shares", {
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const eventExpenses = pgTable("event_expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paidBy: varchar("paid_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  category: text("category"), // food, transport, accommodation, entertainment, etc.
+  receiptUrl: text("receipt_url"), // for receipt uploads
+  date: timestamp("date").notNull(),
+  isShared: boolean("is_shared").default(false), // whether to split among attendees
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const eventExpenseShares = pgTable("event_expense_shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  expenseId: varchar("expense_id").notNull().references(() => eventExpenses.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  shareAmount: decimal("share_amount", { precision: 10, scale: 2 }).notNull(),
+  isPaid: boolean("is_paid").default(false),
+  paidAt: timestamp("paid_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -162,6 +191,17 @@ export const insertCalendarShareSchema = createInsertSchema(calendarShares).omit
   message: "scope='user' requires userId only, scope='group' requires groupId only",
 });
 
+export const insertEventExpenseSchema = createInsertSchema(eventExpenses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEventExpenseShareSchema = createInsertSchema(eventExpenseShares).omit({
+  id: true,
+  createdAt: true,
+  paidAt: true,
+});
+
 // Event attendee schema for type consistency
 export const eventAttendeeSchema = z.object({
   userId: z.string(),
@@ -198,6 +238,12 @@ export type InsertGroupInvite = z.infer<typeof insertGroupInviteSchema>;
 export type CalendarShare = typeof calendarShares.$inferSelect;
 export type InsertCalendarShare = z.infer<typeof insertCalendarShareSchema>;
 
+export type EventExpense = typeof eventExpenses.$inferSelect;
+export type InsertEventExpense = z.infer<typeof insertEventExpenseSchema>;
+
+export type EventExpenseShare = typeof eventExpenseShares.$inferSelect;
+export type InsertEventExpenseShare = z.infer<typeof insertEventExpenseShareSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groups: many(groups),
@@ -232,7 +278,7 @@ export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
   }),
 }));
 
-export const eventsRelations = relations(events, ({ one }) => ({
+export const eventsRelations = relations(events, ({ one, many }) => ({
   creator: one(users, {
     fields: [events.createdBy],
     references: [users.id],
@@ -241,16 +287,13 @@ export const eventsRelations = relations(events, ({ one }) => ({
     fields: [events.groupId],
     references: [groups.id],
   }),
+  linkedGoal: one(financialGoals, {
+    fields: [events.linkedGoalId],
+    references: [financialGoals.id],
+  }),
+  expenses: many(eventExpenses),
 }));
 
-export const financialGoalsRelations = relations(financialGoals, ({ one, many }) => ({
-  user: one(users, {
-    fields: [financialGoals.userId],
-    references: [users.id],
-  }),
-  transactions: many(transactions),
-  contributions: many(goalContributions),
-}));
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   user: one(users, {
@@ -300,4 +343,37 @@ export const calendarSharesRelations = relations(calendarShares, ({ one }) => ({
     fields: [calendarShares.groupId],
     references: [groups.id],
   }),
+}));
+
+export const eventExpensesRelations = relations(eventExpenses, ({ one, many }) => ({
+  event: one(events, {
+    fields: [eventExpenses.eventId],
+    references: [events.id],
+  }),
+  paidByUser: one(users, {
+    fields: [eventExpenses.paidBy],
+    references: [users.id],
+  }),
+  shares: many(eventExpenseShares),
+}));
+
+export const eventExpenseSharesRelations = relations(eventExpenseShares, ({ one }) => ({
+  expense: one(eventExpenses, {
+    fields: [eventExpenseShares.expenseId],
+    references: [eventExpenses.id],
+  }),
+  user: one(users, {
+    fields: [eventExpenseShares.userId],
+    references: [users.id],
+  }),
+}));
+
+export const financialGoalsRelations = relations(financialGoals, ({ one, many }) => ({
+  user: one(users, {
+    fields: [financialGoals.userId],
+    references: [users.id],
+  }),
+  transactions: many(transactions),
+  contributions: many(goalContributions),
+  linkedEvents: many(events, { relationName: "linkedGoal" }),
 }));
