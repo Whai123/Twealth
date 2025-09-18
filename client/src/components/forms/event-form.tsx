@@ -39,7 +39,6 @@ export default function EventForm({ onSuccess }: EventFormProps) {
 
   const { data: groups } = useQuery({
     queryKey: ["/api/groups"],
-    queryFn: () => fetch("/api/groups").then(res => res.json()),
   });
 
   const {
@@ -242,11 +241,11 @@ export default function EventForm({ onSuccess }: EventFormProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="personal">Personal Event</SelectItem>
-              {groups?.map((group: any) => (
+              {Array.isArray(groups) ? groups.map((group: any) => (
                 <SelectItem key={group.id} value={group.id}>
                   {group.name}
                 </SelectItem>
-              ))}
+              )) : null}
             </SelectContent>
           </Select>
         </div>

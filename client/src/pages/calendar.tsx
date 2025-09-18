@@ -127,7 +127,12 @@ export default function Calendar() {
     if (!events || !Array.isArray(events)) return [];
     return events.filter((event: any) => {
       const eventDate = new Date(event.startTime);
-      return eventDate.toDateString() === date.toDateString();
+      // Compare dates in local timezone to avoid UTC conversion issues
+      return (
+        eventDate.getFullYear() === date.getFullYear() &&
+        eventDate.getMonth() === date.getMonth() &&
+        eventDate.getDate() === date.getDate()
+      );
     });
   };
 
