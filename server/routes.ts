@@ -10,6 +10,8 @@ import {
   insertTransactionSchema,
   insertGroupInviteSchema,
   insertCalendarShareSchema,
+  insertEventExpenseSchema,
+  insertEventExpenseShareSchema,
   eventAttendeeSchema
 } from "@shared/schema";
 
@@ -235,6 +237,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         startTime: new Date(req.body.startTime),
         endTime: new Date(req.body.endTime),
+        // Coerce decimal fields to strings for validation
+        ...(req.body.budget != null && { budget: req.body.budget.toString() }),
+        ...(req.body.actualCost != null && { actualCost: req.body.actualCost.toString() }),
       };
       
       const validatedData = insertEventSchema.parse(eventData);
@@ -264,6 +269,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         ...(req.body.startTime && { startTime: new Date(req.body.startTime) }),
         ...(req.body.endTime && { endTime: new Date(req.body.endTime) }),
+        // Coerce decimal fields to strings for validation
+        ...(req.body.budget != null && { budget: req.body.budget.toString() }),
+        ...(req.body.actualCost != null && { actualCost: req.body.actualCost.toString() }),
       };
       
       const updateData = insertEventSchema.partial().parse(eventData);
@@ -509,6 +517,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(icsContent);
     } catch (error: any) {
       res.status(404).json({ message: error.message });
+    }
+  });
+
+  // Event expense routes
+  app.get("/api/events/:eventId/expenses", async (req, res) => {
+    try {
+      const expenses = await storage.getEventExpensesByEventId(req.params.eventId);
+      // Convert decimal amounts to numbers
+      const formattedExpenses = expenses.map(expense => ({
+        ...expense,
+        amount: parseFloat(expense.amount.toString())
+      }));
+      res.json(formattedExpenses);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/events/:eventId/expenses", async (req, res) => {
+    try {
+      const expenseData = {
+        ...req.body,
+        eventId: req.params.eventId,
+        date: new Date(req.body.date || Date.now()),
+        // Coerce amount to string for validation
+        amount: req.body.amount?.toString() || "0"
+      };
+      
+      const validatedData = insertEventExpenseSchema.parse(expenseData);
+      const expense = await storage.createEventExpense(validatedData);
+      
+      // Convert decimal amount to number for response
+      const formattedExpense = {
+        ...expense,
+        amount: parseFloat(expense.amount.toString())
+      };
+      
+      res.status(201).json(formattedExpense);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/expenses/:id", async (req, res) => {
+    try {
+      const expense = await storage.getEventExpense(req.params.id);
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      const formattedExpense = {
+        ...expense,
+        amount: parseFloat(expense.amount.toString())
+      };
+      
+      res.json(formattedExpense);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/expenses/:id", async (req, res) => {
+    try {
+      const expenseData = {
+        ...req.body,
+        ...(req.body.date && { date: new Date(req.body.date) }),
+        ...(req.body.amount && { amount: req.body.amount.toString() })
+      };
+      
+      const updateData = insertEventExpenseSchema.partial().parse(expenseData);
+      const expense = await storage.updateEventExpense(req.params.id, updateData);
+      
+      const formattedExpense = {
+        ...expense,
+        amount: parseFloat(expense.amount.toString())
+      };
+      
+      res.json(formattedExpense);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/expenses/:id", async (req, res) => {
+    try {
+      await storage.deleteEventExpense(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Event expense share routes
+  app.get("/api/expenses/:expenseId/shares", async (req, res) => {
+    try {
+      const shares = await storage.getEventExpenseSharesByExpenseId(req.params.expenseId);
+      const formattedShares = shares.map(share => ({
+        ...share,
+        shareAmount: parseFloat(share.shareAmount.toString())
+      }));
+      res.json(formattedShares);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/expenses/:expenseId/shares", async (req, res) => {
+    try {
+      const shareData = {
+        ...req.body,
+        expenseId: req.params.expenseId,
+        shareAmount: req.body.shareAmount?.toString() || "0"
+      };
+      
+      const validatedData = insertEventExpenseShareSchema.parse(shareData);
+      const share = await storage.createEventExpenseShare(validatedData);
+      
+      const formattedShare = {
+        ...share,
+        shareAmount: parseFloat(share.shareAmount.toString())
+      };
+      
+      res.status(201).json(formattedShare);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/expense-shares/:id", async (req, res) => {
+    try {
+      const shareData = {
+        ...req.body,
+        ...(req.body.shareAmount && { shareAmount: req.body.shareAmount.toString() })
+      };
+      const updateData = insertEventExpenseShareSchema.partial().parse(shareData);
+      const share = await storage.updateEventExpenseShare(req.params.id, updateData);
+      
+      const formattedShare = {
+        ...share,
+        shareAmount: parseFloat(share.shareAmount.toString())
+      };
+      
+      res.json(formattedShare);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/expense-shares/:id", async (req, res) => {
+    try {
+      await storage.deleteEventExpenseShare(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Event financial summary route
+  app.get("/api/events/:eventId/financial-summary", async (req, res) => {
+    try {
+      const summary = await storage.getEventFinancialSummary(req.params.eventId);
+      res.json(summary);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

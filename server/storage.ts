@@ -17,6 +17,10 @@ import {
   type InsertGroupInvite,
   type CalendarShare,
   type InsertCalendarShare,
+  type EventExpense,
+  type InsertEventExpense,
+  type EventExpenseShare,
+  type InsertEventExpenseShare,
   users,
   groups,
   groupMembers,
@@ -25,7 +29,9 @@ import {
   transactions,
   goalContributions,
   groupInvites,
-  calendarShares
+  calendarShares,
+  eventExpenses,
+  eventExpenseShares
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql, or, exists } from "drizzle-orm";
@@ -115,6 +121,33 @@ export interface IStorage {
 
   // RSVP methods
   updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event>;
+  
+  // Event expense methods
+  getEventExpense(id: string): Promise<EventExpense | undefined>;
+  getEventExpensesByEventId(eventId: string): Promise<EventExpense[]>;
+  createEventExpense(expense: InsertEventExpense): Promise<EventExpense>;
+  updateEventExpense(id: string, updates: Partial<EventExpense>): Promise<EventExpense>;
+  deleteEventExpense(id: string): Promise<void>;
+  
+  // Event expense share methods
+  getEventExpenseShare(id: string): Promise<EventExpenseShare | undefined>;
+  getEventExpenseSharesByExpenseId(expenseId: string): Promise<EventExpenseShare[]>;
+  createEventExpenseShare(share: InsertEventExpenseShare): Promise<EventExpenseShare>;
+  updateEventExpenseShare(id: string, updates: Partial<EventExpenseShare>): Promise<EventExpenseShare>;
+  deleteEventExpenseShare(id: string): Promise<void>;
+  
+  // Event financial summary methods
+  getEventFinancialSummary(eventId: string): Promise<{
+    budget: number | null;
+    totalExpenses: number;
+    expensesByCategory: Record<string, number>;
+    unpaidShares: number;
+    expenseShares: Array<{
+      userId: string;
+      totalOwed: number;
+      totalPaid: number;
+    }>;
+  }>;
   
   // Utility methods for user management
   getFirstUser(): Promise<SafeUser | undefined>;
@@ -278,17 +311,7 @@ export class DatabaseStorage implements IStorage {
     // Get personal events (events created by the user with no group)
     const personalEvents = await db
       .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        startTime: events.startTime,
-        endTime: events.endTime,
-        location: events.location,
-        groupId: events.groupId,
-        createdBy: events.createdBy,
-        attendees: events.attendees,
-        status: events.status,
-        createdAt: events.createdAt,
+        event: events,
         groupName: sql<string | null>`NULL`,
         groupColor: sql<string | null>`NULL`,
       })
@@ -298,17 +321,7 @@ export class DatabaseStorage implements IStorage {
     // Get group events (events from groups the user belongs to)
     const groupEvents = await db
       .select({
-        id: events.id,
-        title: events.title,
-        description: events.description,
-        startTime: events.startTime,
-        endTime: events.endTime,
-        location: events.location,
-        groupId: events.groupId,
-        createdBy: events.createdBy,
-        attendees: events.attendees,
-        status: events.status,
-        createdAt: events.createdAt,
+        event: events,
         groupName: groups.name,
         groupColor: groups.color,
       })
@@ -319,16 +332,16 @@ export class DatabaseStorage implements IStorage {
 
     // Combine and format the results
     const combinedEvents: EventWithGroup[] = [
-      ...personalEvents.map(event => ({
+      ...personalEvents.map(({ event }) => ({
         ...event,
-        group: null as null,
+        group: null,
       })),
-      ...groupEvents.map(event => ({
+      ...groupEvents.map(({ event, groupName, groupColor }) => ({
         ...event,
-        group: event.groupName && event.groupColor ? {
+        group: groupName && groupColor ? {
           id: event.groupId!,
-          name: event.groupName,
-          color: event.groupColor,
+          name: groupName,
+          color: groupColor,
         } : null,
       }))
     ];
@@ -730,6 +743,180 @@ export class DatabaseStorage implements IStorage {
 
     // Update event with new attendees
     return await this.updateEvent(eventId, { attendees });
+  }
+
+  // Event expense methods
+  async getEventExpense(id: string): Promise<EventExpense | undefined> {
+    const [expense] = await db.select().from(eventExpenses).where(eq(eventExpenses.id, id));
+    return expense || undefined;
+  }
+
+  async getEventExpensesByEventId(eventId: string): Promise<EventExpense[]> {
+    return await db.select().from(eventExpenses).where(eq(eventExpenses.eventId, eventId)).orderBy(desc(eventExpenses.date));
+  }
+
+  async createEventExpense(insertExpense: InsertEventExpense): Promise<EventExpense> {
+    const [expense] = await db
+      .insert(eventExpenses)
+      .values({
+        ...insertExpense,
+        description: insertExpense.description || null,
+        category: insertExpense.category || null,
+        receiptUrl: insertExpense.receiptUrl || null,
+      })
+      .returning();
+
+    // Update the event's actualCost
+    const event = await this.getEvent(insertExpense.eventId);
+    if (event) {
+      const currentCost = parseFloat(event.actualCost?.toString() || "0");
+      const newCost = currentCost + parseFloat(expense.amount.toString());
+      await this.updateEvent(insertExpense.eventId, { actualCost: newCost.toString() });
+    }
+
+    return expense;
+  }
+
+  async updateEventExpense(id: string, updates: Partial<EventExpense>): Promise<EventExpense> {
+    const oldExpense = await this.getEventExpense(id);
+    if (!oldExpense) {
+      throw new Error("Expense not found");
+    }
+
+    const [expense] = await db
+      .update(eventExpenses)
+      .set(updates)
+      .where(eq(eventExpenses.id, id))
+      .returning();
+
+    // If amount changed, update event's actualCost
+    if (updates.amount) {
+      const event = await this.getEvent(oldExpense.eventId);
+      if (event) {
+        const currentCost = parseFloat(event.actualCost?.toString() || "0");
+        const oldAmount = parseFloat(oldExpense.amount.toString());
+        const newAmount = parseFloat(updates.amount.toString());
+        const newCost = currentCost - oldAmount + newAmount;
+        await this.updateEvent(oldExpense.eventId, { actualCost: newCost.toString() });
+      }
+    }
+
+    return expense;
+  }
+
+  async deleteEventExpense(id: string): Promise<void> {
+    const expense = await this.getEventExpense(id);
+    if (expense) {
+      // Update event's actualCost
+      const event = await this.getEvent(expense.eventId);
+      if (event) {
+        const currentCost = parseFloat(event.actualCost?.toString() || "0");
+        const expenseAmount = parseFloat(expense.amount.toString());
+        const newCost = Math.max(0, currentCost - expenseAmount);
+        await this.updateEvent(expense.eventId, { actualCost: newCost.toString() });
+      }
+    }
+    
+    await db.delete(eventExpenses).where(eq(eventExpenses.id, id));
+  }
+
+  // Event expense share methods
+  async getEventExpenseShare(id: string): Promise<EventExpenseShare | undefined> {
+    const [share] = await db.select().from(eventExpenseShares).where(eq(eventExpenseShares.id, id));
+    return share || undefined;
+  }
+
+  async getEventExpenseSharesByExpenseId(expenseId: string): Promise<EventExpenseShare[]> {
+    return await db.select().from(eventExpenseShares).where(eq(eventExpenseShares.expenseId, expenseId));
+  }
+
+  async createEventExpenseShare(insertShare: InsertEventExpenseShare): Promise<EventExpenseShare> {
+    const [share] = await db
+      .insert(eventExpenseShares)
+      .values(insertShare)
+      .returning();
+    return share;
+  }
+
+  async updateEventExpenseShare(id: string, updates: Partial<EventExpenseShare>): Promise<EventExpenseShare> {
+    const [share] = await db
+      .update(eventExpenseShares)
+      .set(updates)
+      .where(eq(eventExpenseShares.id, id))
+      .returning();
+    return share;
+  }
+
+  async deleteEventExpenseShare(id: string): Promise<void> {
+    await db.delete(eventExpenseShares).where(eq(eventExpenseShares.id, id));
+  }
+
+  // Event financial summary methods
+  async getEventFinancialSummary(eventId: string): Promise<{
+    budget: number | null;
+    totalExpenses: number;
+    expensesByCategory: Record<string, number>;
+    unpaidShares: number;
+    expenseShares: Array<{
+      userId: string;
+      totalOwed: number;
+      totalPaid: number;
+    }>;
+  }> {
+    // Get event budget
+    const event = await this.getEvent(eventId);
+    const budget = event?.budget ? parseFloat(event.budget.toString()) : null;
+
+    // Get all expenses for this event
+    const expenses = await this.getEventExpensesByEventId(eventId);
+    const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount.toString()), 0);
+
+    // Group expenses by category
+    const expensesByCategory: Record<string, number> = {};
+    expenses.forEach(expense => {
+      const category = expense.category || 'Other';
+      expensesByCategory[category] = (expensesByCategory[category] || 0) + parseFloat(expense.amount.toString());
+    });
+
+    // Get all expense shares
+    const allShares = await db
+      .select()
+      .from(eventExpenseShares)
+      .innerJoin(eventExpenses, eq(eventExpenseShares.expenseId, eventExpenses.id))
+      .where(eq(eventExpenses.eventId, eventId));
+
+    // Calculate unpaid shares total
+    const unpaidShares = allShares
+      .filter(({ event_expense_shares }) => !event_expense_shares.isPaid)
+      .reduce((sum, { event_expense_shares }) => sum + parseFloat(event_expense_shares.shareAmount.toString()), 0);
+
+    // Group shares by user
+    const userShares: Record<string, { totalOwed: number; totalPaid: number }> = {};
+    allShares.forEach(({ event_expense_shares }) => {
+      const userId = event_expense_shares.userId;
+      if (!userShares[userId]) {
+        userShares[userId] = { totalOwed: 0, totalPaid: 0 };
+      }
+      const shareAmount = parseFloat(event_expense_shares.shareAmount.toString());
+      userShares[userId].totalOwed += shareAmount;
+      if (event_expense_shares.isPaid) {
+        userShares[userId].totalPaid += shareAmount;
+      }
+    });
+
+    const expenseShares = Object.entries(userShares).map(([userId, { totalOwed, totalPaid }]) => ({
+      userId,
+      totalOwed,
+      totalPaid,
+    }));
+
+    return {
+      budget,
+      totalExpenses,
+      expensesByCategory,
+      unpaidShares,
+      expenseShares,
+    };
   }
 }
 

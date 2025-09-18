@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, jsonb, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -47,7 +47,7 @@ export const events = pgTable("events", {
   budget: decimal("budget", { precision: 10, scale: 2 }), // planned budget for this event
   actualCost: decimal("actual_cost", { precision: 10, scale: 2 }).default("0"), // total spent on this event
   linkedGoalId: varchar("linked_goal_id").references(() => financialGoals.id, { onDelete: "set null" }), // link to financial goal
-  costSharingType: text("cost_sharing_type").default("none"), // none, equal, custom
+  costSharingType: text("cost_sharing_type", { enum: ["none", "equal", "custom"] }).default("none"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -129,6 +129,11 @@ export const eventExpenseShares = pgTable("event_expense_shares", {
   isPaid: boolean("is_paid").default(false),
   paidAt: timestamp("paid_at"),
   createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    // Unique constraint to prevent duplicate shares per user per expense
+    expenseUserUnique: unique("event_expense_shares_expense_user_unique").on(table.expenseId, table.userId),
+  };
 });
 
 // Insert schemas
@@ -194,12 +199,18 @@ export const insertCalendarShareSchema = createInsertSchema(calendarShares).omit
 export const insertEventExpenseSchema = createInsertSchema(eventExpenses).omit({
   id: true,
   createdAt: true,
+}).extend({
+  // Allow both string and number for amount, then convert to string
+  amount: z.union([z.string(), z.number()]).transform(val => val.toString()),
 });
 
 export const insertEventExpenseShareSchema = createInsertSchema(eventExpenseShares).omit({
   id: true,
   createdAt: true,
   paidAt: true,
+}).extend({
+  // Allow both string and number for shareAmount, then convert to string
+  shareAmount: z.union([z.string(), z.number()]).transform(val => val.toString()),
 });
 
 // Event attendee schema for type consistency

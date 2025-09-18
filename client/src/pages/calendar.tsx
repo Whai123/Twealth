@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -22,6 +22,8 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [shareScope, setShareScope] = useState<'user' | 'group'>('user');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [shareExpiry, setShareExpiry] = useState<string>('30');
@@ -36,6 +38,18 @@ export default function Calendar() {
   const { data: groups } = useQuery({
     queryKey: ["/api/groups"],
     queryFn: () => fetch("/api/groups").then(res => res.json()),
+  });
+
+  const { data: eventFinancials } = useQuery({
+    queryKey: ["/api/events", selectedEventId, "financial-summary"],
+    queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/financial-summary`).then(res => res.json()) : null,
+    enabled: !!selectedEventId,
+  });
+
+  const { data: eventExpenses } = useQuery({
+    queryKey: ["/api/events", selectedEventId, "expenses"],
+    queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/expenses`).then(res => res.json()) : [],
+    enabled: !!selectedEventId,
   });
 
   const createShareMutation = useMutation({
@@ -73,6 +87,11 @@ export default function Calendar() {
     }
     
     createShareMutation.mutate(shareData);
+  };
+
+  const handleViewEventDetails = (eventId: string) => {
+    setSelectedEventId(eventId);
+    setIsEventDetailsOpen(true);
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -316,6 +335,110 @@ export default function Calendar() {
         </CardContent>
       </Card>
 
+      {/* Event Details Dialog */}
+      <Dialog open={isEventDetailsOpen} onOpenChange={setIsEventDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-event-details">
+          <DialogHeader>
+            <DialogTitle>Event Financial Details</DialogTitle>
+            <DialogDescription>
+              Manage expenses and track costs for this event
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedEventId && (
+            <div className="space-y-6">
+              {/* Financial Summary */}
+              {eventFinancials && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center">
+                      <DollarSign className="mr-2" size={20} />
+                      Financial Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-600 font-medium">Budget</p>
+                        <p className="text-xl font-bold text-blue-700" data-testid="text-budget">
+                          ${eventFinancials.budget ? eventFinancials.budget.toFixed(2) : 'Not set'}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-50 rounded-lg">
+                        <p className="text-sm text-green-600 font-medium">Total Expenses</p>
+                        <p className="text-xl font-bold text-green-700" data-testid="text-total-expenses">
+                          ${eventFinancials.totalExpenses.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {eventFinancials.budget && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600 font-medium">
+                          {eventFinancials.totalExpenses <= eventFinancials.budget ? 'Under Budget' : 'Over Budget'}
+                        </p>
+                        <p className={`text-lg font-bold ${
+                          eventFinancials.totalExpenses <= eventFinancials.budget ? 'text-green-700' : 'text-red-700'
+                        }`}>
+                          ${Math.abs(eventFinancials.budget - eventFinancials.totalExpenses).toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+
+                    {eventFinancials.unpaidShares > 0 && (
+                      <div className="p-3 bg-yellow-50 rounded-lg">
+                        <p className="text-sm text-yellow-600 font-medium">Unpaid Shares</p>
+                        <p className="text-lg font-bold text-yellow-700" data-testid="text-unpaid-shares">
+                          ${eventFinancials.unpaidShares.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Expenses List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Expenses</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {eventExpenses && eventExpenses.length > 0 ? (
+                    <div className="space-y-2">
+                      {eventExpenses.map((expense: any) => (
+                        <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg" data-testid={`expense-item-${expense.id}`}>
+                          <div>
+                            <h4 className="font-medium">{expense.title}</h4>
+                            <p className="text-sm text-gray-600">
+                              {expense.category && (
+                                <span className="bg-gray-100 px-2 py-1 rounded-full text-xs mr-2">
+                                  {expense.category}
+                                </span>
+                              )}
+                              {new Date(expense.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-lg">${expense.amount.toFixed(2)}</p>
+                            <p className="text-xs text-gray-500">
+                              Paid by: {expense.paidBy} {/* TODO: Get user name */}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      No expenses recorded for this event
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Upcoming Events */}
       <Card>
         <CardContent className="p-6">
@@ -337,10 +460,32 @@ export default function Calendar() {
                 .slice(0, 5)
                 .map((event: any) => (
                   <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium" data-testid={`text-event-${event.id}`}>
-                        {event.title}
-                      </h4>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium" data-testid={`text-event-${event.id}`}>
+                          {event.title}
+                        </h4>
+                        {((event.budget && parseFloat(event.budget || "0") > 0) || (event.actualCost && parseFloat(event.actualCost || "0") > 0)) && (
+                          <div className="flex items-center gap-1">
+                            <DollarSign size={14} className="text-green-600" />
+                            {event.budget && event.actualCost && (
+                              <span className={`text-xs ${parseFloat(event.actualCost) <= parseFloat(event.budget) ? 'text-green-600' : 'text-red-600'}`}>
+                                ${parseFloat(event.actualCost).toFixed(0)} / ${parseFloat(event.budget).toFixed(0)}
+                                {parseFloat(event.actualCost) <= parseFloat(event.budget) ? 
+                                  <TrendingDown size={10} className="inline ml-1" /> :
+                                  <TrendingUp size={10} className="inline ml-1" />
+                                }
+                              </span>
+                            )}
+                            {event.budget && !event.actualCost && (
+                              <span className="text-xs text-gray-600">Budget: ${parseFloat(event.budget).toFixed(0)}</span>
+                            )}
+                            {!event.budget && event.actualCost && (
+                              <span className="text-xs text-blue-600">Spent: ${parseFloat(event.actualCost).toFixed(0)}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {new Date(event.startTime).toLocaleDateString()} at {new Date(event.startTime).toLocaleTimeString()}
                       </p>
@@ -348,7 +493,12 @@ export default function Calendar() {
                         <p className="text-xs text-muted-foreground">{event.location}</p>
                       )}
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewEventDetails(event.id)}
+                      data-testid={`button-view-details-${event.id}`}
+                    >
                       View Details
                     </Button>
                   </div>
