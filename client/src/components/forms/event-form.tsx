@@ -29,9 +29,10 @@ type EventFormData = z.infer<typeof eventFormSchema>;
 
 interface EventFormProps {
   onSuccess?: () => void;
+  eventToEdit?: any;
 }
 
-export default function EventForm({ onSuccess }: EventFormProps) {
+export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -50,12 +51,16 @@ export default function EventForm({ onSuccess }: EventFormProps) {
   } = useForm<EventFormData>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      startTime: new Date().toISOString().slice(0, 16),
-      endTime: new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
-      location: "",
-      groupId: undefined,
+      title: eventToEdit?.title || "",
+      description: eventToEdit?.description || "",
+      startTime: eventToEdit?.startTime 
+        ? new Date(eventToEdit.startTime).toISOString().slice(0, 16)
+        : new Date().toISOString().slice(0, 16),
+      endTime: eventToEdit?.endTime 
+        ? new Date(eventToEdit.endTime).toISOString().slice(0, 16)
+        : new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
+      location: eventToEdit?.location || "",
+      groupId: eventToEdit?.groupId || undefined,
     },
   });
 
@@ -93,6 +98,38 @@ export default function EventForm({ onSuccess }: EventFormProps) {
     },
   });
 
+  const updateEventMutation = useMutation({
+    mutationFn: async (data: EventFormData) => {
+      const response = await apiRequest("PUT", `/api/events/${eventToEdit.id}`, {
+        ...data,
+        startTime: new Date(data.startTime),
+        endTime: new Date(data.endTime),
+        groupId: data.groupId === "personal" ? null : data.groupId,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      toast({
+        title: "✅ Event Updated Successfully!",
+        description: "Your event details have been updated",
+      });
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "❌ Failed to Update Event",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
+
   const onSubmit = (data: EventFormData) => {
     if (!user) {
       toast({
@@ -114,7 +151,11 @@ export default function EventForm({ onSuccess }: EventFormProps) {
     }
 
     setIsSubmitting(true);
-    createEventMutation.mutate(data);
+    if (eventToEdit) {
+      updateEventMutation.mutate(data);
+    } else {
+      createEventMutation.mutate(data);
+    }
   };
 
 
@@ -130,10 +171,10 @@ export default function EventForm({ onSuccess }: EventFormProps) {
           </div>
           <div>
             <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              🚀 Create Collaborative Event
+              {eventToEdit ? "✏️ Edit Event" : "🚀 Create Collaborative Event"}
             </DialogTitle>
             <DialogDescription className="text-lg mt-2 text-muted-foreground">
-              Plan together, grow together - AI-powered event creation
+              {eventToEdit ? "Update your event details" : "Plan together, grow together - AI-powered event creation"}
             </DialogDescription>
           </div>
         </div>
@@ -256,7 +297,10 @@ export default function EventForm({ onSuccess }: EventFormProps) {
             disabled={isSubmitting}
             data-testid="button-submit-event"
           >
-            {isSubmitting ? "Creating..." : "Create Event"}
+            {isSubmitting 
+              ? (eventToEdit ? "Updating..." : "Creating...") 
+              : (eventToEdit ? "Update Event" : "Create Event")
+            }
           </Button>
         </div>
       </form>

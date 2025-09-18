@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -27,6 +27,10 @@ export default function Calendar() {
   const [shareScope, setShareScope] = useState<'user' | 'group'>('user');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [shareExpiry, setShareExpiry] = useState<string>('30');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<any>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -75,6 +79,53 @@ export default function Calendar() {
     },
   });
 
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ eventId, data }: { eventId: string, data: any }) => {
+      const response = await apiRequest("PUT", `/api/events/${eventId}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
+      toast({
+        title: "Event Updated!",
+        description: "Your event has been updated successfully.",
+      });
+      setIsEditDialogOpen(false);
+      setEventToEdit(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update event",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      await apiRequest("DELETE", `/api/events/${eventId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
+      toast({
+        title: "Event Deleted!",
+        description: "Your event has been deleted successfully.",
+      });
+      setIsDeleteDialogOpen(false);
+      setEventToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete event",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateShare = () => {
     const expiresAt = new Date(Date.now() + parseInt(shareExpiry) * 24 * 60 * 60 * 1000);
     const shareData: any = {
@@ -92,6 +143,16 @@ export default function Calendar() {
   const handleViewEventDetails = (eventId: string) => {
     setSelectedEventId(eventId);
     setIsEventDetailsOpen(true);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEventToEdit(event);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteEvent = (event: any) => {
+    setEventToDelete(event);
+    setIsDeleteDialogOpen(true);
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -498,14 +559,32 @@ export default function Calendar() {
                         <p className="text-xs text-muted-foreground">{event.location}</p>
                       )}
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewEventDetails(event.id)}
-                      data-testid={`button-view-details-${event.id}`}
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewEventDetails(event.id)}
+                        data-testid={`button-view-details-${event.id}`}
+                      >
+                        View Details
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditEvent(event)}
+                        data-testid={`button-edit-${event.id}`}
+                      >
+                        <Edit size={14} />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleDeleteEvent(event)}
+                        data-testid={`button-delete-${event.id}`}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </div>
                 ))}
             </div>
@@ -528,6 +607,56 @@ export default function Calendar() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Event Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+            <DialogDescription>
+              Update your event details
+            </DialogDescription>
+          </DialogHeader>
+          {eventToEdit && (
+            <EventForm
+              eventToEdit={eventToEdit}
+              onSuccess={() => {
+                setIsEditDialogOpen(false);
+                setEventToEdit(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{eventToDelete?.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 justify-end mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
+              data-testid="button-cancel-delete"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => eventToDelete && deleteEventMutation.mutate(eventToDelete.id)}
+              disabled={deleteEventMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
