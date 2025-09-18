@@ -55,10 +55,10 @@ export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
       description: eventToEdit?.description || "",
       startTime: eventToEdit?.startTime 
         ? new Date(eventToEdit.startTime).toISOString().slice(0, 16)
-        : new Date().toISOString().slice(0, 16),
+        : new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
       endTime: eventToEdit?.endTime 
         ? new Date(eventToEdit.endTime).toISOString().slice(0, 16)
-        : new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
+        : new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16),
       location: eventToEdit?.location || "",
       groupId: eventToEdit?.groupId || undefined,
     },
