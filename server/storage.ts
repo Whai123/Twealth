@@ -665,7 +665,7 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
 
-    const shareUrl = `/public/calendar/${token}`;
+    const shareUrl = `/shared/calendar/${token}`;
     return { share, shareUrl };
   }
 
