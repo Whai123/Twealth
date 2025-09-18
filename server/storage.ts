@@ -374,7 +374,26 @@ export class DatabaseStorage implements IStorage {
         uniqueEvents.set(row.id, {
           id: row.id,
           title: row.title,
-          description: row.de
+          description: row.description,
+          startTime: row.startTime,
+          endTime: row.endTime,
+          location: row.location,
+          groupId: row.groupId,
+          createdBy: row.createdBy,
+          attendees: row.attendees,
+          status: row.status,
+          createdAt: row.createdAt,
+          group: row.groupName && row.groupColor ? {
+            id: row.groupId!,
+            name: row.groupName,
+            color: row.groupColor,
+          } : null,
+        });
+      }
+    }
+
+    return Array.from(uniqueEvents.values());
+  }
 
   async getUpcomingEvents(userId: string, limit: number = 10): Promise<Event[]> {
     return await db
