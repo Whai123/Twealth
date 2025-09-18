@@ -218,7 +218,7 @@ export default function Calendar() {
                 New Event
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
             </DialogContent>
           </Dialog>
@@ -230,7 +230,7 @@ export default function Calendar() {
                 Share Calendar
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Share Your Calendar</DialogTitle>
                 <DialogDescription>
@@ -403,7 +403,7 @@ export default function Calendar() {
 
       {/* Event Details Dialog */}
       <Dialog open={isEventDetailsOpen} onOpenChange={setIsEventDetailsOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-event-details">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-event-details">
           <DialogHeader>
             <DialogTitle>Event Financial Details</DialogTitle>
             <DialogDescription>
@@ -599,7 +599,7 @@ export default function Calendar() {
                     Create Your First Event
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md">
+                <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
                   <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
                 </DialogContent>
               </Dialog>
@@ -610,7 +610,7 @@ export default function Calendar() {
 
       {/* Edit Event Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Event</DialogTitle>
             <DialogDescription>
@@ -631,7 +631,7 @@ export default function Calendar() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delete Event</DialogTitle>
             <DialogDescription>
