@@ -80,6 +80,28 @@ export const goalContributions = pgTable("goal_contributions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const groupInvites = pgTable("group_invites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  role: text("role").default("member"), // owner, admin, member
+  createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at").notNull(),
+  acceptedBy: varchar("accepted_by").references(() => users.id, { onDelete: "set null" }),
+  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const calendarShares = pgTable("calendar_shares", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  scope: text("scope").notNull(), // 'user' or 'group'
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -116,6 +138,30 @@ export const insertGoalContributionSchema = createInsertSchema(goalContributions
   createdAt: true,
 });
 
+export const insertGroupInviteSchema = createInsertSchema(groupInvites).omit({
+  id: true,
+  token: true,
+  acceptedBy: true,
+  acceptedAt: true,
+  createdAt: true,
+}).extend({
+  role: z.enum(["owner", "admin", "member"]).default("member"),
+});
+
+export const insertCalendarShareSchema = createInsertSchema(calendarShares).omit({
+  id: true,
+  token: true,
+  createdAt: true,
+}).extend({
+  scope: z.enum(["user", "group"]),
+}).refine((data) => {
+  if (data.scope === "user") return !!data.userId && !data.groupId;
+  if (data.scope === "group") return !!data.groupId && !data.userId;
+  return false;
+}, {
+  message: "scope='user' requires userId only, scope='group' requires groupId only",
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -138,6 +184,12 @@ export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type GoalContribution = typeof goalContributions.$inferSelect;
 export type InsertGoalContribution = z.infer<typeof insertGoalContributionSchema>;
 
+export type GroupInvite = typeof groupInvites.$inferSelect;
+export type InsertGroupInvite = z.infer<typeof insertGroupInviteSchema>;
+
+export type CalendarShare = typeof calendarShares.$inferSelect;
+export type InsertCalendarShare = z.infer<typeof insertCalendarShareSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groups: many(groups),
@@ -145,6 +197,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   events: many(events),
   financialGoals: many(financialGoals),
   transactions: many(transactions),
+  createdInvites: many(groupInvites, { relationName: "createdBy" }),
+  acceptedInvites: many(groupInvites, { relationName: "acceptedBy" }),
+  calendarShares: many(calendarShares),
 }));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
@@ -154,6 +209,8 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
   }),
   members: many(groupMembers),
   events: many(events),
+  invites: many(groupInvites),
+  calendarShares: many(calendarShares),
 }));
 
 export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
@@ -206,5 +263,33 @@ export const goalContributionsRelations = relations(goalContributions, ({ one })
   transaction: one(transactions, {
     fields: [goalContributions.transactionId],
     references: [transactions.id],
+  }),
+}));
+
+export const groupInvitesRelations = relations(groupInvites, ({ one }) => ({
+  group: one(groups, {
+    fields: [groupInvites.groupId],
+    references: [groups.id],
+  }),
+  creator: one(users, {
+    fields: [groupInvites.createdBy],
+    references: [users.id],
+    relationName: "createdBy",
+  }),
+  acceptedByUser: one(users, {
+    fields: [groupInvites.acceptedBy],
+    references: [users.id],
+    relationName: "acceptedBy",
+  }),
+}));
+
+export const calendarSharesRelations = relations(calendarShares, ({ one }) => ({
+  user: one(users, {
+    fields: [calendarShares.userId],
+    references: [users.id],
+  }),
+  group: one(groups, {
+    fields: [calendarShares.groupId],
+    references: [groups.id],
   }),
 }));
