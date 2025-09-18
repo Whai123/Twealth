@@ -688,7 +688,7 @@ export class DatabaseStorage implements IStorage {
       .from(calendarShares)
       .where(
         or(
-          eq(calendarShares.userId, userId),
+          eq(calendarShares.ownerId, userId),
           // Also include shares for groups the user owns or is admin of
           exists(
             db.select().from(groupMembers)
@@ -711,8 +711,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Invalid or expired share token");
     }
 
-    if (share.scope === "user" && share.userId) {
-      return await this.getEventsByUserId(share.userId);
+    if (share.scope === "user" && share.ownerId) {
+      return await this.getEventsByUserId(share.ownerId);
     } else if (share.scope === "group" && share.groupId) {
       return await this.getEventsByGroupId(share.groupId);
     }

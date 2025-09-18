@@ -450,8 +450,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createDemoUserIfNeeded();
       const shareData = {
         ...req.body,
-        // If scope is user and no userId provided, use current user
-        ...(req.body.scope === "user" && !req.body.userId && { userId: user.id }),
+        // Set owner to current user
+        ownerId: user.id,
         // Set default expiry to 30 days if not provided
         ...(req.body.expiresAt ? { expiresAt: new Date(req.body.expiresAt) } : { expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
       };

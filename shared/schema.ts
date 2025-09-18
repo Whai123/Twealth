@@ -99,11 +99,12 @@ export const groupInvites = pgTable("group_invites", {
 
 export const calendarShares = pgTable("calendar_shares", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  scope: text("scope").notNull(), // 'user' or 'group'
-  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
-  groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }),
-  token: text("token").notNull().unique(),
+  token: text("token").notNull().unique(), // unique share token
+  scope: text("scope", { enum: ["user", "group"] }).notNull(), // user calendar or group calendar
+  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }), // null for user scope
   expiresAt: timestamp("expires_at"),
+  isRevoked: boolean("is_revoked").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -189,11 +190,11 @@ export const insertCalendarShareSchema = createInsertSchema(calendarShares).omit
 }).extend({
   scope: z.enum(["user", "group"]),
 }).refine((data) => {
-  if (data.scope === "user") return !!data.userId && !data.groupId;
-  if (data.scope === "group") return !!data.groupId && !data.userId;
+  if (data.scope === "user") return !!data.ownerId && !data.groupId;
+  if (data.scope === "group") return !!data.ownerId && !!data.groupId;
   return false;
 }, {
-  message: "scope='user' requires userId only, scope='group' requires groupId only",
+  message: "scope='user' requires ownerId only, scope='group' requires both ownerId and groupId",
 });
 
 export const insertEventExpenseSchema = createInsertSchema(eventExpenses).omit({
@@ -345,17 +346,6 @@ export const groupInvitesRelations = relations(groupInvites, ({ one }) => ({
   }),
 }));
 
-export const calendarSharesRelations = relations(calendarShares, ({ one }) => ({
-  user: one(users, {
-    fields: [calendarShares.userId],
-    references: [users.id],
-  }),
-  group: one(groups, {
-    fields: [calendarShares.groupId],
-    references: [groups.id],
-  }),
-}));
-
 export const eventExpensesRelations = relations(eventExpenses, ({ one, many }) => ({
   event: one(events, {
     fields: [eventExpenses.eventId],
@@ -376,6 +366,17 @@ export const eventExpenseSharesRelations = relations(eventExpenseShares, ({ one 
   user: one(users, {
     fields: [eventExpenseShares.userId],
     references: [users.id],
+  }),
+}));
+
+export const calendarSharesRelations = relations(calendarShares, ({ one }) => ({
+  owner: one(users, {
+    fields: [calendarShares.ownerId],
+    references: [users.id],
+  }),
+  group: one(groups, {
+    fields: [calendarShares.groupId],
+    references: [groups.id],
   }),
 }));
 
