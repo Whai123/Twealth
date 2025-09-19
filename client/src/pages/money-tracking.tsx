@@ -365,34 +365,46 @@ export default function MoneyTracking() {
               </Dialog>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div style={{ gap: 'var(--space-3)' }} className="flex flex-col">
               {filteredTransactions.map((transaction: any) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
+                <div 
+                  key={transaction.id} 
+                  className="flex items-center justify-between border rounded-lg hover:bg-muted/50 transition-colors"
+                  style={{ padding: 'var(--space-3)' }}
+                >
+                  <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
+                    <div 
+                      className="bg-muted rounded-lg flex items-center justify-center"
+                      style={{ width: '32px', height: '32px' }}
+                    >
                       {getTransactionIcon(transaction.type)}
                     </div>
-                    <div>
-                      <h4 className="font-medium" data-testid={`text-transaction-${transaction.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <h4 
+                        className="font-medium text-foreground truncate" 
+                        data-testid={`text-transaction-${transaction.id}`}
+                        style={{ fontSize: 'var(--text-sm)' }}
+                      >
                         {transaction.description || transaction.category}
                       </h4>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <div className="flex items-center text-muted-foreground" style={{ gap: 'var(--space-2)', fontSize: 'var(--text-xs)' }}>
                         <span>{new Date(transaction.date).toLocaleDateString()}</span>
-                        <Badge variant="secondary" className="text-xs">
+                        <span>•</span>
+                        <span className="capitalize">
                           {transaction.category.replace('_', ' ')}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {transaction.type}
-                        </Badge>
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className={`font-semibold text-lg ${getAmountColor(transaction.type)}`}>
+                    <span 
+                      className={`font-semibold ${getAmountColor(transaction.type)}`}
+                      style={{ fontSize: 'var(--text-base)' }}
+                    >
                       {transaction.type === "income" ? "+" : "-"}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
                     </span>
                     {transaction.goalId && (
-                      <p className="text-xs text-muted-foreground">Goal contribution</p>
+                      <p className="text-muted-foreground" style={{ fontSize: 'var(--text-xs)' }}>Goal contribution</p>
                     )}
                   </div>
                 </div>

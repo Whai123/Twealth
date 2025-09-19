@@ -363,19 +363,25 @@ export default function Groups() {
             const viability = getViabilityColor(eventData.viabilityScore);
             
             return (
-              <Card key={group.id} className="relative overflow-hidden hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
-                {/* Gradient border effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-green-500/20 rounded-lg"></div>
-                <div className="relative bg-background m-[1px] rounded-lg p-6">
+              <Card key={group.id} className="hover:shadow-md transition-shadow duration-200" style={{ padding: 'var(--space-4)' }}>
                   
-                  <CardHeader className="p-0 mb-4">
+                  <CardHeader className="p-0" style={{ marginBottom: 'var(--space-4)' }}>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent" data-testid={`text-group-name-${group.id}`}>
-                        📅 {group.name}
+                      <CardTitle 
+                        className="text-lg md:text-xl font-bold text-foreground" 
+                        data-testid={`text-group-name-${group.id}`}
+                        style={{ fontSize: 'var(--text-lg)' }}
+                      >
+                        {group.name}
                       </CardTitle>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" data-testid={`button-group-menu-${group.id}`}>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0" 
+                            data-testid={`button-group-menu-${group.id}`}
+                          >
                             <MoreHorizontal size={16} />
                           </Button>
                         </DropdownMenuTrigger>
@@ -403,109 +409,97 @@ export default function Groups() {
                       </DropdownMenu>
                     </div>
                     {group.description && (
-                      <p className="text-sm text-muted-foreground mb-2">📋 {group.description}</p>
+                      <p 
+                        className="text-muted-foreground" 
+                        style={{ 
+                          fontSize: 'var(--text-sm)', 
+                          marginTop: 'var(--space-2)' 
+                        }}
+                      >
+                        {group.description}
+                      </p>
                     )}
                   </CardHeader>
                   
                   <CardContent className="p-0">
-                    {/* Next Event Info */}
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 mb-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                        <span className="font-semibold text-sm">Next Event:</span>
+                    {/* Next Event Info - Simplified */}
+                    <div 
+                      className="bg-muted/50 rounded-lg border border-border/50" 
+                      style={{ padding: 'var(--space-3)', marginBottom: 'var(--space-4)' }}
+                    >
+                      <div className="flex items-center" style={{ gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <span className="font-medium" style={{ fontSize: 'var(--text-sm)' }}>Next Event</span>
                       </div>
-                      <p className="font-bold text-lg mb-1">{eventData.nextEvent}</p>
+                      <p 
+                        className="font-semibold text-foreground" 
+                        style={{ fontSize: 'var(--text-base)', marginBottom: 'var(--space-1)' }}
+                      >
+                        {eventData.nextEvent}
+                      </p>
                       {eventData.eventDate && (
-                        <p className="text-sm text-muted-foreground">
-                          📅 {eventData.eventDate.toLocaleDateString()} at {eventData.eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <p className="text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
+                          {eventData.eventDate.toLocaleDateString()} at {eventData.eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       )}
                     </div>
                     
-                    {/* Conditional Event Content - only show if there's an upcoming event */}
+                    {/* Event Content - Simplified for Mobile */}
                     {eventData.eventId ? (
-                      <>
-                        {/* AI Viability Score */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className={`${viability.bg} ${viability.text} px-3 py-2 rounded-lg flex items-center gap-2 font-semibold`}>
-                            <Brain size={14} />
-                            {viability.icon} {eventData.viabilityScore}% Viable
+                      <div style={{ marginBottom: 'var(--space-4)' }}>
+                        {/* Simplified RSVP Summary */}
+                        <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-3)' }}>
+                          <div className="flex items-center" style={{ gap: 'var(--space-2)' }}>
+                            <Users className="h-4 w-4 text-primary" />
+                            <span className="font-medium" style={{ fontSize: 'var(--text-sm)' }}>
+                              {eventData.rsvpYes} going, {eventData.rsvpMaybe} maybe
+                            </span>
                           </div>
-                          <span className="text-sm text-muted-foreground">{eventData.totalMembers} invited</span>
+                          <Badge 
+                            variant="secondary" 
+                            className={`${viability.bg} ${viability.text}`}
+                            style={{ fontSize: 'var(--text-xs)' }}
+                          >
+                            {eventData.viabilityScore}% viable
+                          </Badge>
                         </div>
                         
-                        {/* RSVP Status */}
-                        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-semibold text-sm">RSVP Status</span>
-                            <span className="text-xs text-muted-foreground">Real-time updates</span>
-                          </div>
-                          
-                          <div className="space-y-2 mb-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">Going</span>
-                              </div>
-                              <span className="font-semibold text-green-600">{eventData.rsvpYes}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-yellow-500" />
-                                <span className="text-sm">Maybe</span>
-                              </div>
-                              <span className="font-semibold text-yellow-600">{eventData.rsvpMaybe}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <XCircle className="h-4 w-4 text-red-500" />
-                                <span className="text-sm">Can't go</span>
-                              </div>
-                              <span className="font-semibold text-red-600">{eventData.rsvpNo}</span>
-                            </div>
-                          </div>
-                          
-                          {/* Progress bar */}
-                          <Progress 
-                            value={eventData.totalInvited > 0 ? (eventData.rsvpYes / eventData.totalInvited) * 100 : 0} 
-                            className="h-2"
-                          />
-                        </div>
-                      </>
+                        {/* Progress Bar */}
+                        <Progress 
+                          value={eventData.totalInvited > 0 ? (eventData.rsvpYes / eventData.totalInvited) * 100 : 0} 
+                          className="h-2"
+                          style={{ marginBottom: 'var(--space-3)' }}
+                        />
+                      </div>
                     ) : (
-                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-900/50 dark:to-blue-900/20 rounded-xl p-4 mb-4 text-center">
-                        <p className="text-sm text-muted-foreground">
-                          📋 Ready to plan something together? Create an event to start collecting RSVPs!
+                      <div 
+                        className="bg-muted/30 rounded-lg text-center" 
+                        style={{ padding: 'var(--space-3)', marginBottom: 'var(--space-4)' }}
+                      >
+                        <p className="text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
+                          Ready to plan something? Create an event to get started.
                         </p>
                       </div>
                     )}
                     
-                    {/* Member Avatars */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex -space-x-2">
-                        {[...Array(Math.min(4, eventData.totalMembers))].map((_, index) => (
-                          <Avatar key={index} className="w-8 h-8 border-2 border-background">
-                            <AvatarFallback className="text-xs bg-gradient-to-br from-purple-500 to-blue-500 text-white">
-                              {String.fromCharCode(65 + index)}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                        {eventData.totalMembers > 4 && (
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 border-2 border-background flex items-center justify-center">
-                            <span className="text-xs font-semibold">+{eventData.totalMembers - 4}</span>
-                          </div>
-                        )}
+                    {/* Members Info - Simplified */}
+                    <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-4)' }}>
+                      <div className="flex items-center" style={{ gap: 'var(--space-2)' }}>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
+                          {eventData.totalMembers} members
+                        </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-muted-foreground" style={{ fontSize: 'var(--text-xs)' }}>
                         Created {new Date(group.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     
-                    {/* Action Buttons */}
+                    {/* Action Buttons - Simplified */}
                     {eventData.eventId ? (
-                      <div className="space-y-3">
-                        {/* RSVP Buttons */}
-                        <div className="grid grid-cols-3 gap-2">
+                      <div style={{ gap: 'var(--space-2)' }} className="flex flex-col">
+                        {/* RSVP Buttons - Simplified Grid */}
+                        <div className="grid grid-cols-3" style={{ gap: 'var(--space-2)' }}>
                           <Button
                             variant={eventData.userRSVPStatus === 'yes' ? 'default' : 'outline'}
                             size="sm"
@@ -513,8 +507,9 @@ export default function Groups() {
                             onClick={() => handleRSVP(eventData.eventId, 'yes')}
                             data-testid={`button-rsvp-yes-${group.id}`}
                             disabled={rsvpMutation.isPending}
+                            style={{ fontSize: 'var(--text-xs)' }}
                           >
-                            ✅ Yes
+                            Going
                           </Button>
                           <Button
                             variant={eventData.userRSVPStatus === 'maybe' ? 'default' : 'outline'}
@@ -523,8 +518,9 @@ export default function Groups() {
                             onClick={() => handleRSVP(eventData.eventId, 'maybe')}
                             data-testid={`button-rsvp-maybe-${group.id}`}
                             disabled={rsvpMutation.isPending}
+                            style={{ fontSize: 'var(--text-xs)' }}
                           >
-                            🤔 Maybe
+                            Maybe
                           </Button>
                           <Button
                             variant={eventData.userRSVPStatus === 'no' ? 'default' : 'outline'}
@@ -533,25 +529,28 @@ export default function Groups() {
                             onClick={() => handleRSVP(eventData.eventId, 'no')}
                             data-testid={`button-rsvp-no-${group.id}`}
                             disabled={rsvpMutation.isPending}
+                            style={{ fontSize: 'var(--text-xs)' }}
                           >
-                            ❌ No
+                            Can't Go
                           </Button>
                         </div>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="w-full flex items-center gap-2" 
+                          className="w-full flex items-center" 
+                          style={{ gap: 'var(--space-2)' }}
                           data-testid={`button-view-event-${group.id}`}
                         >
                           <Calendar size={14} />
-                          View Event Details
+                          View Details
                         </Button>
                       </div>
                     ) : (
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full flex items-center gap-2" 
+                        className="w-full flex items-center" 
+                        style={{ gap: 'var(--space-2)' }}
                         data-testid={`button-create-event-${group.id}`}
                       >
                         <Plus size={14} />
@@ -559,7 +558,6 @@ export default function Groups() {
                       </Button>
                     )}
                   </CardContent>
-                </div>
               </Card>
             );
           })}
