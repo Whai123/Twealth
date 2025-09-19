@@ -12,7 +12,9 @@ import {
   insertCalendarShareSchema,
   insertEventExpenseSchema,
   insertEventExpenseShareSchema,
-  eventAttendeeSchema
+  eventAttendeeSchema,
+  insertUserSettingsSchema,
+  insertEventTimeLogSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -679,6 +681,210 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const summary = await storage.getEventFinancialSummary(req.params.eventId);
       res.json(summary);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ===============================
+  // TIME TRACKING & VALUE ROUTES
+  // ===============================
+
+  // User Settings Routes
+  app.get("/api/user-settings", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const settings = await storage.getUserSettings(user.id);
+      if (!settings) {
+        return res.status(404).json({ message: "User settings not found" });
+      }
+      res.json({
+        ...settings,
+        hourlyRate: parseFloat(settings.hourlyRate.toString())
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/user-settings", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const settingsData = { ...req.body, userId: user.id };
+      const validatedData = insertUserSettingsSchema.parse(settingsData);
+      const settings = await storage.createUserSettings(validatedData);
+      res.status(201).json({
+        ...settings,
+        hourlyRate: parseFloat(settings.hourlyRate.toString())
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/user-settings", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const validatedData = insertUserSettingsSchema.omit({ userId: true }).partial().parse(req.body);
+      const settings = await storage.updateUserSettings(user.id, validatedData);
+      res.json({
+        ...settings,
+        hourlyRate: parseFloat(settings.hourlyRate.toString())
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Time Tracking Routes
+  app.post("/api/time-logs", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      
+      // Convert date strings to Date objects
+      const timeLogData = {
+        ...req.body,
+        userId: user.id,
+        startedAt: req.body.startedAt ? new Date(req.body.startedAt) : undefined,
+        endedAt: req.body.endedAt ? new Date(req.body.endedAt) : undefined
+      };
+      
+      // Calculate duration if both dates are provided
+      if (timeLogData.startedAt && timeLogData.endedAt) {
+        if (timeLogData.endedAt <= timeLogData.startedAt) {
+          return res.status(400).json({ message: "End time must be after start time" });
+        }
+        const durationMs = timeLogData.endedAt.getTime() - timeLogData.startedAt.getTime();
+        timeLogData.durationMinutes = Math.round(durationMs / (1000 * 60));
+      }
+      
+      const validatedData = insertEventTimeLogSchema.parse(timeLogData);
+      const timeLog = await storage.createTimeLog(validatedData);
+      res.status(201).json(timeLog);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/events/:eventId/time-logs", async (req, res) => {
+    try {
+      const timeLogs = await storage.getEventTimeLogs(req.params.eventId);
+      res.json(timeLogs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/time-logs", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const { range } = req.query;
+      
+      let startDate: Date | undefined;
+      let endDate: Date | undefined;
+      
+      if (range === '7d') {
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+        endDate = new Date();
+      } else if (range === '30d') {
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        endDate = new Date();
+      } else if (range === '90d') {
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 90);
+        endDate = new Date();
+      }
+      
+      const timeLogs = await storage.getUserTimeLogs(user.id, startDate, endDate);
+      res.json(timeLogs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/time-logs/:id", async (req, res) => {
+    try {
+      // Convert date strings to Date objects
+      const updateData = {
+        ...req.body,
+        startedAt: req.body.startedAt ? new Date(req.body.startedAt) : undefined,
+        endedAt: req.body.endedAt ? new Date(req.body.endedAt) : undefined
+      };
+      
+      // Calculate duration if both dates are provided
+      if (updateData.startedAt && updateData.endedAt) {
+        if (updateData.endedAt <= updateData.startedAt) {
+          return res.status(400).json({ message: "End time must be after start time" });
+        }
+        const durationMs = updateData.endedAt.getTime() - updateData.startedAt.getTime();
+        updateData.durationMinutes = Math.round(durationMs / (1000 * 60));
+      }
+      
+      const validatedData = insertEventTimeLogSchema.omit({ userId: true, eventId: true }).partial().parse(updateData);
+      const timeLog = await storage.updateTimeLog(req.params.id, validatedData);
+      res.json(timeLog);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/time-logs/:id", async (req, res) => {
+    try {
+      await storage.deleteTimeLog(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Time-Value Insights Routes
+  app.get("/api/insights/time-value", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const range = (req.query.range as '7d' | '30d' | '90d') || '30d';
+      const insights = await storage.getTimeValueInsights(user.id, range);
+      res.json(insights);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/events/:eventId/time-value", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const timeValue = await storage.calculateEventTimeValue(req.params.eventId, user.id);
+      res.json(timeValue);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Enhanced Dashboard Stats (including time-value data)
+  app.get("/api/dashboard/time-stats", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const range = (req.query.range as '7d' | '30d' | '90d') || '30d';
+      
+      // Get basic insights
+      const insights = await storage.getTimeValueInsights(user.id, range);
+      
+      // Get user settings for context
+      const settings = await storage.getUserSettings(user.id);
+      
+      // Calculate additional metrics
+      const averageHourlyValue = insights.totalTimeHours > 0 ? insights.timeValue / insights.totalTimeHours : 0;
+      const timeEfficiency = insights.timeValue > 0 ? ((insights.timeValue - insights.totalCost) / insights.timeValue) * 100 : 0;
+      
+      res.json({
+        ...insights,
+        hourlyRate: settings?.hourlyRate ? parseFloat(settings.hourlyRate.toString()) : 50,
+        currency: settings?.currency || 'USD',
+        averageHourlyValue,
+        timeEfficiencyPercent: Math.round(timeEfficiency),
+        range
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

@@ -40,7 +40,7 @@ import {
   eventTimeLogs
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, gte, sql, or, exists } from "drizzle-orm";
+import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 
@@ -158,6 +158,33 @@ export interface IStorage {
   // Utility methods for user management
   getFirstUser(): Promise<SafeUser | undefined>;
   createDemoUserIfNeeded(): Promise<SafeUser>;
+  
+  // User settings methods
+  getUserSettings(userId: string): Promise<UserSettings | undefined>;
+  createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
+  updateUserSettings(userId: string, updates: Partial<UserSettings>): Promise<UserSettings>;
+
+  // Time tracking methods
+  createTimeLog(timeLog: InsertEventTimeLog): Promise<EventTimeLog>;
+  getEventTimeLogs(eventId: string): Promise<EventTimeLog[]>;
+  getUserTimeLogs(userId: string, startDate?: Date, endDate?: Date): Promise<EventTimeLog[]>;
+  updateTimeLog(id: string, updates: Partial<EventTimeLog>): Promise<EventTimeLog>;
+  deleteTimeLog(id: string): Promise<void>;
+
+  // Time-value insights methods
+  getTimeValueInsights(userId: string, range: '7d' | '30d' | '90d'): Promise<{
+    totalTimeHours: number;
+    timeValue: number;
+    totalCost: number;
+    netImpact: number;
+    topCategories: Array<{ category: string; timeHours: number; value: number }>;
+    upcomingHighImpact: Array<{ eventId: string; title: string; estimatedValue: number }>;
+  }>;
+  calculateEventTimeValue(eventId: string, userId: string): Promise<{
+    plannedTimeValue: number;
+    actualTimeValue: number;
+    totalImpact: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -922,6 +949,203 @@ export class DatabaseStorage implements IStorage {
       expensesByCategory,
       unpaidShares,
       expenseShares,
+    };
+  }
+
+  // User settings methods
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
+    const [settings] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+    return settings || undefined;
+  }
+
+  async createUserSettings(insertSettings: InsertUserSettings): Promise<UserSettings> {
+    const [settings] = await db
+      .insert(userSettings)
+      .values({
+        ...insertSettings,
+        currency: insertSettings.currency || "USD",
+        workHoursPerWeek: insertSettings.workHoursPerWeek || 40,
+        timeValueStrategy: insertSettings.timeValueStrategy || "fixed",
+      })
+      .returning();
+    return settings;
+  }
+
+  async updateUserSettings(userId: string, updates: Partial<UserSettings>): Promise<UserSettings> {
+    const [settings] = await db
+      .update(userSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSettings.userId, userId))
+      .returning();
+    return settings;
+  }
+
+  // Time tracking methods
+  async createTimeLog(insertTimeLog: InsertEventTimeLog): Promise<EventTimeLog> {
+    const [timeLog] = await db
+      .insert(eventTimeLogs)
+      .values({
+        ...insertTimeLog,
+        notes: insertTimeLog.notes || null,
+      })
+      .returning();
+    
+    // Update event's actual duration if this log is completed
+    if (timeLog.endedAt && timeLog.durationMinutes) {
+      const event = await this.getEvent(insertTimeLog.eventId);
+      if (event) {
+        const currentDuration = event.actualDurationMinutes || 0;
+        const newDuration = currentDuration + timeLog.durationMinutes;
+        await this.updateEvent(insertTimeLog.eventId, { 
+          actualDurationMinutes: newDuration,
+          timeTracked: true
+        });
+      }
+    }
+    
+    return timeLog;
+  }
+
+  async getEventTimeLogs(eventId: string): Promise<EventTimeLog[]> {
+    return await db.select().from(eventTimeLogs).where(eq(eventTimeLogs.eventId, eventId));
+  }
+
+  async getUserTimeLogs(userId: string, startDate?: Date, endDate?: Date): Promise<EventTimeLog[]> {
+    if (startDate && endDate) {
+      return await db.select().from(eventTimeLogs).where(
+        and(
+          eq(eventTimeLogs.userId, userId),
+          gte(eventTimeLogs.startedAt, startDate),
+          lte(eventTimeLogs.startedAt, endDate)
+        )
+      );
+    }
+    
+    return await db.select().from(eventTimeLogs).where(eq(eventTimeLogs.userId, userId));
+  }
+
+  async updateTimeLog(id: string, updates: Partial<EventTimeLog>): Promise<EventTimeLog> {
+    const [timeLog] = await db
+      .update(eventTimeLogs)
+      .set(updates)
+      .where(eq(eventTimeLogs.id, id))
+      .returning();
+    return timeLog;
+  }
+
+  async deleteTimeLog(id: string): Promise<void> {
+    await db.delete(eventTimeLogs).where(eq(eventTimeLogs.id, id));
+  }
+
+  // Time-value insights methods
+  async getTimeValueInsights(userId: string, range: '7d' | '30d' | '90d'): Promise<{
+    totalTimeHours: number;
+    timeValue: number;
+    totalCost: number;
+    netImpact: number;
+    topCategories: Array<{ category: string; timeHours: number; value: number }>;
+    upcomingHighImpact: Array<{ eventId: string; title: string; estimatedValue: number }>;
+  }> {
+    // Get user settings for hourly rate
+    const settings = await this.getUserSettings(userId);
+    const hourlyRate = settings?.hourlyRate ? parseFloat(settings.hourlyRate.toString()) : 50;
+    
+    // Calculate date range
+    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    
+    // Get time logs for the period
+    const timeLogs = await this.getUserTimeLogs(userId, startDate, new Date());
+    const totalTimeMinutes = timeLogs.reduce((sum, log) => sum + (log.durationMinutes || 0), 0);
+    const totalTimeHours = totalTimeMinutes / 60;
+    const timeValue = totalTimeHours * hourlyRate;
+    
+    // Get user's events and calculate total costs
+    const userEvents = await this.getEventsByUserId(userId);
+    const recentEvents = userEvents.filter(event => 
+      event.createdAt && new Date(event.createdAt) >= startDate
+    );
+    const totalCost = recentEvents.reduce((sum, event) => 
+      sum + parseFloat(event.actualCost?.toString() || "0"), 0
+    );
+    
+    const netImpact = timeValue - totalCost;
+    
+    // Calculate top categories (simplified - using event descriptions as categories)
+    const categoryMap: Record<string, { timeHours: number; value: number }> = {};
+    for (const log of timeLogs) {
+      const event = userEvents.find(e => e.id === log.eventId);
+      const category = event?.description || "Other";
+      const hours = (log.durationMinutes || 0) / 60;
+      const value = hours * hourlyRate;
+      
+      if (!categoryMap[category]) {
+        categoryMap[category] = { timeHours: 0, value: 0 };
+      }
+      categoryMap[category].timeHours += hours;
+      categoryMap[category].value += value;
+    }
+    
+    const topCategories = Object.entries(categoryMap)
+      .map(([category, data]) => ({ category, ...data }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+    
+    // Get upcoming high-impact events (with high budgets or long durations)
+    const upcomingEvents = userEvents.filter(event => 
+      new Date(event.startTime) > new Date()
+    );
+    const upcomingHighImpact = upcomingEvents
+      .map(event => {
+        const budget = parseFloat(event.budget?.toString() || "0");
+        const plannedMinutes = event.plannedDurationMinutes || 60; // default 1 hour
+        const estimatedValue = (plannedMinutes / 60) * hourlyRate + budget;
+        return {
+          eventId: event.id,
+          title: event.title,
+          estimatedValue
+        };
+      })
+      .sort((a, b) => b.estimatedValue - a.estimatedValue)
+      .slice(0, 5);
+    
+    return {
+      totalTimeHours,
+      timeValue,
+      totalCost,
+      netImpact,
+      topCategories,
+      upcomingHighImpact,
+    };
+  }
+
+  async calculateEventTimeValue(eventId: string, userId: string): Promise<{
+    plannedTimeValue: number;
+    actualTimeValue: number;
+    totalImpact: number;
+  }> {
+    const event = await this.getEvent(eventId);
+    const settings = await this.getUserSettings(userId);
+    const hourlyRate = settings?.hourlyRate ? parseFloat(settings.hourlyRate.toString()) : 50;
+    
+    if (!event) {
+      return { plannedTimeValue: 0, actualTimeValue: 0, totalImpact: 0 };
+    }
+    
+    const plannedMinutes = event.plannedDurationMinutes || 
+      ((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60));
+    const actualMinutes = event.actualDurationMinutes || 0;
+    
+    const plannedTimeValue = (plannedMinutes / 60) * hourlyRate;
+    const actualTimeValue = (actualMinutes / 60) * hourlyRate;
+    const actualCost = parseFloat(event.actualCost?.toString() || "0");
+    const totalImpact = actualTimeValue + actualCost;
+    
+    return {
+      plannedTimeValue,
+      actualTimeValue,
+      totalImpact,
     };
   }
 }
