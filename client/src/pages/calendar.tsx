@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import EventForm from "@/components/forms/event-form";
+import { TimeTracker } from "@/components/time-tracker";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -385,20 +386,32 @@ export default function Calendar() {
                     </div>
                     <div className="space-y-1">
                       {getEventsForDate(date).slice(0, 2).map((event: any) => {
-                        // Calculate simple time value badge
-                        const hasTimeValue = event.plannedDurationMinutes || event.actualDurationMinutes;
-                        const hasBudget = event.budget && parseFloat(event.budget) > 0;
-                        const hasActualCost = event.actualCost && parseFloat(event.actualCost) > 0;
+                        // Enhanced time-value calculations
+                        const actualDuration = event.actualDurationMinutes || 0;
+                        const plannedDuration = event.plannedDurationMinutes || 0;
+                        const duration = actualDuration || plannedDuration;
+                        const durationHours = duration / 60;
                         
-                        // Simple ROI indicator
-                        const isHighValue = hasBudget && parseFloat(event.budget) > 100;
-                        const isOverBudget = hasBudget && hasActualCost && parseFloat(event.actualCost) > parseFloat(event.budget);
+                        // Get user hourly rate from settings (default $50 if not set)
+                        const userHourlyRate = 50; // TODO: Get from user settings
+                        const timeValue = Math.round(durationHours * userHourlyRate);
+                        
+                        const hasBudget = event.budget && parseFloat(event.budget) > 0;
+                        const budget = hasBudget ? parseFloat(event.budget) : 0;
+                        const hasActualCost = event.actualCost && parseFloat(event.actualCost) > 0;
+                        const actualCost = hasActualCost ? parseFloat(event.actualCost) : 0;
+                        
+                        // Enhanced value indicators
+                        const hasTimeValue = duration > 0;
+                        const isHighValue = timeValue > 200; // High time value
+                        const isOverBudget = hasBudget && hasActualCost && actualCost > budget;
+                        const roi = actualCost > 0 ? Math.round(((timeValue - actualCost) / actualCost) * 100) : null;
                         
                         return (
                           <div
                             key={event.id}
                             className="text-xs p-1 bg-primary/20 text-primary rounded truncate relative group cursor-pointer"
-                            title={`${event.title}${hasTimeValue ? ` • ⏰ ${Math.round((event.plannedDurationMinutes || event.actualDurationMinutes || 0) / 60)}h` : ''}${hasBudget ? ` • 💰 $${parseFloat(event.budget).toFixed(0)}` : ''}`}
+                            title={`${event.title}${hasTimeValue ? ` • Time Value: $${timeValue} (${Math.round(durationHours * 10) / 10}h)` : ''}${hasBudget ? ` • Budget: $${budget}` : ''}${hasActualCost ? ` • Cost: $${actualCost}` : ''}${roi !== null ? ` • ROI: ${roi > 0 ? '+' : ''}${roi}%` : ''}`}
                             onClick={() => handleViewEventDetails(event.id)}
                             data-testid={`calendar-event-${event.id}`}
                           >
@@ -406,35 +419,49 @@ export default function Calendar() {
                               <span className="truncate flex-1">{event.title}</span>
                               <div className="flex items-center gap-1 ml-1">
                                 {hasTimeValue && (
-                                  <span className="time-badge text-[8px]" title="Time tracked">
-                                    ⏰
+                                  <span 
+                                    className="inline-flex items-center px-1 py-0.5 rounded text-[10px] font-medium bg-time-bg text-time-fg border border-time-border" 
+                                    title={`Time value: $${timeValue}`}
+                                  >
+                                    ${timeValue}
                                   </span>
                                 )}
-                                {isHighValue && (
-                                  <span className="value-badge-positive text-[8px]" title="High value event">
-                                    💎
+                                {roi !== null && (
+                                  <span 
+                                    className={`inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium ${roi >= 0 ? 'bg-value-positive/20 text-value-positive border border-value-positive/30' : 'bg-value-negative/20 text-value-negative border border-value-negative/30'}`}
+                                    title={`ROI: ${roi > 0 ? '+' : ''}${roi}%`}
+                                  >
+                                    {roi > 0 ? '+' : ''}{roi}%
+                                  </span>
+                                )}
+                                {isHighValue && !roi && (
+                                  <span 
+                                    className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-productivity-high/20 text-productivity-high border border-productivity-high/30" 
+                                    title="High value event"
+                                  >
+                                    💎HV
                                   </span>
                                 )}
                                 {isOverBudget && (
-                                  <span className="value-badge-negative text-[8px]" title="Over budget">
-                                    🚨
-                                  </span>
-                                )}
-                                {hasBudget && !isOverBudget && (
-                                  <span className="money-badge text-[8px]" title="Within budget">
-                                    💰
+                                  <span 
+                                    className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-value-negative/20 text-value-negative border border-value-negative/30" 
+                                    title={`Over budget by $${Math.round(actualCost - budget)}`}
+                                  >
+                                    +${Math.round(actualCost - budget)}
                                   </span>
                                 )}
                               </div>
                             </div>
+                            
+                            {/* Show more events indicator when truncated */}
+                            {getEventsForDate(date).length > 2 && (
+                              <div className="text-[8px] text-muted-foreground mt-0.5 text-center">
+                                +{getEventsForDate(date).length - 2} more
+                              </div>
+                            )}
                           </div>
                         );
                       })}
-                      {getEventsForDate(date).length > 2 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{getEventsForDate(date).length - 2} more
-                        </div>
-                      )}
                     </div>
                   </>
                 )}
@@ -517,26 +544,75 @@ export default function Calendar() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold text-lg">ROI Analysis</h4>
-                          <p className="text-sm text-muted-foreground">Return on Investment calculation</p>
+                          <p className="text-sm text-muted-foreground">Return on Investment: (Value - Cost) ÷ Cost × 100</p>
                         </div>
                         <div className="text-right">
-                          {eventFinancials?.budget && eventTimeValue.totalImpact > 0 && (
+                          {eventTimeValue.actualTimeValue > 0 && eventFinancials?.totalExpenses && (
                             <>
-                              <p className="text-3xl font-bold">
-                                <span className={eventFinancials.budget > eventTimeValue.totalImpact ? "text-value-positive" : "text-value-negative"}>
-                                  {Math.round(((eventFinancials.budget - eventTimeValue.totalImpact) / eventTimeValue.totalImpact) * 100)}%
-                                </span>
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {eventFinancials.budget > eventTimeValue.totalImpact ? "📈 Positive ROI" : "📉 Negative ROI"}
-                              </p>
+                              {(() => {
+                                const value = eventTimeValue.actualTimeValue || eventTimeValue.plannedTimeValue || 0;
+                                const cost = eventFinancials.totalExpenses || 0;
+                                const roi = cost > 0 ? ((value - cost) / cost) * 100 : 0;
+                                const isPositive = roi >= 0;
+                                return (
+                                  <>
+                                    <p className="text-3xl font-bold">
+                                      <span className={isPositive ? "text-value-positive" : "text-value-negative"}>
+                                        {roi > 0 ? '+' : ''}{Math.round(roi)}%
+                                      </span>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {isPositive ? "📈 Positive ROI" : "📉 Negative ROI"}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Value: ${Math.round(value)} | Cost: ${Math.round(cost)}
+                                    </p>
+                                  </>
+                                );
+                              })()}
                             </>
                           )}
-                          {!eventFinancials?.budget && (
-                            <p className="text-sm text-muted-foreground">No budget set</p>
+                          {eventTimeValue.actualTimeValue > 0 && !eventFinancials?.totalExpenses && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">No expenses tracked</p>
+                              <p className="text-xs text-muted-foreground">Add expenses to calculate ROI</p>
+                            </div>
+                          )}
+                          {eventTimeValue.actualTimeValue === 0 && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">No time tracked</p>
+                              <p className="text-xs text-muted-foreground">Track time to calculate ROI</p>
+                            </div>
                           )}
                         </div>
                       </div>
+                      
+                      {/* Budget vs Actual Analysis */}
+                      {eventFinancials?.budget && (
+                        <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-700">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">Budget Variance:</span>
+                            <div className="text-right">
+                              {(() => {
+                                const actualCost = eventFinancials.totalExpenses || 0;
+                                const budget = eventFinancials.budget;
+                                const variance = budget - actualCost;
+                                const isUnderBudget = variance >= 0;
+                                return (
+                                  <>
+                                    <span className={isUnderBudget ? "text-value-positive" : "text-value-negative"}>
+                                      {isUnderBudget ? '+' : ''}${Math.round(variance)}
+                                    </span>
+                                    <p className="text-xs text-muted-foreground">
+                                      {isUnderBudget ? "Under budget" : "Over budget"}
+                                    </p>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Efficiency Insights */}
@@ -562,6 +638,24 @@ export default function Calendar() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Time Tracker */}
+              {(() => {
+                const selectedEvent = events?.find((event: any) => event.id === selectedEventId);
+                return selectedEvent && (
+                  <TimeTracker
+                    eventId={selectedEvent.id}
+                    eventTitle={selectedEvent.title}
+                    plannedDurationMinutes={selectedEvent.plannedDurationMinutes}
+                    actualDurationMinutes={selectedEvent.actualDurationMinutes}
+                    onTimeUpdate={(minutes: number) => {
+                      // Update the event data and refresh queries
+                      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+                      queryClient.invalidateQueries({ queryKey: ['/api/events', selectedEventId] });
+                    }}
+                  />
+                );
+              })()}
 
               {/* Financial Summary */}
               {eventFinancials && (
