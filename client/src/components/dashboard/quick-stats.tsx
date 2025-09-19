@@ -1,13 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { PiggyBank, Target, Users, TrendingUp, ArrowUp } from "lucide-react";
+import { PiggyBank, Target, Users, TrendingUp, ArrowUp, Clock, DollarSign, Zap, BarChart3 } from "lucide-react";
 
 export default function QuickStats() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
   });
+  
+  const { data: timeStats, isLoading: timeStatsLoading } = useQuery({
+    queryKey: ["/api/dashboard/time-stats"],
+  });
 
-  if (isLoading) {
+  if (isLoading || timeStatsLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
@@ -23,65 +27,81 @@ export default function QuickStats() {
     );
   }
 
+  const currency = (timeStats as any)?.currency || 'USD';
+  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency;
+  
   const statCards = [
     {
-      title: "Total Savings",
-      value: `$${(stats as any)?.totalSavings?.toLocaleString() || '0'}`,
-
-      change: "+8.2% this month",
-      icon: PiggyBank,
-      iconBg: "bg-green-100",
-      iconColor: "text-green-600",
-      changeColor: "text-green-600"
+      title: "Time Value",
+      value: `${currencySymbol}${Math.round((timeStats as any)?.timeValue || 0).toLocaleString()}`,
+      change: `${Math.round((timeStats as any)?.totalTimeHours || 0)}h tracked`,
+      icon: Clock,
+      iconBg: "productivity-gradient",
+      iconColor: "text-white",
+      changeColor: "text-time",
+      badge: "time-badge",
+      gradient: true
     },
     {
-      title: "Active Goals",
-      value: (stats as any)?.activeGoals || '0',
-      change: "67% avg progress",
-      icon: Target,
-      iconBg: "bg-blue-100", 
-      iconColor: "text-primary",
-      changeColor: "text-primary"
+      title: "Hourly Rate",
+      value: `${currencySymbol}${(timeStats as any)?.hourlyRate || 50}/hr`,
+      change: `${(timeStats as any)?.timeEfficiencyPercent || 0}% efficiency`,
+      icon: DollarSign,
+      iconBg: "value-gradient",
+      iconColor: "text-white",
+      changeColor: "text-money",
+      badge: "money-badge",
+      gradient: true
     },
     {
-      title: "Group Events",
-      value: (stats as any)?.upcomingEvents || '0',
-      change: "This week",
-      icon: Users,
-      iconBg: "bg-amber-100",
-      iconColor: "text-amber-600",
-      changeColor: "text-amber-600"
+      title: "Net Impact",
+      value: `${currencySymbol}${Math.round((timeStats as any)?.netImpact || 0).toLocaleString()}`,
+      change: (timeStats as any)?.netImpact >= 0 ? "Positive ROI" : "Needs optimization",
+      icon: (timeStats as any)?.netImpact >= 0 ? TrendingUp : BarChart3,
+      iconBg: (timeStats as any)?.netImpact >= 0 ? "bg-green-100 dark:bg-green-900/20" : "bg-red-100 dark:bg-red-900/20",
+      iconColor: (timeStats as any)?.netImpact >= 0 ? "text-green-600 dark:text-green-300" : "text-red-600 dark:text-red-300",
+      changeColor: (timeStats as any)?.netImpact >= 0 ? "text-value-positive" : "text-value-negative",
+      badge: (timeStats as any)?.netImpact >= 0 ? "value-badge-positive" : "value-badge-negative"
     },
     {
-      title: "Monthly Income",
-      value: `$${(stats as any)?.monthlyIncome?.toLocaleString() || '0'}`,
-      change: "Target: $6,000",
-      icon: TrendingUp,
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-600",
-      changeColor: "text-muted-foreground"
+      title: "Productivity",
+      value: `${(timeStats as any)?.averageHourlyValue ? Math.round((timeStats as any).averageHourlyValue) : 0}%`,
+      change: "vs target rate",
+      icon: Zap,
+      iconBg: "insight-gradient",
+      iconColor: "text-white",
+      changeColor: "text-productivity-medium",
+      badge: "productivity-medium",
+      gradient: true
     }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {statCards.map((stat, index) => (
-        <Card key={index} className="p-6 shadow-sm">
+        <Card key={index} className="p-6 shadow-sm hover-lift animate-bounce-in" style={{animationDelay: `${index * 0.1}s`}}>
           <CardContent className="p-0">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground" data-testid={`text-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                  {stat.title}
-                </p>
-                <p className="text-2xl font-bold text-foreground" data-testid={`value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm text-muted-foreground" data-testid={`text-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {stat.title}
+                  </p>
+                  {stat.badge && (
+                    <span className={stat.badge}>
+                      {stat.title === 'Time Value' ? '⏰' : stat.title === 'Hourly Rate' ? '💰' : stat.title === 'Net Impact' ? (stat.changeColor.includes('positive') ? '📈' : '📉') : '⚡'}
+                    </span>
+                  )}
+                </div>
+                <p className={`text-2xl font-bold counter-animate ${stat.title === 'Time Value' ? 'time-format text-time' : stat.title === 'Hourly Rate' ? 'currency-format text-money' : 'text-foreground'}`} data-testid={`value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
                   {stat.value}
                 </p>
-                <p className={`text-xs mt-1 ${stat.changeColor}`}>
-                  {index === 0 && <ArrowUp size={12} className="inline mr-1" />}
+                <p className={`text-xs mt-1 font-medium ${stat.changeColor}`}>
+                  {(stat.title === 'Net Impact' && (timeStats as any)?.netImpact >= 0) && <ArrowUp size={12} className="inline mr-1" />}
                   {stat.change}
                 </p>
               </div>
-              <div className={`w-12 h-12 ${stat.iconBg} rounded-lg flex items-center justify-center`}>
+              <div className={`w-12 h-12 ${stat.gradient ? stat.iconBg : stat.iconBg} rounded-lg flex items-center justify-center shadow-md animate-float`} style={{animationDelay: `${index * 0.2}s`}}>
                 <stat.icon className={stat.iconColor} size={24} />
               </div>
             </div>
