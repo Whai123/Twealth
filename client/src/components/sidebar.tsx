@@ -72,13 +72,15 @@ export default function Sidebar() {
               <p className="text-xs text-muted-foreground">demo@example.com</p>
             </div>
           </div>
-          <button 
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center"
-            data-testid="button-settings"
-          >
-            <Settings size={12} className="mr-1" />
-            Settings
-          </button>
+          <Link href="/settings">
+            <button 
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center"
+              data-testid="button-settings"
+            >
+              <Settings size={12} className="mr-1" />
+              Settings
+            </button>
+          </Link>
         </div>
       </div>
     </aside>

@@ -10,6 +10,7 @@ import Calendar from "@/pages/calendar";
 import FinancialGoals from "@/pages/financial-goals";
 import MoneyTracking from "@/pages/money-tracking";
 import Planning from "@/pages/planning";
+import Settings from "@/pages/settings";
 import PublicCalendar from "@/pages/public-calendar";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/sidebar";
@@ -43,6 +44,7 @@ function Router() {
           <Route path="/financial-goals" component={FinancialGoals} />
           <Route path="/money-tracking" component={MoneyTracking} />
           <Route path="/planning" component={Planning} />
+          <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
       </main>
