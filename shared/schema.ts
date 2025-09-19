@@ -208,6 +208,11 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
 }).extend({
+  amount: z.preprocess((val) => {
+    if (typeof val === 'number') return val.toFixed(2);
+    if (typeof val === 'string') return val;
+    return val;
+  }, z.string()),
   date: z.preprocess((val) => {
     if (typeof val === 'string') return new Date(val);
     return val;

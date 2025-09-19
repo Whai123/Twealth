@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { PiggyBank, Target, Users, TrendingUp, ArrowUp, Clock, DollarSign, Zap, BarChart3 } from "lucide-react";
 
-export default function QuickStats() {
+function QuickStats() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
   });
@@ -111,3 +112,6 @@ export default function QuickStats() {
     </div>
   );
 }
+
+// Export with React.memo for mobile performance optimization
+export default memo(QuickStats);

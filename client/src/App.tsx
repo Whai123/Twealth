@@ -4,17 +4,33 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/lib/userContext";
-import Dashboard from "@/pages/dashboard";
-import Groups from "@/pages/groups";
-import Calendar from "@/pages/calendar";
-import FinancialGoals from "@/pages/financial-goals";
-import MoneyTracking from "@/pages/money-tracking";
-import Planning from "@/pages/planning";
-import Settings from "@/pages/settings";
-import PublicCalendar from "@/pages/public-calendar";
-import NotFound from "@/pages/not-found";
+// Lazy load pages for better mobile performance
+import { lazy, Suspense, startTransition } from 'react';
+import { Card } from "@/components/ui/card";
+
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Groups = lazy(() => import("@/pages/groups"));
+const Calendar = lazy(() => import("@/pages/calendar"));
+const FinancialGoals = lazy(() => import("@/pages/financial-goals"));
+const MoneyTracking = lazy(() => import("@/pages/money-tracking"));
+const Planning = lazy(() => import("@/pages/planning"));
+const Settings = lazy(() => import("@/pages/settings"));
+const PublicCalendar = lazy(() => import("@/pages/public-calendar"));
+const NotFound = lazy(() => import("@/pages/not-found"));
+
+// Loading component for lazy-loaded routes - simplified for React 18 compatibility
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[400px] p-4">
+    <div className="flex items-center space-x-3">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+      <span className="text-sm text-muted-foreground">Loading...</span>
+    </div>
+  </div>
+);
+
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
+import ErrorBoundary from "@/components/error-boundary";
 
 function Router() {
   const [location] = useLocation();
@@ -25,10 +41,14 @@ function Router() {
   if (isPublicRoute) {
     return (
       <main className="min-h-screen">
-        <Switch>
-          <Route path="/shared/calendar/:token" component={PublicCalendar} />
-          <Route component={NotFound} />
-        </Switch>
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Switch>
+              <Route path="/shared/calendar/:token" component={PublicCalendar} />
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </ErrorBoundary>
       </main>
     );
   }
@@ -43,16 +63,20 @@ function Router() {
       
       {/* Main Content Area */}
       <main className="flex-1 overflow-auto pb-16 md:pb-0">
-        <Switch>
-          <Route path="/" component={Dashboard} />
-          <Route path="/groups" component={Groups} />
-          <Route path="/calendar" component={Calendar} />
-          <Route path="/financial-goals" component={FinancialGoals} />
-          <Route path="/money-tracking" component={MoneyTracking} />
-          <Route path="/planning" component={Planning} />
-          <Route path="/settings" component={Settings} />
-          <Route component={NotFound} />
-        </Switch>
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/groups" component={Groups} />
+              <Route path="/calendar" component={Calendar} />
+              <Route path="/financial-goals" component={FinancialGoals} />
+              <Route path="/money-tracking" component={MoneyTracking} />
+              <Route path="/planning" component={Planning} />
+              <Route path="/settings" component={Settings} />
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </ErrorBoundary>
       </main>
       
       {/* Mobile Navigation - shown only on mobile */}
@@ -67,7 +91,9 @@ function App() {
       <UserProvider>
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <ErrorBoundary>
+            <Router />
+          </ErrorBoundary>
         </TooltipProvider>
       </UserProvider>
     </QueryClientProvider>
