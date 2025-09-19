@@ -13,9 +13,9 @@ export default function QuickStats() {
 
   if (isLoading || timeStatsLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-6">
+          <Card key={i} className="p-4 md:p-6">
             <div className="animate-pulse">
               <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
               <div className="h-8 bg-muted rounded w-3/4 mb-2"></div>
@@ -77,9 +77,9 @@ export default function QuickStats() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {statCards.map((stat, index) => (
-        <Card key={index} className="p-6 shadow-sm hover-lift animate-bounce-in" style={{animationDelay: `${index * 0.1}s`}}>
+        <Card key={index} className="p-4 md:p-6 shadow-sm hover-lift animate-bounce-in" style={{animationDelay: `${index * 0.1}s`}}>
           <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div className="flex-1">
