@@ -183,6 +183,15 @@ export const insertGroupMemberSchema = createInsertSchema(groupMembers).omit({
 export const insertEventSchema = createInsertSchema(events).omit({
   id: true,
   createdAt: true,
+}).extend({
+  startTime: z.preprocess((val) => {
+    if (typeof val === 'string') return new Date(val);
+    return val;
+  }, z.date()),
+  endTime: z.preprocess((val) => {
+    if (typeof val === 'string') return new Date(val);
+    return val;
+  }, z.date()),
 });
 
 export const insertFinancialGoalSchema = createInsertSchema(financialGoals).omit({
@@ -198,6 +207,11 @@ export const insertFinancialGoalSchema = createInsertSchema(financialGoals).omit
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
+}).extend({
+  date: z.preprocess((val) => {
+    if (typeof val === 'string') return new Date(val);
+    return val;
+  }, z.date()),
 });
 
 export const insertGoalContributionSchema = createInsertSchema(goalContributions).omit({
