@@ -21,6 +21,10 @@ import {
   type InsertEventExpense,
   type EventExpenseShare,
   type InsertEventExpenseShare,
+  type UserSettings,
+  type InsertUserSettings,
+  type EventTimeLog,
+  type InsertEventTimeLog,
   users,
   groups,
   groupMembers,
@@ -31,7 +35,9 @@ import {
   groupInvites,
   calendarShares,
   eventExpenses,
-  eventExpenseShares
+  eventExpenseShares,
+  userSettings,
+  eventTimeLogs
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, sql, or, exists } from "drizzle-orm";

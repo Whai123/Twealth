@@ -48,6 +48,10 @@ export const events = pgTable("events", {
   actualCost: decimal("actual_cost", { precision: 10, scale: 2 }).default("0"), // total spent on this event
   linkedGoalId: varchar("linked_goal_id").references(() => financialGoals.id, { onDelete: "set null" }), // link to financial goal
   costSharingType: text("cost_sharing_type", { enum: ["none", "equal", "custom"] }).default("none"),
+  // Time tracking fields
+  plannedDurationMinutes: integer("planned_duration_minutes"), // expected duration in minutes
+  actualDurationMinutes: integer("actual_duration_minutes"), // actual time spent from time logs
+  timeTracked: boolean("time_tracked").default(false), // whether user has tracked time for this event
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -105,6 +109,29 @@ export const calendarShares = pgTable("calendar_shares", {
   groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }), // null for user scope
   expiresAt: timestamp("expires_at"),
   isRevoked: boolean("is_revoked").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userSettings = pgTable("user_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  hourlyRate: decimal("hourly_rate", { precision: 10, scale: 2 }).default("50.00"), // default $50/hour
+  currency: text("currency").default("USD"),
+  workHoursPerWeek: integer("work_hours_per_week").default(40),
+  timeValueStrategy: text("time_value_strategy", { enum: ["fixed", "derived"] }).default("fixed"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const eventTimeLogs = pgTable("event_time_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  startedAt: timestamp("started_at").notNull(),
+  endedAt: timestamp("ended_at"),
+  durationMinutes: integer("duration_minutes"),
+  source: text("source", { enum: ["timer", "manual"] }).default("timer"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -214,6 +241,22 @@ export const insertEventExpenseShareSchema = createInsertSchema(eventExpenseShar
   shareAmount: z.union([z.string(), z.number()]).transform(val => val.toString()),
 });
 
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  hourlyRate: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  timeValueStrategy: z.enum(["fixed", "derived"]).default("fixed"),
+});
+
+export const insertEventTimeLogSchema = createInsertSchema(eventTimeLogs).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  source: z.enum(["timer", "manual"]).default("timer"),
+});
+
 // Event attendee schema for type consistency
 export const eventAttendeeSchema = z.object({
   userId: z.string(),
@@ -255,6 +298,12 @@ export type InsertEventExpense = z.infer<typeof insertEventExpenseSchema>;
 
 export type EventExpenseShare = typeof eventExpenseShares.$inferSelect;
 export type InsertEventExpenseShare = z.infer<typeof insertEventExpenseShareSchema>;
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+
+export type EventTimeLog = typeof eventTimeLogs.$inferSelect;
+export type InsertEventTimeLog = z.infer<typeof insertEventTimeLogSchema>;
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
