@@ -66,9 +66,9 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
       apiRequest("POST", "/api/financial-goals", {
         ...data,
         userId: user?.id, // Use actual user ID from context
-        targetAmount: parseFloat(data.targetAmount),
-        currentAmount: data.currentAmount ? parseFloat(data.currentAmount) : 0,
-        targetDate: new Date(data.targetDate).toISOString(),
+        targetAmount: data.targetAmount, // Keep as string for decimal field
+        currentAmount: data.currentAmount || "0", // Keep as string for decimal field
+        targetDate: new Date(data.targetDate), // Send as Date object for timestamp field
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function FinancialGoals() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isFirstGoalDialogOpen, setIsFirstGoalDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -124,7 +125,7 @@ export default function FinancialGoals() {
           <p className="text-muted-foreground mb-6">
             Create your first financial goal to start tracking your savings progress
           </p>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isFirstGoalDialogOpen} onOpenChange={setIsFirstGoalDialogOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-create-first-goal">
                 <Plus size={16} className="mr-2" />
@@ -132,7 +133,7 @@ export default function FinancialGoals() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
-              <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
+              <GoalForm onSuccess={() => setIsFirstGoalDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>

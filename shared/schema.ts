@@ -188,6 +188,11 @@ export const insertEventSchema = createInsertSchema(events).omit({
 export const insertFinancialGoalSchema = createInsertSchema(financialGoals).omit({
   id: true,
   createdAt: true,
+}).extend({
+  targetDate: z.preprocess((val) => {
+    if (typeof val === 'string') return new Date(val);
+    return val;
+  }, z.date()),
 });
 
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
