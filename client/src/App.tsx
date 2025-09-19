@@ -14,6 +14,7 @@ import Settings from "@/pages/settings";
 import PublicCalendar from "@/pages/public-calendar";
 import NotFound from "@/pages/not-found";
 import Sidebar from "@/components/sidebar";
+import MobileNavigation from "@/components/mobile-navigation";
 
 function Router() {
   const [location] = useLocation();
@@ -32,11 +33,16 @@ function Router() {
     );
   }
   
-  // Regular routes with sidebar
+  // Regular routes with responsive navigation
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
+    <div className="flex min-h-screen bg-background">
+      {/* Desktop Sidebar - hidden on mobile */}
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-auto pb-16 md:pb-0">
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/groups" component={Groups} />
@@ -48,6 +54,9 @@ function Router() {
           <Route component={NotFound} />
         </Switch>
       </main>
+      
+      {/* Mobile Navigation - shown only on mobile */}
+      <MobileNavigation />
     </div>
   );
 }
