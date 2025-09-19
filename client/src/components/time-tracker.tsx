@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,11 +32,117 @@ export function TimeTracker({
 }: TimeTrackerProps) {
   const [isTracking, setIsTracking] = useState(isActive);
   const [elapsedTime, setElapsedTime] = useState(actualDurationMinutes * 60 * 1000); // Convert to milliseconds
-  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
-  const [baselineElapsed, setBaselineElapsed] = useState(0); // Track time at session start for proper duration calculation
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [accumulatedActiveMs, setAccumulatedActiveMs] = useState(actualDurationMinutes * 60 * 1000);
+  const [lastStartedAt, setLastStartedAt] = useState<number | null>(null);
+  const [hasActiveSession, setHasActiveSession] = useState(false); // Track if we have an active session (even when paused)
+  const intervalRef = useRef<number | null>(null);
+  
+  // Refs to store current values for timer access
+  const isTrackingRef = useRef(isTracking);
+  const accumulatedActiveMsRef = useRef(accumulatedActiveMs);
+  const lastStartedAtRef = useRef(lastStartedAt);
+  
+  // Update refs when state changes
+  useEffect(() => {
+    isTrackingRef.current = isTracking;
+    accumulatedActiveMsRef.current = accumulatedActiveMs;
+    lastStartedAtRef.current = lastStartedAt;
+  }, [isTracking, accumulatedActiveMs, lastStartedAt]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Session persistence key
+  const sessionKey = `timetracker_${eventId}`;
+
+  // Load persisted session on mount
+  useEffect(() => {
+    const persistedSession = localStorage.getItem(sessionKey);
+    if (persistedSession) {
+      try {
+        const { isTracking: wasTracking, accumulatedMs, startedAt, hasSession } = JSON.parse(persistedSession);
+        if (hasSession) {
+          setAccumulatedActiveMs(accumulatedMs);
+          setElapsedTime(accumulatedMs); // Update UI to show accumulated time
+          setHasActiveSession(true);
+          if (wasTracking && startedAt) {
+            setLastStartedAt(startedAt);
+            setIsTracking(true);
+            startTimer();
+          } else {
+            // Paused session
+            setIsTracking(false);
+            setLastStartedAt(null);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to restore session:', error);
+        localStorage.removeItem(sessionKey);
+      }
+    }
+  }, [eventId]);
+
+  // Persist session state
+  const persistSession = (tracking: boolean, accumulated: number, started: number | null, hasSession: boolean) => {
+    if (hasSession) {
+      localStorage.setItem(sessionKey, JSON.stringify({
+        isTracking: tracking,
+        accumulatedMs: accumulated,
+        startedAt: started,
+        hasSession: hasSession
+      }));
+    } else {
+      localStorage.removeItem(sessionKey);
+    }
+  };
+
+  // Start timer interval with direct implementation
+  const startTimer = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = window.setInterval(() => {
+      const now = Date.now();
+      // Access current values from refs to avoid stale closures
+      const currentAccumulated = accumulatedActiveMsRef.current;
+      const currentStartedAt = lastStartedAtRef.current;
+      const currentTracking = isTrackingRef.current;
+      
+      let currentElapsed = currentAccumulated;
+      if (currentTracking && currentStartedAt) {
+        currentElapsed += (now - currentStartedAt);
+      }
+      setElapsedTime(currentElapsed);
+    }, 1000);
+  };
+
+  // Handle visibility change to manage tracking
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && isTracking) {
+        // Persist current state when tab becomes hidden
+        const now = Date.now();
+        const accumulated = accumulatedActiveMs + (lastStartedAt ? now - lastStartedAt : 0);
+        persistSession(true, accumulated, now, true);
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      if (isTracking && lastStartedAt) {
+        // Auto-save session on page unload
+        const now = Date.now();
+        const accumulated = accumulatedActiveMs + (now - lastStartedAt);
+        persistSession(true, accumulated, now, true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isTracking, lastStartedAt, accumulatedActiveMs, sessionKey]);
 
   // Start time tracking mutation
   const startTrackingMutation = useMutation({
@@ -56,20 +162,35 @@ export function TimeTracker({
     },
     onError: (error) => {
       console.error('Failed to start time tracking:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start time tracking",
-        variant: "destructive",
-        duration: 3000
-      });
-      // Cleanup on error
+      
+      // Calculate any time already tracked since handleStart
+      const now = Date.now();
+      const currentAccumulated = accumulatedActiveMsRef.current;
+      const currentStartedAt = lastStartedAtRef.current;
+      const tracked = currentStartedAt ? now - currentStartedAt : 0;
+      const totalAccumulated = currentAccumulated + tracked;
+      
+      // Preserve session with tracked time so user can save later
       setIsTracking(false);
-      setSessionStartTime(null);
-      setBaselineElapsed(0);
+      setHasActiveSession(true); // Keep session active
+      setLastStartedAt(null);
+      setAccumulatedActiveMs(totalAccumulated);
+      setElapsedTime(totalAccumulated);
+      
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      
+      // Persist the tracked time for later saving
+      persistSession(false, totalAccumulated, null, true);
+      
+      toast({
+        title: "Error",
+        description: "Failed to start time tracking. Your tracked time is saved, you can try again or stop to save.",
+        variant: "destructive",
+        duration: 4000
+      });
     }
   });
 
@@ -83,6 +204,11 @@ export function TimeTracker({
       });
     },
     onSuccess: (data) => {
+      // Clear session state only after successful API call
+      setAccumulatedActiveMs(0);
+      setHasActiveSession(false);
+      localStorage.removeItem(sessionKey);
+      
       // Complete cache invalidation for all related queries
       queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId] });
@@ -90,6 +216,7 @@ export function TimeTracker({
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'financial-summary'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dashboard/time-stats'] });
       queryClient.invalidateQueries({ queryKey: ['/api/insights/time-value'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events/upcoming'] });
       
       const totalMinutes = Math.round(elapsedTime / (60 * 1000));
       onTimeUpdate?.(totalMinutes);
@@ -100,13 +227,18 @@ export function TimeTracker({
         duration: 3000
       });
     },
-    onError: (error) => {
+    onError: (error, totalActiveDuration) => {
       console.error('Failed to stop time tracking:', error);
+      
+      // Restore session using the exact attempted duration to prevent race condition
+      setHasActiveSession(true);
+      persistSession(false, totalActiveDuration, null, true);
+      
       toast({
         title: "Error", 
-        description: "Failed to stop time tracking",
+        description: "Failed to stop time tracking. Your session is saved, you can try again.",
         variant: "destructive",
-        duration: 3000
+        duration: 4000
       });
     }
   });
@@ -128,51 +260,78 @@ export function TimeTracker({
 
   // Start tracking
   const handleStart = () => {
-    const startTime = new Date();
+    const now = Date.now();
     setIsTracking(true);
-    setSessionStartTime(startTime);
-    setBaselineElapsed(elapsedTime); // Remember elapsed time at start of session
+    setLastStartedAt(now);
+    setHasActiveSession(true);
     startTrackingMutation.mutate();
-    
-    // Start the timer interval
-    intervalRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 1000);
-    }, 1000);
+    startTimer();
+    persistSession(true, accumulatedActiveMs, now, true);
   };
 
   // Pause tracking (keep session but stop timer)
   const handlePause = () => {
-    setIsTracking(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
+    if (isTracking && lastStartedAt) {
+      const now = Date.now();
+      const newAccumulated = accumulatedActiveMs + (now - lastStartedAt);
+      
+      setAccumulatedActiveMs(newAccumulated);
+      setElapsedTime(newAccumulated); // Update UI immediately
+      setIsTracking(false);
+      setLastStartedAt(null);
+      
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // Keep session active but paused
+      persistSession(false, newAccumulated, null, true);
     }
   };
 
   // Resume tracking
   const handleResume = () => {
+    const now = Date.now();
     setIsTracking(true);
-    intervalRef.current = setInterval(() => {
-      setElapsedTime(prev => prev + 1000);
-    }, 1000);
+    setLastStartedAt(now);
+    startTimer();
+    persistSession(true, accumulatedActiveMs, now, true);
   };
 
   // Stop and save tracking
   const handleStop = () => {
+    let totalActiveDuration;
+    
+    if (isTracking && lastStartedAt) {
+      // Currently tracking - add current session
+      const now = Date.now();
+      const sessionDuration = now - lastStartedAt;
+      totalActiveDuration = accumulatedActiveMs + sessionDuration;
+    } else if (hasActiveSession) {
+      // Paused - use accumulated time only
+      totalActiveDuration = accumulatedActiveMs;
+    } else {
+      return; // No session to stop
+    }
+    
+    // Update both elapsed time and accumulated time to prevent data loss
+    setElapsedTime(totalActiveDuration);
+    setAccumulatedActiveMs(totalActiveDuration);
+    
+    // Stop timer but keep session until API succeeds
     setIsTracking(false);
+    setLastStartedAt(null);
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
     
-    if (sessionStartTime) {
-      // Calculate only the active duration from this session (excluding previous time and pauses)
-      const activeDuration = elapsedTime - baselineElapsed;
-      stopTrackingMutation.mutate(activeDuration);
-    }
+    // Persist the complete session before API call to prevent data loss
+    persistSession(false, totalActiveDuration, null, true);
     
-    setSessionStartTime(null);
-    setBaselineElapsed(0);
+    // Send total active duration - session cleanup in onSuccess
+    stopTrackingMutation.mutate(totalActiveDuration);
   };
 
   // Cleanup interval on unmount
@@ -209,9 +368,9 @@ export function TimeTracker({
           <div className={`text-3xl font-mono font-bold ${isTracking ? 'text-time-active' : 'text-foreground'}`} data-testid="text-elapsed-time">
             {formatDuration(elapsedTime)}
           </div>
-          {sessionStartTime && (
+          {lastStartedAt && (
             <p className="text-sm text-muted-foreground mt-1">
-              Started at {sessionStartTime.toLocaleTimeString()}
+              Started at {new Date(lastStartedAt).toLocaleTimeString()}
             </p>
           )}
         </div>
@@ -242,7 +401,7 @@ export function TimeTracker({
 
         {/* Control Buttons */}
         <div className="flex gap-2 justify-center">
-          {!isTracking && !sessionStartTime && (
+          {!hasActiveSession && (
             <Button 
               onClick={handleStart}
               disabled={startTrackingMutation.isPending}
@@ -254,7 +413,7 @@ export function TimeTracker({
             </Button>
           )}
           
-          {isTracking && (
+          {isTracking && hasActiveSession && (
             <Button 
               onClick={handlePause}
               variant="outline"
@@ -265,7 +424,7 @@ export function TimeTracker({
             </Button>
           )}
           
-          {!isTracking && sessionStartTime && (
+          {!isTracking && hasActiveSession && (
             <Button 
               onClick={handleResume}
               className="bg-time-active hover:bg-time-active/90"
@@ -276,7 +435,7 @@ export function TimeTracker({
             </Button>
           )}
           
-          {sessionStartTime && (
+          {hasActiveSession && (
             <Button 
               onClick={handleStop}
               variant="destructive"
