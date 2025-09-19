@@ -29,23 +29,17 @@
   --chart-4: hsl(0, 84%, 60%);
   --chart-5: hsl(271, 81%, 56%);
   
-  /* Time-Money Theme Colors */
-  --time-primary: 221 83% 53%;
-  --time-secondary: 142 76% 36%;
-  --money-primary: 45 93% 47%;
-  --money-secondary: 39 100% 57%;
-  --value-positive: 142 76% 36%;
-  --value-negative: 0 84% 60%;
-  --value-neutral: 220 9% 46%;
-  --productivity-high: 142 76% 36%;
-  --productivity-medium: 45 93% 47%;
-  --productivity-low: 0 84% 60%;
+  /* Modern Color System - Single Primary with Status Colors */
+  --brand-primary: 221 83% 53%;
+  --success: 142 71% 45%;
+  --warning: 38 92% 50%;
+  --error: 0 84% 60%;
+  --neutral: 220 9% 46%;
   
-  /* Gradients */
-  --gradient-time-money: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(45, 93%, 47%) 100%);
-  --gradient-productivity: linear-gradient(135deg, hsl(142, 76%, 36%) 0%, hsl(221, 83%, 53%) 100%);
-  --gradient-value: linear-gradient(135deg, hsl(45, 93%, 47%) 0%, hsl(39, 100%, 57%) 100%);
-  --gradient-insight: linear-gradient(135deg, hsl(271, 81%, 56%) 0%, hsl(221, 83%, 53%) 100%);
+  /* Simplified Gradients - Static, No Animation */
+  --gradient-subtle: linear-gradient(135deg, hsl(221, 83%, 53%) 0%, hsl(221, 83%, 60%) 100%);
+  --gradient-success: linear-gradient(135deg, hsl(142, 71%, 45%) 0%, hsl(142, 71%, 50%) 100%);
+  --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
   
   --sidebar: hsl(0, 0%, 100%);
   --sidebar-foreground: hsl(220, 15%, 9%);
@@ -58,17 +52,34 @@
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
-  --radius: 8px;
-  --shadow-2xs: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00), 0px 1px 2px -1px hsl(221, 83%, 53% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00), 0px 1px 2px -1px hsl(221, 83%, 53% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00), 0px 2px 4px -1px hsl(221, 83%, 53% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00), 0px 4px 6px -1px hsl(221, 83%, 53% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00), 0px 8px 10px -1px hsl(221, 83%, 53% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(221, 83%, 53% / 0.00);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+  --radius: 12px;
+  
+  /* 8pt Spacing Scale */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  
+  /* Consistent Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* Typography Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
 }
 
 .dark {
@@ -108,148 +119,133 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    line-height: 1.6;
   }
   
-  /* Typography Enhancements */
+  /* Modern Typography */
+  .text-brand {
+    color: hsl(var(--brand-primary));
+    font-weight: 600;
+  }
+  
+  .text-success {
+    color: hsl(var(--success));
+    font-weight: 600;
+  }
+  
+  .text-warning {
+    color: hsl(var(--warning));
+    font-weight: 600;
+  }
+  
+  .text-error {
+    color: hsl(var(--error));
+    font-weight: 600;
+  }
+  
+  /* Legacy Color Support */
   .text-time {
-    color: hsl(var(--time-primary));
+    color: hsl(var(--brand-primary));
     font-weight: 600;
   }
   
   .text-money {
-    color: hsl(var(--money-primary));
+    color: hsl(var(--success));
     font-weight: 600;
   }
   
   .text-value-positive {
-    color: hsl(var(--value-positive));
+    color: hsl(var(--success));
     font-weight: 600;
   }
   
   .text-value-negative {
-    color: hsl(var(--value-negative));
+    color: hsl(var(--error));
     font-weight: 600;
-  }
-  
-  .text-productivity-high {
-    color: hsl(var(--productivity-high));
-  }
-  
-  .text-productivity-medium {
-    color: hsl(var(--productivity-medium));
-  }
-  
-  .text-productivity-low {
-    color: hsl(var(--productivity-low));
   }
 }
 
 @layer components {
-  /* Time-Money Components */
-  .time-money-gradient {
-    background: var(--gradient-time-money);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease-in-out infinite;
+  /* Modern Gradients - Static */
+  .brand-gradient {
+    background: var(--gradient-subtle);
   }
   
-  .productivity-gradient {
-    background: var(--gradient-productivity);
+  .success-gradient {
+    background: var(--gradient-success);
   }
   
-  .value-gradient {
-    background: var(--gradient-value);
+  .card-gradient {
+    background: var(--gradient-card);
   }
   
-  .insight-gradient {
-    background: var(--gradient-insight);
-  }
-  
-  /* Animated Counter */
+  /* Simplified Counter */
   .counter-animate {
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-origin: center;
+    transition: color 0.3s ease-in-out;
+    font-variant-numeric: tabular-nums;
   }
   
-  .counter-animate:hover {
-    transform: scale(1.05);
+  /* Modern Badge System */
+  .badge-brand {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--brand-primary) / 0.1);
+    color: hsl(var(--brand-primary));
+    border: 1px solid hsl(var(--brand-primary) / 0.15);
   }
   
-  /* Time Tracking Badge */
-  .time-badge {
-    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium;
-    background: hsl(var(--time-primary) / 0.1);
-    color: hsl(var(--time-primary));
-    border: 1px solid hsl(var(--time-primary) / 0.2);
+  .badge-success {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--success) / 0.1);
+    color: hsl(var(--success));
+    border: 1px solid hsl(var(--success) / 0.15);
   }
   
-  .money-badge {
-    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium;
-    background: hsl(var(--money-primary) / 0.1);
-    color: hsl(var(--money-primary));
-    border: 1px solid hsl(var(--money-primary) / 0.2);
+  .badge-warning {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--warning) / 0.1);
+    color: hsl(var(--warning));
+    border: 1px solid hsl(var(--warning) / 0.15);
   }
   
-  .value-badge-positive {
-    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium;
-    background: hsl(var(--value-positive) / 0.1);
-    color: hsl(var(--value-positive));
-    border: 1px solid hsl(var(--value-positive) / 0.2);
+  .badge-error {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--error) / 0.1);
+    color: hsl(var(--error));
+    border: 1px solid hsl(var(--error) / 0.15);
   }
   
-  .value-badge-negative {
-    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium;
-    background: hsl(var(--value-negative) / 0.1);
-    color: hsl(var(--value-negative));
-    border: 1px solid hsl(var(--value-negative) / 0.2);
+  /* Legacy Badge Support */
+  .time-badge { @apply badge-brand; }
+  .money-badge { @apply badge-success; }
+  .value-badge-positive { @apply badge-success; }
+  .value-badge-negative { @apply badge-error; }
+  
+  /* Modern Card System */
+  .card-elevated {
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius);
+    transition: box-shadow 0.2s ease-in-out;
   }
   
-  /* Productivity Indicator */
-  .productivity-high {
-    @apply bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800;
+  .card-elevated:hover {
+    box-shadow: var(--shadow-lg);
   }
   
-  .productivity-medium {
-    @apply bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800;
-  }
-  
-  .productivity-low {
-    @apply bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800;
-  }
-  
-  /* Glass Effect Cards */
-  .glass-card {
-    @apply backdrop-blur-sm border border-white/20;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Shimmer Effect */
-  .shimmer {
+  /* Loading Shimmer - Simplified */
+  .loading-shimmer {
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.4),
+      rgba(255, 255, 255, 0.2),
       transparent
     );
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 2s ease-in-out infinite;
   }
 }
 
 @layer utilities {
-  /* Animations */
-  @keyframes gradientShift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-  
+  /* Essential Animations Only */
   @keyframes shimmer {
     0% {
       background-position: -200% 0;
@@ -259,97 +255,86 @@
     }
   }
   
-  @keyframes pulse-scale {
-    0%, 100% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-  }
-  
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-  
-  @keyframes bounce-in {
-    0% {
-      transform: scale(0.3);
+  @keyframes fadeIn {
+    from {
       opacity: 0;
+      transform: translateY(10px);
     }
-    50% {
-      transform: scale(1.05);
-    }
-    70% {
-      transform: scale(0.9);
-    }
-    100% {
-      transform: scale(1);
+    to {
       opacity: 1;
+      transform: translateY(0);
     }
   }
   
-  /* Animation Classes */
-  .animate-pulse-scale {
-    animation: pulse-scale 2s ease-in-out infinite;
+  /* Minimal Animation Classes */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
   }
   
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-  
-  .animate-bounce-in {
-    animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-  
-  /* Hover Effects */
+  /* Subtle Hover Effects */
   .hover-lift {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
   }
   
   .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
   }
   
-  /* Time-Value Specific Utilities */
-  .time-tracker-active {
+  /* Status Indicators */
+  .status-active {
     @apply bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300;
-    animation: pulse-scale 2s ease-in-out infinite;
+  }
+  
+  .status-inactive {
+    @apply bg-gray-50 border-gray-200 text-gray-600 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400;
   }
   
   /* Respect reduced motion preferences */
   @media (prefers-reduced-motion: reduce) {
-    .time-money-gradient,
-    .shimmer,
-    .animate-pulse-scale,
-    .animate-float,
-    .animate-bounce-in,
-    .time-tracker-active {
+    .loading-shimmer,
+    .animate-fade-in {
       animation: none;
     }
     
-    .counter-animate {
+    .counter-animate,
+    .hover-lift {
       transition: none;
     }
     
     .hover-lift:hover {
       transform: none;
+      box-shadow: none;
     }
   }
   
-  .currency-format {
+  /* Typography Utilities */
+  .text-tabular {
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.025em;
   }
   
-  .time-format {
-    font-variant-numeric: tabular-nums;
+  .text-mono {
     font-family: ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
   }
+  
+  /* Spacing Utilities using 8pt scale */
+  .space-y-4 > * + * { margin-top: var(--space-4); }
+  .space-y-6 > * + * { margin-top: var(--space-6); }
+  .space-y-8 > * + * { margin-top: var(--space-8); }
+  
+  .p-4 { padding: var(--space-4); }
+  .p-6 { padding: var(--space-6); }
+  .p-8 { padding: var(--space-8); }
+  
+  .px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+  .px-6 { padding-left: var(--space-6); padding-right: var(--space-6); }
+  
+  .py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+  .py-6 { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+  
+  /* Legacy Format Support */
+  .currency-format { @apply text-tabular; }
+  .time-format { @apply text-mono; }
 }
