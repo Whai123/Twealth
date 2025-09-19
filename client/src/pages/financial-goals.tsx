@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import GoalForm from "@/components/forms/goal-form";
 import { apiRequest } from "@/lib/queryClient";
@@ -104,17 +105,23 @@ export default function FinancialGoals() {
           </h1>
           <p className="text-muted-foreground">Track your savings targets and progress</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-create-goal">
+        <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DrawerTrigger asChild>
+            <Button data-testid="button-create-goal" className="min-h-[44px]">
               <Plus size={16} className="mr-2" />
               New Goal
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+          </DrawerTrigger>
+          <DrawerContent className="max-h-[90vh]">
+            <div className="p-4 pb-6">
+              <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
+              <DrawerDescription className="text-muted-foreground mb-4">
+                Set up a new financial goal to track your savings progress
+              </DrawerDescription>
+              <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
 
       {/* Goals Grid */}
@@ -125,17 +132,23 @@ export default function FinancialGoals() {
           <p className="text-muted-foreground mb-6">
             Create your first financial goal to start tracking your savings progress
           </p>
-          <Dialog open={isFirstGoalDialogOpen} onOpenChange={setIsFirstGoalDialogOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-create-first-goal">
+          <Drawer open={isFirstGoalDialogOpen} onOpenChange={setIsFirstGoalDialogOpen}>
+            <DrawerTrigger asChild>
+              <Button data-testid="button-create-first-goal" className="min-h-[44px]">
                 <Plus size={16} className="mr-2" />
                 Create Your First Goal
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <GoalForm onSuccess={() => setIsFirstGoalDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
+            </DrawerTrigger>
+            <DrawerContent className="max-h-[90vh]">
+              <div className="p-4 pb-6">
+                <DrawerTitle className="text-xl font-semibold mb-2">Create Your First Goal</DrawerTitle>
+                <DrawerDescription className="text-muted-foreground mb-4">
+                  Start your financial journey by setting up your first savings goal
+                </DrawerDescription>
+                <GoalForm onSuccess={() => setIsFirstGoalDialogOpen(false)} />
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
       ) : (
         <>
