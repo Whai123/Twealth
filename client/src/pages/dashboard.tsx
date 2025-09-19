@@ -11,24 +11,45 @@ import MonthlyProgressChart from "@/components/dashboard/monthly-progress-chart"
 export default function Dashboard() {
   return (
     <>
-      {/* Header - Mobile Optimized */}
-      <header className="bg-card border-b border-border px-4 md:px-6 py-3 md:py-4">
+      {/* Header - Modern Design */}
+      <header 
+        className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
+        style={{ 
+          paddingLeft: 'var(--space-4)', 
+          paddingRight: 'var(--space-4)',
+          paddingTop: 'var(--space-4)',
+          paddingBottom: 'var(--space-4)'
+        }}
+      >
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-3xl font-bold time-money-gradient">
-              <Clock className="inline mr-1 md:mr-2 text-time" size={20} />
+            <h1 
+              className="text-xl md:text-3xl font-bold text-brand flex items-center"
+              style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-3xl))' }}
+            >
+              <Clock className="mr-2 text-brand" size={20} />
               <span className="hidden sm:inline">ScheduleMoney</span>
               <span className="sm:hidden">SM</span>
-              <DollarSign className="inline ml-1 md:ml-2 text-money" size={20} />
+              <DollarSign className="ml-2 text-success" size={20} />
             </h1>
-            <p className="text-xs md:text-sm text-muted-foreground font-medium truncate">
+            <p 
+              className="text-muted-foreground font-medium truncate"
+              style={{ 
+                fontSize: 'var(--text-sm)',
+                marginTop: 'var(--space-1)'
+              }}
+            >
               <span className="hidden md:inline">Time = Money • Track, optimize, and maximize your productivity ROI</span>
               <span className="md:hidden">Track time & maximize ROI</span>
             </p>
           </div>
-          <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
             <Button 
-              className="hidden sm:flex bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" 
+              className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-px" 
+              style={{ 
+                borderRadius: 'var(--radius)',
+                padding: 'var(--space-3) var(--space-4)'
+              }}
               data-testid="button-new-goal"
             >
               <Plus size={16} className="mr-2" />
@@ -37,7 +58,12 @@ export default function Dashboard() {
             <Button 
               variant="outline" 
               size="icon" 
-              className="min-w-[44px] min-h-[44px]"
+              className="transition-all duration-200 hover:-translate-y-px"
+              style={{ 
+                minWidth: '44px', 
+                minHeight: '44px',
+                borderRadius: 'var(--radius)'
+              }}
               data-testid="button-notifications"
             >
               <Bell size={16} />
@@ -46,7 +72,13 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div 
+        className="space-y-6" 
+        style={{ 
+          padding: 'var(--space-6)',
+          paddingTop: 'var(--space-4)'
+        }}
+      >
         {/* Quick Stats Cards */}
         <QuickStats />
 

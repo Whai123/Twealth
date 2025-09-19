@@ -80,12 +80,23 @@ function QuickStats() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
       {statCards.map((stat, index) => (
-        <Card key={index} className="p-4 md:p-6 shadow-sm hover-lift animate-bounce-in" style={{animationDelay: `${index * 0.1}s`}}>
+        <Card 
+          key={index} 
+          className="card-elevated animate-fade-in" 
+          style={{
+            animationDelay: `${index * 0.05}s`,
+            padding: 'var(--space-6)'
+          }}
+        >
           <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground" data-testid={`text-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <p 
+                    className="text-sm text-muted-foreground font-medium" 
+                    style={{ fontSize: 'var(--text-sm)' }}
+                    data-testid={`text-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
                     {stat.title}
                   </p>
                   {stat.badge && (
@@ -94,15 +105,31 @@ function QuickStats() {
                     </span>
                   )}
                 </div>
-                <p className={`text-2xl font-bold counter-animate ${stat.title === 'Time Value' ? 'time-format text-time' : stat.title === 'Hourly Rate' ? 'currency-format text-money' : 'text-foreground'}`} data-testid={`value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                <p 
+                  className={`text-2xl font-bold counter-animate ${stat.title === 'Time Value' ? 'text-mono text-brand' : stat.title === 'Hourly Rate' ? 'text-tabular text-success' : 'text-foreground'}`} 
+                  style={{ fontSize: 'var(--text-2xl)' }}
+                  data-testid={`value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
+                >
                   {stat.value}
                 </p>
-                <p className={`text-xs mt-1 font-medium ${stat.changeColor}`}>
+                <p 
+                  className={`text-xs font-medium ${stat.changeColor}`}
+                  style={{ 
+                    fontSize: 'var(--text-xs)',
+                    marginTop: 'var(--space-2)'
+                  }}
+                >
                   {(stat.title === 'Net Impact' && (timeStats as any)?.netImpact >= 0) && <ArrowUp size={12} className="inline mr-1" />}
                   {stat.change}
                 </p>
               </div>
-              <div className={`w-12 h-12 ${stat.gradient ? stat.iconBg : stat.iconBg} rounded-lg flex items-center justify-center shadow-md animate-float`} style={{animationDelay: `${index * 0.2}s`}}>
+              <div 
+                className={`w-12 h-12 ${stat.gradient ? stat.iconBg : stat.iconBg} flex items-center justify-center`}
+                style={{ 
+                  borderRadius: 'var(--radius)',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+              >
                 <stat.icon className={stat.iconColor} size={24} />
               </div>
             </div>
