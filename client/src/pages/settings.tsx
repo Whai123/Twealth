@@ -99,8 +99,19 @@ function Settings() {
   // Calculate preview values
   const hourlyRate = parseFloat(form.watch("hourlyRate") || "0");
   const workHoursPerWeek = parseInt(form.watch("workHoursPerWeek") || "0");
+  const selectedCurrency = form.watch("currency") || "USD";
   const dailyValue = (hourlyRate * workHoursPerWeek) / 5; // assuming 5 work days
   const monthlyValue = hourlyRate * workHoursPerWeek * 4.33; // average weeks per month
+
+  // Currency formatter function
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: selectedCurrency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
 
   if (isLoading) {
     return (
@@ -318,19 +329,19 @@ function Settings() {
                 <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10">
                   <span className="text-sm font-medium">Per Hour</span>
                   <span className="font-bold currency-format" data-testid="text-preview-hourly">
-                    ${hourlyRate.toFixed(2)}
+                    {formatCurrency(hourlyRate)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10">
                   <span className="text-sm font-medium">Per Day</span>
                   <span className="font-bold currency-format" data-testid="text-preview-daily">
-                    ${dailyValue.toFixed(2)}
+                    {formatCurrency(dailyValue)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10">
                   <span className="text-sm font-medium">Per Month</span>
                   <span className="font-bold currency-format" data-testid="text-preview-monthly">
-                    ${monthlyValue.toFixed(2)}
+                    {formatCurrency(monthlyValue)}
                   </span>
                 </div>
               </div>
