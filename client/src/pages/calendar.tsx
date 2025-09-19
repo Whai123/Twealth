@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -51,6 +51,12 @@ export default function Calendar() {
   const { data: eventExpenses } = useQuery({
     queryKey: ["/api/events", selectedEventId, "expenses"],
     queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/expenses`).then(res => res.json()) : [],
+    enabled: !!selectedEventId,
+  });
+
+  const { data: eventTimeValue } = useQuery({
+    queryKey: ["/api/events", selectedEventId, "time-value"],
+    queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/time-value`).then(res => res.json()) : null,
     enabled: !!selectedEventId,
   });
 
@@ -378,15 +384,52 @@ export default function Calendar() {
                       {date.getDate()}
                     </div>
                     <div className="space-y-1">
-                      {getEventsForDate(date).slice(0, 2).map((event: any) => (
-                        <div
-                          key={event.id}
-                          className="text-xs p-1 bg-primary/20 text-primary rounded truncate"
-                          title={event.title}
-                        >
-                          {event.title}
-                        </div>
-                      ))}
+                      {getEventsForDate(date).slice(0, 2).map((event: any) => {
+                        // Calculate simple time value badge
+                        const hasTimeValue = event.plannedDurationMinutes || event.actualDurationMinutes;
+                        const hasBudget = event.budget && parseFloat(event.budget) > 0;
+                        const hasActualCost = event.actualCost && parseFloat(event.actualCost) > 0;
+                        
+                        // Simple ROI indicator
+                        const isHighValue = hasBudget && parseFloat(event.budget) > 100;
+                        const isOverBudget = hasBudget && hasActualCost && parseFloat(event.actualCost) > parseFloat(event.budget);
+                        
+                        return (
+                          <div
+                            key={event.id}
+                            className="text-xs p-1 bg-primary/20 text-primary rounded truncate relative group cursor-pointer"
+                            title={`${event.title}${hasTimeValue ? ` • ⏰ ${Math.round((event.plannedDurationMinutes || event.actualDurationMinutes || 0) / 60)}h` : ''}${hasBudget ? ` • 💰 $${parseFloat(event.budget).toFixed(0)}` : ''}`}
+                            onClick={() => handleViewEventDetails(event.id)}
+                            data-testid={`calendar-event-${event.id}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="truncate flex-1">{event.title}</span>
+                              <div className="flex items-center gap-1 ml-1">
+                                {hasTimeValue && (
+                                  <span className="time-badge text-[8px]" title="Time tracked">
+                                    ⏰
+                                  </span>
+                                )}
+                                {isHighValue && (
+                                  <span className="value-badge-positive text-[8px]" title="High value event">
+                                    💎
+                                  </span>
+                                )}
+                                {isOverBudget && (
+                                  <span className="value-badge-negative text-[8px]" title="Over budget">
+                                    🚨
+                                  </span>
+                                )}
+                                {hasBudget && !isOverBudget && (
+                                  <span className="money-badge text-[8px]" title="Within budget">
+                                    💰
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                       {getEventsForDate(date).length > 2 && (
                         <div className="text-xs text-muted-foreground">
                           +{getEventsForDate(date).length - 2} more
@@ -405,14 +448,121 @@ export default function Calendar() {
       <Dialog open={isEventDetailsOpen} onOpenChange={setIsEventDetailsOpen}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-event-details">
           <DialogHeader>
-            <DialogTitle>Event Financial Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="text-primary" size={20} />
+              Event ROI & Time-Value Analysis
+            </DialogTitle>
             <DialogDescription>
-              Manage expenses and track costs for this event
+              Complete financial and productivity analysis for this event
             </DialogDescription>
           </DialogHeader>
           
           {selectedEventId && (
             <div className="space-y-6">
+              {/* Time-Value Analysis */}
+              {eventTimeValue && (
+                <Card className="border-2 time-money-gradient-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Clock className="text-time" size={20} />
+                      Time = Money Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="text-time" size={16} />
+                          <span className="text-sm font-medium text-time">Planned Time Value</span>
+                        </div>
+                        <p className="text-2xl font-bold currency-format" data-testid="text-planned-time-value">
+                          ${Math.round(eventTimeValue.plannedTimeValue || 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Based on planned duration
+                        </p>
+                      </div>
+                      
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/10 border border-yellow-200 dark:border-yellow-800">
+                        <div className="flex items-center gap-2 mb-2">
+                          <DollarSign className="text-money" size={16} />
+                          <span className="text-sm font-medium text-money">Actual Time Value</span>
+                        </div>
+                        <p className="text-2xl font-bold currency-format" data-testid="text-actual-time-value">
+                          ${Math.round(eventTimeValue.actualTimeValue || 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          From tracked time
+                        </p>
+                      </div>
+                      
+                      <div className={`p-4 rounded-lg ${eventTimeValue.totalImpact >= 0 ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 border border-green-200 dark:border-green-800' : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 border border-red-200 dark:border-red-800'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className={eventTimeValue.totalImpact >= 0 ? "text-value-positive" : "text-value-negative"} size={16} />
+                          <span className={`text-sm font-medium ${eventTimeValue.totalImpact >= 0 ? "text-value-positive" : "text-value-negative"}`}>
+                            Total Impact
+                          </span>
+                        </div>
+                        <p className={`text-2xl font-bold currency-format ${eventTimeValue.totalImpact >= 0 ? "text-value-positive" : "text-value-negative"}`} data-testid="text-total-impact">
+                          ${Math.round(eventTimeValue.totalImpact || 0).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Time + monetary cost
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* ROI Calculation */}
+                    <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-lg">ROI Analysis</h4>
+                          <p className="text-sm text-muted-foreground">Return on Investment calculation</p>
+                        </div>
+                        <div className="text-right">
+                          {eventFinancials?.budget && eventTimeValue.totalImpact > 0 && (
+                            <>
+                              <p className="text-3xl font-bold">
+                                <span className={eventFinancials.budget > eventTimeValue.totalImpact ? "text-value-positive" : "text-value-negative"}>
+                                  {Math.round(((eventFinancials.budget - eventTimeValue.totalImpact) / eventTimeValue.totalImpact) * 100)}%
+                                </span>
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {eventFinancials.budget > eventTimeValue.totalImpact ? "📈 Positive ROI" : "📉 Negative ROI"}
+                              </p>
+                            </>
+                          )}
+                          {!eventFinancials?.budget && (
+                            <p className="text-sm text-muted-foreground">No budget set</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Efficiency Insights */}
+                    <div className="p-3 rounded-lg bg-muted/50">
+                      <h5 className="font-medium mb-2 flex items-center gap-2">
+                        💡 Productivity Insights
+                      </h5>
+                      <div className="space-y-1 text-sm">
+                        {eventTimeValue.plannedTimeValue > eventTimeValue.actualTimeValue && eventTimeValue.actualTimeValue > 0 && (
+                          <p className="text-value-positive">✅ Completed faster than planned - great efficiency!</p>
+                        )}
+                        {eventTimeValue.actualTimeValue > eventTimeValue.plannedTimeValue && eventTimeValue.plannedTimeValue > 0 && (
+                          <p className="text-value-negative">⚠️ Took longer than planned - consider better time estimation</p>
+                        )}
+                        {eventTimeValue.totalImpact > 1000 && (
+                          <p className="text-productivity-high">🚀 High-impact event - significant value generated</p>
+                        )}
+                        {eventFinancials?.budget && eventTimeValue.totalImpact < eventFinancials.budget * 0.5 && (
+                          <p className="text-value-positive">💰 Excellent cost efficiency - under 50% of budget</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Financial Summary */}
               {eventFinancials && (
                 <Card>
@@ -524,69 +674,121 @@ export default function Calendar() {
                 .filter((event: any) => new Date(event.startTime) > new Date())
                 .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
                 .slice(0, 5)
-                .map((event: any) => (
-                  <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium" data-testid={`text-event-${event.id}`}>
-                          {event.title}
-                        </h4>
-                        {((event.budget && parseFloat(event.budget || "0") > 0) || (event.actualCost && parseFloat(event.actualCost || "0") > 0)) && (
+                .map((event: any) => {
+                  // Enhanced time-value calculations for upcoming events
+                  const plannedMinutes = event.plannedDurationMinutes || 
+                    ((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60));
+                  const actualMinutes = event.actualDurationMinutes || 0;
+                  const budget = parseFloat(event.budget || '0');
+                  const actualCost = parseFloat(event.actualCost || '0');
+                  
+                  // Simple time value calculation (using default $50/hr)
+                  const plannedTimeValue = Math.round((plannedMinutes / 60) * 50);
+                  const actualTimeValue = actualMinutes > 0 ? Math.round((actualMinutes / 60) * 50) : 0;
+                  
+                  // ROI calculations
+                  const totalInvestment = actualTimeValue + actualCost;
+                  const roi = totalInvestment > 0 ? ((budget - totalInvestment) / totalInvestment * 100) : 0;
+                  
+                  const isHighROI = roi > 50;
+                  const isPositiveROI = roi > 0;
+                  const hasTimeTracking = actualMinutes > 0 || plannedMinutes > 0;
+                  
+                  return (
+                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors group">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium" data-testid={`text-event-${event.id}`}>
+                            {event.title}
+                          </h4>
+                          
+                          {/* Time Value Badges */}
                           <div className="flex items-center gap-1">
-                            <DollarSign size={14} className="text-green-600" />
-                            {event.budget && event.actualCost && (
-                              <span className={`text-xs ${parseFloat(event.actualCost) <= parseFloat(event.budget) ? 'text-green-600' : 'text-red-600'}`}>
-                                ${parseFloat(event.actualCost).toFixed(0)} / ${parseFloat(event.budget).toFixed(0)}
-                                {parseFloat(event.actualCost) <= parseFloat(event.budget) ? 
-                                  <TrendingDown size={10} className="inline ml-1" /> :
-                                  <TrendingUp size={10} className="inline ml-1" />
-                                }
+                            {hasTimeTracking && (
+                              <span className="time-badge" title={`${Math.round(plannedMinutes / 60)}h planned${actualMinutes > 0 ? `, ${Math.round(actualMinutes / 60)}h actual` : ''}`}>
+                                ⏰ {Math.round((actualMinutes || plannedMinutes) / 60)}h
                               </span>
                             )}
-                            {event.budget && !event.actualCost && (
-                              <span className="text-xs text-gray-600">Budget: ${parseFloat(event.budget).toFixed(0)}</span>
+                            
+                            {plannedTimeValue > 0 && (
+                              <span className="money-badge" title={`Estimated time value: $${plannedTimeValue}`}>
+                                💰 ${plannedTimeValue}
+                              </span>
                             )}
-                            {!event.budget && event.actualCost && (
-                              <span className="text-xs text-blue-600">Spent: ${parseFloat(event.actualCost).toFixed(0)}</span>
+                            
+                            {roi !== 0 && budget > 0 && totalInvestment > 0 && (
+                              <span className={isPositiveROI ? "value-badge-positive" : "value-badge-negative"} title={`ROI: ${roi.toFixed(0)}%`}>
+                                {isHighROI ? '🚀' : isPositiveROI ? '📈' : '📉'} {roi.toFixed(0)}%
+                              </span>
+                            )}
+                            
+                            {budget > 500 && (
+                              <span className="productivity-medium" title="High-value event">
+                                💎
+                              </span>
                             )}
                           </div>
+                          
+                          {/* Financial Summary */}
+                          {((event.budget && parseFloat(event.budget || "0") > 0) || (event.actualCost && parseFloat(event.actualCost || "0") > 0)) && (
+                            <div className="flex items-center gap-1">
+                              <DollarSign size={14} className="text-green-600" />
+                              {event.budget && event.actualCost && (
+                                <span className={`text-xs ${parseFloat(event.actualCost) <= parseFloat(event.budget) ? 'text-green-600' : 'text-red-600'}`}>
+                                  ${parseFloat(event.actualCost).toFixed(0)} / ${parseFloat(event.budget).toFixed(0)}
+                                  {parseFloat(event.actualCost) <= parseFloat(event.budget) ? 
+                                    <TrendingDown size={10} className="inline ml-1" /> :
+                                    <TrendingUp size={10} className="inline ml-1" />
+                                  }
+                                </span>
+                              )}
+                              {event.budget && !event.actualCost && (
+                                <span className="text-xs text-gray-600">Budget: ${parseFloat(event.budget).toFixed(0)}</span>
+                              )}
+                              {!event.budget && event.actualCost && (
+                                <span className="text-xs text-blue-600">Spent: ${parseFloat(event.actualCost).toFixed(0)}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(event.startTime).toLocaleDateString()} at {new Date(event.startTime).toLocaleTimeString()}
+                        </p>
+                        {event.location && (
+                          <p className="text-xs text-muted-foreground">{event.location}</p>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(event.startTime).toLocaleDateString()} at {new Date(event.startTime).toLocaleTimeString()}
-                      </p>
-                      {event.location && (
-                        <p className="text-xs text-muted-foreground">{event.location}</p>
-                      )}
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewEventDetails(event.id)}
+                          className="time-money-gradient hover:opacity-80 text-white border-0"
+                          data-testid={`button-view-details-${event.id}`}
+                        >
+                          <BarChart3 size={14} className="mr-1" />
+                          ROI Details
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEditEvent(event)}
+                          data-testid={`button-edit-${event.id}`}
+                        >
+                          <Edit size={14} />
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleDeleteEvent(event)}
+                          data-testid={`button-delete-${event.id}`}
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleViewEventDetails(event.id)}
-                        data-testid={`button-view-details-${event.id}`}
-                      >
-                        View Details
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleEditEvent(event)}
-                        data-testid={`button-edit-${event.id}`}
-                      >
-                        <Edit size={14} />
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={() => handleDeleteEvent(event)}
-                        data-testid={`button-delete-${event.id}`}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           ) : (
             <div className="text-center py-8">
