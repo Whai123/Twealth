@@ -78,50 +78,125 @@ export default function MoneyTracking() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Money Tracking</h1>
-            <p className="text-muted-foreground">Track your income, expenses, and financial flow</p>
+      <>
+        {/* Header - Modern Design (Loading State) */}
+        <header 
+          className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
+          style={{ 
+            paddingLeft: 'var(--space-4)', 
+            paddingRight: 'var(--space-4)',
+            paddingTop: 'var(--space-4)',
+            paddingBottom: 'var(--space-4)'
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <h1 
+                className="text-xl md:text-2xl font-bold text-brand flex items-center"
+                style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-2xl))' }}
+              >
+                <TrendingUp className="mr-2 text-brand" size={20} />
+                Money Tracking
+              </h1>
+              <p 
+                className="text-muted-foreground font-medium truncate"
+                style={{ 
+                  fontSize: 'var(--text-sm)',
+                  marginTop: 'var(--space-1)'
+                }}
+              >
+                Track your income, expenses, and financial flow
+              </p>
+            </div>
+            <div className="flex items-center">
+              <Button 
+                disabled
+                className="bg-primary/50 text-primary-foreground"
+                style={{ 
+                  borderRadius: 'var(--radius)',
+                  padding: 'var(--space-3) var(--space-4)'
+                }}
+              >
+                <Plus size={16} className="mr-2" />
+                <span className="hidden sm:inline">Add Transaction</span>
+                <span className="sm:hidden">+</span>
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <div style={{ padding: 'var(--space-6)', paddingTop: 'var(--space-4)' }}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="p-6">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
+                  <div className="h-8 bg-muted rounded w-3/4"></div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="p-6">
-              <div className="animate-pulse">
-                <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
-                <div className="h-8 bg-muted rounded w-3/4"></div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center">
-            <TrendingUp className="mr-2" size={24} />
-            Money Tracking
-          </h1>
-          <p className="text-muted-foreground">Track your income, expenses, and financial flow</p>
+    <>
+      {/* Header - Modern Design */}
+      <header 
+        className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
+        style={{ 
+          paddingLeft: 'var(--space-4)', 
+          paddingRight: 'var(--space-4)',
+          paddingTop: 'var(--space-4)',
+          paddingBottom: 'var(--space-4)'
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h1 
+              className="text-xl md:text-2xl font-bold text-brand flex items-center"
+              style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-2xl))' }}
+            >
+              <TrendingUp className="mr-2 text-brand" size={20} />
+              Money Tracking
+            </h1>
+            <p 
+              className="text-muted-foreground font-medium truncate"
+              style={{ 
+                fontSize: 'var(--text-sm)',
+                marginTop: 'var(--space-1)'
+              }}
+            >
+              Track your income, expenses, and financial flow
+            </p>
+          </div>
+          <div className="flex items-center">
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-px"
+                  style={{ 
+                    borderRadius: 'var(--radius)',
+                    padding: 'var(--space-3) var(--space-4)'
+                  }}
+                  data-testid="button-add-transaction"
+                >
+                  <Plus size={16} className="mr-2" />
+                  <span className="hidden sm:inline">Add Transaction</span>
+                  <span className="sm:hidden">+</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <TransactionForm onSuccess={() => setIsCreateDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-transaction">
-              <Plus size={16} className="mr-2" />
-              Add Transaction
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <TransactionForm onSuccess={() => setIsCreateDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
-      </div>
+      </header>
+
+      <div style={{ padding: 'var(--space-6)', paddingTop: 'var(--space-4)' }}>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -326,6 +401,7 @@ export default function MoneyTracking() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

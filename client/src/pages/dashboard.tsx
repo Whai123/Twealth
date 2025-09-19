@@ -1,5 +1,13 @@
+import { useState } from "react";
 import { Plus, Bell, Clock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { 
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import QuickStats from "@/components/dashboard/quick-stats";
 import TimeValueInsights from "@/components/dashboard/time-value-insights";
 import FinancialGoalsProgress from "@/components/dashboard/financial-goals-progress";
@@ -7,8 +15,10 @@ import UpcomingEvents from "@/components/dashboard/upcoming-events";
 import RecentTransactions from "@/components/dashboard/recent-transactions";
 import GroupsOverview from "@/components/dashboard/groups-overview";
 import MonthlyProgressChart from "@/components/dashboard/monthly-progress-chart";
+import GoalForm from "@/components/forms/goal-form";
 
 export default function Dashboard() {
+  const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
   return (
     <>
       {/* Header - Modern Design */}
@@ -44,17 +54,31 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
-            <Button 
-              className="hidden sm:flex bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-px" 
-              style={{ 
-                borderRadius: 'var(--radius)',
-                padding: 'var(--space-3) var(--space-4)'
-              }}
-              data-testid="button-new-goal"
-            >
-              <Plus size={16} className="mr-2" />
-              💰 New Goal
-            </Button>
+            <Drawer open={isCreateGoalOpen} onOpenChange={setIsCreateGoalOpen}>
+              <DrawerTrigger asChild>
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-px min-h-[44px]" 
+                  style={{ 
+                    borderRadius: 'var(--radius)',
+                    padding: 'var(--space-3) var(--space-4)'
+                  }}
+                  data-testid="button-new-goal"
+                >
+                  <Plus size={16} className="mr-2" />
+                  <span className="hidden sm:inline">💰 New Goal</span>
+                  <span className="sm:hidden">+</span>
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent className="max-h-[90vh]">
+                <div className="p-4 pb-6">
+                  <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
+                  <DrawerDescription className="text-muted-foreground mb-4">
+                    Set up a new financial goal to track your savings progress
+                  </DrawerDescription>
+                  <GoalForm onSuccess={() => setIsCreateGoalOpen(false)} />
+                </div>
+              </DrawerContent>
+            </Drawer>
             <Button 
               variant="outline" 
               size="icon" 

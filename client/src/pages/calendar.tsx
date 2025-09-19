@@ -207,36 +207,96 @@ export default function Calendar() {
   const days = getDaysInMonth();
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center">
-            <CalendarIcon className="mr-2" size={24} />
-            Calendar
-          </h1>
-          <p className="text-muted-foreground">Schedule and manage your events</p>
-        </div>
-        <div className="flex gap-2">
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-create-event">
-                <Plus size={16} className="mr-2" />
-                New Event
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-              <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-          
-          <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-share-calendar">
-                <Share2 size={16} className="mr-2" />
-                Share Calendar
-              </Button>
-            </DialogTrigger>
+    <>
+      {/* Header - Modern Design */}
+      <header 
+        className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
+        style={{ 
+          paddingLeft: 'var(--space-4)', 
+          paddingRight: 'var(--space-4)',
+          paddingTop: 'var(--space-4)',
+          paddingBottom: 'var(--space-4)'
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h1 
+              className="text-xl md:text-2xl font-bold text-brand flex items-center"
+              style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-2xl))' }}
+            >
+              <CalendarIcon className="mr-2 text-brand" size={20} />
+              Calendar
+            </h1>
+            <p 
+              className="text-muted-foreground font-medium truncate"
+              style={{ 
+                fontSize: 'var(--text-sm)',
+                marginTop: 'var(--space-1)'
+              }}
+            >
+              Schedule and manage your events
+            </p>
+          </div>
+          <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
+            <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="hidden sm:flex transition-all duration-200 hover:-translate-y-px"
+                  style={{ 
+                    borderRadius: 'var(--radius)',
+                    padding: 'var(--space-3) var(--space-4)'
+                  }}
+                  data-testid="button-share-calendar"
+                >
+                  <Share2 size={16} className="mr-2" />
+                  Share Calendar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Share Your Calendar</DialogTitle>
+                  <DialogDescription>
+                    Create a shareable link to let others view your calendar or group events.
+                  </DialogDescription>
+                </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="share-scope">Share Type</Label>
+                  <Select value={shareScope} onValueChange={(value: 'user' | 'group') => setShareScope(value)}>
+                    <SelectTrigger data-testid="select-share-scope">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">
+                        <div className="flex items-center">
+                          <Globe size={16} className="mr-2" />
+                          My Personal Calendar
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="group">
+                        <div className="flex items-center">
+                          <Users size={16} className="mr-2" />
+                          Group Calendar
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+              {shareScope === 'group' && (
+                <div>
+                  <Label htmlFor="group-select">Select Group</Label>
+                  <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                    <SelectTrigger data-testid="select-group">
+                      <SelectValue placeholder="Choose a group..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(groups as any[])?.map((group: any) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          <div className="flex items-center">
+                            <div
             <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Share Your Calendar</DialogTitle>
