@@ -36,11 +36,19 @@ export function TimeTracker({
   const [lastStartedAt, setLastStartedAt] = useState<number | null>(null);
   const [hasActiveSession, setHasActiveSession] = useState(false); // Track if we have an active session (even when paused)
   const intervalRef = useRef<number | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
+  const lastHeartbeatRef = useRef<number>(Date.now());
   
   // Refs to store current values for timer access
   const isTrackingRef = useRef(isTracking);
   const accumulatedActiveMsRef = useRef(accumulatedActiveMs);
   const lastStartedAtRef = useRef(lastStartedAt);
+  
+  // Network connectivity state
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  
+  // Session persistence key
+  const sessionKey = `timetracker_${eventId}`;
   
   // Update refs when state changes
   useEffect(() => {
@@ -51,8 +59,81 @@ export function TimeTracker({
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Session persistence key
-  const sessionKey = `timetracker_${eventId}`;
+  // Network connectivity monitoring for mobile
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (hasActiveSession) {
+        toast({
+          title: "Connection restored",
+          description: "Your time tracking session will be saved",
+          duration: 2000
+        });
+      }
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      if (isTracking) {
+        toast({
+          title: "No connection",
+          description: "Time tracking continues offline",
+          duration: 3000
+        });
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [hasActiveSession, isTracking, toast]);
+
+  // Heartbeat system to detect timer interruption by mobile OS
+  useEffect(() => {
+    if (isTracking) {
+      heartbeatRef.current = window.setInterval(() => {
+        const now = Date.now();
+        const timeSinceLastBeat = now - lastHeartbeatRef.current;
+        
+        // If more than 3 seconds between heartbeats, timer was likely paused
+        if (timeSinceLastBeat > 3000) {
+          console.log('Timer interruption detected:', timeSinceLastBeat, 'ms gap');
+          
+          // Recalculate elapsed time from persisted session
+          const persistedSession = localStorage.getItem(sessionKey);
+          if (persistedSession) {
+            try {
+              const { accumulatedMs, startedAt } = JSON.parse(persistedSession);
+              const correctedElapsed = accumulatedMs + (now - startedAt);
+              setElapsedTime(correctedElapsed);
+              setAccumulatedActiveMs(accumulatedMs);
+              setLastStartedAt(startedAt);
+            } catch (error) {
+              console.error('Failed to recover from timer interruption:', error);
+            }
+          }
+        }
+        
+        lastHeartbeatRef.current = now;
+      }, 1000);
+    } else {
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
+    }
+
+    return () => {
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
+      }
+    };
+  }, [isTracking, sessionKey]);
 
   // Load persisted session on mount
   useEffect(() => {
@@ -115,13 +196,53 @@ export function TimeTracker({
     }, 1000);
   };
 
-  // Handle visibility change to manage tracking
+  // Mobile-hardened background/foreground handling
   useEffect(() => {
     const handleVisibilityChange = () => {
+      const now = Date.now();
+      
       if (document.visibilityState === 'hidden' && isTracking) {
-        // Persist current state when tab becomes hidden
-        const now = Date.now();
+        // App backgrounded - persist current state
         const accumulated = accumulatedActiveMs + (lastStartedAt ? now - lastStartedAt : 0);
+        persistSession(true, accumulated, now, true);
+      } else if (document.visibilityState === 'visible' && isTracking && lastStartedAt) {
+        // App foregrounded - check for time drift and correct if needed
+        const expectedElapsed = accumulatedActiveMs + (now - lastStartedAt);
+        const timeDrift = Math.abs(elapsedTime - expectedElapsed);
+        
+        // If time drift > 5 seconds, likely the timer was paused by system
+        if (timeDrift > 5000) {
+          console.log('Time drift detected on foreground:', timeDrift, 'ms');
+          // Recalculate from persisted data
+          const persistedSession = localStorage.getItem(sessionKey);
+          if (persistedSession) {
+            try {
+              const { accumulatedMs, startedAt } = JSON.parse(persistedSession);
+              const correctedElapsed = accumulatedMs + (now - startedAt);
+              setElapsedTime(correctedElapsed);
+              setAccumulatedActiveMs(accumulatedMs);
+              setLastStartedAt(startedAt);
+            } catch (error) {
+              console.error('Failed to correct time drift:', error);
+            }
+          }
+        }
+      }
+    };
+
+    const handleFocusChange = () => {
+      // Additional mobile event for app focus changes
+      if (document.hasFocus() && isTracking) {
+        // Re-sync timer when app regains focus
+        startTimer();
+      }
+    };
+
+    const handlePageHide = () => {
+      // More reliable than beforeunload on mobile
+      if (isTracking && lastStartedAt) {
+        const now = Date.now();
+        const accumulated = accumulatedActiveMs + (now - lastStartedAt);
         persistSession(true, accumulated, now, true);
       }
     };
@@ -135,23 +256,46 @@ export function TimeTracker({
       }
     };
 
+    // Mobile-optimized event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocusChange);
+    window.addEventListener('blur', handleFocusChange);
+    window.addEventListener('pagehide', handlePageHide);
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocusChange);
+      window.removeEventListener('blur', handleFocusChange);
+      window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isTracking, lastStartedAt, accumulatedActiveMs, sessionKey]);
+  }, [isTracking, lastStartedAt, accumulatedActiveMs, sessionKey, elapsedTime]);
 
-  // Start time tracking mutation
+  // Start time tracking mutation with mobile network retry
   const startTrackingMutation = useMutation({
     mutationFn: async () => {
       const startTime = new Date();
-      return apiRequest('POST', '/api/time-tracking/start', {
-        eventId,
-        startTime: startTime.toISOString()
-      });
+      
+      // Mobile-friendly retry logic for network issues
+      const maxRetries = isOnline ? 2 : 0;
+      let lastError;
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          return await apiRequest('POST', '/api/time-tracking/start', {
+            eventId,
+            startTime: startTime.toISOString()
+          });
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxRetries) {
+            // Wait briefly before retry (mobile networks can be flaky)
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+      throw lastError;
     },
     onSuccess: () => {
       toast({
@@ -197,11 +341,26 @@ export function TimeTracker({
   // Stop time tracking mutation
   const stopTrackingMutation = useMutation({
     mutationFn: async (activeDuration: number) => {
-      return apiRequest('POST', '/api/time-tracking/stop', {
-        eventId,
-        endTime: new Date().toISOString(),
-        durationMinutes: Math.round(activeDuration / (60 * 1000))
-      });
+      // Mobile-friendly retry logic for network issues
+      const maxRetries = isOnline ? 2 : 0;
+      let lastError;
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          return await apiRequest('POST', '/api/time-tracking/stop', {
+            eventId,
+            endTime: new Date().toISOString(),
+            durationMinutes: Math.round(activeDuration / (60 * 1000))
+          });
+        } catch (error) {
+          lastError = error;
+          if (attempt < maxRetries) {
+            // Wait briefly before retry
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+      throw lastError;
     },
     onSuccess: (data) => {
       // Clear session state only after successful API call
@@ -357,6 +516,11 @@ export function TimeTracker({
           {isTracking && (
             <Badge variant="default" className="bg-time-active text-white animate-pulse">
               Recording
+            </Badge>
+          )}
+          {!isOnline && (
+            <Badge variant="outline" className="border-orange-500 text-orange-500 text-xs">
+              Offline
             </Badge>
           )}
         </CardTitle>
