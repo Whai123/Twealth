@@ -282,7 +282,11 @@ export default function FinancialGoals() {
                 <Card key={goal.id} className="p-6 hover:shadow-lg transition-shadow">
                   <CardHeader className="p-0 mb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg" data-testid={`text-goal-title-${goal.id}`}>
+                      <CardTitle 
+                        className="text-lg truncate pr-2" 
+                        data-testid={`text-goal-title-${goal.id}`}
+                        title={goal.title}
+                      >
                         {goal.title}
                       </CardTitle>
                       <DropdownMenu>
@@ -307,7 +311,12 @@ export default function FinancialGoals() {
                       </DropdownMenu>
                     </div>
                     {goal.description && (
-                      <p className="text-sm text-muted-foreground">{goal.description}</p>
+                      <p 
+                        className="text-sm text-muted-foreground line-clamp-2" 
+                        title={goal.description}
+                      >
+                        {goal.description}
+                      </p>
                     )}
                   </CardHeader>
                   

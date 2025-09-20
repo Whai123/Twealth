@@ -91,7 +91,11 @@ export default function GroupsOverview() {
                         <Icon className="text-blue-600" size={20} />
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground" data-testid={`text-group-${group.id}`}>
+                        <h3 
+                          className="font-medium text-foreground truncate" 
+                          data-testid={`text-group-${group.id}`}
+                          title={group.name}
+                        >
                           {group.name}
                         </h3>
                         <p className="text-xs text-muted-foreground">

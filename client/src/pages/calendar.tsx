@@ -296,7 +296,42 @@ export default function Calendar() {
                       {(groups as any[])?.map((group: any) => (
                         <SelectItem key={group.id} value={group.id}>
                           <div className="flex items-center">
-                            <div
+                            <Calendar size={16} className="mr-2" />
+                            {group.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+                
+                <Button 
+                  onClick={() => handleGenerateShare()} 
+                  disabled={shareScope === 'group' && !selectedGroupId}
+                  className="w-full"
+                >
+                  Generate Share Link
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+            
+          {/* Create Event Button with responsive behavior */}
+          <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
+            <DialogTrigger asChild>
+              <Button 
+                className="hidden sm:flex transition-all duration-200 hover:-translate-y-px"
+                style={{ 
+                  borderRadius: 'var(--radius)',
+                  padding: 'var(--space-3) var(--space-4)'
+                }}
+                data-testid="button-create-event"
+              >
+                <Plus size={16} className="mr-2" />
+                Create Event
+              </Button>
+            </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Share Your Calendar</DialogTitle>

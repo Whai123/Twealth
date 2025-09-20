@@ -91,7 +91,11 @@ export default function RecentTransactions() {
                       <Icon className={colors.text} size={16} />
                     </div>
                     <div>
-                      <p className="font-medium text-sm text-foreground" data-testid={`text-transaction-${transaction.id}`}>
+                      <p 
+                        className="font-medium text-sm text-foreground truncate" 
+                        data-testid={`text-transaction-${transaction.id}`}
+                        title={transaction.description || transaction.category}
+                      >
                         {transaction.description || transaction.category}
                       </p>
                       <p className="text-xs text-muted-foreground">
