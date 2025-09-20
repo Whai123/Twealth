@@ -23,6 +23,19 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+  
+  /* Prevent text overflow utilities */
+  .text-no-overflow {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  
+  /* Container overflow prevention */
+  .container-safe {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
 }
 
 :root {

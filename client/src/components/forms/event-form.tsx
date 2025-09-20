@@ -199,8 +199,8 @@ export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
           <Textarea
             id="description"
             {...register("description")}
-            placeholder="Tell people what to expect! What are the goals? What should they bring? What will they learn? 🎯"
-            className="min-h-[80px] text-sm p-3 border-2 focus:border-blue-500 transition-all duration-200 resize-none"
+            placeholder="Tell people what to expect! Goals, what to bring, what they'll learn..."
+            className="min-h-[80px] text-sm p-3 border-2 focus:border-blue-500 transition-all duration-200 resize-none text-no-overflow"
             data-testid="input-event-description"
           />
         </div>

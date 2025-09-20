@@ -86,11 +86,11 @@ export default function GroupsOverview() {
               return (
                 <div key={group.id} className="p-4 rounded-lg border border-border">
                   <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
                         <Icon className="text-blue-600" size={20} />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <h3 
                           className="font-medium text-foreground truncate" 
                           data-testid={`text-group-${group.id}`}

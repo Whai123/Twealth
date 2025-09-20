@@ -86,11 +86,11 @@ export default function RecentTransactions() {
               
               return (
                 <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                    <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center flex-shrink-0`}>
                       <Icon className={colors.text} size={16} />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p 
                         className="font-medium text-sm text-foreground truncate" 
                         data-testid={`text-transaction-${transaction.id}`}

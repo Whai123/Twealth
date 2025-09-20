@@ -367,13 +367,16 @@ export default function Groups() {
                   
                   <CardHeader className="p-0" style={{ marginBottom: 'var(--space-4)' }}>
                     <div className="flex items-center justify-between">
-                      <CardTitle 
-                        className="text-lg md:text-xl font-bold text-foreground" 
-                        data-testid={`text-group-name-${group.id}`}
-                        style={{ fontSize: 'var(--text-lg)' }}
-                      >
-                        {group.name}
-                      </CardTitle>
+                      <div className="min-w-0 flex-1 pr-2">
+                        <CardTitle 
+                          className="text-lg md:text-xl font-bold text-foreground truncate" 
+                          data-testid={`text-group-name-${group.id}`}
+                          style={{ fontSize: 'var(--text-lg)' }}
+                          title={group.name}
+                        >
+                          {group.name}
+                        </CardTitle>
+                      </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
@@ -410,11 +413,12 @@ export default function Groups() {
                     </div>
                     {group.description && (
                       <p 
-                        className="text-muted-foreground" 
+                        className="text-muted-foreground line-clamp-2" 
                         style={{ 
                           fontSize: 'var(--text-sm)', 
                           marginTop: 'var(--space-2)' 
                         }}
+                        title={group.description}
                       >
                         {group.description}
                       </p>
