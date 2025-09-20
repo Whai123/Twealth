@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { CalendarDays, MapPin, Users, Clock, Sparkles, Brain, Zap, Target, Wand2 } from "lucide-react";
+import { CalendarDays, MapPin, Users, Clock, Calendar, Sparkles, Brain, Zap, Target, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -275,11 +275,160 @@ export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
           />
         </div>
 
+        {/* Interactive Date Slider */}
+        <div className="space-y-4">
+          <Label className="text-base font-bold flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-green-500" />
+            📅 Which day? Slide to choose! 
+          </Label>
+          
+          <Card className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200">
+            <div className="space-y-4">
+              {/* Current Date Display */}
+              <div className="text-center">
+                <p className="text-sm text-green-600 font-medium">Event Date</p>
+                <p className="text-2xl font-bold text-green-800" data-testid="text-event-date">
+                  {new Date(getCurrentDate(watch("startTime"))).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              </div>
+              
+              {/* Date Slider - Days from today */}
+              <div className="px-2">
+                <Slider
+                  value={[Math.max(0, Math.floor((new Date(getCurrentDate(watch("startTime"))).getTime() - new Date().setHours(0,0,0,0)) / (24 * 60 * 60 * 1000)))]}
+                  onValueChange={(value) => {
+                    const daysFromToday = value[0];
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const selectedDate = new Date(today.getTime() + daysFromToday * 24 * 60 * 60 * 1000);
+                    
+                    // Update both start and end times with new date but preserve times
+                    const currentStart = watch("startTime");
+                    const currentEnd = watch("endTime");
+                    
+                    if (currentStart && currentEnd) {
+                      const startTime = new Date(currentStart);
+                      const endTime = new Date(currentEnd);
+                      
+                      // Set new date but keep same time
+                      startTime.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                      endTime.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+                      
+                      setValue("startTime", formatDateTimeLocal(startTime), { shouldValidate: true, shouldDirty: true });
+                      setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
+                    }
+                  }}
+                  min={0}
+                  max={365}
+                  step={1}
+                  className="w-full"
+                  data-testid="slider-event-date"
+                />
+              </div>
+              
+              {/* Date Scale */}
+              <div className="flex justify-between text-xs text-gray-500 px-2">
+                <span>Today</span>
+                <span>+3 months</span>
+                <span>+6 months</span>
+                <span>+9 months</span>
+                <span>+1 year</span>
+              </div>
+              
+              {/* Quick Date Presets */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const today = new Date();
+                    const currentStart = watch("startTime");
+                    const currentEnd = watch("endTime");
+                    
+                    if (currentStart && currentEnd) {
+                      const startTime = new Date(currentStart);
+                      const endTime = new Date(currentEnd);
+                      
+                      startTime.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
+                      endTime.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
+                      
+                      setValue("startTime", formatDateTimeLocal(startTime), { shouldValidate: true, shouldDirty: true });
+                      setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
+                    }
+                  }}
+                  className="text-xs"
+                  data-testid="button-preset-today"
+                >
+                  📅 Today
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const currentStart = watch("startTime");
+                    const currentEnd = watch("endTime");
+                    
+                    if (currentStart && currentEnd) {
+                      const startTime = new Date(currentStart);
+                      const endTime = new Date(currentEnd);
+                      
+                      startTime.setFullYear(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+                      endTime.setFullYear(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+                      
+                      setValue("startTime", formatDateTimeLocal(startTime), { shouldValidate: true, shouldDirty: true });
+                      setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
+                    }
+                  }}
+                  className="text-xs"
+                  data-testid="button-preset-tomorrow"
+                >
+                  ➡️ Tomorrow
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const nextWeek = new Date();
+                    nextWeek.setDate(nextWeek.getDate() + 7);
+                    const currentStart = watch("startTime");
+                    const currentEnd = watch("endTime");
+                    
+                    if (currentStart && currentEnd) {
+                      const startTime = new Date(currentStart);
+                      const endTime = new Date(currentEnd);
+                      
+                      startTime.setFullYear(nextWeek.getFullYear(), nextWeek.getMonth(), nextWeek.getDate());
+                      endTime.setFullYear(nextWeek.getFullYear(), nextWeek.getMonth(), nextWeek.getDate());
+                      
+                      setValue("startTime", formatDateTimeLocal(startTime), { shouldValidate: true, shouldDirty: true });
+                      setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
+                    }
+                  }}
+                  className="text-xs"
+                  data-testid="button-preset-next-week"
+                >
+                  📅 Next Week
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {/* Interactive Time Range Slider */}
         <div className="space-y-4">
           <Label className="text-base font-bold flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-500" />
-            📅 When does this happen? Slide to choose! ⏰
+            ⏰ What time? Slide to choose! 
           </Label>
           
           <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
