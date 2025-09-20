@@ -9,6 +9,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import QuickStats from "@/components/dashboard/quick-stats";
+import QuickActions from "@/components/dashboard/quick-actions";
 import TimeValueInsights from "@/components/dashboard/time-value-insights";
 import FinancialGoalsProgress from "@/components/dashboard/financial-goals-progress";
 import UpcomingEvents from "@/components/dashboard/upcoming-events";
@@ -105,6 +106,9 @@ export default function Dashboard() {
       >
         {/* Quick Stats Cards */}
         <QuickStats />
+
+        {/* Quick Actions - Modern fintech-style action center */}
+        <QuickActions />
 
         {/* Time-Value Insights */}
         <TimeValueInsights />

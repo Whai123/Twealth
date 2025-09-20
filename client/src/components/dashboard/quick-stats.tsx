@@ -82,11 +82,15 @@ function QuickStats() {
       {statCards.map((stat, index) => (
         <Card 
           key={index} 
-          className="card-elevated animate-fade-in" 
+          className="fade-in bg-gradient-card border-0 cursor-pointer group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-1" 
           style={{
-            animationDelay: `${index * 0.05}s`,
-            padding: 'var(--space-6)'
+            animationDelay: `${index * 0.1}s`,
+            padding: 'var(--space-6)',
+            background: 'var(--gradient-card)',
+            backdropFilter: 'blur(10px)',
+            boxShadow: 'var(--shadow-md)'
           }}
+          data-testid={`card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
         >
           <CardContent className="p-0">
             <div className="flex items-center justify-between">
@@ -106,8 +110,11 @@ function QuickStats() {
                   )}
                 </div>
                 <p 
-                  className={`text-2xl font-bold counter-animate ${stat.title === 'Time Value' ? 'text-mono text-brand' : stat.title === 'Hourly Rate' ? 'text-tabular text-success' : 'text-foreground'}`} 
-                  style={{ fontSize: 'var(--text-2xl)' }}
+                  className={`text-2xl font-bold counter-up transition-all duration-300 group-hover:scale-110 ${stat.title === 'Time Value' ? 'text-primary' : stat.title === 'Hourly Rate' ? 'text-success' : stat.title === 'Net Impact' ? stat.changeColor : 'text-foreground'}`} 
+                  style={{ 
+                    fontSize: 'var(--text-2xl)',
+                    fontVariantNumeric: 'tabular-nums'
+                  }}
                   data-testid={`value-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {stat.value}
@@ -124,13 +131,13 @@ function QuickStats() {
                 </p>
               </div>
               <div 
-                className={`w-12 h-12 ${stat.gradient ? stat.iconBg : stat.iconBg} flex items-center justify-center`}
+                className={`w-14 h-14 bg-gradient-primary flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-6`}
                 style={{ 
                   borderRadius: 'var(--radius)',
-                  boxShadow: 'var(--shadow-sm)'
+                  boxShadow: 'var(--shadow-lg)'
                 }}
               >
-                <stat.icon className={stat.iconColor} size={24} />
+                <stat.icon className="text-primary-foreground" size={24} />
               </div>
             </div>
           </CardContent>
