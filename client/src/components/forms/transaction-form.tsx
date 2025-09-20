@@ -221,14 +221,17 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           )}
         </div>
 
-        {(selectedType === "transfer" && selectedCategory === "goal_contribution") && (
+        {((selectedType === "transfer" && selectedCategory === "goal_contribution") || 
+          (selectedType === "transfer" && selectedCategory === "savings") ||
+          (selectedType === "income")) && (
           <div>
-            <Label htmlFor="goalId">Financial Goal</Label>
+            <Label htmlFor="goalId">Financial Goal (Optional)</Label>
             <Select value={watch("goalId") || ""} onValueChange={(value) => setValue("goalId", value || undefined)}>
               <SelectTrigger data-testid="select-transaction-goal">
-                <SelectValue placeholder="Select a goal" />
+                <SelectValue placeholder="Select a goal (optional)" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="">No goal</SelectItem>
                 {activeGoals.map((goal: any) => (
                   <SelectItem key={goal.id} value={goal.id}>
                     {goal.title}
@@ -236,6 +239,11 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
                 ))}
               </SelectContent>
             </Select>
+            {watch("goalId") && (
+              <p className="text-xs text-muted-foreground mt-1">
+                This {selectedType === "income" ? "income" : "transfer"} will contribute to your selected goal
+              </p>
+            )}
           </div>
         )}
 

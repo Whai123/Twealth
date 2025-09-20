@@ -513,7 +513,8 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     // If this transaction is for a goal, update the goal's current amount
-    if (transaction.goalId && transaction.type === "transfer") {
+    // Support both income and transfer transactions contributing to goals
+    if (transaction.goalId && (transaction.type === "transfer" || transaction.type === "income")) {
       const goal = await this.getFinancialGoal(transaction.goalId);
       if (goal) {
         const newAmount = parseFloat(goal.currentAmount || "0") + parseFloat(transaction.amount.toString());

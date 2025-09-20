@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +13,87 @@ import EditGoalForm from "@/components/forms/edit-goal-form";
 import AddFundsForm from "@/components/forms/add-funds-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
+// Component to show recent contributions for a goal
+function RecentContributions({ goalId }: { goalId: string }) {
+  const { data: transactions, isLoading } = useQuery({
+    queryKey: ["/api/transactions", goalId],
+    queryFn: () => fetch(`/api/transactions?goalId=${goalId}&limit=5`).then(res => res.json()),
+  });
+
+  if (isLoading) {
+    return (
+      <div>
+        <h4 className="font-semibold mb-3">Recent Contributions</h4>
+        <div className="animate-pulse space-y-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+              <div className="space-y-1">
+                <div className="h-3 bg-muted rounded w-20"></div>
+                <div className="h-2 bg-muted rounded w-32"></div>
+              </div>
+              <div className="h-4 bg-muted rounded w-16"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const recentTransactions = transactions || [];
+
+  return (
+    <div>
+      <h4 className="font-semibold mb-3">Recent Contributions</h4>
+      {recentTransactions.length === 0 ? (
+        <div className="text-center py-6 text-muted-foreground">
+          <DollarSign className="mx-auto h-8 w-8 mb-2 opacity-50" />
+          <p className="text-sm">No contributions yet</p>
+          <p className="text-xs">Start adding funds or income to see contributions here</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {recentTransactions.map((transaction: any) => (
+            <div key={transaction.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <div className={`p-1.5 rounded-full ${transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900/20' : 'bg-blue-100 dark:bg-blue-900/20'}`}>
+                  {transaction.type === 'income' ? (
+                    <TrendingUp className={`h-3 w-3 ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                  ) : (
+                    <DollarSign className={`h-3 w-3 ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">
+                    {transaction.type === 'income' ? 'Income' : 'Transfer'}
+                    {transaction.category && ` • ${transaction.category}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {transaction.description || `${transaction.type === 'income' ? 'Income' : 'Transfer'} contribution`}
+                  </p>
+                  <div className="flex items-center text-xs text-muted-foreground mt-1">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    {new Date(transaction.date).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className={`font-semibold ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                  +${parseFloat(transaction.amount).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          ))}
+          {recentTransactions.length === 5 && (
+            <div className="text-center py-2">
+              <p className="text-xs text-muted-foreground">Showing last 5 contributions</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function FinancialGoals() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -482,6 +563,9 @@ export default function FinancialGoals() {
                     <div className="mt-1">{getStatusBadge(selectedGoal.status)}</div>
                   </div>
                 </div>
+                
+                {/* Recent Contributions */}
+                <RecentContributions goalId={selectedGoal.id} />
                 
                 <div className="flex space-x-2">
                   <Button 
