@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
 import { Plus, Calendar, Users, Clock, CheckCircle, XCircle, TrendingUp, Brain, Sparkles, MoreHorizontal, Settings, UserPlus, Trash2, Copy, Share, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,18 +18,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserId } from "@/lib/userContext";
 
 export default function Groups() {
-  const [location] = useLocation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   // Check for create query parameter and open dialog automatically
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('create') === '1') {
       setIsCreateDialogOpen(true);
       // Clean up URL by removing the query parameter
       window.history.replaceState({}, '', '/groups');
     }
-  }, [location]);
+  }, []);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [calendarShareDialogOpen, setCalendarShareDialogOpen] = useState(false);
   const [isEventDetailsDialogOpen, setIsEventDetailsDialogOpen] = useState(false);

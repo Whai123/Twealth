@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,16 @@ const TRANSACTION_CATEGORIES = {
 
 export default function MoneyTracking() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  // Check for add query parameter and open dialog automatically
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('add') === '1') {
+      setIsCreateDialogOpen(true);
+      // Clean up URL by removing the query parameter
+      window.history.replaceState({}, '', '/money-tracking');
+    }
+  }, []);
   const [filterType, setFilterType] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [timeRange, setTimeRange] = useState<string>("30");

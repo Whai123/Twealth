@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,17 @@ const MONTHS = [
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  // Check for create query parameter and open dialog automatically
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('create') === '1') {
+      setIsCreateDialogOpen(true);
+      setShowEventForm(true);
+      // Clean up URL by removing the query parameter
+      window.history.replaceState({}, '', '/calendar');
+    }
+  }, []);
   const [showEventForm, setShowEventForm] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -98,6 +98,16 @@ function RecentContributions({ goalId }: { goalId: string }) {
 export default function FinancialGoals() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFirstGoalDialogOpen, setIsFirstGoalDialogOpen] = useState(false);
+  
+  // Check for create query parameter and open dialog automatically
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('create') === '1') {
+      setIsCreateDialogOpen(true);
+      // Clean up URL by removing the query parameter
+      window.history.replaceState({}, '', '/financial-goals');
+    }
+  }, []);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
