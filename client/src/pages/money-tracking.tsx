@@ -372,9 +372,9 @@ export default function MoneyTracking() {
                   className="flex items-center justify-between border rounded-lg hover:bg-muted/50 transition-colors"
                   style={{ padding: 'var(--space-3)' }}
                 >
-                  <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
+                  <div className="flex items-center min-w-0 flex-1" style={{ gap: 'var(--space-3)' }}>
                     <div 
-                      className="bg-muted rounded-lg flex items-center justify-center"
+                      className="bg-muted rounded-lg flex items-center justify-center flex-shrink-0"
                       style={{ width: '32px', height: '32px' }}
                     >
                       {getTransactionIcon(transaction.type)}
@@ -384,6 +384,7 @@ export default function MoneyTracking() {
                         className="font-medium text-foreground truncate" 
                         data-testid={`text-transaction-${transaction.id}`}
                         style={{ fontSize: 'var(--text-sm)' }}
+                        title={transaction.description || transaction.category}
                       >
                         {transaction.description || transaction.category}
                       </h4>
@@ -396,15 +397,16 @@ export default function MoneyTracking() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <span 
-                      className={`font-semibold ${getAmountColor(transaction.type)}`}
+                      className={`font-semibold whitespace-nowrap ${getAmountColor(transaction.type)}`}
                       style={{ fontSize: 'var(--text-base)' }}
+                      data-testid={`text-amount-${transaction.id}`}
                     >
                       {transaction.type === "income" ? "+" : "-"}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
                     </span>
                     {transaction.goalId && (
-                      <p className="text-muted-foreground" style={{ fontSize: 'var(--text-xs)' }}>Goal contribution</p>
+                      <p className="text-muted-foreground whitespace-nowrap" style={{ fontSize: 'var(--text-xs)' }}>Goal contribution</p>
                     )}
                   </div>
                 </div>
