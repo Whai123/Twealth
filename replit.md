@@ -1,6 +1,6 @@
 # Overview
 
-ScheduleMoney is a full-stack web application that combines schedule management with financial tracking and goal setting. The app allows users to manage groups, schedule events, track financial goals, and monitor money flows. It's built as a modern React SPA with an Express.js backend and uses a PostgreSQL database for data persistence.
+Twealth is a full-stack web application that combines schedule management with financial tracking and goal setting. The app allows users to manage groups, schedule events, track financial goals, and monitor money flows. It's built as a modern React SPA with an Express.js backend and uses a PostgreSQL database for data persistence.
 
 # User Preferences
 

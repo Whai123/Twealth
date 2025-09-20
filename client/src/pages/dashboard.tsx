@@ -39,8 +39,8 @@ export default function Dashboard() {
               style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-3xl))' }}
             >
               <Clock className="mr-2 text-brand" size={20} />
-              <span className="hidden sm:inline">ScheduleLife</span>
-              <span className="sm:hidden">SM</span>
+              <span className="hidden sm:inline">Twealth</span>
+              <span className="sm:hidden">TW</span>
               <DollarSign className="ml-2 text-success" size={20} />
             </h1>
             <p 
