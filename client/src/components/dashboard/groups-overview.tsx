@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Briefcase, TrendingUp, GraduationCap } from "lucide-react";
+import { Link } from "wouter";
 
 // Helper function to get user initials
 const getUserInitials = (user: any): string => {
@@ -136,8 +137,8 @@ export default function GroupsOverview() {
       <CardHeader className="p-0 mb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">My Groups</CardTitle>
-          <Button variant="ghost" size="sm" data-testid="button-manage-groups">
-            Manage
+          <Button variant="ghost" size="sm" data-testid="button-manage-groups" asChild>
+            <Link href="/groups">Manage</Link>
           </Button>
         </div>
       </CardHeader>
@@ -146,9 +147,11 @@ export default function GroupsOverview() {
         {userGroups.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground mb-4">No groups yet</p>
-            <Button data-testid="button-create-first-group">
-              <Plus size={16} className="mr-2" />
-              Create Group
+            <Button data-testid="button-create-first-group" asChild>
+              <Link href="/groups?create=1">
+                <Plus size={16} className="mr-2" />
+                Create Group
+              </Link>
             </Button>
           </div>
         ) : (
@@ -191,9 +194,11 @@ export default function GroupsOverview() {
           </div>
         )}
 
-        <Button variant="outline" className="w-full mt-4" data-testid="button-create-new-group">
-          <Plus size={16} className="mr-2" />
-          Create New Group
+        <Button variant="outline" className="w-full mt-4" data-testid="button-create-new-group" asChild>
+          <Link href="/groups?create=1">
+            <Plus size={16} className="mr-2" />
+            Create New Group
+          </Link>
         </Button>
       </CardContent>
     </Card>
