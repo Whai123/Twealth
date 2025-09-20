@@ -22,6 +22,7 @@ const MONTHS = [
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [showEventForm, setShowEventForm] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export default function Calendar() {
   const [eventToEdit, setEventToEdit] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<any>(null);
+  const [currentView, setCurrentView] = useState<'month' | 'week' | 'agenda'>('month');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -168,6 +170,18 @@ export default function Calendar() {
     setCurrentDate(newDate);
   };
 
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const handleDayClick = (date: Date | null) => {
+    if (date && currentView === 'month') {
+      setSelectedEventId(null);
+      setShowEventForm(true);
+      // Set the date in the form if possible via a context or prop
+    }
+  };
+
   const getDaysInMonth = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -296,7 +310,7 @@ export default function Calendar() {
                       {(groups as any[])?.map((group: any) => (
                         <SelectItem key={group.id} value={group.id}>
                           <div className="flex items-center">
-                            <Calendar size={16} className="mr-2" />
+                            <CalendarIcon size={16} className="mr-2" />
                             {group.name}
                           </div>
                         </SelectItem>
@@ -307,7 +321,7 @@ export default function Calendar() {
               )}
                 
                 <Button 
-                  onClick={() => handleGenerateShare()} 
+                  onClick={() => handleCreateShare()} 
                   disabled={shareScope === 'group' && !selectedGroupId}
                   className="w-full"
                 >
@@ -332,128 +346,74 @@ export default function Calendar() {
                 Create Event
               </Button>
             </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Share Your Calendar</DialogTitle>
-                <DialogDescription>
-                  Create a shareable link to let others view your calendar or group events.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="share-scope">Share Type</Label>
-                  <Select value={shareScope} onValueChange={(value: 'user' | 'group') => setShareScope(value)}>
-                    <SelectTrigger data-testid="select-share-scope">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">
-                        <div className="flex items-center">
-                          <Globe size={16} className="mr-2" />
-                          My Personal Calendar
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="group">
-                        <div className="flex items-center">
-                          <Users size={16} className="mr-2" />
-                          Group Calendar
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {shareScope === 'group' && (
-                  <div>
-                    <Label htmlFor="group-select">Select Group</Label>
-                    <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-                      <SelectTrigger data-testid="select-group">
-                        <SelectValue placeholder="Choose a group..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(groups as any[])?.map((group: any) => (
-                          <SelectItem key={group.id} value={group.id}>
-                            <div className="flex items-center">
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2" 
-                                style={{ backgroundColor: group.color }}
-                              />
-                              {group.name}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                <div>
-                  <Label htmlFor="expiry-select">Link Expires In</Label>
-                  <Select value={shareExpiry} onValueChange={setShareExpiry}>
-                    <SelectTrigger data-testid="select-expiry">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7">7 days</SelectItem>
-                      <SelectItem value="30">30 days</SelectItem>
-                      <SelectItem value="90">3 months</SelectItem>
-                      <SelectItem value="365">1 year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <Button 
-                  onClick={handleCreateShare} 
-                  className="w-full"
-                  disabled={createShareMutation.isPending || (shareScope === 'group' && !selectedGroupId)}
-                  data-testid="button-create-share"
-                >
-                  {createShareMutation.isPending ? (
-                    <>
-                      <Clock size={16} className="mr-2 animate-spin" />
-                      Creating Share Link...
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} className="mr-2" />
-                      Create & Copy Link
-                    </>
-                  )}
-                </Button>
-              </div>
+            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+              <EventForm onSuccess={() => setShowEventForm(false)} />
             </DialogContent>
           </Dialog>
         </div>
       </div>
+      </header>
 
-      {/* Calendar Navigation */}
+      {/* Enhanced Calendar Navigation */}
       <Card className="mb-6">
         <CardContent className="p-4">
+          {/* Top Navigation Row */}
           <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigateMonth('prev')}
-              data-testid="button-prev-month"
-            >
-              <ChevronLeft size={16} />
-            </Button>
-            <h2 className="text-xl font-semibold">
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigateMonth('prev')}
+                data-testid="button-prev-month"
+              >
+                <ChevronLeft size={16} />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigateMonth('next')}
+                data-testid="button-next-month"
+              >
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+
+            <h2 className="text-xl font-semibold text-center flex-1">
               {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
+
             <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigateMonth('next')}
-              data-testid="button-next-month"
+              variant="ghost" 
+              size="sm"
+              onClick={goToToday}
+              data-testid="button-today"
+              className="text-primary hover:bg-primary/10"
             >
-              <ChevronRight size={16} />
+              Today
             </Button>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
+          {/* View Switcher */}
+          <div className="flex items-center justify-center mb-4">
+            <div className="flex bg-muted rounded-lg p-1">
+              {(['month', 'agenda'] as const).map((view) => (
+                <Button
+                  key={view}
+                  variant={currentView === view ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setCurrentView(view)}
+                  className="capitalize"
+                  data-testid={`button-view-${view}`}
+                >
+                  {view}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Calendar Grid - Desktop */}
+          {currentView === 'month' && (
+            <div className="hidden md:grid grid-cols-7 gap-1">
             {/* Day headers */}
             {DAYS.map((day) => (
               <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
@@ -465,13 +425,14 @@ export default function Calendar() {
             {days.map((date, index) => (
               <div
                 key={index}
-                className={`min-h-[100px] p-2 border border-border rounded-lg ${
-                  date ? 'bg-card hover:bg-muted cursor-pointer' : 'bg-muted/50'
+                className={`min-h-[100px] p-2 border border-border rounded-lg transition-colors ${
+                  date ? 'bg-card hover:bg-muted/50 cursor-pointer' : 'bg-muted/50'
                 } ${
                   date && date.toDateString() === new Date().toDateString()
                     ? 'bg-primary/10 border-primary'
                     : ''
                 }`}
+                onClick={() => handleDayClick(date)}
                 data-testid={date ? `calendar-day-${date.getDate()}` : undefined}
               >
                 {date && (
@@ -507,7 +468,10 @@ export default function Calendar() {
                             key={event.id}
                             className="text-xs p-1 bg-primary/20 text-primary rounded truncate relative group cursor-pointer"
                             title={`${event.title}${hasTimeValue ? ` • Time Value: $${timeValue} (${Math.round(durationHours * 10) / 10}h)` : ''}${hasBudget ? ` • Budget: $${budget}` : ''}${hasActualCost ? ` • Cost: $${actualCost}` : ''}${roi !== null ? ` • ROI: ${roi > 0 ? '+' : ''}${roi}%` : ''}`}
-                            onClick={() => handleViewEventDetails(event.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewEventDetails(event.id);
+                            }}
                             data-testid={`calendar-event-${event.id}`}
                           >
                             <div className="flex items-center justify-between">
@@ -547,22 +511,139 @@ export default function Calendar() {
                                 )}
                               </div>
                             </div>
-                            
-                            {/* Show more events indicator when truncated */}
-                            {getEventsForDate(date).length > 2 && (
-                              <div className="text-[8px] text-muted-foreground mt-0.5 text-center">
-                                +{getEventsForDate(date).length - 2} more
-                              </div>
-                            )}
                           </div>
                         );
                       })}
+                      
+                      {/* Show more events indicator - moved outside loop */}
+                      {getEventsForDate(date).length > 2 && (
+                        <div className="text-[10px] text-muted-foreground mt-1 text-center bg-muted/50 rounded px-1 py-0.5">
+                          +{getEventsForDate(date).length - 2} more
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
               </div>
             ))}
-          </div>
+            </div>
+          )}
+
+          {/* Agenda View */}
+          {currentView === 'agenda' && (
+            <div className="space-y-3">
+              <h3 className="font-medium text-muted-foreground">This Week's Events</h3>
+              {Array.from({ length: 7 }, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                const dayEvents = getEventsForDate(date);
+                
+                if (dayEvents.length === 0) return null;
+                
+                return (
+                  <Card key={date.toISOString()} className="border-l-4 border-l-primary">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</h4>
+                          <p className="text-sm text-muted-foreground">{dayEvents.length} events</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDayClick(date)}
+                          data-testid={`button-add-event-${date.getDate()}`}
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {dayEvents.map((event: any) => (
+                          <div 
+                            key={event.id}
+                            className="flex items-center justify-between p-2 bg-muted rounded cursor-pointer hover:bg-muted/80"
+                            onClick={() => handleViewEventDetails(event.id)}
+                            data-testid={`mobile-event-${event.id}`}
+                          >
+                            <div>
+                              <p className="font-medium">{event.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                              </p>
+                            </div>
+                            <ChevronRight size={16} className="text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }).filter(Boolean)}
+              {Array.from({ length: 7 }, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                return getEventsForDate(date);
+              }).flat().length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CalendarIcon className="mx-auto h-12 w-12 mb-4" />
+                  <p>No events this week</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Mobile Month View - Show agenda on small screens */}
+          {currentView === 'month' && (
+            <div className="md:hidden space-y-3">
+              <h3 className="font-medium text-muted-foreground">This Week's Events</h3>
+              {Array.from({ length: 7 }, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                const dayEvents = getEventsForDate(date);
+                
+                if (dayEvents.length === 0) return null;
+                
+                return (
+                  <Card key={date.toISOString()} className="border-l-4 border-l-primary">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</h4>
+                          <p className="text-sm text-muted-foreground">{dayEvents.length} events</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDayClick(date)}
+                          data-testid={`button-add-event-${date.getDate()}`}
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {dayEvents.map((event: any) => (
+                          <div 
+                            key={event.id}
+                            className="flex items-center justify-between p-2 bg-muted rounded cursor-pointer hover:bg-muted/80"
+                            onClick={() => handleViewEventDetails(event.id)}
+                            data-testid={`mobile-event-${event.id}`}
+                          >
+                            <div>
+                              <p className="font-medium">{event.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                              </p>
+                            </div>
+                            <ChevronRight size={16} className="text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }).filter(Boolean)}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -736,7 +817,7 @@ export default function Calendar() {
 
               {/* Time Tracker */}
               {(() => {
-                const selectedEvent = events?.find((event: any) => event.id === selectedEventId);
+                const selectedEvent = Array.isArray(events) ? events.find((event: any) => event.id === selectedEventId) : null;
                 return selectedEvent && (
                   <TimeTracker
                     eventId={selectedEvent.id}
@@ -1048,6 +1129,6 @@ export default function Calendar() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }
