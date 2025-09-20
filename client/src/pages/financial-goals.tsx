@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import GoalForm from "@/components/forms/goal-form";
+import EditGoalForm from "@/components/forms/edit-goal-form";
+import AddFundsForm from "@/components/forms/add-funds-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -407,68 +409,26 @@ export default function FinancialGoals() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           {selectedGoal && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Edit Goal</h3>
-              <p className="text-sm text-muted-foreground">
-                Edit functionality will be implemented soon. For now, you can view details and add funds.
-              </p>
-              <div>
-                <p className="font-medium">{selectedGoal.title}</p>
-                <p className="text-sm text-muted-foreground">{selectedGoal.description}</p>
-              </div>
-              <Button 
-                onClick={() => setIsEditDialogOpen(false)}
-                className="w-full"
-                data-testid="button-close-edit"
-              >
-                Close
-              </Button>
-            </div>
+            <EditGoalForm 
+              goal={selectedGoal} 
+              onSuccess={() => setIsEditDialogOpen(false)} 
+            />
           )}
         </DialogContent>
       </Dialog>
       
       {/* Add Funds Dialog */}
       <Dialog open={isAddFundsDialogOpen} onOpenChange={setIsAddFundsDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-md">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Add Funds to Goal</h3>
-            {selectedGoal && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Goal: {selectedGoal.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Current: ${parseFloat(selectedGoal.currentAmount).toLocaleString()} / 
-                    Target: ${parseFloat(selectedGoal.targetAmount).toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Amount to Add</label>
-                  <input 
-                    type="number" 
-                    className="w-full mt-1 p-2 border rounded" 
-                    placeholder="Enter amount"
-                    data-testid="input-add-funds-amount"
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsAddFundsDialogOpen(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    className="flex-1"
-                    data-testid="button-confirm-add-funds"
-                  >
-                    Add Funds
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
+          {selectedGoal && (
+            <AddFundsForm 
+              goalId={selectedGoal.id}
+              goalTitle={selectedGoal.title}
+              currentAmount={selectedGoal.currentAmount}
+              targetAmount={selectedGoal.targetAmount}
+              onSuccess={() => setIsAddFundsDialogOpen(false)} 
+            />
+          )}
         </DialogContent>
       </Dialog>
       
