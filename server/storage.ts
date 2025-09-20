@@ -25,6 +25,8 @@ import {
   type InsertUserSettings,
   type EventTimeLog,
   type InsertEventTimeLog,
+  type Notification,
+  type InsertNotification,
   users,
   groups,
   groupMembers,
@@ -37,7 +39,8 @@ import {
   eventExpenses,
   eventExpenseShares,
   userSettings,
-  eventTimeLogs
+  eventTimeLogs,
+  notifications
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -186,6 +189,23 @@ export interface IStorage {
     actualTimeValue: number;
     totalImpact: number;
   }>;
+
+  // Notification methods
+  getNotification(id: string): Promise<Notification | undefined>;
+  getNotificationsByUserId(userId: string, limit?: number, includeRead?: boolean): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: string): Promise<number>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: string): Promise<Notification>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
+  deleteNotification(id: string): Promise<void>;
+  archiveNotification(id: string): Promise<Notification>;
+
+  // Smart notification generation
+  generateSmartNotifications(userId: string): Promise<Notification[]>;
+  checkGoalDeadlines(userId: string): Promise<Notification[]>;
+  checkTransactionReminders(userId: string): Promise<Notification[]>;
+  checkBudgetWarnings(userId: string): Promise<Notification[]>;
+  checkGoalCompletions(userId: string): Promise<Notification[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1173,6 +1193,265 @@ export class DatabaseStorage implements IStorage {
       actualTimeValue,
       totalImpact,
     };
+  }
+
+  // Notification methods
+  async getNotification(id: string): Promise<Notification | undefined> {
+    const [notification] = await db.select().from(notifications).where(eq(notifications.id, id));
+    return notification || undefined;
+  }
+
+  async getNotificationsByUserId(userId: string, limit: number = 50, includeRead: boolean = true): Promise<Notification[]> {
+    if (!includeRead) {
+      return await db
+        .select()
+        .from(notifications)
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)))
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit);
+    }
+
+    return await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    
+    return result?.count || 0;
+  }
+
+  async createNotification(insertNotification: InsertNotification): Promise<Notification> {
+    const [notification] = await db
+      .insert(notifications)
+      .values({
+        ...insertNotification,
+        actionType: insertNotification.actionType || null,
+        actionData: insertNotification.actionData || {},
+        data: insertNotification.data || {},
+      })
+      .returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(id: string): Promise<Notification> {
+    const [notification] = await db
+      .update(notifications)
+      .set({ 
+        isRead: true, 
+        readAt: new Date() 
+      })
+      .where(eq(notifications.id, id))
+      .returning();
+    return notification;
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(notifications)
+      .set({ 
+        isRead: true, 
+        readAt: new Date() 
+      })
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+  }
+
+  async deleteNotification(id: string): Promise<void> {
+    await db.delete(notifications).where(eq(notifications.id, id));
+  }
+
+  async archiveNotification(id: string): Promise<Notification> {
+    const [notification] = await db
+      .update(notifications)
+      .set({ isArchived: true })
+      .where(eq(notifications.id, id))
+      .returning();
+    return notification;
+  }
+
+  // Smart notification generation
+  async generateSmartNotifications(userId: string): Promise<Notification[]> {
+    const newNotifications: Notification[] = [];
+    
+    // Check various conditions and generate notifications
+    const deadlineNotifications = await this.checkGoalDeadlines(userId);
+    const transactionNotifications = await this.checkTransactionReminders(userId);
+    const budgetNotifications = await this.checkBudgetWarnings(userId);
+    const completionNotifications = await this.checkGoalCompletions(userId);
+
+    newNotifications.push(...deadlineNotifications);
+    newNotifications.push(...transactionNotifications);
+    newNotifications.push(...budgetNotifications);
+    newNotifications.push(...completionNotifications);
+
+    return newNotifications;
+  }
+
+  async checkGoalDeadlines(userId: string): Promise<Notification[]> {
+    const newNotifications: Notification[] = [];
+    const goals = await this.getFinancialGoalsByUserId(userId);
+    const now = new Date();
+
+    for (const goal of goals) {
+      if (goal.status !== 'active') continue;
+
+      const targetDate = new Date(goal.targetDate);
+      const daysUntilDeadline = Math.ceil((targetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const currentAmount = parseFloat(goal.currentAmount || "0");
+      const targetAmount = parseFloat(goal.targetAmount.toString());
+      const progressPercent = (currentAmount / targetAmount) * 100;
+
+      // Check if goal is close to deadline but far from target
+      if (daysUntilDeadline <= 30 && daysUntilDeadline > 0 && progressPercent < 50) {
+        const remainingAmount = targetAmount - currentAmount;
+        const suggestedDaily = remainingAmount / daysUntilDeadline;
+
+        const notification = await this.createNotification({
+          userId,
+          type: 'goal_deadline',
+          title: `Goal "${goal.title}" needs attention! 📅`,
+          message: `Only ${daysUntilDeadline} days left and you're ${progressPercent.toFixed(0)}% complete. Consider adding $${suggestedDaily.toFixed(2)} daily to reach your goal.`,
+          priority: 'high',
+          category: 'goals',
+          data: { goalId: goal.id, daysUntilDeadline, progressPercent, suggestedDaily },
+          actionType: 'add_transaction',
+          actionData: { goalId: goal.id, amount: suggestedDaily, type: 'transfer' }
+        });
+
+        newNotifications.push(notification);
+      }
+    }
+
+    return newNotifications;
+  }
+
+  async checkTransactionReminders(userId: string): Promise<Notification[]> {
+    const newNotifications: Notification[] = [];
+    const recentTransactions = await this.getTransactionsByUserId(userId, 10);
+    const now = new Date();
+
+    // Check if no transactions in the last 7 days
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const recentTransactionInLast7Days = recentTransactions.some(t => 
+      new Date(t.date) >= sevenDaysAgo
+    );
+
+    if (!recentTransactionInLast7Days) {
+      const notification = await this.createNotification({
+        userId,
+        type: 'transaction_reminder',
+        title: `Don't forget to track your expenses! 💰`,
+        message: `You haven't added any transactions in the last 7 days. Keep track of your spending to stay on top of your financial goals.`,
+        priority: 'normal',
+        category: 'transactions',
+        data: { daysSinceLastTransaction: 7 },
+        actionType: 'add_transaction',
+        actionData: { type: 'expense' }
+      });
+
+      newNotifications.push(notification);
+    }
+
+    return newNotifications;
+  }
+
+  async checkBudgetWarnings(userId: string): Promise<Notification[]> {
+    const newNotifications: Notification[] = [];
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    
+    // Get income and expenses for the last 30 days
+    const transactions = await this.getTransactionsByUserId(userId, 100);
+    const recentTransactions = transactions.filter(t => new Date(t.date) >= thirtyDaysAgo);
+    
+    const totalIncome = recentTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    
+    const totalExpenses = recentTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+
+    // Check if expenses exceed income
+    if (totalExpenses > totalIncome && totalIncome > 0) {
+      const overspend = totalExpenses - totalIncome;
+      const overspendPercent = ((overspend / totalIncome) * 100).toFixed(0);
+
+      const notification = await this.createNotification({
+        userId,
+        type: 'budget_warning',
+        title: `Budget Alert: Spending Exceeds Income! ⚠️`,
+        message: `Your expenses ($${totalExpenses.toFixed(2)}) exceeded your income ($${totalIncome.toFixed(2)}) by $${overspend.toFixed(2)} (${overspendPercent}%) this month.`,
+        priority: 'urgent',
+        category: 'budget',
+        data: { totalIncome, totalExpenses, overspend, overspendPercent },
+        actionType: 'view_transactions',
+        actionData: { period: '30d' }
+      });
+
+      newNotifications.push(notification);
+    }
+
+    return newNotifications;
+  }
+
+  async checkGoalCompletions(userId: string): Promise<Notification[]> {
+    const newNotifications: Notification[] = [];
+    const goals = await this.getFinancialGoalsByUserId(userId);
+
+    for (const goal of goals) {
+      if (goal.status !== 'active') continue;
+
+      const currentAmount = parseFloat(goal.currentAmount || "0");
+      const targetAmount = parseFloat(goal.targetAmount.toString());
+      const progressPercent = (currentAmount / targetAmount) * 100;
+
+      // Check if goal is almost complete (90% or more)
+      if (progressPercent >= 90 && progressPercent < 100) {
+        const remainingAmount = targetAmount - currentAmount;
+
+        const notification = await this.createNotification({
+          userId,
+          type: 'goal_almost_complete',
+          title: `Almost there! Goal "${goal.title}" is ${progressPercent.toFixed(0)}% complete! 🎯`,
+          message: `You're so close! Just $${remainingAmount.toFixed(2)} more to reach your ${goal.title} goal. Keep it up!`,
+          priority: 'normal',
+          category: 'achievements',
+          data: { goalId: goal.id, progressPercent, remainingAmount },
+          actionType: 'add_transaction',
+          actionData: { goalId: goal.id, amount: remainingAmount, type: 'transfer' }
+        });
+
+        newNotifications.push(notification);
+      }
+      // Check if goal is complete
+      else if (progressPercent >= 100) {
+        const notification = await this.createNotification({
+          userId,
+          type: 'goal_complete',
+          title: `🎉 Congratulations! You completed "${goal.title}"!`,
+          message: `Amazing work! You've reached your ${goal.title} goal of $${targetAmount.toFixed(2)}. Time to set a new financial goal!`,
+          priority: 'high',
+          category: 'achievements',
+          data: { goalId: goal.id, completedAmount: targetAmount },
+          actionType: 'create_goal',
+          actionData: { suggestedAmount: targetAmount * 1.5 }
+        });
+
+        newNotifications.push(notification);
+        
+        // Mark goal as completed
+        await this.updateFinancialGoal(goal.id, { status: 'completed' });
+      }
+    }
+
+    return newNotifications;
   }
 }
 

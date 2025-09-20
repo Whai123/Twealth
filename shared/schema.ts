@@ -281,6 +281,8 @@ export const insertEventTimeLogSchema = createInsertSchema(eventTimeLogs).omit({
   source: z.enum(["timer", "manual"]).default("timer"),
 });
 
+// Move this down after notifications table is defined
+
 // Event attendee schema for type consistency
 export const eventAttendeeSchema = z.object({
   userId: z.string(),
@@ -329,6 +331,9 @@ export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 export type EventTimeLog = typeof eventTimeLogs.$inferSelect;
 export type InsertEventTimeLog = z.infer<typeof insertEventTimeLogSchema>;
 
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   groups: many(groups),
@@ -339,6 +344,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   createdInvites: many(groupInvites, { relationName: "createdBy" }),
   acceptedInvites: many(groupInvites, { relationName: "acceptedBy" }),
   calendarShares: many(calendarShares),
+  notifications: many(notifications),
 }));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({
@@ -431,6 +437,23 @@ export const eventExpensesRelations = relations(eventExpenses, ({ one, many }) =
   shares: many(eventExpenseShares),
 }));
 
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // goal_deadline, transaction_reminder, goal_complete, budget_warning, suggestion
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  priority: text("priority").default("normal"), // low, normal, high, urgent
+  category: text("category").notNull(), // goals, transactions, budget, achievements, suggestions
+  isRead: boolean("is_read").default(false),
+  isArchived: boolean("is_archived").default(false),
+  data: jsonb("data").default({}), // Additional context data (goalId, transactionId, etc.)
+  actionType: text("action_type"), // add_transaction, create_goal, view_goal, etc.
+  actionData: jsonb("action_data").default({}), // Data for action buttons
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
 export const eventExpenseSharesRelations = relations(eventExpenseShares, ({ one }) => ({
   expense: one(eventExpenses, {
     fields: [eventExpenseShares.expenseId],
@@ -461,4 +484,20 @@ export const financialGoalsRelations = relations(financialGoals, ({ one, many })
   transactions: many(transactions),
   contributions: many(goalContributions),
   linkedEvents: many(events, { relationName: "linkedGoal" }),
+}));
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+}).extend({
+  priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+  category: z.enum(["goals", "transactions", "budget", "achievements", "suggestions"]),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
 }));

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Bell, Clock, DollarSign } from "lucide-react";
+import { Plus, Clock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
   Drawer,
@@ -17,6 +17,8 @@ import RecentTransactions from "@/components/dashboard/recent-transactions";
 import GroupsOverview from "@/components/dashboard/groups-overview";
 import MonthlyProgressChart from "@/components/dashboard/monthly-progress-chart";
 import GoalForm from "@/components/forms/goal-form";
+import NotificationsBell from "@/components/dashboard/notifications-bell";
+import SmartInsights from "@/components/dashboard/smart-insights";
 
 export default function Dashboard() {
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
@@ -80,19 +82,7 @@ export default function Dashboard() {
                 </div>
               </DrawerContent>
             </Drawer>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              className="transition-all duration-200 hover:-translate-y-px"
-              style={{ 
-                minWidth: '44px', 
-                minHeight: '44px',
-                borderRadius: 'var(--radius)'
-              }}
-              data-testid="button-notifications"
-            >
-              <Bell size={16} />
-            </Button>
+            <NotificationsBell />
           </div>
         </div>
       </header>
@@ -112,6 +102,9 @@ export default function Dashboard() {
 
         {/* Time-Value Insights */}
         <TimeValueInsights />
+
+        {/* Smart Financial Insights */}
+        <SmartInsights />
 
         {/* Mobile-First Layout - Single Column on Mobile */}
         <div className="space-y-4 md:space-y-6">

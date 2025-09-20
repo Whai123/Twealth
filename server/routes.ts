@@ -14,7 +14,8 @@ import {
   insertEventExpenseShareSchema,
   eventAttendeeSchema,
   insertUserSettingsSchema,
-  insertEventTimeLogSchema
+  insertEventTimeLogSchema,
+  insertNotificationSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -894,6 +895,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timeEfficiencyPercent: Math.round(timeEfficiency),
         range
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Notification routes
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const limit = parseInt(req.query.limit as string) || 50;
+      const includeRead = req.query.includeRead === 'true';
+      
+      const notifications = await storage.getNotificationsByUserId(user.id, limit, includeRead);
+      res.json(notifications);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const count = await storage.getUnreadNotificationCount(user.id);
+      res.json({ count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/notifications", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const notificationData = {
+        ...req.body,
+        userId: user.id,
+      };
+      
+      const validatedData = insertNotificationSchema.parse(notificationData);
+      const notification = await storage.createNotification(validatedData);
+      res.status(201).json(notification);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/notifications/generate", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const notifications = await storage.generateSmartNotifications(user.id);
+      res.json({ 
+        generated: notifications.length,
+        notifications: notifications.slice(0, 5) // Return first 5 for preview
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", async (req, res) => {
+    try {
+      const notification = await storage.markNotificationAsRead(req.params.id);
+      res.json(notification);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/notifications/mark-all-read", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      await storage.markAllNotificationsAsRead(user.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/notifications/:id/archive", async (req, res) => {
+    try {
+      const notification = await storage.archiveNotification(req.params.id);
+      res.json(notification);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/notifications/:id", async (req, res) => {
+    try {
+      await storage.deleteNotification(req.params.id);
+      res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
