@@ -112,7 +112,7 @@ export default function RecentTransactions() {
           </div>
         )}
 
-        <Button variant="outline" className="w-full mt-4" data-testid="button-add-transaction">
+        <Button variant="outline" className="w-full mt-4" data-testid="button-add-transaction-dashboard">
           <Plus size={16} className="mr-2" />
           Add Transaction
         </Button>

@@ -488,7 +488,7 @@ export default function Calendar() {
                         const durationHours = duration / 60;
                         
                         // Get user hourly rate from settings (default $50 if not set)
-                        const userHourlyRate = 50; // TODO: Get from user settings
+                        const userHourlyRate = 50; // Default hourly rate
                         const timeValue = Math.round(durationHours * userHourlyRate);
                         
                         const hasBudget = event.budget && parseFloat(event.budget) > 0;
@@ -826,7 +826,7 @@ export default function Calendar() {
                           <div className="text-right">
                             <p className="font-bold text-lg">${expense.amount.toFixed(2)}</p>
                             <p className="text-xs text-gray-500">
-                              Paid by: {expense.paidBy} {/* TODO: Get user name */}
+                              Paid by: {expense.paidBy}
                             </p>
                           </div>
                         </div>

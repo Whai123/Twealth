@@ -117,6 +117,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/groups/:id/members-with-users", async (req, res) => {
+    try {
+      const membersWithUsers = await storage.getGroupMembersWithUserInfo(req.params.id);
+      res.json(membersWithUsers);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/groups/:id/members", async (req, res) => {
     try {
       const memberData = { ...req.body, groupId: req.params.id };
@@ -700,7 +709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({
         ...settings,
-        hourlyRate: parseFloat(settings.hourlyRate.toString())
+        hourlyRate: parseFloat((settings.hourlyRate || 50).toString())
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -715,7 +724,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const settings = await storage.createUserSettings(validatedData);
       res.status(201).json({
         ...settings,
-        hourlyRate: parseFloat(settings.hourlyRate.toString())
+        hourlyRate: parseFloat((settings.hourlyRate || 50).toString())
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -729,7 +738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const settings = await storage.updateUserSettings(user.id, validatedData);
       res.json({
         ...settings,
-        hourlyRate: parseFloat(settings.hourlyRate.toString())
+        hourlyRate: parseFloat((settings.hourlyRate || 50).toString())
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });

@@ -81,7 +81,7 @@ function Settings() {
       setIsSaving(false);
     },
     onError: (error: any) => {
-      console.error("Failed to update settings:", error);
+      // Settings update failed, user will see error in UI
       toast({
         title: "Update Failed",
         description: "Failed to save your settings. Please try again.",

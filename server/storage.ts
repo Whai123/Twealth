@@ -73,6 +73,7 @@ export interface IStorage {
 
   // Group member methods
   getGroupMembers(groupId: string): Promise<GroupMember[]>;
+  getGroupMembersWithUserInfo(groupId: string): Promise<Array<GroupMember & { user: SafeUser }>>;
   addGroupMember(member: InsertGroupMember): Promise<GroupMember>;
   removeGroupMember(groupId: string, userId: string): Promise<void>;
   updateGroupMemberRole(groupId: string, userId: string, role: string): Promise<GroupMember>;
@@ -298,6 +299,30 @@ export class DatabaseStorage implements IStorage {
   // Group member methods
   async getGroupMembers(groupId: string): Promise<GroupMember[]> {
     return await db.select().from(groupMembers).where(eq(groupMembers.groupId, groupId));
+  }
+
+  async getGroupMembersWithUserInfo(groupId: string): Promise<Array<GroupMember & { user: SafeUser }>> {
+    const membersWithUsers = await db
+      .select({
+        member: groupMembers,
+        user: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          avatar: users.avatar,
+          createdAt: users.createdAt,
+        }
+      })
+      .from(groupMembers)
+      .innerJoin(users, eq(groupMembers.userId, users.id))
+      .where(eq(groupMembers.groupId, groupId));
+
+    return membersWithUsers.map(({ member, user }) => ({
+      ...member,
+      user
+    }));
   }
 
   async addGroupMember(insertMember: InsertGroupMember): Promise<GroupMember> {

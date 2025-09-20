@@ -101,7 +101,6 @@ export function TimeTracker({
         
         // If more than 3 seconds between heartbeats, timer was likely paused
         if (timeSinceLastBeat > 3000) {
-          console.log('Timer interruption detected:', timeSinceLastBeat, 'ms gap');
           
           // Recalculate elapsed time from persisted session
           const persistedSession = localStorage.getItem(sessionKey);
@@ -113,7 +112,7 @@ export function TimeTracker({
               setAccumulatedActiveMs(accumulatedMs);
               setLastStartedAt(startedAt);
             } catch (error) {
-              console.error('Failed to recover from timer interruption:', error);
+              // Silent recovery attempt
             }
           }
         }
@@ -156,7 +155,7 @@ export function TimeTracker({
           }
         }
       } catch (error) {
-        console.error('Failed to restore session:', error);
+        // Clear invalid session data
         localStorage.removeItem(sessionKey);
       }
     }
@@ -212,7 +211,6 @@ export function TimeTracker({
         
         // If time drift > 5 seconds, likely the timer was paused by system
         if (timeDrift > 5000) {
-          console.log('Time drift detected on foreground:', timeDrift, 'ms');
           // Recalculate from persisted data
           const persistedSession = localStorage.getItem(sessionKey);
           if (persistedSession) {
@@ -223,7 +221,7 @@ export function TimeTracker({
               setAccumulatedActiveMs(accumulatedMs);
               setLastStartedAt(startedAt);
             } catch (error) {
-              console.error('Failed to correct time drift:', error);
+              // Silent recovery attempt
             }
           }
         }
@@ -305,7 +303,6 @@ export function TimeTracker({
       });
     },
     onError: (error) => {
-      console.error('Failed to start time tracking:', error);
       
       // Calculate any time already tracked since handleStart
       const now = Date.now();
@@ -387,7 +384,6 @@ export function TimeTracker({
       });
     },
     onError: (error, totalActiveDuration) => {
-      console.error('Failed to stop time tracking:', error);
       
       // Restore session using the exact attempted duration to prevent race condition
       setHasActiveSession(true);

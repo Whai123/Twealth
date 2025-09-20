@@ -5,6 +5,20 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Briefcase, TrendingUp, GraduationCap } from "lucide-react";
 
+// Helper function to get user initials
+const getUserInitials = (user: any): string => {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  }
+  if (user.firstName) {
+    return user.firstName[0].toUpperCase();
+  }
+  if (user.username) {
+    return user.username.slice(0, 2).toUpperCase();
+  }
+  return "U";
+};
+
 const getGroupIcon = (name: string) => {
   const lowerName = name.toLowerCase();
   if (lowerName.includes("team") || lowerName.includes("work")) return Briefcase;
@@ -26,10 +40,70 @@ const getGroupColor = (status: string) => {
   }
 };
 
+// Component to display member count
+function MemberCountDisplay({ groupId }: { groupId: string }) {
+  const { data: members } = useQuery({
+    queryKey: ['/api/groups', groupId, 'members-with-users'],
+    enabled: !!groupId,
+  });
+
+  const memberCount = Array.isArray(members) ? members.length : 0;
+  const memberText = memberCount === 1 ? "member" : "members";
+
+  return (
+    <p className="text-xs text-muted-foreground">
+      {memberCount} {memberText}
+    </p>
+  );
+}
+
+// Component to display group member avatars
+function GroupMemberAvatars({ groupId }: { groupId: string }) {
+  const { data: members } = useQuery({
+    queryKey: ['/api/groups', groupId, 'members-with-users'],
+    enabled: !!groupId,
+  });
+
+  if (!members || !Array.isArray(members)) {
+    return (
+      <div className="flex -space-x-2 mb-3">
+        {[...Array(3)].map((_, index) => (
+          <Avatar key={index} className="w-8 h-8 border-2 border-background">
+            <AvatarFallback className="text-xs bg-muted">
+              {index + 1}
+            </AvatarFallback>
+          </Avatar>
+        ))}
+      </div>
+    );
+  }
+
+  const displayMembers = members.slice(0, 4);
+  const remainingCount = Math.max(0, members.length - 4);
+
+  return (
+    <div className="flex -space-x-2 mb-3">
+      {displayMembers.map((member: any) => (
+        <Avatar key={member.user.id} className="w-8 h-8 border-2 border-background">
+          <AvatarFallback className="text-xs">
+            {getUserInitials(member.user)}
+          </AvatarFallback>
+        </Avatar>
+      ))}
+      {remainingCount > 0 && (
+        <Avatar className="w-8 h-8 border-2 border-background">
+          <AvatarFallback className="text-xs bg-muted">
+            +{remainingCount}
+          </AvatarFallback>
+        </Avatar>
+      )}
+    </div>
+  );
+}
+
 export default function GroupsOverview() {
   const { data: groups, isLoading } = useQuery({
     queryKey: ["/api/groups"],
-    queryFn: () => fetch("/api/groups").then(res => res.json()),
   });
 
   if (isLoading) {
@@ -55,7 +129,7 @@ export default function GroupsOverview() {
     );
   }
 
-  const userGroups = groups || [];
+  const userGroups = Array.isArray(groups) ? groups : [];
 
   return (
     <Card className="p-6 shadow-sm">
@@ -98,9 +172,7 @@ export default function GroupsOverview() {
                         >
                           {group.name}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
-                          6 members {/* This would be from group members query */}
-                        </p>
+                        <MemberCountDisplay groupId={group.id} />
                       </div>
                     </div>
                     <Badge variant="secondary" className={`${statusColors.bg} ${statusColors.text}`}>
@@ -108,16 +180,7 @@ export default function GroupsOverview() {
                     </Badge>
                   </div>
                   
-                  <div className="flex -space-x-2 mb-3">
-                    {/* Mock member avatars - in real app would fetch group members */}
-                    {[...Array(Math.min(5, 6))].map((_, index) => (
-                      <Avatar key={index} className="w-8 h-8 border-2 border-background">
-                        <AvatarFallback className="text-xs">
-                          {index < 4 ? `U${index + 1}` : `+${6 - 4}`}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                  </div>
+                  <GroupMemberAvatars groupId={group.id} />
                   
                   <p className="text-xs text-muted-foreground">
                     Next meeting: Schedule pending
