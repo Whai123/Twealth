@@ -15,6 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 export default function FinancialGoals() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFirstGoalDialogOpen, setIsFirstGoalDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
+  const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,6 +49,21 @@ export default function FinancialGoals() {
     if (confirm("Are you sure you want to delete this goal?")) {
       deleteGoalMutation.mutate(goalId);
     }
+  };
+
+  const handleEditGoal = (goal: any) => {
+    setSelectedGoal(goal);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleAddFunds = (goal: any) => {
+    setSelectedGoal(goal);
+    setIsAddFundsDialogOpen(true);
+  };
+
+  const handleViewDetails = (goal: any) => {
+    setSelectedGoal(goal);
+    setIsViewDetailsDialogOpen(true);
   };
 
   const getProgressColor = (progress: number) => {
@@ -296,7 +315,7 @@ export default function FinancialGoals() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditGoal(goal)}>
                             <Edit size={16} className="mr-2" />
                             Edit Goal
                           </DropdownMenuItem>
@@ -358,10 +377,21 @@ export default function FinancialGoals() {
                     </div>
                     
                     <div className="flex space-x-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleAddFunds(goal)}
+                        data-testid={`button-add-funds-${goal.id}`}
+                      >
                         Add Funds
                       </Button>
-                      <Button size="sm" className="flex-1">
+                      <Button 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleViewDetails(goal)}
+                        data-testid={`button-view-details-${goal.id}`}
+                      >
                         View Details
                       </Button>
                     </div>
@@ -372,6 +402,158 @@ export default function FinancialGoals() {
           </div>
         </>
       )}
+      
+      {/* Edit Goal Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedGoal && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Edit Goal</h3>
+              <p className="text-sm text-muted-foreground">
+                Edit functionality will be implemented soon. For now, you can view details and add funds.
+              </p>
+              <div>
+                <p className="font-medium">{selectedGoal.title}</p>
+                <p className="text-sm text-muted-foreground">{selectedGoal.description}</p>
+              </div>
+              <Button 
+                onClick={() => setIsEditDialogOpen(false)}
+                className="w-full"
+                data-testid="button-close-edit"
+              >
+                Close
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add Funds Dialog */}
+      <Dialog open={isAddFundsDialogOpen} onOpenChange={setIsAddFundsDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-md">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Add Funds to Goal</h3>
+            {selectedGoal && (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Goal: {selectedGoal.title}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Current: ${parseFloat(selectedGoal.currentAmount).toLocaleString()} / 
+                    Target: ${parseFloat(selectedGoal.targetAmount).toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Amount to Add</label>
+                  <input 
+                    type="number" 
+                    className="w-full mt-1 p-2 border rounded" 
+                    placeholder="Enter amount"
+                    data-testid="input-add-funds-amount"
+                  />
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsAddFundsDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    className="flex-1"
+                    data-testid="button-confirm-add-funds"
+                  >
+                    Add Funds
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* View Details Dialog */}
+      <Dialog open={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            {selectedGoal && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">{selectedGoal.title}</h3>
+                  {selectedGoal.description && (
+                    <p className="text-muted-foreground">{selectedGoal.description}</p>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-muted-foreground">Current Amount</h4>
+                    <p className="text-2xl font-bold text-green-600">
+                      ${parseFloat(selectedGoal.currentAmount).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-muted-foreground">Target Amount</h4>
+                    <p className="text-2xl font-bold text-blue-600">
+                      ${parseFloat(selectedGoal.targetAmount).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Progress</h4>
+                  <Progress 
+                    value={(parseFloat(selectedGoal.currentAmount) / parseFloat(selectedGoal.targetAmount)) * 100} 
+                    className="h-4 mb-2"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>{Math.round((parseFloat(selectedGoal.currentAmount) / parseFloat(selectedGoal.targetAmount)) * 100)}% complete</span>
+                    <span>${(parseFloat(selectedGoal.targetAmount) - parseFloat(selectedGoal.currentAmount)).toLocaleString()} remaining</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground">Target Date</h4>
+                    <p className="text-lg">{new Date(selectedGoal.targetDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-muted-foreground">Status</h4>
+                    <div className="mt-1">{getStatusBadge(selectedGoal.status)}</div>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setIsViewDetailsDialogOpen(false);
+                      handleEditGoal(selectedGoal);
+                    }}
+                    className="flex-1"
+                    data-testid="button-edit-from-details"
+                  >
+                    <Edit size={16} className="mr-2" />
+                    Edit Goal
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setIsViewDetailsDialogOpen(false);
+                      handleAddFunds(selectedGoal);
+                    }}
+                    className="flex-1"
+                    data-testid="button-add-funds-from-details"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Add Funds
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       </div>
     </>
   );

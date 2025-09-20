@@ -21,7 +21,11 @@ export default function Groups() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [calendarShareDialogOpen, setCalendarShareDialogOpen] = useState(false);
+  const [isEventDetailsDialogOpen, setIsEventDetailsDialogOpen] = useState(false);
+  const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedGroupForEvent, setSelectedGroupForEvent] = useState<any>(null);
   const [inviteRole, setInviteRole] = useState<string>("member");
   const [inviteExpiry, setInviteExpiry] = useState<string>("7");
   const [calendarShareExpiry, setCalendarShareExpiry] = useState<string>("30");
@@ -136,6 +140,21 @@ export default function Groups() {
     if (confirm("Are you sure you want to delete this group?")) {
       deleteGroupMutation.mutate(groupId);
     }
+  };
+
+  const handleViewEventDetails = (eventId: string, groupId: string) => {
+    const event = events?.find((e: any) => e.id === eventId);
+    const group = groups?.find((g: any) => g.id === groupId);
+    if (event && group) {
+      setSelectedEvent(event);
+      setSelectedGroupForEvent(group);
+      setIsEventDetailsDialogOpen(true);
+    }
+  };
+
+  const handleCreateEvent = (group: any) => {
+    setSelectedGroupForEvent(group);
+    setIsCreateEventDialogOpen(true);
   };
 
   const handleCreateInvite = (groupId: string) => {
@@ -543,6 +562,7 @@ export default function Groups() {
                           size="sm" 
                           className="w-full flex items-center" 
                           style={{ gap: 'var(--space-2)' }}
+                          onClick={() => handleViewEventDetails(eventData.eventId, group.id)}
                           data-testid={`button-view-event-${group.id}`}
                         >
                           <Calendar size={14} />
@@ -555,6 +575,7 @@ export default function Groups() {
                         size="sm" 
                         className="w-full flex items-center" 
                         style={{ gap: 'var(--space-2)' }}
+                        onClick={() => handleCreateEvent(group)}
                         data-testid={`button-create-event-${group.id}`}
                       >
                         <Plus size={14} />
@@ -685,6 +706,92 @@ export default function Groups() {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Event Details Dialog */}
+      <Dialog open={isEventDetailsDialogOpen} onOpenChange={setIsEventDetailsDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            {selectedEvent && selectedGroupForEvent && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">{selectedEvent.title}</h3>
+                  <p className="text-muted-foreground mb-2">Group: {selectedGroupForEvent.name}</p>
+                  {selectedEvent.description && (
+                    <p className="text-muted-foreground">{selectedEvent.description}</p>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-muted-foreground">Start Time</h4>
+                    <p className="text-lg font-medium">
+                      {new Date(selectedEvent.startTime).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedEvent.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-muted-foreground">End Time</h4>
+                    <p className="text-lg font-medium">
+                      {new Date(selectedEvent.endTime).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(selectedEvent.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </div>
+                
+                {selectedEvent.location && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold text-sm text-muted-foreground">Location</h4>
+                    <p className="text-lg">{selectedEvent.location}</p>
+                  </div>
+                )}
+                
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsEventDetailsDialogOpen(false)}
+                    className="flex-1"
+                    data-testid="button-close-event-details"
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setIsEventDetailsDialogOpen(false);
+                      // Navigate to calendar with event selected
+                      window.location.href = '/calendar';
+                    }}
+                    className="flex-1"
+                    data-testid="button-view-in-calendar"
+                  >
+                    <Calendar size={16} className="mr-2" />
+                    View in Calendar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Create Event Dialog */}
+      <Dialog open={isCreateEventDialogOpen} onOpenChange={setIsCreateEventDialogOpen}>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedGroupForEvent && (
+            <EventForm 
+              onSuccess={() => {
+                setIsCreateEventDialogOpen(false);
+                queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/groups'] });
+              }} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      
     </div>
   );
 }
