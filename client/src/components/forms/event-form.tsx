@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
@@ -32,11 +33,60 @@ interface EventFormProps {
   eventToEdit?: any;
 }
 
+// Helper functions for time conversion
+const timeToMinutes = (timeString: string) => {
+  const date = new Date(timeString);
+  return date.getHours() * 60 + date.getMinutes();
+};
+
+const minutesToTime = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+};
+
+const formatTimeDisplay = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+};
+
+// Helper to format date as local datetime-local string without timezone conversion
+const formatDateTimeLocal = (date: Date) => {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Helper to get current date from form or default to today
+const getCurrentDate = (currentStartTime?: string) => {
+  if (currentStartTime) {
+    return new Date(currentStartTime);
+  }
+  return new Date();
+};
+
 export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
+  
+  // Time slider state
+  const [timeRange, setTimeRange] = useState(() => {
+    const startDefault = eventToEdit?.startTime 
+      ? timeToMinutes(eventToEdit.startTime)
+      : 9 * 60; // 9:00 AM
+    const endDefault = eventToEdit?.endTime 
+      ? timeToMinutes(eventToEdit.endTime)
+      : 10 * 60; // 10:00 AM
+    return [startDefault, endDefault];
+  });
 
   const { data: groups } = useQuery({
     queryKey: ["/api/groups"],
@@ -54,15 +104,35 @@ export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
       title: eventToEdit?.title || "",
       description: eventToEdit?.description || "",
       startTime: eventToEdit?.startTime 
-        ? new Date(eventToEdit.startTime).toISOString().slice(0, 16)
-        : new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
+        ? formatDateTimeLocal(new Date(eventToEdit.startTime))
+        : (() => {
+            const now = new Date();
+            now.setHours(9, 0, 0, 0); // 9:00 AM
+            return formatDateTimeLocal(now);
+          })(),
       endTime: eventToEdit?.endTime 
-        ? new Date(eventToEdit.endTime).toISOString().slice(0, 16)
-        : new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16),
+        ? formatDateTimeLocal(new Date(eventToEdit.endTime))
+        : (() => {
+            const now = new Date();
+            now.setHours(10, 0, 0, 0); // 10:00 AM
+            return formatDateTimeLocal(now);
+          })(),
       location: eventToEdit?.location || "",
       groupId: eventToEdit?.groupId || undefined,
     },
   });
+
+  // Sync timeRange with form values on mount and when editing
+  useEffect(() => {
+    const currentStartTime = watch("startTime");
+    const currentEndTime = watch("endTime");
+    
+    if (currentStartTime && currentEndTime) {
+      const startMinutes = timeToMinutes(currentStartTime);
+      const endMinutes = timeToMinutes(currentEndTime);
+      setTimeRange([startMinutes, endMinutes]);
+    }
+  }, [eventToEdit?.id]); // Re-sync when editing different events
 
   const createEventMutation = useMutation({
     mutationFn: async (data: EventFormData) => {
@@ -205,32 +275,166 @@ export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="startTime">Start Time</Label>
-            <Input
-              id="startTime"
-              type="datetime-local"
-              {...register("startTime")}
-              data-testid="input-event-start-time"
-            />
-            {errors.startTime && (
-              <p className="text-sm text-destructive mt-1">{errors.startTime.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="endTime">End Time</Label>
-            <Input
-              id="endTime"
-              type="datetime-local"
-              {...register("endTime")}
-              data-testid="input-event-end-time"
-            />
-            {errors.endTime && (
-              <p className="text-sm text-destructive mt-1">{errors.endTime.message}</p>
-            )}
-          </div>
+        {/* Interactive Time Range Slider */}
+        <div className="space-y-4">
+          <Label className="text-base font-bold flex items-center gap-2">
+            <Clock className="h-5 w-5 text-blue-500" />
+            📅 When does this happen? Slide to choose! ⏰
+          </Label>
+          
+          <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+            <div className="space-y-6">
+              {/* Time Display */}
+              <div className="flex justify-between items-center">
+                <div className="text-center">
+                  <p className="text-sm text-blue-600 font-medium">Start Time</p>
+                  <p className="text-2xl font-bold text-blue-800" data-testid="text-start-time">
+                    {formatTimeDisplay(timeRange[0])}
+                  </p>
+                </div>
+                <div className="text-center px-4">
+                  <p className="text-sm text-gray-600">Duration</p>
+                  <p className="text-lg font-semibold text-gray-800">
+                    {Math.round((timeRange[1] - timeRange[0]) / 60 * 10) / 10}h
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-purple-600 font-medium">End Time</p>
+                  <p className="text-2xl font-bold text-purple-800" data-testid="text-end-time">
+                    {formatTimeDisplay(timeRange[1])}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Time Range Slider */}
+              <div className="px-2">
+                <Slider
+                  value={timeRange}
+                  onValueChange={(value) => {
+                    setTimeRange(value);
+                    
+                    // Preserve the current date from form values or use today
+                    const baseDate = getCurrentDate(watch("startTime"));
+                    
+                    // Create new dates preserving the original date
+                    const startDate = new Date(baseDate);
+                    startDate.setHours(Math.floor(value[0] / 60), value[0] % 60, 0, 0);
+                    const endDate = new Date(baseDate);
+                    endDate.setHours(Math.floor(value[1] / 60), value[1] % 60, 0, 0);
+                    
+                    // Use timezone-safe formatting
+                    setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
+                    setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
+                  }}
+                  min={0}
+                  max={24 * 60 - 1}
+                  step={15}
+                  className="w-full"
+                  data-testid="slider-time-range"
+                />
+              </div>
+              
+              {/* Time Scale */}
+              <div className="flex justify-between text-xs text-gray-500 px-2">
+                <span>12 AM</span>
+                <span>6 AM</span>
+                <span>12 PM</span>
+                <span>6 PM</span>
+                <span>11:45 PM</span>
+              </div>
+              
+              {/* Quick Time Presets */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const preset = [9 * 60, 10 * 60]; // 9-10 AM
+                    setTimeRange(preset);
+                    
+                    // Preserve current date
+                    const baseDate = getCurrentDate(watch("startTime"));
+                    const startDate = new Date(baseDate);
+                    startDate.setHours(9, 0, 0, 0);
+                    const endDate = new Date(baseDate);
+                    endDate.setHours(10, 0, 0, 0);
+                    
+                    setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
+                    setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
+                  }}
+                  className="text-xs"
+                  data-testid="button-preset-morning"
+                >
+                  🌅 Morning (9-10 AM)
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const preset = [12 * 60, 13 * 60]; // 12-1 PM
+                    setTimeRange(preset);
+                    
+                    // Preserve current date
+                    const baseDate = getCurrentDate(watch("startTime"));
+                    const startDate = new Date(baseDate);
+                    startDate.setHours(12, 0, 0, 0);
+                    const endDate = new Date(baseDate);
+                    endDate.setHours(13, 0, 0, 0);
+                    
+                    setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
+                    setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
+                  }}
+                  className="text-xs"
+                  data-testid="button-preset-lunch"
+                >
+                  🍽️ Lunch (12-1 PM)
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const preset = [14 * 60, 15 * 60]; // 2-3 PM
+                    setTimeRange(preset);
+                    
+                    // Preserve current date
+                    const baseDate = getCurrentDate(watch("startTime"));
+                    const startDate = new Date(baseDate);
+                    startDate.setHours(14, 0, 0, 0);
+                    const endDate = new Date(baseDate);
+                    endDate.setHours(15, 0, 0, 0);
+                    
+                    setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
+                    setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
+                  }}
+                  className="text-xs"
+                  data-testid="button-preset-afternoon"
+                >
+                  ☀️ Afternoon (2-3 PM)
+                </Button>
+              </div>
+            </div>
+          </Card>
+          
+          {/* Hidden inputs for form validation */}
+          <input
+            type="hidden"
+            {...register("startTime")}
+            data-testid="input-event-start-time"
+          />
+          <input
+            type="hidden"
+            {...register("endTime")}
+            data-testid="input-event-end-time"
+          />
+          
+          {(errors.startTime || errors.endTime) && (
+            <p className="text-sm text-destructive flex items-center gap-1">
+              ❌ {errors.startTime?.message || errors.endTime?.message}
+            </p>
+          )}
         </div>
 
         <div>
