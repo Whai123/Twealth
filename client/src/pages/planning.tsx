@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Lightbulb, TrendingUp, Calendar, Target, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -187,21 +188,29 @@ export default function Planning() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-create-budget">
-                  <Target size={20} />
-                  <span className="text-sm">Create Budget</span>
+                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-create-budget" asChild>
+                  <Link href="/money-tracking?budget=1">
+                    <Target size={20} />
+                    <span className="text-sm">Create Budget</span>
+                  </Link>
                 </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-review-goals">
-                  <TrendingUp size={20} />
-                  <span className="text-sm">Review Goals</span>
+                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-review-goals" asChild>
+                  <Link href="/financial-goals">
+                    <TrendingUp size={20} />
+                    <span className="text-sm">Review Goals</span>
+                  </Link>
                 </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-schedule-review">
-                  <Calendar size={20} />
-                  <span className="text-sm">Schedule Review</span>
+                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-schedule-review" asChild>
+                  <Link href="/calendar?create=1">
+                    <Calendar size={20} />
+                    <span className="text-sm">Schedule Review</span>
+                  </Link>
                 </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-optimize-savings">
-                  <Lightbulb size={20} />
-                  <span className="text-sm">Optimize Savings</span>
+                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-optimize-savings" asChild>
+                  <Link href="/financial-goals">
+                    <Lightbulb size={20} />
+                    <span className="text-sm">Optimize Savings</span>
+                  </Link>
                 </Button>
               </div>
             </CardContent>
@@ -245,8 +254,10 @@ export default function Planning() {
                         {suggestion.description}
                       </p>
                       {suggestion.actionable && (
-                        <Button size="sm" data-testid={`button-action-${suggestion.id}`}>
-                          Take Action
+                        <Button size="sm" data-testid={`button-action-${suggestion.id}`} asChild>
+                          <Link href="/financial-goals">
+                            Take Action
+                          </Link>
                         </Button>
                       )}
                     </div>

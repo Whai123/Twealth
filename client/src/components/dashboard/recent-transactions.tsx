@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowDown, ArrowUp, Home, ShoppingCart, PiggyBank } from "lucide-react";
+import { Link } from "wouter";
 
 const getTransactionIcon = (category: string, type: string) => {
   if (type === "income") return ArrowDown;
@@ -61,8 +62,8 @@ export default function RecentTransactions() {
       <CardHeader className="p-0 mb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Recent Transactions</CardTitle>
-          <Button variant="ghost" size="sm" data-testid="button-view-all-transactions">
-            View All
+          <Button variant="ghost" size="sm" data-testid="button-view-all-transactions" asChild>
+            <Link href="/money-tracking">View All</Link>
           </Button>
         </div>
       </CardHeader>
@@ -71,9 +72,11 @@ export default function RecentTransactions() {
         {recentTransactions.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground mb-4">No transactions yet</p>
-            <Button data-testid="button-add-first-transaction">
-              <Plus size={16} className="mr-2" />
-              Add Transaction
+            <Button data-testid="button-add-first-transaction" asChild>
+              <Link href="/money-tracking?add=1">
+                <Plus size={16} className="mr-2" />
+                Add Transaction
+              </Link>
             </Button>
           </div>
         ) : (
@@ -112,9 +115,11 @@ export default function RecentTransactions() {
           </div>
         )}
 
-        <Button variant="outline" className="w-full mt-4" data-testid="button-add-transaction-dashboard">
-          <Plus size={16} className="mr-2" />
-          Add Transaction
+        <Button variant="outline" className="w-full mt-4" data-testid="button-add-transaction-dashboard" asChild>
+          <Link href="/money-tracking?add=1">
+            <Plus size={16} className="mr-2" />
+            Add Transaction
+          </Link>
         </Button>
       </CardContent>
     </Card>

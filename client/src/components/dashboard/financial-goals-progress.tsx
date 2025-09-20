@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lightbulb } from "lucide-react";
+import { Link } from "wouter";
 
 export default function FinancialGoalsProgress() {
   const { data: goals, isLoading } = useQuery({
@@ -36,8 +37,8 @@ export default function FinancialGoalsProgress() {
       <CardHeader className="p-0 mb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Financial Goals Progress</CardTitle>
-          <Button variant="ghost" size="sm" data-testid="button-view-all-goals">
-            View All
+          <Button variant="ghost" size="sm" data-testid="button-view-all-goals" asChild>
+            <Link href="/financial-goals">View All</Link>
           </Button>
         </div>
       </CardHeader>
@@ -46,7 +47,9 @@ export default function FinancialGoalsProgress() {
         {activeGoals.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground mb-4">No active financial goals yet</p>
-            <Button data-testid="button-create-first-goal">Create Your First Goal</Button>
+            <Button data-testid="button-create-first-goal" asChild>
+              <Link href="/financial-goals?create=1">Create Your First Goal</Link>
+            </Button>
           </div>
         ) : (
           <div className="space-y-6">

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Calendar } from "lucide-react";
+import { Link } from "wouter";
 
 export default function UpcomingEvents() {
   const { data: events, isLoading } = useQuery({
@@ -35,8 +36,8 @@ export default function UpcomingEvents() {
       <CardHeader className="p-0 mb-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
-          <Button variant="ghost" size="sm" data-testid="button-view-calendar">
-            View Calendar
+          <Button variant="ghost" size="sm" data-testid="button-view-calendar" asChild>
+            <Link href="/calendar">View Calendar</Link>
           </Button>
         </div>
       </CardHeader>
@@ -46,9 +47,11 @@ export default function UpcomingEvents() {
           <div className="text-center py-8">
             <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-4">No upcoming events</p>
-            <Button data-testid="button-schedule-first-event">
-              <Plus size={16} className="mr-2" />
-              Schedule Event
+            <Button data-testid="button-schedule-first-event" asChild>
+              <Link href="/calendar?create=1">
+                <Plus size={16} className="mr-2" />
+                Schedule Event
+              </Link>
             </Button>
           </div>
         ) : (
@@ -89,9 +92,11 @@ export default function UpcomingEvents() {
           </div>
         )}
 
-        <Button variant="outline" className="w-full mt-4" data-testid="button-schedule-new-event">
-          <Plus size={16} className="mr-2" />
-          Schedule New Event
+        <Button variant="outline" className="w-full mt-4" data-testid="button-schedule-new-event" asChild>
+          <Link href="/calendar?create=1">
+            <Plus size={16} className="mr-2" />
+            Schedule New Event
+          </Link>
         </Button>
       </CardContent>
     </Card>
