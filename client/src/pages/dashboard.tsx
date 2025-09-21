@@ -19,6 +19,7 @@ import MonthlyProgressChart from "@/components/dashboard/monthly-progress-chart"
 import GoalForm from "@/components/forms/goal-form";
 import NotificationsBell from "@/components/dashboard/notifications-bell";
 import SmartInsights from "@/components/dashboard/smart-insights";
+import EnhancedFinancialTrends from "@/components/dashboard/enhanced-financial-trends";
 
 export default function Dashboard() {
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
@@ -102,6 +103,9 @@ export default function Dashboard() {
 
         {/* Time-Value Insights */}
         <TimeValueInsights />
+
+        {/* Enhanced Financial Trends */}
+        <EnhancedFinancialTrends />
 
         {/* Smart Financial Insights */}
         <SmartInsights />

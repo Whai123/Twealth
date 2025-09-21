@@ -34,7 +34,8 @@ export default function QuickActions() {
 
   // Get upcoming events for timer
   const { data: upcomingEvents } = useQuery({
-    queryKey: ['/api/events/upcoming', { limit: 5 }],
+    queryKey: ['/api/events/upcoming'],
+    queryFn: () => fetch('/api/events/upcoming?limit=5').then(res => res.json()),
   });
 
   // Keyboard shortcuts handler
@@ -118,33 +119,34 @@ export default function QuickActions() {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
             {quickActions.map((action, index) => (
               <Button
                 key={action.id}
                 variant="ghost"
                 onClick={action.action}
-                className={`h-auto p-4 flex flex-col items-center gap-2 hover:bg-white/20 border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 button-press fade-in group`}
+                className={`h-auto p-3 md:p-4 flex flex-col items-center gap-2 hover:bg-white/20 border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] button-press fade-in group touch-manipulation`}
                 style={{
                   animationDelay: `${index * 0.1}s`,
-                  borderRadius: 'var(--radius-lg)'
+                  borderRadius: 'var(--radius-lg)',
+                  minHeight: 'clamp(100px, 15vw, 120px)'
                 }}
                 data-testid={`button-${action.id}`}
               >
                 <div 
-                  className={`w-10 h-10 rounded-xl ${action.bgColor} ${action.color} flex items-center justify-center transition-all duration-300 group-hover:scale-110`}
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded-xl ${action.bgColor} ${action.color} flex items-center justify-center transition-all duration-300 group-hover:scale-110`}
                 >
-                  <action.icon size={20} />
+                  <action.icon size={18} className="md:w-5 md:h-5" />
                 </div>
-                <div className="text-center">
-                  <p className="font-medium text-primary-foreground text-sm">
+                <div className="text-center flex-1">
+                  <p className="font-medium text-primary-foreground text-xs md:text-sm leading-tight">
                     {action.title}
                   </p>
-                  <p className="text-xs text-primary-foreground/70 mt-1">
+                  <p className="text-[10px] md:text-xs text-primary-foreground/70 mt-1 hidden sm:block">
                     {action.description}
                   </p>
                 </div>
-                <div className="text-xs bg-white/20 px-2 py-1 rounded-full text-primary-foreground/80 font-mono">
+                <div className="text-[10px] md:text-xs bg-white/20 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-primary-foreground/80 font-mono">
                   {action.shortcut}
                 </div>
               </Button>
