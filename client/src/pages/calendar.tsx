@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2, BarChart3 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2, BarChart3, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -12,6 +12,10 @@ import EventForm from "@/components/forms/event-form";
 import { TimeTracker } from "@/components/time-tracker";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import MobileCalendarGrid from "@/components/calendar/mobile-calendar-grid";
+import AdvancedFilters, { type FilterOptions } from "@/components/calendar/advanced-filters";
+import SmartCalendarInsights from "@/components/calendar/smart-calendar-insights";
+import MobileFloatingActions from "@/components/calendar/mobile-floating-actions";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -45,6 +49,17 @@ export default function Calendar() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<any>(null);
   const [currentView, setCurrentView] = useState<'month' | 'week' | 'agenda'>('month');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    categories: [],
+    timeValueRange: [0, 2000],
+    budgetRange: [0, 5000],
+    roiThreshold: 0,
+    hasROI: false,
+    hasTimeTracking: false,
+    isUpcoming: false,
+    groupId: null
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -216,9 +231,59 @@ export default function Calendar() {
     return days;
   };
 
-  const getEventsForDate = (date: Date) => {
+  // Enhanced event filtering based on applied filters
+  const getFilteredEvents = () => {
     if (!events || !Array.isArray(events)) return [];
+    
     return events.filter((event: any) => {
+      // Category filter
+      if (filters.categories.length > 0 && !filters.categories.includes(event.category)) {
+        return false;
+      }
+      
+      // Time value filter
+      const duration = event.actualDurationMinutes || event.plannedDurationMinutes || 0;
+      const timeValue = (duration / 60) * 50; // $50/hr default
+      if (timeValue < filters.timeValueRange[0] || timeValue > filters.timeValueRange[1]) {
+        return false;
+      }
+      
+      // Budget filter
+      const budget = parseFloat(event.budget || '0');
+      if (budget > 0 && (budget < filters.budgetRange[0] || budget > filters.budgetRange[1])) {
+        return false;
+      }
+      
+      // ROI filter
+      if (filters.hasROI) {
+        const actualCost = parseFloat(event.actualCost || '0');
+        if (actualCost === 0 || budget === 0) return false;
+        const roi = ((timeValue - actualCost) / actualCost) * 100;
+        if (roi < filters.roiThreshold) return false;
+      }
+      
+      // Time tracking filter
+      if (filters.hasTimeTracking && (!event.actualDurationMinutes || event.actualDurationMinutes === 0)) {
+        return false;
+      }
+      
+      // Upcoming filter
+      if (filters.isUpcoming && new Date(event.startTime) <= new Date()) {
+        return false;
+      }
+      
+      // Group filter
+      if (filters.groupId && event.groupId !== filters.groupId) {
+        return false;
+      }
+      
+      return true;
+    });
+  };
+  
+  const getEventsForDate = (date: Date) => {
+    const filteredEvents = getFilteredEvents();
+    return filteredEvents.filter((event: any) => {
       const eventDate = new Date(event.startTime);
       // Compare dates in local timezone to avoid UTC conversion issues
       return (
@@ -230,6 +295,17 @@ export default function Calendar() {
   };
 
   const days = getDaysInMonth();
+  const filteredEvents = getFilteredEvents();
+  
+  // Extract available categories for filters
+  const availableCategories = Array.from(new Set(
+    (events || []).map((event: any) => event.category).filter(Boolean)
+  ));
+  
+  const handleQuickEvent = () => {
+    // Quick event creation with current date/time
+    setShowEventForm(true);
+  };
 
   return (
     <>
@@ -263,6 +339,13 @@ export default function Calendar() {
             </p>
           </div>
           <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
+            {/* Advanced Filters */}
+            <AdvancedFilters
+              onFiltersChange={setFilters}
+              availableCategories={availableCategories}
+              availableGroups={(groups as any[]) || []}
+            />
+            
             <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
@@ -365,6 +448,14 @@ export default function Calendar() {
       </div>
       </header>
 
+      {/* Smart Calendar Insights - Desktop */}
+      <div className="mb-6 hidden lg:block">
+        <SmartCalendarInsights 
+          events={filteredEvents}
+          timeRange="month"
+        />
+      </div>
+
       {/* Enhanced Calendar Navigation */}
       <Card className="mb-6">
         <CardContent className="p-4">
@@ -422,37 +513,39 @@ export default function Calendar() {
             </div>
           </div>
 
-          {/* Calendar Grid - Desktop */}
+          {/* Enhanced Calendar Views */}
           {currentView === 'month' && (
-            <div className="hidden md:grid grid-cols-7 gap-1">
-            {/* Day headers */}
-            {DAYS.map((day) => (
-              <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
-                {day}
-              </div>
-            ))}
-            
-            {/* Calendar days */}
-            {days.map((date, index) => (
-              <div
-                key={index}
-                className={`min-h-[100px] p-2 border border-border rounded-lg transition-colors ${
-                  date ? 'bg-card hover:bg-muted/50 cursor-pointer' : 'bg-muted/50'
-                } ${
-                  date && date.toDateString() === new Date().toDateString()
-                    ? 'bg-primary/10 border-primary'
-                    : ''
-                }`}
-                onClick={() => handleDayClick(date)}
-                data-testid={date ? `calendar-day-${date.getDate()}` : undefined}
-              >
-                {date && (
-                  <>
-                    <div className="text-sm font-medium mb-1">
-                      {date.getDate()}
-                    </div>
-                    <div className="space-y-1">
-                      {getEventsForDate(date).slice(0, 2).map((event: any) => {
+            <>
+              {/* Desktop Calendar Grid */}
+              <div className="hidden md:grid grid-cols-7 gap-1">
+                {/* Day headers */}
+                {DAYS.map((day) => (
+                  <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
+                    {day}
+                  </div>
+                ))}
+                
+                {/* Calendar days */}
+                {days.map((date, index) => (
+                  <div
+                    key={index}
+                    className={`min-h-[100px] p-2 border border-border rounded-lg transition-colors ${
+                      date ? 'bg-card hover:bg-muted/50 cursor-pointer' : 'bg-muted/50'
+                    } ${
+                      date && date.toDateString() === new Date().toDateString()
+                        ? 'bg-primary/10 border-primary'
+                        : ''
+                    }`}
+                    onClick={() => handleDayClick(date)}
+                    data-testid={date ? `calendar-day-${date.getDate()}` : undefined}
+                  >
+                    {date && (
+                      <>
+                        <div className="text-sm font-medium mb-1">
+                          {date.getDate()}
+                        </div>
+                        <div className="space-y-1">
+                          {getEventsForDate(date).slice(0, 2).map((event: any) => {
                         // Enhanced time-value calculations
                         const actualDuration = event.actualDurationMinutes || 0;
                         const plannedDuration = event.plannedDurationMinutes || 0;
@@ -537,7 +630,21 @@ export default function Calendar() {
                 )}
               </div>
             ))}
-            </div>
+              </div>
+              
+              {/* Mobile Calendar Grid */}
+              <div className="md:hidden">
+                <MobileCalendarGrid
+                  currentDate={currentDate}
+                  events={filteredEvents}
+                  onNavigate={navigateMonth}
+                  onTodayClick={goToToday}
+                  onEventClick={handleViewEventDetails}
+                  onDayClick={handleDayClick}
+                  onFiltersClick={() => setIsFiltersOpen(true)}
+                />
+              </div>
+            </>
           )}
 
           {/* Agenda View */}
@@ -1140,6 +1247,23 @@ export default function Calendar() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Floating Actions */}
+      <MobileFloatingActions
+        onFilterClick={() => setIsFiltersOpen(true)}
+        onQuickEventClick={handleQuickEvent}
+      />
+
+      {/* Mobile Filters - Use the same AdvancedFilters with controlled state */}
+      <div className="sm:hidden">
+        <AdvancedFilters
+          open={isFiltersOpen}
+          onOpenChange={setIsFiltersOpen}
+          onFiltersChange={setFilters}
+          availableCategories={availableCategories}
+          availableGroups={(groups as any[]) || []}
+        />
+      </div>
     </>
   );
 }
