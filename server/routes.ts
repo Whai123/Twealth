@@ -14,6 +14,9 @@ import {
   insertEventExpenseShareSchema,
   eventAttendeeSchema,
   insertUserSettingsSchema,
+  insertUserPreferencesSchema,
+  insertFinancialPreferencesSchema,
+  insertPrivacySettingsSchema,
   insertEventTimeLogSchema,
   insertNotificationSchema
 } from "@shared/schema";
@@ -743,6 +746,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // User Preferences Routes
+  app.get("/api/user-preferences", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const preferences = await storage.getUserPreferences(user.id);
+      if (!preferences) {
+        // Create default preferences if they don't exist
+        const defaultPrefs = { 
+          userId: user.id,
+          theme: "system" as const
+        };
+        const newPrefs = await storage.createUserPreferences(defaultPrefs);
+        return res.json(newPrefs);
+      }
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/user-preferences", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const validatedData = insertUserPreferencesSchema.omit({ userId: true }).partial().parse(req.body);
+      const preferences = await storage.updateUserPreferences(user.id, validatedData);
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Financial Preferences Routes
+  app.get("/api/financial-preferences", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const preferences = await storage.getFinancialPreferences(user.id);
+      if (!preferences) {
+        // Create default preferences if they don't exist
+        const defaultPrefs = {
+          userId: user.id,
+          defaultBudgetPeriod: "monthly" as const,
+          autoSavingsAmount: "0.00",
+          autoSavingsFrequency: "monthly" as const,
+          defaultGoalPriority: "medium" as const
+        };
+        const newPrefs = await storage.createFinancialPreferences(defaultPrefs);
+        return res.json(newPrefs);
+      }
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/financial-preferences", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const validatedData = insertFinancialPreferencesSchema.omit({ userId: true }).partial().parse(req.body);
+      const preferences = await storage.updateFinancialPreferences(user.id, validatedData);
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Privacy Settings Routes
+  app.get("/api/privacy-settings", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const settings = await storage.getPrivacySettings(user.id);
+      if (!settings) {
+        // Create default settings if they don't exist
+        const defaultSettings = {
+          userId: user.id,
+          profileVisibility: "private" as const
+        };
+        const newSettings = await storage.createPrivacySettings(defaultSettings);
+        return res.json(newSettings);
+      }
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/privacy-settings", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const validatedData = insertPrivacySettingsSchema.omit({ userId: true }).partial().parse(req.body);
+      const settings = await storage.updatePrivacySettings(user.id, validatedData);
+      res.json(settings);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Data Export Routes
+  app.get("/api/export-data", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const format = req.query.format as 'json' | 'csv' || 'json';
+      
+      if (format !== 'json' && format !== 'csv') {
+        return res.status(400).json({ message: "Format must be 'json' or 'csv'" });
+      }
+
+      const exportData = await storage.exportUserData(user.id, format);
+      
+      // Update last export timestamp
+      await storage.updatePrivacySettings(user.id, { lastDataExport: new Date() });
+      
+      const filename = `twealth-data-${user.id}-${new Date().toISOString().split('T')[0]}.${format}`;
+      
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
+      res.send(exportData);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/delete-user-data", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const { confirmation } = req.body;
+      
+      if (confirmation !== 'DELETE') {
+        return res.status(400).json({ 
+          message: "Data deletion requires confirmation field with value 'DELETE'" 
+        });
+      }
+      
+      await storage.deleteUserData(user.id);
+      res.json({ message: "All user data has been permanently deleted" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

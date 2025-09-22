@@ -123,6 +123,72 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const userPreferences = pgTable("user_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  theme: text("theme", { enum: ["light", "dark", "system"] }).default("system"),
+  language: text("language").default("en"),
+  timeZone: text("time_zone").default("UTC"),
+  dateFormat: text("date_format").default("MM/dd/yyyy"),
+  currency: text("currency").default("USD"),
+  emailNotifications: boolean("email_notifications").default(true),
+  pushNotifications: boolean("push_notifications").default(true),
+  marketingEmails: boolean("marketing_emails").default(false),
+  weeklyReports: boolean("weekly_reports").default(true),
+  goalReminders: boolean("goal_reminders").default(true),
+  expenseAlerts: boolean("expense_alerts").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const financialPreferences = pgTable("financial_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  defaultBudgetPeriod: text("default_budget_period", { enum: ["weekly", "monthly", "yearly"] }).default("monthly"),
+  budgetWarningThreshold: integer("budget_warning_threshold").default(80), // percentage
+  autoSavingsEnabled: boolean("auto_savings_enabled").default(false),
+  autoSavingsAmount: decimal("auto_savings_amount", { precision: 10, scale: 2 }).default("0.00"),
+  autoSavingsFrequency: text("auto_savings_frequency", { enum: ["weekly", "monthly"] }).default("monthly"),
+  defaultGoalPriority: text("default_goal_priority", { enum: ["low", "medium", "high"] }).default("medium"),
+  expenseCategories: jsonb("expense_categories").default([
+    "Food & Dining",
+    "Transportation", 
+    "Shopping",
+    "Entertainment",
+    "Utilities",
+    "Healthcare",
+    "Education",
+    "Travel",
+    "Other"
+  ]),
+  incomeCategories: jsonb("income_categories").default([
+    "Salary",
+    "Freelance", 
+    "Investment",
+    "Business",
+    "Gift",
+    "Other"
+  ]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const privacySettings = pgTable("privacy_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  dataRetentionPeriod: integer("data_retention_period").default(365), // days
+  allowAnalytics: boolean("allow_analytics").default(true),
+  allowCookies: boolean("allow_cookies").default(true),
+  shareDataWithPartners: boolean("share_data_with_partners").default(false),
+  profileVisibility: text("profile_visibility", { enum: ["public", "private", "friends"] }).default("private"),
+  allowDataExport: boolean("allow_data_export").default(true),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  lastPasswordChange: timestamp("last_password_change"),
+  lastDataExport: timestamp("last_data_export"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const eventTimeLogs = pgTable("event_time_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   eventId: varchar("event_id").notNull().references(() => events.id, { onDelete: "cascade" }),
@@ -274,6 +340,35 @@ export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
   timeValueStrategy: z.enum(["fixed", "derived"]).default("fixed"),
 });
 
+export const insertUserPreferencesSchema = createInsertSchema(userPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  theme: z.enum(["light", "dark", "system"]).default("system"),
+});
+
+export const insertFinancialPreferencesSchema = createInsertSchema(financialPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  defaultBudgetPeriod: z.enum(["weekly", "monthly", "yearly"]).default("monthly"),
+  autoSavingsFrequency: z.enum(["weekly", "monthly"]).default("monthly"),
+  defaultGoalPriority: z.enum(["low", "medium", "high"]).default("medium"),
+  autoSavingsAmount: z.union([z.string(), z.number()]).transform(val => val.toString()),
+});
+
+export const insertPrivacySettingsSchema = createInsertSchema(privacySettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastPasswordChange: true,
+  lastDataExport: true,
+}).extend({
+  profileVisibility: z.enum(["public", "private", "friends"]).default("private"),
+});
+
 export const insertEventTimeLogSchema = createInsertSchema(eventTimeLogs).omit({
   id: true,
   createdAt: true,
@@ -327,6 +422,15 @@ export type InsertEventExpenseShare = z.infer<typeof insertEventExpenseShareSche
 
 export type UserSettings = typeof userSettings.$inferSelect;
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = z.infer<typeof insertUserPreferencesSchema>;
+
+export type FinancialPreferences = typeof financialPreferences.$inferSelect;
+export type InsertFinancialPreferences = z.infer<typeof insertFinancialPreferencesSchema>;
+
+export type PrivacySettings = typeof privacySettings.$inferSelect;
+export type InsertPrivacySettings = z.infer<typeof insertPrivacySettingsSchema>;
 
 export type EventTimeLog = typeof eventTimeLogs.$inferSelect;
 export type InsertEventTimeLog = z.infer<typeof insertEventTimeLogSchema>;

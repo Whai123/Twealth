@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   Palette, 
   Moon, 
@@ -17,29 +19,59 @@ import {
   Layout,
   Zap,
   Settings as SettingsIcon,
-  CheckCircle
+  CheckCircle,
+  Loader2
 } from "lucide-react";
 
 interface UserPreferencesProps {
   // Add props as needed for user settings
 }
 
+type UserPreferences = {
+  id: string;
+  userId: string;
+  theme: "light" | "dark" | "system";
+  language: string;
+  timeZone: string;
+  dateFormat: string;
+  currency: string;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  marketingEmails: boolean;
+  weeklyReports: boolean;
+  goalReminders: boolean;
+  expenseAlerts: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export default function UserPreferences({ }: UserPreferencesProps) {
-  const [themeMode, setThemeMode] = useState("system");
-  const [notifications, setNotifications] = useState({
-    goals: true,
-    transactions: true,
-    weekly: true,
-    achievements: false
+  const { toast } = useToast();
+
+  // Fetch user preferences
+  const { data: preferences, isLoading } = useQuery<UserPreferences>({
+    queryKey: ['/api/user-preferences'],
   });
-  const [displayOptions, setDisplayOptions] = useState({
-    compactView: false,
-    animationsEnabled: true,
-    autoRefresh: true,
-    highContrast: false
+
+  // Update preferences mutation
+  const updatePreferencesMutation = useMutation({
+    mutationFn: (updates: Partial<UserPreferences>) =>
+      apiRequest('PUT', '/api/user-preferences', updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-preferences'] });
+      toast({
+        title: "Preferences updated",
+        description: "Your preferences have been saved successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update preferences. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
-  const [language, setLanguage] = useState("en");
-  const [currency, setCurrency] = useState("USD");
 
   const themes = [
     { value: "light", label: "Light", icon: Sun, description: "Clean, bright interface" },
@@ -64,19 +96,50 @@ export default function UserPreferences({ }: UserPreferencesProps) {
     { value: "AUD", label: "Australian Dollar", symbol: "A$" }
   ];
 
-  const handleNotificationToggle = (key: string) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key as keyof typeof prev]
-    }));
+  const handleThemeChange = (theme: "light" | "dark" | "system") => {
+    updatePreferencesMutation.mutate({ theme });
   };
 
-  const handleDisplayToggle = (key: string) => {
-    setDisplayOptions(prev => ({
-      ...prev,
-      [key]: !prev[key as keyof typeof prev]
-    }));
+  const handleNotificationToggle = (field: keyof UserPreferences) => {
+    if (!preferences) return;
+    updatePreferencesMutation.mutate({ 
+      [field]: !preferences[field] 
+    });
   };
+
+  const handleLanguageChange = (language: string) => {
+    updatePreferencesMutation.mutate({ language });
+  };
+
+  const handleCurrencyChange = (currency: string) => {
+    updatePreferencesMutation.mutate({ currency });
+  };
+
+  const handleSaveAll = () => {
+    // This will trigger a re-validation of all settings
+    queryClient.invalidateQueries({ queryKey: ['/api/user-preferences'] });
+    toast({
+      title: "All preferences saved",
+      description: "Your settings have been synchronized.",
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="animate-spin mr-2" size={24} />
+        Loading preferences...
+      </div>
+    );
+  }
+
+  if (!preferences) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">Failed to load preferences</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -96,68 +159,22 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               {themes.map((theme) => (
                 <button
                   key={theme.value}
-                  onClick={() => setThemeMode(theme.value)}
+                  data-testid={`theme-${theme.value}`}
+                  onClick={() => handleThemeChange(theme.value as "light" | "dark" | "system")}
+                  disabled={updatePreferencesMutation.isPending}
                   className={`p-4 rounded-lg border transition-all ${
-                    themeMode === theme.value 
+                    preferences.theme === theme.value 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50'
-                  }`}
+                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center justify-center mb-2">
-                    <theme.icon className={`${themeMode === theme.value ? 'text-primary' : 'text-muted-foreground'}`} size={24} />
+                    <theme.icon className={`${preferences.theme === theme.value ? 'text-primary' : 'text-muted-foreground'}`} size={24} />
                   </div>
                   <h4 className="font-medium">{theme.label}</h4>
                   <p className="text-xs text-muted-foreground">{theme.description}</p>
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Display Options */}
-          <div className="space-y-4">
-            <h4 className="font-medium">Display Options</h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center">
-                  <Layout className="text-blue-600 mr-3" size={20} />
-                  <div>
-                    <p className="font-medium">Compact View</p>
-                    <p className="text-sm text-muted-foreground">Show more content in less space</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={displayOptions.compactView}
-                  onCheckedChange={() => handleDisplayToggle('compactView')}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center">
-                  <Zap className="text-yellow-600 mr-3" size={20} />
-                  <div>
-                    <p className="font-medium">Animations</p>
-                    <p className="text-sm text-muted-foreground">Enable smooth transitions and effects</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={displayOptions.animationsEnabled}
-                  onCheckedChange={() => handleDisplayToggle('animationsEnabled')}
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center">
-                  <Eye className="text-green-600 mr-3" size={20} />
-                  <div>
-                    <p className="font-medium">High Contrast</p>
-                    <p className="text-sm text-muted-foreground">Improve visibility and accessibility</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={displayOptions.highContrast}
-                  onCheckedChange={() => handleDisplayToggle('highContrast')}
-                />
-              </div>
             </div>
           </div>
         </CardContent>
@@ -182,8 +199,10 @@ export default function UserPreferences({ }: UserPreferencesProps) {
                 </div>
               </div>
               <Switch 
-                checked={notifications.goals}
-                onCheckedChange={() => handleNotificationToggle('goals')}
+                data-testid="switch-goal-reminders"
+                checked={preferences.goalReminders}
+                onCheckedChange={() => handleNotificationToggle('goalReminders')}
+                disabled={updatePreferencesMutation.isPending}
               />
             </div>
 
@@ -191,13 +210,15 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               <div className="flex items-center">
                 <SettingsIcon className="text-blue-600 mr-3" size={20} />
                 <div>
-                  <p className="font-medium">Transaction Updates</p>
+                  <p className="font-medium">Expense Alerts</p>
                   <p className="text-sm text-muted-foreground">Alert for large expenses and income</p>
                 </div>
               </div>
               <Switch 
-                checked={notifications.transactions}
-                onCheckedChange={() => handleNotificationToggle('transactions')}
+                data-testid="switch-expense-alerts"
+                checked={preferences.expenseAlerts}
+                onCheckedChange={() => handleNotificationToggle('expenseAlerts')}
+                disabled={updatePreferencesMutation.isPending}
               />
             </div>
 
@@ -205,27 +226,31 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               <div className="flex items-center">
                 <Smartphone className="text-purple-600 mr-3" size={20} />
                 <div>
-                  <p className="font-medium">Weekly Summary</p>
+                  <p className="font-medium">Weekly Reports</p>
                   <p className="text-sm text-muted-foreground">Weekly financial insights and tips</p>
                 </div>
               </div>
               <Switch 
-                checked={notifications.weekly}
-                onCheckedChange={() => handleNotificationToggle('weekly')}
+                data-testid="switch-weekly-reports"
+                checked={preferences.weeklyReports}
+                onCheckedChange={() => handleNotificationToggle('weeklyReports')}
+                disabled={updatePreferencesMutation.isPending}
               />
             </div>
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <div className="flex items-center">
-                <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/20 mr-3">🏆</Badge>
+                <Bell className="text-orange-600 mr-3" size={20} />
                 <div>
-                  <p className="font-medium">Achievements</p>
-                  <p className="text-sm text-muted-foreground">Celebrate financial milestones</p>
+                  <p className="font-medium">Email Notifications</p>
+                  <p className="text-sm text-muted-foreground">Receive updates via email</p>
                 </div>
               </div>
               <Switch 
-                checked={notifications.achievements}
-                onCheckedChange={() => handleNotificationToggle('achievements')}
+                data-testid="switch-email-notifications"
+                checked={preferences.emailNotifications}
+                onCheckedChange={() => handleNotificationToggle('emailNotifications')}
+                disabled={updatePreferencesMutation.isPending}
               />
             </div>
           </div>
@@ -244,8 +269,12 @@ export default function UserPreferences({ }: UserPreferencesProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Language</label>
-              <Select value={language} onValueChange={setLanguage}>
-                <SelectTrigger>
+              <Select 
+                value={preferences.language} 
+                onValueChange={handleLanguageChange}
+                disabled={updatePreferencesMutation.isPending}
+              >
+                <SelectTrigger data-testid="select-language">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -263,8 +292,12 @@ export default function UserPreferences({ }: UserPreferencesProps) {
 
             <div>
               <label className="text-sm font-medium mb-2 block">Default Currency</label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
+              <Select 
+                value={preferences.currency} 
+                onValueChange={handleCurrencyChange}
+                disabled={updatePreferencesMutation.isPending}
+              >
+                <SelectTrigger data-testid="select-currency">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -288,11 +321,22 @@ export default function UserPreferences({ }: UserPreferencesProps) {
         <div className="flex items-center justify-between">
           <div>
             <h4 className="font-medium">Save Preferences</h4>
-            <p className="text-sm text-muted-foreground">Your settings will be saved automatically</p>
+            <p className="text-sm text-muted-foreground">
+              {updatePreferencesMutation.isPending ? 'Saving...' : 'Settings are saved automatically'}
+            </p>
           </div>
-          <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white">
-            <CheckCircle className="mr-2" size={16} />
-            Save Changes
+          <Button 
+            data-testid="button-save-preferences"
+            onClick={handleSaveAll}
+            disabled={updatePreferencesMutation.isPending}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+          >
+            {updatePreferencesMutation.isPending ? (
+              <Loader2 className="mr-2 animate-spin" size={16} />
+            ) : (
+              <CheckCircle className="mr-2" size={16} />
+            )}
+            {updatePreferencesMutation.isPending ? 'Saving...' : 'Sync Settings'}
           </Button>
         </div>
       </Card>

@@ -23,6 +23,12 @@ import {
   type InsertEventExpenseShare,
   type UserSettings,
   type InsertUserSettings,
+  type UserPreferences,
+  type InsertUserPreferences,
+  type FinancialPreferences,
+  type InsertFinancialPreferences,
+  type PrivacySettings,
+  type InsertPrivacySettings,
   type EventTimeLog,
   type InsertEventTimeLog,
   type Notification,
@@ -39,6 +45,9 @@ import {
   eventExpenses,
   eventExpenseShares,
   userSettings,
+  userPreferences,
+  financialPreferences,
+  privacySettings,
   eventTimeLogs,
   notifications
 } from "@shared/schema";
@@ -206,6 +215,25 @@ export interface IStorage {
   checkTransactionReminders(userId: string): Promise<Notification[]>;
   checkBudgetWarnings(userId: string): Promise<Notification[]>;
   checkGoalCompletions(userId: string): Promise<Notification[]>;
+
+  // User preferences methods
+  getUserPreferences(userId: string): Promise<UserPreferences | undefined>;
+  createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences>;
+  updateUserPreferences(userId: string, updates: Partial<UserPreferences>): Promise<UserPreferences>;
+
+  // Financial preferences methods
+  getFinancialPreferences(userId: string): Promise<FinancialPreferences | undefined>;
+  createFinancialPreferences(preferences: InsertFinancialPreferences): Promise<FinancialPreferences>;
+  updateFinancialPreferences(userId: string, updates: Partial<FinancialPreferences>): Promise<FinancialPreferences>;
+
+  // Privacy settings methods
+  getPrivacySettings(userId: string): Promise<PrivacySettings | undefined>;
+  createPrivacySettings(settings: InsertPrivacySettings): Promise<PrivacySettings>;
+  updatePrivacySettings(userId: string, updates: Partial<PrivacySettings>): Promise<PrivacySettings>;
+
+  // Data export methods
+  exportUserData(userId: string, format: 'json' | 'csv'): Promise<string>;
+  deleteUserData(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1452,6 +1480,154 @@ export class DatabaseStorage implements IStorage {
     }
 
     return newNotifications;
+  }
+
+  // User preferences methods
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    const [preferences] = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    return preferences || undefined;
+  }
+
+  async createUserPreferences(insertPreferences: InsertUserPreferences): Promise<UserPreferences> {
+    const [preferences] = await db
+      .insert(userPreferences)
+      .values({
+        ...insertPreferences,
+        theme: insertPreferences.theme || "system",
+        language: insertPreferences.language || "en",
+        timeZone: insertPreferences.timeZone || "UTC",
+        dateFormat: insertPreferences.dateFormat || "MM/dd/yyyy",
+        currency: insertPreferences.currency || "USD",
+      })
+      .returning();
+    return preferences;
+  }
+
+  async updateUserPreferences(userId: string, updates: Partial<UserPreferences>): Promise<UserPreferences> {
+    const [preferences] = await db
+      .update(userPreferences)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userPreferences.userId, userId))
+      .returning();
+    return preferences;
+  }
+
+  // Financial preferences methods
+  async getFinancialPreferences(userId: string): Promise<FinancialPreferences | undefined> {
+    const [preferences] = await db.select().from(financialPreferences).where(eq(financialPreferences.userId, userId));
+    return preferences || undefined;
+  }
+
+  async createFinancialPreferences(insertPreferences: InsertFinancialPreferences): Promise<FinancialPreferences> {
+    const [preferences] = await db
+      .insert(financialPreferences)
+      .values({
+        ...insertPreferences,
+        defaultBudgetPeriod: insertPreferences.defaultBudgetPeriod || "monthly",
+        budgetWarningThreshold: insertPreferences.budgetWarningThreshold || 80,
+        autoSavingsFrequency: insertPreferences.autoSavingsFrequency || "monthly",
+        defaultGoalPriority: insertPreferences.defaultGoalPriority || "medium",
+        autoSavingsAmount: insertPreferences.autoSavingsAmount || "0.00",
+      })
+      .returning();
+    return preferences;
+  }
+
+  async updateFinancialPreferences(userId: string, updates: Partial<FinancialPreferences>): Promise<FinancialPreferences> {
+    const [preferences] = await db
+      .update(financialPreferences)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(financialPreferences.userId, userId))
+      .returning();
+    return preferences;
+  }
+
+  // Privacy settings methods
+  async getPrivacySettings(userId: string): Promise<PrivacySettings | undefined> {
+    const [settings] = await db.select().from(privacySettings).where(eq(privacySettings.userId, userId));
+    return settings || undefined;
+  }
+
+  async createPrivacySettings(insertSettings: InsertPrivacySettings): Promise<PrivacySettings> {
+    const [settings] = await db
+      .insert(privacySettings)
+      .values({
+        ...insertSettings,
+        dataRetentionPeriod: insertSettings.dataRetentionPeriod || 365,
+        profileVisibility: insertSettings.profileVisibility || "private",
+      })
+      .returning();
+    return settings;
+  }
+
+  async updatePrivacySettings(userId: string, updates: Partial<PrivacySettings>): Promise<PrivacySettings> {
+    const [settings] = await db
+      .update(privacySettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(privacySettings.userId, userId))
+      .returning();
+    return settings;
+  }
+
+  // Data export methods
+  async exportUserData(userId: string, format: 'json' | 'csv'): Promise<string> {
+    // Get all user data
+    const user = await this.getUser(userId);
+    const userSettings = await this.getUserSettings(userId);
+    const preferences = await this.getUserPreferences(userId);
+    const financialPrefs = await this.getFinancialPreferences(userId);
+    const privacySettings = await this.getPrivacySettings(userId);
+    const goals = await this.getFinancialGoalsByUserId(userId);
+    const transactions = await this.getTransactionsByUserId(userId, 1000);
+    const events = await this.getEventsByUserId(userId);
+    const groups = await this.getGroupsByUserId(userId);
+    const timeLogs = await this.getUserTimeLogs(userId);
+
+    const exportData = {
+      user,
+      userSettings,
+      preferences,
+      financialPreferences: financialPrefs,
+      privacySettings,
+      goals,
+      transactions,
+      events,
+      groups,
+      timeLogs,
+      exportedAt: new Date().toISOString()
+    };
+
+    if (format === 'json') {
+      return JSON.stringify(exportData, null, 2);
+    } else {
+      // For CSV, create a simplified flat format
+      const csvData = [
+        ['Data Type', 'Count', 'Details'],
+        ['Goals', goals.length, `Total: ${goals.length} goals`],
+        ['Transactions', transactions.length, `Total: ${transactions.length} transactions`],
+        ['Events', events.length, `Total: ${events.length} events`],
+        ['Groups', groups.length, `Total: ${groups.length} groups`],
+        ['Time Logs', timeLogs.length, `Total: ${timeLogs.length} time logs`],
+      ];
+      
+      return csvData.map(row => row.join(',')).join('\n');
+    }
+  }
+
+  async deleteUserData(userId: string): Promise<void> {
+    // This is a critical operation - in real app would require additional confirmations
+    // Delete in reverse dependency order to avoid foreign key constraints
+    await db.delete(eventTimeLogs).where(eq(eventTimeLogs.userId, userId));
+    await db.delete(notifications).where(eq(notifications.userId, userId));
+    await db.delete(transactions).where(eq(transactions.userId, userId));
+    await db.delete(financialGoals).where(eq(financialGoals.userId, userId));
+    await db.delete(events).where(eq(events.createdBy, userId));
+    await db.delete(groupMembers).where(eq(groupMembers.userId, userId));
+    await db.delete(privacySettings).where(eq(privacySettings.userId, userId));
+    await db.delete(financialPreferences).where(eq(financialPreferences.userId, userId));
+    await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
+    await db.delete(userSettings).where(eq(userSettings.userId, userId));
+    await db.delete(users).where(eq(users.id, userId));
   }
 }
 
