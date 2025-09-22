@@ -3,14 +3,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette } from "lucide-react";
+import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import UserPreferences from "@/components/settings/user-preferences";
+import FinancialPreferences from "@/components/settings/financial-preferences";
+import DataPrivacy from "@/components/settings/data-privacy";
 
 // Settings form schema
 const settingsSchema = z.object({
@@ -33,6 +37,7 @@ type SettingsFormData = z.infer<typeof settingsSchema>;
 function Settings() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("account");
 
   // Fetch current user settings
   const { data: userSettings, isLoading } = useQuery({
@@ -128,7 +133,7 @@ function Settings() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-6 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -136,13 +141,36 @@ function Settings() {
             <SettingsIcon className="text-white" size={24} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Time-Value Settings</h1>
-            <p className="text-muted-foreground">Configure how ScheduleMoney calculates the value of your time</p>
+            <h1 className="text-3xl font-bold">Settings</h1>
+            <p className="text-muted-foreground">Personalize your Twealth experience with comprehensive preferences and controls</p>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Modern Tab Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="account" className="flex items-center gap-2" data-testid="tab-account">
+            <Clock size={16} />
+            <span className="hidden sm:inline">Account</span>
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="flex items-center gap-2" data-testid="tab-preferences">
+            <Palette size={16} />
+            <span className="hidden sm:inline">Preferences</span>
+          </TabsTrigger>
+          <TabsTrigger value="financial" className="flex items-center gap-2" data-testid="tab-financial">
+            <DollarSign size={16} />
+            <span className="hidden sm:inline">Financial</span>
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2" data-testid="tab-privacy">
+            <Shield size={16} />
+            <span className="hidden sm:inline">Privacy</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Account Tab (Original Time-Value Settings) */}
+        <TabsContent value="account" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-3">
         {/* Settings Form */}
         <div className="lg:col-span-2">
           <Card className="border-2 time-money-gradient-border">
@@ -401,8 +429,25 @@ function Settings() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Preferences Tab */}
+        <TabsContent value="preferences" className="space-y-6">
+          <UserPreferences />
+        </TabsContent>
+
+        {/* Financial Tab */}
+        <TabsContent value="financial" className="space-y-6">
+          <FinancialPreferences />
+        </TabsContent>
+
+        {/* Privacy Tab */}
+        <TabsContent value="privacy" className="space-y-6">
+          <DataPrivacy />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
