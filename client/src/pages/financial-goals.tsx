@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -8,9 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GoalForm from "@/components/forms/goal-form";
 import EditGoalForm from "@/components/forms/edit-goal-form";
 import AddFundsForm from "@/components/forms/add-funds-form";
+import AdvancedProgressVisualization from "@/components/goals/advanced-progress-visualization";
+import SmartGoalInsights from "@/components/goals/smart-goal-insights";
+import AutomatedSavingsSuggestions from "@/components/goals/automated-savings-suggestions";
+import AchievementMilestones from "@/components/goals/achievement-milestones";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -98,6 +103,7 @@ function RecentContributions({ goalId }: { goalId: string }) {
 export default function FinancialGoals() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFirstGoalDialogOpen, setIsFirstGoalDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
   
   // Check for create query parameter and open dialog automatically
   useEffect(() => {
@@ -157,6 +163,47 @@ export default function FinancialGoals() {
   const handleViewDetails = (goal: any) => {
     setSelectedGoal(goal);
     setIsViewDetailsDialogOpen(true);
+  };
+
+  const handleInsightAction = (action: string, goalId?: string) => {
+    switch (action) {
+      case 'review-timeline':
+        if (goalId) {
+          const goal = financialGoals.find((g: any) => g.id === goalId);
+          if (goal) handleEditGoal(goal);
+        }
+        break;
+      case 'quick-contribute':
+        if (goalId) {
+          const goal = financialGoals.find((g: any) => g.id === goalId);
+          if (goal) handleAddFunds(goal);
+        } else if (financialGoals.length > 0) {
+          handleAddFunds(financialGoals[0]);
+        }
+        break;
+      case 'create-short-term':
+        setIsCreateDialogOpen(true);
+        break;
+      default:
+        toast({
+          title: "Coming Soon",
+          description: "This feature will be available in a future update.",
+        });
+    }
+  };
+
+  const handleSavingsSuggestion = (suggestion: any) => {
+    toast({
+      title: "Suggestion Noted",
+      description: `We'll help you implement: ${suggestion.title}`,
+    });
+  };
+
+  const handleCelebrateMilestone = (milestone: any) => {
+    toast({
+      title: "🎉 Congratulations!",
+      description: `You've unlocked: ${milestone.title}`,
+    });
   };
 
   const getProgressColor = (progress: number) => {
@@ -310,9 +357,29 @@ export default function FinancialGoals() {
       </header>
 
       <div style={{ padding: 'var(--space-6)', paddingTop: 'var(--space-4)' }}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center space-x-2" data-testid="tab-overview">
+              <Target className="h-4 w-4" />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center space-x-2" data-testid="tab-analytics">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center space-x-2" data-testid="tab-insights">
+              <Lightbulb className="h-4 w-4" />
+              <span className="hidden sm:inline">Insights</span>
+            </TabsTrigger>
+            <TabsTrigger value="achievements" className="flex items-center space-x-2" data-testid="tab-achievements">
+              <Award className="h-4 w-4" />
+              <span className="hidden sm:inline">Achievements</span>
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Goals Grid */}
-      {financialGoals.length === 0 ? (
+          <TabsContent value="overview" className="space-y-6">
+            {/* Goals Grid */}
+            {financialGoals.length === 0 ? (
         <div className="text-center py-12">
           <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">No financial goals yet</h3>
@@ -495,6 +562,34 @@ export default function FinancialGoals() {
           </div>
         </>
       )}
+      </TabsContent>
+
+      <TabsContent value="analytics" className="space-y-6">
+        <AdvancedProgressVisualization 
+          goals={financialGoals} 
+          onGoalClick={handleViewDetails}
+        />
+      </TabsContent>
+
+      <TabsContent value="insights" className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SmartGoalInsights 
+            goals={financialGoals}
+            onActionClick={handleInsightAction}
+          />
+          <AutomatedSavingsSuggestions 
+            goals={financialGoals}
+            onImplementSuggestion={handleSavingsSuggestion}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="achievements" className="space-y-6">
+        <AchievementMilestones 
+          goals={financialGoals}
+          onCelebrate={handleCelebrateMilestone}
+        />
+      </TabsContent>
       
       {/* Edit Goal Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -607,7 +702,7 @@ export default function FinancialGoals() {
           </div>
         </DialogContent>
       </Dialog>
-      
+      </Tabs>
       </div>
     </>
   );
