@@ -47,18 +47,21 @@ export default function MonthlyProgressChart() {
           {/* Chart bars */}
           <div className="flex items-end justify-center space-x-6 h-full pt-8 pl-12 pr-4 pb-8">
             {monthlyData.map((data, index) => {
-              const height = (data.income / maxValue) * 100;
+              const height = Math.max((data.income / maxValue) * 100, 5); // Ensure minimum visible height
               const isProjected = data.projected;
               
               return (
-                <div key={data.month} className="flex flex-col items-center">
+                <div key={data.month} className="flex flex-col items-center h-full justify-end">
                   <div 
-                    className={`w-8 rounded-t transition-all duration-300 ${
+                    className={`w-8 rounded-t transition-all duration-300 min-h-[8px] ${
                       isProjected 
                         ? "bg-primary/60 border-2 border-primary border-dashed" 
                         : "bg-primary"
                     }`}
-                    style={{ height: `${height}%` }}
+                    style={{ 
+                      height: `${height}%`,
+                      minHeight: '8px'
+                    }}
                     title={`${data.month}: $${data.income.toLocaleString()}`}
                     data-testid={`chart-bar-${data.month.toLowerCase()}`}
                   />
