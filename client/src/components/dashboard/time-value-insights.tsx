@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, Line, LineChart, Area, AreaChart } from "recharts";
 import { Clock, DollarSign, TrendingUp, Calendar, Target, BarChart3 } from "lucide-react";
+import { ChartContainer } from "@/components/ui/chart";
 import { useState } from "react";
 
 export default function TimeValueInsights() {
@@ -153,63 +154,68 @@ export default function TimeValueInsights() {
                 Category Performance
               </h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="category" 
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      yAxisId="time"
-                      orientation="left"
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--time-primary))' }}
-                    />
-                    <YAxis 
-                      yAxisId="value"
-                      orientation="right"
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--money-primary))' }}
-                    />
-                    <Tooltip 
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-card border rounded-lg p-3 shadow-lg">
-                              <p className="font-medium mb-2">{label}</p>
-                              <p className="text-sm text-time">
-                                ⏰ {payload[0]?.value}h tracked
-                              </p>
-                              <p className="text-sm text-money">
-                                💰 {currencySymbol}{Math.round(Number(payload[1]?.value || 0)).toLocaleString()} earned
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                Efficiency: {currencySymbol}{Math.round(Number(payload[1]?.value || 0) / Number(payload[0]?.value || 1))}/hr
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar 
-                      yAxisId="time"
-                      dataKey="timeHours" 
-                      fill="hsl(var(--time-primary))" 
-                      radius={[2, 2, 0, 0]}
-                      opacity={0.8}
-                    />
-                    <Bar 
-                      yAxisId="value"
-                      dataKey="value" 
-                      fill="hsl(var(--money-primary))" 
-                      radius={[2, 2, 0, 0]}
-                      opacity={0.8}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
+                <ChartContainer config={{
+                  timeHours: { label: "Time Hours", color: "hsl(var(--time-primary))" },
+                  value: { label: "Value", color: "hsl(var(--money-primary))" }
+                }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                      <XAxis 
+                        dataKey="category" 
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <YAxis 
+                        yAxisId="time"
+                        orientation="left"
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--time-primary))' }}
+                      />
+                      <YAxis 
+                        yAxisId="value"
+                        orientation="right"
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--money-primary))' }}
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-card border rounded-lg p-3 shadow-lg">
+                                <p className="font-medium mb-2">{label}</p>
+                                <p className="text-sm text-time">
+                                  ⏰ {payload[0]?.value}h tracked
+                                </p>
+                                <p className="text-sm text-money">
+                                  💰 {currencySymbol}{Math.round(Number(payload[1]?.value || 0)).toLocaleString()} earned
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Efficiency: {currencySymbol}{Math.round(Number(payload[1]?.value || 0) / Number(payload[0]?.value || 1))}/hr
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar 
+                        yAxisId="time"
+                        dataKey="timeHours" 
+                        fill="hsl(var(--time-primary))" 
+                        radius={[2, 2, 0, 0]}
+                        opacity={0.8}
+                      />
+                      <Bar 
+                        yAxisId="value"
+                        dataKey="value" 
+                        fill="hsl(var(--money-primary))" 
+                        radius={[2, 2, 0, 0]}
+                        opacity={0.8}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
           </TabsContent>
@@ -218,40 +224,44 @@ export default function TimeValueInsights() {
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Hourly Rate by Category</h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="category" 
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <Tooltip 
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-card border rounded-lg p-3 shadow-lg">
-                              <p className="font-medium mb-2">{label}</p>
-                              <p className="text-sm">
-                                Efficiency: {currencySymbol}{Math.round(Number(payload[0]?.value || 0))}/hr
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar 
-                      dataKey="efficiency" 
-                      fill="hsl(var(--productivity-medium))" 
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+                <ChartContainer config={{
+                  efficiency: { label: "Efficiency", color: "hsl(var(--productivity-medium))" }
+                }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                      <XAxis 
+                        dataKey="category" 
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <YAxis 
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-card border rounded-lg p-3 shadow-lg">
+                                <p className="font-medium mb-2">{label}</p>
+                                <p className="text-sm">
+                                  Efficiency: {currencySymbol}{Math.round(Number(payload[0]?.value || 0))}/hr
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar 
+                        dataKey="efficiency" 
+                        fill="hsl(var(--productivity-medium))" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
           </TabsContent>
@@ -260,44 +270,48 @@ export default function TimeValueInsights() {
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Time Distribution</h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={timeDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="name" 
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <YAxis 
-                      fontSize={12}
-                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <Tooltip 
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-card border rounded-lg p-3 shadow-lg">
-                              <p className="font-medium mb-2">{label}</p>
-                              <p className="text-sm text-time">
-                                ⏰ {payload[0]?.value}h ({Math.round((Number(payload[0]?.value || 0) / (insights?.totalTimeHours || 1)) * 100)}%)
-                              </p>
-                              <p className="text-sm text-money">
-                                💰 {currencySymbol}{Math.round(Number(payload[1]?.value || 0)).toLocaleString()}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Area 
-                      dataKey="hours" 
-                      fill="hsl(var(--time-primary))" 
-                      stroke="hsl(var(--time-primary))"
-                      fillOpacity={0.6}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <ChartContainer config={{
+                  hours: { label: "Hours", color: "hsl(var(--time-primary))" }
+                }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={timeDistribution}>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                      <XAxis 
+                        dataKey="name" 
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <YAxis 
+                        fontSize={12}
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <Tooltip 
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-card border rounded-lg p-3 shadow-lg">
+                                <p className="font-medium mb-2">{label}</p>
+                                <p className="text-sm text-time">
+                                  ⏰ {payload[0]?.value}h ({Math.round((Number(payload[0]?.value || 0) / (insights?.totalTimeHours || 1)) * 100)}%)
+                                </p>
+                                <p className="text-sm text-money">
+                                  💰 {currencySymbol}{Math.round(Number(payload[1]?.value || 0)).toLocaleString()}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Area 
+                        dataKey="hours" 
+                        fill="hsl(var(--time-primary))" 
+                        stroke="hsl(var(--time-primary))"
+                        fillOpacity={0.6}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
               </div>
             </div>
           </TabsContent>
