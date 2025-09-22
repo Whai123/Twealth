@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TransactionForm from "@/components/forms/transaction-form";
+import AdvancedSpendingAnalytics from "@/components/money/advanced-spending-analytics";
+import SmartBudgetManagement from "@/components/money/smart-budget-management";
+import SpendingInsights from "@/components/money/spending-insights";
 
 const TRANSACTION_CATEGORIES = {
   income: ["salary", "freelance", "investment", "gift", "other"],
@@ -16,6 +20,7 @@ const TRANSACTION_CATEGORIES = {
 
 export default function MoneyTracking() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
   
   // Check for add query parameter and open dialog automatically
   useEffect(() => {
@@ -207,9 +212,31 @@ export default function MoneyTracking() {
       </header>
 
       <div style={{ padding: 'var(--space-6)', paddingTop: 'var(--space-4)' }}>
+        {/* Modern Tab Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
+              <DollarSign size={16} />
+              <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2" data-testid="tab-analytics">
+              <BarChart3 size={16} />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="budget" className="flex items-center gap-2" data-testid="tab-budget">
+              <Target size={16} />
+              <span className="hidden sm:inline">Budget</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center gap-2" data-testid="tab-insights">
+              <Lightbulb size={16} />
+              <span className="hidden sm:inline">Insights</span>
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -423,8 +450,34 @@ export default function MoneyTracking() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <AdvancedSpendingAnalytics 
+              transactions={filteredTransactions || []} 
+              timeRange={timeRange} 
+            />
+          </TabsContent>
+
+          {/* Budget Tab */}
+          <TabsContent value="budget" className="space-y-6">
+            <SmartBudgetManagement 
+              transactions={filteredTransactions || []} 
+              timeRange={timeRange} 
+            />
+          </TabsContent>
+
+          {/* Insights Tab */}
+          <TabsContent value="insights" className="space-y-6">
+            <SpendingInsights 
+              transactions={filteredTransactions || []} 
+              timeRange={timeRange} 
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );
