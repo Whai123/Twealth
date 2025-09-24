@@ -1,9 +1,8 @@
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
+// Using Gemini for cost-effective financial advice - 25x cheaper than OpenAI
+// Blueprint integration: javascript_gemini
+const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 export interface UserContext {
   totalSavings: number;
@@ -61,29 +60,43 @@ Guidelines:
     context: UserContext, 
     conversationHistory: ChatMessage[] = []
   ): Promise<string> {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('Gemini API key not configured');
     }
 
     try {
       const systemPrompt = this.buildSystemPrompt(context);
       
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        { role: 'system', content: systemPrompt },
-        ...conversationHistory.slice(-6).map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content
-        })),
-        { role: 'user', content: userMessage }
-      ];
+      // Build conversation context
+      const conversationContext = conversationHistory.slice(-6).map(msg => 
+        `${msg.role}: ${msg.content}`
+      ).join('\n');
+      
+      const fullPrompt = `${systemPrompt}
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini", // Using cost-effective model for financial advice
-        messages,
-        max_tokens: 300,
+Conversation History:
+${conversationContext}
+
+User Question: ${userMessage}
+
+Please provide a helpful, personalized response:`;
+
+      const model = genai.getGenerativeModel({ 
+        model: "gemini-2.0-flash-preview" // Latest cost-effective model
+      });
+      
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+        generationConfig: {
+          maxOutputTokens: 300,
+          temperature: 0.7,
+        },
       });
 
-      return response.choices[0].message.content || 'Sorry, I could not generate a response.';
+      const response = await result.response;
+      const text = response.text();
+      
+      return text || 'Sorry, I could not generate a response.';
     } catch (error) {
       console.error('AI Service Error:', error);
       throw new Error('Failed to generate AI response');
@@ -91,7 +104,7 @@ Guidelines:
   }
 
   async generateProactiveInsight(context: UserContext): Promise<string> {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return 'AI insights unavailable - API key not configured';
     }
 
@@ -108,13 +121,22 @@ Active Goals: ${context.activeGoals}
 Focus on the most important opportunity for improvement.`;
 
     try {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: 'user', content: insightPrompt }],
-        max_tokens: 100,
+      const model = genai.getGenerativeModel({ 
+        model: "gemini-2.0-flash-preview" 
+      });
+      
+      const result = await model.generateContent({
+        contents: [{ role: "user", parts: [{ text: insightPrompt }] }],
+        generationConfig: {
+          maxOutputTokens: 100,
+          temperature: 0.8,
+        },
       });
 
-      return response.choices[0].message.content || 'Keep up the great work with your financial management!';
+      const response = await result.response;
+      const text = response.text();
+      
+      return text || 'Keep up the great work with your financial management!';
     } catch (error) {
       console.error('Proactive Insight Error:', error);
       return 'Focus on tracking your spending patterns this week.';
