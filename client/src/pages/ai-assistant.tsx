@@ -50,6 +50,24 @@ interface AIInsights {
   error?: string;
 }
 
+interface ChatMessage {
+  id: string;
+  conversationId: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
+
+interface ChatConversation {
+  id: string;
+  userId: string;
+  title: string;
+  isActive: boolean;
+  lastMessageAt: string;
+  createdAt: string;
+  messages?: ChatMessage[];
+}
+
 interface QuickAction {
   id: string;
   title: string;
@@ -369,7 +387,7 @@ export default function AIAssistantPage() {
           {currentConversation?.messages && currentConversation.messages.length > 0 && (
             <div className="border rounded-lg p-4 bg-muted/20 max-h-80 overflow-y-auto space-y-3">
               <h4 className="text-sm font-medium text-muted-foreground mb-3">Conversation</h4>
-              {currentConversation.messages.map((message) => (
+              {currentConversation.messages.map((message: ChatMessage) => (
                 <div
                   key={message.id}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}

@@ -32,7 +32,7 @@ let stripe: Stripe | null = null;
 try {
   if (process.env.STRIPE_SECRET_KEY) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2024-11-20",
+      apiVersion: "2025-08-27.basil" as any,
     });
   }
 } catch (error) {
@@ -1705,8 +1705,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const stripeSubscription = updatedStripeSubscription as any;
           await storage.updateSubscription(currentSubscription!.id, {
             planId: plan.id,
-            currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+            currentPeriodStart: new Date((stripeSubscription as any).current_period_start * 1000),
+            currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
             localPrice: plan.priceThb,
           });
 
@@ -1915,8 +1915,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           planId: plan.id,
           status: 'active',
           stripeSubscriptionId: subscription,
-          currentPeriodStart: new Date(subscriptionDetails.current_period_start * 1000),
-          currentPeriodEnd: new Date(subscriptionDetails.current_period_end * 1000),
+          currentPeriodStart: new Date((subscriptionDetails as any).current_period_start * 1000),
+          currentPeriodEnd: new Date((subscriptionDetails as any).current_period_end * 1000),
           localPrice: plan.priceThb,
           localCurrency: 'THB'
         });
