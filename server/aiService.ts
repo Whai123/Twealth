@@ -2,7 +2,9 @@ import { GoogleGenAI } from "@google/genai";
 
 // Using Gemini for cost-effective financial advice - 25x cheaper than OpenAI
 // Blueprint integration: javascript_gemini
-const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const genai = new GoogleGenAI({ 
+  apiKey: process.env.GEMINI_API_KEY || "" 
+});
 
 export interface UserContext {
   totalSavings: number;
@@ -81,20 +83,12 @@ User Question: ${userMessage}
 
 Please provide a helpful, personalized response:`;
 
-      const model = genai.getGenerativeModel({ 
-        model: "gemini-2.0-flash-preview" // Latest cost-effective model
+      const response = await genai.models.generateContent({
+        model: "gemini-2.0-flash-preview",
+        contents: fullPrompt
       });
       
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-        generationConfig: {
-          maxOutputTokens: 300,
-          temperature: 0.7,
-        },
-      });
-
-      const response = await result.response;
-      const text = response.text();
+      const text = response.text;
       
       return text || 'Sorry, I could not generate a response.';
     } catch (error) {
@@ -121,20 +115,12 @@ Active Goals: ${context.activeGoals}
 Focus on the most important opportunity for improvement.`;
 
     try {
-      const model = genai.getGenerativeModel({ 
-        model: "gemini-2.0-flash-preview" 
+      const response = await genai.models.generateContent({
+        model: "gemini-2.0-flash-preview",
+        contents: insightPrompt
       });
       
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: insightPrompt }] }],
-        generationConfig: {
-          maxOutputTokens: 100,
-          temperature: 0.8,
-        },
-      });
-
-      const response = await result.response;
-      const text = response.text();
+      const text = response.text;
       
       return text || 'Keep up the great work with your financial management!';
     } catch (error) {
