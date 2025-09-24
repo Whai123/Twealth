@@ -290,6 +290,7 @@ export interface IStorage {
   // Subscription helpers
   initializeDefaultSubscription(userId: string): Promise<Subscription>;
   checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }>;
+  resetUsage(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2036,6 +2037,19 @@ export class DatabaseStorage implements IStorage {
       usage: currentUsage,
       limit: totalLimit
     };
+  }
+
+  async resetUsage(userId: string): Promise<void> {
+    const usage = await this.getUserUsage(userId);
+    
+    if (usage) {
+      // Reset all usage counters to 0
+      await this.updateUsageRecord(usage.id, {
+        aiChatsUsed: 0,
+        aiDeepAnalysisUsed: 0,
+        aiInsightsGenerated: 0,
+      });
+    }
   }
 }
 

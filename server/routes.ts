@@ -1332,6 +1332,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cost optimization stats endpoint
+  app.get("/api/ai/cost-stats", async (req, res) => {
+    try {
+      const stats = aiService.getCostStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Cost stats error:', error);
+      res.status(500).json({ message: "Failed to get cost statistics" });
+    }
+  });
+
+  // Reset usage endpoint (for testing/development)
+  app.post("/api/subscription/reset-usage", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      await storage.resetUsage(user.id);
+      
+      console.log(`🔄 Usage reset for user ${user.id}`);
+      res.json({ 
+        message: "Usage reset successfully",
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Reset usage error:', error);
+      res.status(500).json({ message: "Failed to reset usage" });
+    }
+  });
+
   // AI Insights endpoint
   app.get("/api/ai/insights", async (req, res) => {
     try {
