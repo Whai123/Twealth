@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Crown, Check, Zap, TrendingUp, AlertTriangle, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 interface SubscriptionPlan {
   id: string;
@@ -90,6 +91,7 @@ const formatFeatureName = (feature: string) => {
 
 export default function SubscriptionPage() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/subscription/plans"]
@@ -106,7 +108,7 @@ export default function SubscriptionPage() {
 
   const upgradeMutation = useMutation({
     mutationFn: async (planId: string) => {
-      return apiRequest("/api/subscription/upgrade", "POST", { planId });
+      return apiRequest("POST", "/api/subscription/upgrade", { planId });
     },
     onSuccess: () => {
       toast({
@@ -221,7 +223,17 @@ export default function SubscriptionPage() {
 
       {/* Pricing Plans */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Choose Your Plan</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Choose Your Plan</h2>
+          <Button 
+            variant="outline"
+            onClick={() => setLocation('/upgrade')}
+            data-testid="button-view-all-plans"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            View All Plans
+          </Button>
+        </div>
         <div className="grid gap-6 md:grid-cols-3">
           {plans?.map((plan) => {
             const isCurrentPlan = currentPlan?.id === plan.id;

@@ -16,6 +16,7 @@ const MoneyTracking = lazy(() => import("@/pages/money-tracking"));
 const Planning = lazy(() => import("@/pages/planning"));
 const Settings = lazy(() => import("@/pages/settings"));
 const Subscription = lazy(() => import("@/pages/subscription"));
+const Upgrade = lazy(() => import("@/pages/upgrade"));
 const PublicCalendar = lazy(() => import("@/pages/public-calendar"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -74,6 +75,7 @@ function Router() {
               <Route path="/money-tracking" component={MoneyTracking} />
               <Route path="/planning" component={Planning} />
               <Route path="/subscription" component={Subscription} />
+              <Route path="/upgrade" component={Upgrade} />
               <Route path="/settings" component={Settings} />
               <Route component={NotFound} />
             </Switch>
