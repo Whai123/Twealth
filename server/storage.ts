@@ -33,6 +33,10 @@ import {
   type InsertEventTimeLog,
   type Notification,
   type InsertNotification,
+  type ChatConversation,
+  type InsertChatConversation,
+  type ChatMessage,
+  type InsertChatMessage,
   users,
   groups,
   groupMembers,
@@ -49,7 +53,9 @@ import {
   financialPreferences,
   privacySettings,
   eventTimeLogs,
-  notifications
+  notifications,
+  chatConversations,
+  chatMessages
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
