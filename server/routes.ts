@@ -1176,6 +1176,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/chat/conversations/:id/messages", async (req, res) => {
+    try {
+      const conversation = await storage.getChatConversationWithMessages(req.params.id);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      res.json(conversation.messages || []);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/chat/conversations", async (req, res) => {
     try {
       const user = await storage.createDemoUserIfNeeded();

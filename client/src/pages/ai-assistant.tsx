@@ -64,6 +64,7 @@ export default function AIAssistantPage() {
   const { toast } = useToast();
   const [currentMessage, setCurrentMessage] = useState("");
   const [selectedQuickAction, setSelectedQuickAction] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
   // Fetch usage data
   const { data: usage } = useQuery<UsageInfo>({
@@ -135,25 +136,36 @@ export default function AIAssistantPage() {
     }
   ];
 
+  // Fetch current conversation with messages
+  const { data: currentConversation } = useQuery<ChatConversation>({
+    queryKey: ["/api/chat/conversations", currentConversationId],
+    enabled: !!currentConversationId,
+    refetchInterval: 2000, // Poll for new messages every 2 seconds
+  });
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
-      const response = await apiRequest("POST", "/api/chat/conversations", { 
-        title: "AI Assistant Chat" 
-      });
-      const conversation = await response.json();
+      let conversationId = currentConversationId;
       
-      const messageResponse = await apiRequest("POST", `/api/chat/conversations/${conversation.id}/messages`, { 
+      // Create new conversation if none exists
+      if (!conversationId) {
+        const response = await apiRequest("POST", "/api/chat/conversations", { 
+          title: "AI Assistant Chat" 
+        });
+        const conversation = await response.json();
+        conversationId = conversation.id;
+        setCurrentConversationId(conversationId);
+      }
+      
+      const messageResponse = await apiRequest("POST", `/api/chat/conversations/${conversationId}/messages`, { 
         content 
       });
       return await messageResponse.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
-      toast({
-        title: "Message sent!",
-        description: "Your AI assistant is analyzing your request...",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", currentConversationId] });
       setCurrentMessage("");
       setSelectedQuickAction(null);
     },
@@ -353,6 +365,41 @@ export default function AIAssistantPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Messages Display */}
+          {currentConversation?.messages && currentConversation.messages.length > 0 && (
+            <div className="border rounded-lg p-4 bg-muted/20 max-h-80 overflow-y-auto space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground mb-3">Conversation</h4>
+              {currentConversation.messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  data-testid={`message-${message.role}-${message.id}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-lg p-3 ${
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-background border'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-xs opacity-70 mt-2">
+                      {new Date(message.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {sendMessageMutation.isPending && (
+                <div className="flex justify-start">
+                  <div className="bg-background border rounded-lg p-3 flex items-center gap-2">
+                    <Brain className="h-4 w-4 animate-pulse text-primary" />
+                    <span className="text-sm text-muted-foreground">AI is thinking...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-3">
             <Textarea
               placeholder="Ask about your budget, savings goals, investment strategies, or any financial question..."
@@ -369,7 +416,7 @@ export default function AIAssistantPage() {
               
               <Button
                 onClick={handleSendMessage}
-                disabled={!currentMessage.trim() || sendMessageMutation.isPending || !usage?.chatUsage.allowed}
+                disabled={!currentMessage.trim() || sendMessageMutation.isPending}
                 data-testid="button-send-ai-message"
               >
                 {sendMessageMutation.isPending ? (
