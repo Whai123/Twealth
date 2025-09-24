@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { Plus, Clock, DollarSign } from "lucide-react";
+import { Link } from "wouter";
+import { Plus, Clock, DollarSign, Brain, MessageCircle, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Drawer,
   DrawerContent,
@@ -116,6 +118,39 @@ export default function Dashboard() {
 
         {/* Smart Financial Insights */}
         <SmartInsights />
+
+        {/* AI Assistant CTA Banner */}
+        <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Meet Your AI Financial Assistant</h3>
+                  <p className="text-muted-foreground text-sm">Get personalized budget analysis, savings strategies, and investment guidance</p>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsChatOpen(true)}
+                  data-testid="button-try-ai-chat"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Try AI Chat
+                </Button>
+                <Link href="/ai-assistant">
+                  <Button data-testid="button-explore-ai">
+                    <Zap className="w-4 h-4 mr-2" />
+                    Explore AI Features
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* AI Insights */}
         <AIInsightsCard onOpenChat={() => setIsChatOpen(true)} />

@@ -110,13 +110,30 @@ export default function AIChatButton() {
 
   if (!isOpen) {
     return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 bg-primary hover:bg-primary/90"
-        data-testid="button-open-chat"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </Button>
+      <div className="fixed bottom-6 right-6 z-50 group">
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="h-16 w-16 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-95 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 text-white border-0 ring-2 ring-blue-400/30 ring-offset-2 ring-offset-background"
+          style={{ 
+            boxShadow: '0 10px 25px -5px rgb(59 130 246 / 0.4), 0 10px 10px -5px rgb(59 130 246 / 0.1)',
+            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #3b82f6)'
+          }}
+          data-testid="button-open-chat"
+        >
+          <div className="relative">
+            <MessageCircle className="h-7 w-7 transition-transform group-hover:scale-110" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          </div>
+        </Button>
+        
+        {/* Enhanced Tooltip */}
+        <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <div className="bg-gray-900 text-white text-sm rounded-lg px-4 py-2 whitespace-nowrap">
+            💬 Chat with AI Assistant
+            <div className="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -161,7 +178,17 @@ export default function AIChatButton() {
           {!currentConversationId ? (
             <div className="text-center text-muted-foreground py-8" data-testid="text-welcome">
               <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <p className="text-sm">Start a conversation to get personalized financial advice!</p>
+              <p className="text-sm font-medium mb-2">Welcome to Twealth AI Assistant!</p>
+              <p className="text-xs mb-4">Get personalized financial advice and insights</p>
+              <div className="space-y-2 text-xs">
+                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
+                  <p className="font-medium text-blue-700 dark:text-blue-300">Try asking:</p>
+                  <p className="text-blue-600 dark:text-blue-400">"How can I optimize my budget?"</p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-2">
+                  <p className="text-green-600 dark:text-green-400">"What's my best savings strategy?"</p>
+                </div>
+              </div>
               <p className="text-xs mt-2">I can help with budgeting, savings goals, and time management.</p>
             </div>
           ) : currentConversation?.messages ? (

@@ -9,12 +9,14 @@ import {
   CalendarX2,
   Settings,
   User,
-  Crown
+  Crown,
+  Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
+  { name: "AI Assistant", href: "/ai-assistant", icon: Brain },
   { name: "Groups", href: "/groups", icon: Users },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Financial Goals", href: "/financial-goals", icon: Target },
