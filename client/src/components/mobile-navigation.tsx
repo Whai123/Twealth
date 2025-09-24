@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home, label: "Dashboard" },
-  { name: "AI", href: "/ai-assistant", icon: Brain, label: "AI" },
+  { name: "แชทกับ AI", href: "/ai-assistant", icon: Brain, label: "แชทกับ AI" },
   { name: "Calendar", href: "/calendar", icon: Calendar, label: "Calendar" },
   { name: "Goals", href: "/financial-goals", icon: Target, label: "Goals" },
   { name: "Money", href: "/money-tracking", icon: DollarSign, label: "Money" },
