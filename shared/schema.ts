@@ -658,3 +658,134 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
     references: [chatConversations.id],
   }),
 }));
+
+// Subscription Management Tables
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // "Free", "Standard", "Pro"
+  displayName: text("display_name").notNull(), // "Twealth Standard", "Twealth Pro"
+  description: text("description"),
+  priceThb: decimal("price_thb", { precision: 10, scale: 2 }).notNull(), // Price in THB
+  priceUsd: decimal("price_usd", { precision: 10, scale: 2 }).notNull(), // Price in USD
+  currency: text("currency").default("THB"),
+  billingInterval: text("billing_interval").notNull(), // "monthly", "yearly"
+  // AI Usage Limits
+  aiChatLimit: integer("ai_chat_limit").default(0), // Messages per month
+  aiDeepAnalysisLimit: integer("ai_deep_analysis_limit").default(0), // Complex queries per month
+  aiInsightsFrequency: text("ai_insights_frequency").default("never"), // "never", "weekly", "daily"
+  // Feature Access
+  features: jsonb("features").default([]), // Array of feature names
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0), // For display ordering
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: varchar("plan_id").notNull().references(() => subscriptionPlans.id),
+  status: text("status").notNull(), // "active", "cancelled", "past_due", "incomplete"
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  cancelledAt: timestamp("cancelled_at"),
+  trialEnd: timestamp("trial_end"),
+  // Payment tracking
+  stripeSubscriptionId: text("stripe_subscription_id").unique(),
+  stripeCustomerId: text("stripe_customer_id"),
+  // Regional pricing
+  localCurrency: text("local_currency").default("THB"),
+  localPrice: decimal("local_price", { precision: 10, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const usageTracking = pgTable("usage_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  subscriptionId: varchar("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
+  // Tracking period
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  // AI Usage counters
+  aiChatsUsed: integer("ai_chats_used").default(0),
+  aiDeepAnalysisUsed: integer("ai_deep_analysis_used").default(0),
+  aiInsightsGenerated: integer("ai_insights_generated").default(0),
+  // Cost tracking
+  totalTokensUsed: integer("total_tokens_used").default(0),
+  estimatedCostUsd: decimal("estimated_cost_usd", { precision: 10, scale: 4 }).default("0"),
+  // Last updated
+  lastResetAt: timestamp("last_reset_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // Unique constraint to ensure one usage record per user per period
+  uniqueUserPeriod: unique().on(table.userId, table.periodStart),
+}));
+
+export const subscriptionAddOns = pgTable("subscription_add_ons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  subscriptionId: varchar("subscription_id").notNull().references(() => subscriptions.id, { onDelete: "cascade" }),
+  addOnType: text("add_on_type").notNull(), // "extra_chats", "extra_deep_analysis"
+  quantity: integer("quantity").notNull(), // How many units purchased
+  priceThb: decimal("price_thb", { precision: 10, scale: 2 }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isActive: boolean("is_active").default(true),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Subscription schema exports
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true });
+export const insertUsageTrackingSchema = createInsertSchema(usageTracking).omit({ id: true, createdAt: true });
+export const insertSubscriptionAddOnSchema = createInsertSchema(subscriptionAddOns).omit({ id: true, createdAt: true });
+
+// Subscription types
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type UsageTracking = typeof usageTracking.$inferSelect;
+export type SubscriptionAddOn = typeof subscriptionAddOns.$inferSelect;
+
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type InsertUsageTracking = z.infer<typeof insertUsageTrackingSchema>;
+export type InsertSubscriptionAddOn = z.infer<typeof insertSubscriptionAddOnSchema>;
+
+// Subscription relations
+export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
+  subscriptions: many(subscriptions),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
+  plan: one(subscriptionPlans, {
+    fields: [subscriptions.planId],
+    references: [subscriptionPlans.id],
+  }),
+  usageRecords: many(usageTracking),
+  addOns: many(subscriptionAddOns),
+}));
+
+export const usageTrackingRelations = relations(usageTracking, ({ one }) => ({
+  user: one(users, {
+    fields: [usageTracking.userId],
+    references: [users.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [usageTracking.subscriptionId],
+    references: [subscriptions.id],
+  }),
+}));
+
+export const subscriptionAddOnsRelations = relations(subscriptionAddOns, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptionAddOns.userId],
+    references: [users.id],
+  }),
+  subscription: one(subscriptions, {
+    fields: [subscriptionAddOns.subscriptionId],
+    references: [subscriptions.id],
+  }),
+}));

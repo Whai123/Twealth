@@ -8,7 +8,8 @@ import {
   Lightbulb,
   CalendarX2,
   Settings,
-  User
+  User,
+  Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const navigation = [
   { name: "Financial Goals", href: "/financial-goals", icon: Target },
   { name: "Money Tracking", href: "/money-tracking", icon: TrendingUp },
   { name: "Planning", href: "/planning", icon: Lightbulb },
+  { name: "Subscription", href: "/subscription", icon: Crown },
 ];
 
 export default function Sidebar() {

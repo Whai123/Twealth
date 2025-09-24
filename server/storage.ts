@@ -37,6 +37,14 @@ import {
   type InsertChatConversation,
   type ChatMessage,
   type InsertChatMessage,
+  type SubscriptionPlan,
+  type InsertSubscriptionPlan,
+  type Subscription,
+  type InsertSubscription,
+  type UsageTracking,
+  type InsertUsageTracking,
+  type SubscriptionAddOn,
+  type InsertSubscriptionAddOn,
   users,
   groups,
   groupMembers,
@@ -55,7 +63,11 @@ import {
   eventTimeLogs,
   notifications,
   chatConversations,
-  chatMessages
+  chatMessages,
+  subscriptionPlans,
+  subscriptions,
+  usageTracking,
+  subscriptionAddOns
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -252,6 +264,32 @@ export interface IStorage {
   getChatMessages(conversationId: string, limit?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessagesByUserId(userId: string, limit?: number): Promise<ChatMessage[]>;
+
+  // Subscription Plan methods
+  getSubscriptionPlans(): Promise<SubscriptionPlan[]>;
+  getSubscriptionPlan(id: string): Promise<SubscriptionPlan | undefined>;
+  createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
+  updateSubscriptionPlan(id: string, updates: Partial<SubscriptionPlan>): Promise<SubscriptionPlan>;
+
+  // Subscription methods
+  getUserSubscription(userId: string): Promise<(Subscription & { plan: SubscriptionPlan }) | undefined>;
+  createSubscription(subscription: InsertSubscription): Promise<Subscription>;
+  updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription>;
+  cancelSubscription(id: string): Promise<Subscription>;
+
+  // Usage Tracking methods
+  getUserUsage(userId: string): Promise<UsageTracking | undefined>;
+  createUsageRecord(usage: InsertUsageTracking): Promise<UsageTracking>;
+  updateUsageRecord(id: string, updates: Partial<UsageTracking>): Promise<UsageTracking>;
+  incrementUsage(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed' | 'aiInsightsGenerated', amount?: number): Promise<UsageTracking>;
+  
+  // Add-on methods
+  getUserAddOns(userId: string): Promise<SubscriptionAddOn[]>;
+  createAddOn(addOn: InsertSubscriptionAddOn): Promise<SubscriptionAddOn>;
+  
+  // Subscription helpers
+  initializeDefaultSubscription(userId: string): Promise<Subscription>;
+  checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1740,6 +1778,264 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatConversations.userId, userId))
       .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
+  }
+
+  // Subscription Plan methods
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return db.select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.isActive, true))
+      .orderBy(subscriptionPlans.sortOrder);
+  }
+
+  async getSubscriptionPlan(id: string): Promise<SubscriptionPlan | undefined> {
+    const [plan] = await db.select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.id, id));
+    return plan;
+  }
+
+  async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
+    const [newPlan] = await db.insert(subscriptionPlans)
+      .values(plan)
+      .returning();
+    return newPlan;
+  }
+
+  async updateSubscriptionPlan(id: string, updates: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> {
+    const [updatedPlan] = await db.update(subscriptionPlans)
+      .set(updates)
+      .where(eq(subscriptionPlans.id, id))
+      .returning();
+    return updatedPlan;
+  }
+
+  // Subscription methods
+  async getUserSubscription(userId: string): Promise<(Subscription & { plan: SubscriptionPlan }) | undefined> {
+    const [result] = await db.select({
+      id: subscriptions.id,
+      userId: subscriptions.userId,
+      planId: subscriptions.planId,
+      status: subscriptions.status,
+      currentPeriodStart: subscriptions.currentPeriodStart,
+      currentPeriodEnd: subscriptions.currentPeriodEnd,
+      cancelledAt: subscriptions.cancelledAt,
+      trialEnd: subscriptions.trialEnd,
+      stripeSubscriptionId: subscriptions.stripeSubscriptionId,
+      stripeCustomerId: subscriptions.stripeCustomerId,
+      localCurrency: subscriptions.localCurrency,
+      localPrice: subscriptions.localPrice,
+      createdAt: subscriptions.createdAt,
+      plan: {
+        id: subscriptionPlans.id,
+        name: subscriptionPlans.name,
+        displayName: subscriptionPlans.displayName,
+        description: subscriptionPlans.description,
+        priceThb: subscriptionPlans.priceThb,
+        priceUsd: subscriptionPlans.priceUsd,
+        currency: subscriptionPlans.currency,
+        billingInterval: subscriptionPlans.billingInterval,
+        aiChatLimit: subscriptionPlans.aiChatLimit,
+        aiDeepAnalysisLimit: subscriptionPlans.aiDeepAnalysisLimit,
+        aiInsightsFrequency: subscriptionPlans.aiInsightsFrequency,
+        features: subscriptionPlans.features,
+        isActive: subscriptionPlans.isActive,
+        sortOrder: subscriptionPlans.sortOrder,
+        createdAt: subscriptionPlans.createdAt,
+      }
+    })
+      .from(subscriptions)
+      .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
+      .where(and(
+        eq(subscriptions.userId, userId),
+        eq(subscriptions.status, 'active')
+      ));
+    
+    return result;
+  }
+
+  async createSubscription(subscription: InsertSubscription): Promise<Subscription> {
+    const [newSubscription] = await db.insert(subscriptions)
+      .values(subscription)
+      .returning();
+    return newSubscription;
+  }
+
+  async updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription> {
+    const [updatedSubscription] = await db.update(subscriptions)
+      .set(updates)
+      .where(eq(subscriptions.id, id))
+      .returning();
+    return updatedSubscription;
+  }
+
+  async cancelSubscription(id: string): Promise<Subscription> {
+    const [cancelledSubscription] = await db.update(subscriptions)
+      .set({ 
+        status: 'cancelled',
+        cancelledAt: new Date()
+      })
+      .where(eq(subscriptions.id, id))
+      .returning();
+    return cancelledSubscription;
+  }
+
+  // Usage Tracking methods
+  async getUserUsage(userId: string): Promise<UsageTracking | undefined> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const [usage] = await db.select()
+      .from(usageTracking)
+      .where(and(
+        eq(usageTracking.userId, userId),
+        gte(usageTracking.periodStart, startOfMonth),
+        lte(usageTracking.periodEnd, endOfMonth)
+      ));
+
+    return usage;
+  }
+
+  async createUsageRecord(usage: InsertUsageTracking): Promise<UsageTracking> {
+    const [newUsage] = await db.insert(usageTracking)
+      .values(usage)
+      .returning();
+    return newUsage;
+  }
+
+  async updateUsageRecord(id: string, updates: Partial<UsageTracking>): Promise<UsageTracking> {
+    const [updatedUsage] = await db.update(usageTracking)
+      .set(updates)
+      .where(eq(usageTracking.id, id))
+      .returning();
+    return updatedUsage;
+  }
+
+  async incrementUsage(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed' | 'aiInsightsGenerated', amount = 1): Promise<UsageTracking> {
+    let usage = await this.getUserUsage(userId);
+    
+    if (!usage) {
+      // Create new usage record for this month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      const subscription = await this.getUserSubscription(userId);
+      
+      usage = await this.createUsageRecord({
+        userId,
+        subscriptionId: subscription?.id || null,
+        periodStart: startOfMonth,
+        periodEnd: endOfMonth,
+        aiChatsUsed: type === 'aiChatsUsed' ? amount : 0,
+        aiDeepAnalysisUsed: type === 'aiDeepAnalysisUsed' ? amount : 0,
+        aiInsightsGenerated: type === 'aiInsightsGenerated' ? amount : 0,
+      });
+    } else {
+      // Update existing usage record
+      const updates: Partial<UsageTracking> = {};
+      if (type === 'aiChatsUsed') updates.aiChatsUsed = (usage.aiChatsUsed || 0) + amount;
+      if (type === 'aiDeepAnalysisUsed') updates.aiDeepAnalysisUsed = (usage.aiDeepAnalysisUsed || 0) + amount;
+      if (type === 'aiInsightsGenerated') updates.aiInsightsGenerated = (usage.aiInsightsGenerated || 0) + amount;
+      
+      usage = await this.updateUsageRecord(usage.id, updates);
+    }
+    
+    return usage;
+  }
+
+  // Add-on methods
+  async getUserAddOns(userId: string): Promise<SubscriptionAddOn[]> {
+    const now = new Date();
+    return db.select()
+      .from(subscriptionAddOns)
+      .where(and(
+        eq(subscriptionAddOns.userId, userId),
+        eq(subscriptionAddOns.isActive, true),
+        gte(subscriptionAddOns.expiresAt, now)
+      ));
+  }
+
+  async createAddOn(addOn: InsertSubscriptionAddOn): Promise<SubscriptionAddOn> {
+    const [newAddOn] = await db.insert(subscriptionAddOns)
+      .values(addOn)
+      .returning();
+    return newAddOn;
+  }
+
+  // Subscription helpers
+  async initializeDefaultSubscription(userId: string): Promise<Subscription> {
+    // Get or create the free plan
+    let freePlan = await db.select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.name, 'Free'))
+      .limit(1);
+
+    if (freePlan.length === 0) {
+      // Create default free plan if it doesn't exist
+      const [newFreePlan] = await db.insert(subscriptionPlans)
+        .values({
+          name: 'Free',
+          displayName: 'Twealth Free',
+          description: 'Basic financial tracking with limited AI features',
+          priceThb: '0.00',
+          priceUsd: '0.00',
+          currency: 'THB',
+          billingInterval: 'monthly',
+          aiChatLimit: 5,
+          aiDeepAnalysisLimit: 0,
+          aiInsightsFrequency: 'weekly',
+          features: ['basic_tracking', 'manual_transactions', 'simple_goals'],
+          sortOrder: 0,
+        })
+        .returning();
+      freePlan = [newFreePlan];
+    }
+
+    const now = new Date();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    return this.createSubscription({
+      userId,
+      planId: freePlan[0].id,
+      status: 'active',
+      currentPeriodStart: now,
+      currentPeriodEnd: endOfMonth,
+      localCurrency: 'THB',
+      localPrice: '0.00',
+    });
+  }
+
+  async checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }> {
+    const subscription = await this.getUserSubscription(userId);
+    const usage = await this.getUserUsage(userId);
+    
+    if (!subscription) {
+      return { allowed: false, usage: 0, limit: 0 };
+    }
+
+    const currentUsage = usage?.[type] || 0;
+    const limit = type === 'aiChatsUsed' 
+      ? subscription.plan.aiChatLimit || 0
+      : subscription.plan.aiDeepAnalysisLimit || 0;
+
+    // Check add-ons for extra quota
+    const addOns = await this.getUserAddOns(userId);
+    const extraQuota = addOns
+      .filter(addon => 
+        (type === 'aiChatsUsed' && addon.addOnType === 'extra_chats') ||
+        (type === 'aiDeepAnalysisUsed' && addon.addOnType === 'extra_deep_analysis')
+      )
+      .reduce((total, addon) => total + addon.quantity, 0);
+
+    const totalLimit = limit + extraQuota;
+    
+    return {
+      allowed: currentUsage < totalLimit,
+      usage: currentUsage,
+      limit: totalLimit
+    };
   }
 }
 

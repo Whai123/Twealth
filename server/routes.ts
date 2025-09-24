@@ -1177,6 +1177,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createDemoUserIfNeeded();
       const conversationId = req.params.id;
       
+      // Check usage limit before processing
+      const usageCheck = await storage.checkUsageLimit(user.id, 'aiChatsUsed');
+      if (!usageCheck.allowed) {
+        return res.status(429).json({ 
+          message: "AI chat limit exceeded. Upgrade your plan to continue chatting.",
+          usage: usageCheck.usage,
+          limit: usageCheck.limit,
+          upgradeRequired: true
+        });
+      }
+      
       // Validate conversation exists and belongs to user
       const conversation = await storage.getChatConversation(conversationId);
       if (!conversation || conversation.userId !== user.id) {
@@ -1184,8 +1195,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userMessage = req.body.content;
+      const isDeepAnalysis = req.body.isDeepAnalysis || false; // Complex queries flag
+      
       if (!userMessage || typeof userMessage !== 'string') {
         return res.status(400).json({ message: "Message content is required" });
+      }
+
+      // Check deep analysis quota if this is a complex query
+      if (isDeepAnalysis) {
+        const deepAnalysisCheck = await storage.checkUsageLimit(user.id, 'aiDeepAnalysisUsed');
+        if (!deepAnalysisCheck.allowed) {
+          return res.status(429).json({ 
+            message: "Deep analysis limit exceeded. Upgrade your plan for more advanced AI features.",
+            usage: deepAnalysisCheck.usage,
+            limit: deepAnalysisCheck.limit,
+            upgradeRequired: true
+          });
+        }
       }
 
       // Save user message
@@ -1236,6 +1262,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate AI response
         const aiResponse = await aiService.generateAdvice(userMessage, userContext, conversationHistory);
         
+        // Track usage
+        await storage.incrementUsage(user.id, 'aiChatsUsed');
+        if (isDeepAnalysis) {
+          await storage.incrementUsage(user.id, 'aiDeepAnalysisUsed');
+        }
+        
         // Save AI response
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
@@ -1243,7 +1275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content: aiResponse,
           userContext: userContext,
           tokenCount: Math.ceil(aiResponse.length / 4),
-          cost: '0.0001' // Rough cost estimate
+          cost: isDeepAnalysis ? '0.0005' : '0.0001' // Higher cost for deep analysis
         });
 
         // Update conversation title if it's the first exchange
@@ -1302,6 +1334,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ai/insights", async (req, res) => {
     try {
       const user = await storage.createDemoUserIfNeeded();
+      
+      // Check usage limit for insights
+      const usageCheck = await storage.checkUsageLimit(user.id, 'aiChatsUsed'); // Use chat quota for insights
+      if (!usageCheck.allowed) {
+        return res.status(429).json({ 
+          insight: "Upgrade to get more AI insights.",
+          error: "Usage limit exceeded",
+          usage: usageCheck.usage,
+          limit: usageCheck.limit
+        });
+      }
+
       const [stats, goals, recentTransactions] = await Promise.all([
         storage.getUserStats(user.id),
         storage.getFinancialGoalsByUserId(user.id),
@@ -1323,12 +1367,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const insight = await aiService.generateProactiveInsight(userContext);
+      
+      // Track usage
+      await storage.incrementUsage(user.id, 'aiInsightsGenerated');
+      
       res.json({ insight });
     } catch (error: any) {
       res.status(500).json({ 
         insight: "Focus on tracking your spending patterns this week.",
         error: error.message 
       });
+    }
+  });
+
+  // Subscription Management API routes
+  app.get("/api/subscription/plans", async (req, res) => {
+    try {
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/subscription/current", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      let subscription = await storage.getUserSubscription(user.id);
+      
+      // Initialize free subscription if user doesn't have one
+      if (!subscription) {
+        subscription = await storage.initializeDefaultSubscription(user.id);
+        subscription = await storage.getUserSubscription(user.id);
+      }
+      
+      // Get current usage
+      const usage = await storage.getUserUsage(user.id);
+      const addOns = await storage.getUserAddOns(user.id);
+      
+      res.json({
+        subscription,
+        usage,
+        addOns
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/subscription/usage", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const [chatCheck, analysisCheck, usage] = await Promise.all([
+        storage.checkUsageLimit(user.id, 'aiChatsUsed'),
+        storage.checkUsageLimit(user.id, 'aiDeepAnalysisUsed'),
+        storage.getUserUsage(user.id)
+      ]);
+
+      res.json({
+        chatUsage: {
+          used: chatCheck.usage,
+          limit: chatCheck.limit,
+          remaining: Math.max(0, chatCheck.limit - chatCheck.usage),
+          allowed: chatCheck.allowed
+        },
+        analysisUsage: {
+          used: analysisCheck.usage,
+          limit: analysisCheck.limit,
+          remaining: Math.max(0, analysisCheck.limit - analysisCheck.usage),
+          allowed: analysisCheck.allowed
+        },
+        insights: usage?.aiInsightsGenerated || 0,
+        totalTokens: usage?.totalTokensUsed || 0,
+        estimatedCost: usage?.estimatedCostUsd || '0.0000'
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/subscription/upgrade", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const { planId } = req.body;
+      
+      if (!planId) {
+        return res.status(400).json({ message: "Plan ID is required" });
+      }
+      
+      // Get the target plan
+      const plan = await storage.getSubscriptionPlan(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+      
+      // Get current subscription
+      let currentSubscription = await storage.getUserSubscription(user.id);
+      if (!currentSubscription) {
+        currentSubscription = await storage.initializeDefaultSubscription(user.id);
+        currentSubscription = await storage.getUserSubscription(user.id);
+      }
+      
+      // For demo purposes, we'll directly upgrade the subscription
+      // In production, this would integrate with Stripe
+      const now = new Date();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      const updatedSubscription = await storage.updateSubscription(currentSubscription!.id, {
+        planId: plan.id,
+        currentPeriodStart: now,
+        currentPeriodEnd: endOfMonth,
+        localPrice: plan.priceThb,
+      });
+      
+      res.json({ 
+        message: "Subscription upgraded successfully",
+        subscription: updatedSubscription
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
