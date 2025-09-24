@@ -84,7 +84,7 @@ User Question: ${userMessage}
 Please provide a helpful, personalized response:`;
 
       const response = await genai.models.generateContent({
-        model: "gemini-2.0-flash-preview",
+        model: "gemini-1.5-flash",
         contents: fullPrompt
       });
       
@@ -116,7 +116,7 @@ Focus on the most important opportunity for improvement.`;
 
     try {
       const response = await genai.models.generateContent({
-        model: "gemini-2.0-flash-preview",
+        model: "gemini-1.5-flash",
         contents: insightPrompt
       });
       

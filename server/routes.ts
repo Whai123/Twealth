@@ -1177,14 +1177,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createDemoUserIfNeeded();
       const conversationId = req.params.id;
       
-      // Check usage limit before processing
+      // Check usage limit before processing - strict enforcement
       const usageCheck = await storage.checkUsageLimit(user.id, 'aiChatsUsed');
       if (!usageCheck.allowed) {
         return res.status(429).json({ 
           message: "AI chat limit exceeded. Upgrade your plan to continue chatting.",
           usage: usageCheck.usage,
           limit: usageCheck.limit,
-          upgradeRequired: true
+          upgradeRequired: true,
+          type: 'quota_exceeded'
         });
       }
       
@@ -1209,7 +1210,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             message: "Deep analysis limit exceeded. Upgrade your plan for more advanced AI features.",
             usage: deepAnalysisCheck.usage,
             limit: deepAnalysisCheck.limit,
-            upgradeRequired: true
+            upgradeRequired: true,
+            type: 'deep_analysis_quota_exceeded'
           });
         }
       }
@@ -1258,15 +1260,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: m.createdAt || new Date()
       }));
 
+      // Track usage immediately (regardless of AI success/failure)
+      await storage.incrementUsage(user.id, 'aiChatsUsed');
+      if (isDeepAnalysis) {
+        await storage.incrementUsage(user.id, 'aiDeepAnalysisUsed');
+      }
+
       try {
         // Generate AI response
         const aiResponse = await aiService.generateAdvice(userMessage, userContext, conversationHistory);
-        
-        // Track usage
-        await storage.incrementUsage(user.id, 'aiChatsUsed');
-        if (isDeepAnalysis) {
-          await storage.incrementUsage(user.id, 'aiDeepAnalysisUsed');
-        }
         
         // Save AI response
         const aiChatMessage = await storage.createChatMessage({
@@ -1342,7 +1344,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           insight: "Upgrade to get more AI insights.",
           error: "Usage limit exceeded",
           usage: usageCheck.usage,
-          limit: usageCheck.limit
+          limit: usageCheck.limit,
+          type: 'insights_quota_exceeded',
+          upgradeRequired: true
         });
       }
 
