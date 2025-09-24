@@ -240,6 +240,18 @@ export interface IStorage {
   // Data export methods
   exportUserData(userId: string, format: 'json' | 'csv'): Promise<string>;
   deleteUserData(userId: string): Promise<void>;
+
+  // Chat methods
+  getChatConversations(userId: string): Promise<ChatConversation[]>;
+  getChatConversation(conversationId: string): Promise<ChatConversation | undefined>;
+  getChatConversationWithMessages(conversationId: string): Promise<(ChatConversation & { messages: ChatMessage[] }) | undefined>;
+  createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
+  updateChatConversation(id: string, updates: Partial<ChatConversation>): Promise<ChatConversation>;
+  deleteChatConversation(id: string): Promise<void>;
+  
+  getChatMessages(conversationId: string, limit?: number): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getChatMessagesByUserId(userId: string, limit?: number): Promise<ChatMessage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1623,6 +1635,11 @@ export class DatabaseStorage implements IStorage {
   async deleteUserData(userId: string): Promise<void> {
     // This is a critical operation - in real app would require additional confirmations
     // Delete in reverse dependency order to avoid foreign key constraints
+    await db.delete(chatMessages).where(exists(
+      db.select().from(chatConversations)
+        .where(and(eq(chatConversations.userId, userId), eq(chatMessages.conversationId, chatConversations.id)))
+    ));
+    await db.delete(chatConversations).where(eq(chatConversations.userId, userId));
     await db.delete(eventTimeLogs).where(eq(eventTimeLogs.userId, userId));
     await db.delete(notifications).where(eq(notifications.userId, userId));
     await db.delete(transactions).where(eq(transactions.userId, userId));
@@ -1634,6 +1651,95 @@ export class DatabaseStorage implements IStorage {
     await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
     await db.delete(userSettings).where(eq(userSettings.userId, userId));
     await db.delete(users).where(eq(users.id, userId));
+  }
+
+  // Chat methods
+  async getChatConversations(userId: string): Promise<ChatConversation[]> {
+    return db.select()
+      .from(chatConversations)
+      .where(eq(chatConversations.userId, userId))
+      .orderBy(desc(chatConversations.lastMessageAt));
+  }
+
+  async getChatConversation(conversationId: string): Promise<ChatConversation | undefined> {
+    const [conversation] = await db.select()
+      .from(chatConversations)
+      .where(eq(chatConversations.id, conversationId));
+    return conversation || undefined;
+  }
+
+  async getChatConversationWithMessages(conversationId: string): Promise<(ChatConversation & { messages: ChatMessage[] }) | undefined> {
+    const [conversation] = await db.select()
+      .from(chatConversations)
+      .where(eq(chatConversations.id, conversationId));
+    
+    if (!conversation) return undefined;
+
+    const messages = await db.select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(chatMessages.createdAt);
+
+    return { ...conversation, messages };
+  }
+
+  async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
+    const [newConversation] = await db.insert(chatConversations)
+      .values(conversation)
+      .returning();
+    return newConversation;
+  }
+
+  async updateChatConversation(id: string, updates: Partial<ChatConversation>): Promise<ChatConversation> {
+    const [updatedConversation] = await db.update(chatConversations)
+      .set(updates)
+      .where(eq(chatConversations.id, id))
+      .returning();
+    return updatedConversation;
+  }
+
+  async deleteChatConversation(id: string): Promise<void> {
+    await db.delete(chatMessages).where(eq(chatMessages.conversationId, id));
+    await db.delete(chatConversations).where(eq(chatConversations.id, id));
+  }
+
+  async getChatMessages(conversationId: string, limit = 50): Promise<ChatMessage[]> {
+    return db.select()
+      .from(chatMessages)
+      .where(eq(chatMessages.conversationId, conversationId))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
+  }
+
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const [newMessage] = await db.insert(chatMessages)
+      .values(message)
+      .returning();
+
+    // Update conversation lastMessageAt
+    await db.update(chatConversations)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(chatConversations.id, message.conversationId));
+
+    return newMessage;
+  }
+
+  async getChatMessagesByUserId(userId: string, limit = 100): Promise<ChatMessage[]> {
+    return db.select({
+      id: chatMessages.id,
+      conversationId: chatMessages.conversationId,
+      role: chatMessages.role,
+      content: chatMessages.content,
+      userContext: chatMessages.userContext,
+      tokenCount: chatMessages.tokenCount,
+      cost: chatMessages.cost,
+      createdAt: chatMessages.createdAt,
+    })
+      .from(chatMessages)
+      .innerJoin(chatConversations, eq(chatMessages.conversationId, chatConversations.id))
+      .where(eq(chatConversations.userId, userId))
+      .orderBy(desc(chatMessages.createdAt))
+      .limit(limit);
   }
 }
 

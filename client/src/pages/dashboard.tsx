@@ -20,11 +20,18 @@ import GoalForm from "@/components/forms/goal-form";
 import NotificationsBell from "@/components/dashboard/notifications-bell";
 import SmartInsights from "@/components/dashboard/smart-insights";
 import EnhancedFinancialTrends from "@/components/dashboard/enhanced-financial-trends";
+import AIChatButton from "@/components/chat/ai-chat-button";
+import AIInsightsCard from "@/components/dashboard/ai-insights-card";
 
 export default function Dashboard() {
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  
   return (
     <>
+      {/* AI Chat Button - Floating */}
+      <AIChatButton />
+      
       {/* Header - Modern Design */}
       <header 
         className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
@@ -109,6 +116,9 @@ export default function Dashboard() {
 
         {/* Smart Financial Insights */}
         <SmartInsights />
+
+        {/* AI Insights */}
+        <AIInsightsCard onOpenChat={() => setIsChatOpen(true)} />
 
         {/* Mobile-First Layout - Single Column on Mobile */}
         <div className="space-y-4 md:space-y-6">

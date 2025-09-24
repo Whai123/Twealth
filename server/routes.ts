@@ -18,8 +18,11 @@ import {
   insertFinancialPreferencesSchema,
   insertPrivacySettingsSchema,
   insertEventTimeLogSchema,
-  insertNotificationSchema
+  insertNotificationSchema,
+  insertChatConversationSchema,
+  insertChatMessageSchema
 } from "@shared/schema";
+import { aiService, type UserContext } from "./aiService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1129,6 +1132,203 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Chat API routes
+  app.get("/api/chat/conversations", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const conversations = await storage.getChatConversations(user.id);
+      res.json(conversations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/chat/conversations/:id", async (req, res) => {
+    try {
+      const conversation = await storage.getChatConversationWithMessages(req.params.id);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      res.json(conversation);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/chat/conversations", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const validatedData = insertChatConversationSchema.parse({
+        ...req.body,
+        userId: user.id
+      });
+      const conversation = await storage.createChatConversation(validatedData);
+      res.status(201).json(conversation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/chat/conversations/:id/messages", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const conversationId = req.params.id;
+      
+      // Validate conversation exists and belongs to user
+      const conversation = await storage.getChatConversation(conversationId);
+      if (!conversation || conversation.userId !== user.id) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      const userMessage = req.body.content;
+      if (!userMessage || typeof userMessage !== 'string') {
+        return res.status(400).json({ message: "Message content is required" });
+      }
+
+      // Save user message
+      const userChatMessage = await storage.createChatMessage({
+        conversationId,
+        role: 'user',
+        content: userMessage,
+        userContext: null,
+        tokenCount: Math.ceil(userMessage.length / 4), // Rough token estimate
+        cost: '0.0000'
+      });
+
+      // Build user context for AI
+      const [stats, goals, recentTransactions, upcomingEvents] = await Promise.all([
+        storage.getUserStats(user.id),
+        storage.getFinancialGoalsByUserId(user.id),
+        storage.getTransactionsByUserId(user.id, 10),
+        storage.getUpcomingEvents(user.id, 5)
+      ]);
+
+      const userContext: UserContext = {
+        totalSavings: stats.totalSavings,
+        monthlyIncome: stats.monthlyIncome,
+        monthlyExpenses: stats.monthlyIncome - stats.totalSavings, // Simplified
+        activeGoals: stats.activeGoals,
+        recentTransactions: recentTransactions.slice(0, 5).map(t => ({
+          amount: parseFloat(t.amount),
+          category: t.category,
+          description: t.description || '',
+          date: t.date.toISOString()
+        })),
+        upcomingEvents: upcomingEvents.map(e => ({
+          title: e.title,
+          date: e.startTime.toISOString(),
+          estimatedValue: parseFloat(e.budget || '0')
+        }))
+      };
+
+      // Get conversation history
+      const messages = await storage.getChatMessages(conversationId, 10);
+      const conversationHistory = messages.reverse().map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content,
+        timestamp: m.createdAt || new Date()
+      }));
+
+      try {
+        // Generate AI response
+        const aiResponse = await aiService.generateAdvice(userMessage, userContext, conversationHistory);
+        
+        // Save AI response
+        const aiChatMessage = await storage.createChatMessage({
+          conversationId,
+          role: 'assistant',
+          content: aiResponse,
+          userContext: userContext,
+          tokenCount: Math.ceil(aiResponse.length / 4),
+          cost: '0.0001' // Rough cost estimate
+        });
+
+        // Update conversation title if it's the first exchange
+        if (conversationHistory.length <= 1) {
+          const title = userMessage.length > 50 
+            ? userMessage.substring(0, 47) + "..." 
+            : userMessage;
+          await storage.updateChatConversation(conversationId, { title });
+        }
+
+        res.json({
+          userMessage: userChatMessage,
+          aiMessage: aiChatMessage
+        });
+
+      } catch (aiError: any) {
+        // Save error message as AI response
+        const errorMessage = "I'm sorry, I'm having trouble processing your request right now. Please try again later.";
+        const aiChatMessage = await storage.createChatMessage({
+          conversationId,
+          role: 'assistant',
+          content: errorMessage,
+          userContext: null,
+          tokenCount: 0,
+          cost: '0.0000'
+        });
+
+        res.json({
+          userMessage: userChatMessage,
+          aiMessage: aiChatMessage,
+          error: "AI service temporarily unavailable"
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/chat/conversations/:id", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const conversation = await storage.getChatConversation(req.params.id);
+      
+      if (!conversation || conversation.userId !== user.id) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      await storage.deleteChatConversation(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // AI Insights endpoint
+  app.get("/api/ai/insights", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const [stats, goals, recentTransactions] = await Promise.all([
+        storage.getUserStats(user.id),
+        storage.getFinancialGoalsByUserId(user.id),
+        storage.getTransactionsByUserId(user.id, 5)
+      ]);
+
+      const userContext: UserContext = {
+        totalSavings: stats.totalSavings,
+        monthlyIncome: stats.monthlyIncome,
+        monthlyExpenses: Math.max(0, stats.monthlyIncome - stats.totalSavings),
+        activeGoals: stats.activeGoals,
+        recentTransactions: recentTransactions.map(t => ({
+          amount: parseFloat(t.amount),
+          category: t.category,
+          description: t.description || '',
+          date: t.date.toISOString()
+        })),
+        upcomingEvents: []
+      };
+
+      const insight = await aiService.generateProactiveInsight(userContext);
+      res.json({ insight });
+    } catch (error: any) {
+      res.status(500).json({ 
+        insight: "Focus on tracking your spending patterns this week.",
+        error: error.message 
+      });
     }
   });
 
