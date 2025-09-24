@@ -174,7 +174,8 @@ export default function AIAssistantPage() {
   const handleSendMessage = () => {
     if (!currentMessage.trim()) return;
     
-    if (!usage?.chatUsage.allowed) {
+    // Only block if usage is loaded and explicitly not allowed
+    if (usage && !usage.chatUsage.allowed) {
       toast({
         title: "Upgrade Required",
         description: "You've reached your AI chat limit. Upgrade your plan to continue.",

@@ -112,18 +112,10 @@ export default function AIInsightsCard({ onOpenChat }: AIInsightsCardProps) {
                 onClick={onOpenChat}
                 variant="outline"
                 className="w-full text-sm"
-                disabled={usage && !usage.chatUsage.allowed}
                 data-testid="button-chat-with-ai"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                {usage && !usage.chatUsage.allowed ? (
-                  <>
-                    <Crown className="h-4 w-4 mr-2" />
-                    Upgrade to continue chatting
-                  </>
-                ) : (
-                  "Chat with AI for more advice"
-                )}
+                Chat with AI for more advice
               </Button>
             </div>
           </>
