@@ -13,11 +13,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home, label: "Dashboard" },
-  { name: "แชทกับ AI", href: "/ai-assistant", icon: Brain, label: "แชทกับ AI" },
+  { name: "Dashboard", href: "/", icon: Home, label: "Home" },
+  { name: "แชทกับ AI", href: "/ai-assistant", icon: Brain, label: "AI" },
   { name: "Calendar", href: "/calendar", icon: Calendar, label: "Calendar" },
-  { name: "Goals", href: "/financial-goals", icon: Target, label: "Goals" },
-  { name: "Subscription", href: "/subscription", icon: Crown, label: "Premium" },
+  { name: "Money", href: "/money-tracking", icon: DollarSign, label: "Money" },
+  { name: "Premium", href: "/subscription", icon: Crown, label: "Premium" },
 ];
 
 export default function MobileNavigation() {
