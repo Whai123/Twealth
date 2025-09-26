@@ -104,6 +104,42 @@
     animation: counterUp var(--transition-slow) ease-out;
   }
   
+  /* Enhanced modern utilities */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .modern-shadow {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  .modern-shadow-lg {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  
+  .interactive-scale {
+    transition: transform 0.2s ease;
+  }
+  .interactive-scale:hover {
+    transform: scale(1.02);
+  }
+  .interactive-scale:active {
+    transform: scale(0.98);
+  }
+  
+  .glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)) 60%, hsl(var(--primary) / 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* Respect user motion preferences */
   @media (prefers-reduced-motion: reduce) {
     .fade-in,
@@ -113,7 +149,8 @@
     .counter-up,
     .card-hover,
     .button-press,
-    .progress-ring {
+    .progress-ring,
+    .interactive-scale {
       animation: none !important;
       transition: none !important;
     }

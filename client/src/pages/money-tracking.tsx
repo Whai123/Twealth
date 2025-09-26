@@ -237,7 +237,7 @@ export default function MoneyTracking() {
           <TabsContent value="overview" className="space-y-6">
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:scale-[1.01] cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Income</p>
@@ -251,7 +251,7 @@ export default function MoneyTracking() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:scale-[1.01] cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Expenses</p>
@@ -265,7 +265,7 @@ export default function MoneyTracking() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:scale-[1.01] cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Net Cash Flow</p>
@@ -279,7 +279,7 @@ export default function MoneyTracking() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:scale-[1.01] cursor-pointer">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Savings</p>
