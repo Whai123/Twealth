@@ -8,6 +8,7 @@ import { Crown, Check, Zap, TrendingUp, AlertTriangle, Sparkles } from "lucide-r
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
+import { getLocalizedPrice, formatCurrency, getCurrencySymbol } from "@/lib/currency";
 
 interface SubscriptionPlan {
   id: string;
@@ -104,6 +105,10 @@ export default function SubscriptionPage() {
   const { data: usage } = useQuery<UsageInfo>({
     queryKey: ["/api/subscription/usage"],
     refetchInterval: 30 * 1000
+  });
+
+  const { data: userPreferences } = useQuery<{ currency?: string }>({
+    queryKey: ["/api/user-preferences"],
   });
 
   const upgradeMutation = useMutation({
@@ -369,21 +374,50 @@ export default function SubscriptionPage() {
                   
                   <div className="space-y-2">
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-5xl font-bold ${
-                        isMostPopular ? 'bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent' : ''
-                      }`}>
-                        {plan.priceThb === '0.00' ? 'Free' : `฿${parseFloat(plan.priceThb).toFixed(0)}`}
-                      </span>
-                      {plan.priceThb !== '0.00' && (
-                        <span className="text-muted-foreground text-lg">/month</span>
-                      )}
+                      {(() => {
+                        // Get user's preferred currency or default to USD
+                        const userCurrency = userPreferences?.currency || 'USD';
+                        
+                        if (plan.priceUsd === '0.00') {
+                          return (
+                            <span className="text-5xl font-bold">Free</span>
+                          );
+                        }
+
+                        // Get localized pricing
+                        const basePrice = parseFloat(plan.priceUsd);
+                        const localizedPrice = getLocalizedPrice(basePrice, userCurrency);
+                        
+                        return (
+                          <>
+                            <div className="flex items-end gap-2">
+                              <span className={`text-5xl font-bold ${
+                                isMostPopular ? 'bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent' : ''
+                              }`}>
+                                {localizedPrice.currency.symbol}{Math.round(localizedPrice.amount)}
+                              </span>
+                              <span className="text-muted-foreground text-lg">/month</span>
+                            </div>
+                            {localizedPrice.isDiscounted && localizedPrice.originalAmount && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-muted-foreground line-through">
+                                  {formatCurrency(localizedPrice.originalAmount, userCurrency)}
+                                </span>
+                                <Badge className="bg-green-500 text-white text-xs">
+                                  {Math.round((1 - localizedPrice.amount / localizedPrice.originalAmount) * 100)}% OFF
+                                </Badge>
+                              </div>
+                            )}
+                            {userCurrency !== 'USD' && (
+                              <div className="text-sm text-muted-foreground mt-1">
+                                ~${basePrice.toFixed(2)} USD
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
-                    {plan.priceUsd !== '0.00' && (
-                      <div className="text-base text-muted-foreground font-medium">
-                        ~${parseFloat(plan.priceUsd).toFixed(2)} USD
-                      </div>
-                    )}
-                    {plan.priceThb === '0.00' && (
+                    {plan.priceUsd === '0.00' && (
                       <div className="text-sm text-green-600 dark:text-green-400 font-medium">
                         Perfect for getting started!
                       </div>

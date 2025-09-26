@@ -88,12 +88,17 @@ export default function UserPreferences({ }: UserPreferencesProps) {
   ];
 
   const currencies = [
-    { value: "USD", label: "US Dollar", symbol: "$" },
-    { value: "EUR", label: "Euro", symbol: "€" },
-    { value: "GBP", label: "British Pound", symbol: "£" },
-    { value: "JPY", label: "Japanese Yen", symbol: "¥" },
-    { value: "CAD", label: "Canadian Dollar", symbol: "C$" },
-    { value: "AUD", label: "Australian Dollar", symbol: "A$" }
+    { value: "USD", label: "US Dollar", symbol: "$", flag: "🇺🇸" },
+    { value: "THB", label: "Thai Baht", symbol: "฿", flag: "🇹🇭" },
+    { value: "EUR", label: "Euro", symbol: "€", flag: "🇪🇺" },
+    { value: "IDR", label: "Indonesian Rupiah", symbol: "Rp", flag: "🇮🇩" },
+    { value: "INR", label: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
+    { value: "BRL", label: "Brazilian Real", symbol: "R$", flag: "🇧🇷" },
+    { value: "MXN", label: "Mexican Peso", symbol: "$", flag: "🇲🇽" },
+    { value: "GBP", label: "British Pound", symbol: "£", flag: "🇬🇧" },
+    { value: "JPY", label: "Japanese Yen", symbol: "¥", flag: "🇯🇵" },
+    { value: "CAD", label: "Canadian Dollar", symbol: "C$", flag: "🇨🇦" },
+    { value: "AUD", label: "Australian Dollar", symbol: "A$", flag: "🇦🇺" }
   ];
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -303,9 +308,10 @@ export default function UserPreferences({ }: UserPreferencesProps) {
                 <SelectContent>
                   {currencies.map((curr) => (
                     <SelectItem key={curr.value} value={curr.value}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{curr.label}</span>
-                        <span className="text-muted-foreground ml-2">{curr.symbol}</span>
+                      <div className="flex items-center">
+                        <span className="mr-2">{curr.flag}</span>
+                        <span className="mr-2">{curr.label}</span>
+                        <span className="text-muted-foreground">({curr.symbol})</span>
                       </div>
                     </SelectItem>
                   ))}
