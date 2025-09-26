@@ -284,32 +284,91 @@ export default function AIAssistantPage() {
   const isLimitExceeded = usage && usage.chatUsage.used >= usage.chatUsage.limit;
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl space-y-8">
-      {/* Header - Enhanced with animations */}
-      <div className="text-center space-y-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 blur-3xl animate-pulse" />
-          <div className="relative flex items-center justify-center gap-4 p-6">
-            <div className="relative">
-              <Brain className="w-12 h-12 text-primary animate-pulse" />
-              <div className="absolute inset-0 bg-primary/20 blur-xl animate-ping" />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-900/30 dark:via-blue-900/30 dark:to-pink-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-900/50 dark:via-blue-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8 max-w-6xl">
+          <div className="text-center space-y-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 via-blue-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+                  🤖 {t('aiAssistant.title')}
+                </h1>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
+                  <span className="text-lg text-muted-foreground">Advanced AI-powered financial advisor</span>
+                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent animate-in slide-in-from-top duration-700">
-                {t('aiAssistant.title')}
-              </h1>
-              <div className="flex items-center justify-center gap-2">
-                <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
-                <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Powered by Advanced AI</span>
-                <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
+            
+            {/* AI Stats Dashboard */}
+            {usage && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageCircle className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium">Chat Usage</span>
+                  </div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {usage.chatUsage.used}/{usage.chatUsage.limit}
+                  </div>
+                  <div className="text-xs text-muted-foreground">AI conversations</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium">Analysis</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {usage.analysisUsage.used}/{usage.analysisUsage.limit}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Deep insights</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Lightbulb className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm font-medium">Insights</span>
+                  </div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {usage.insights}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Generated</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium">Status</span>
+                  </div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {isLimitExceeded ? "⚠️" : "✅"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{isLimitExceeded ? "Limit reached" : "Active"}</div>
+                </div>
+              </div>
+            )}
+            
+            {/* Welcome Message */}
+            <div className="bg-gradient-to-r from-white/80 to-purple-50/80 dark:from-gray-800/80 dark:to-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3">
+                <Brain className="w-6 h-6 text-purple-500" />
+                <div>
+                  <h2 className="text-lg font-semibold text-purple-800 dark:text-purple-200">Intelligent Financial Assistant 🧠</h2>
+                  <p className="text-purple-600 dark:text-purple-300">{t('aiAssistant.subtitle')}</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-in fade-in duration-1000 delay-300">
-          {t('aiAssistant.subtitle')}
-        </p>
-      </div>
+      </header>
+      
+      <div className="container mx-auto p-6 max-w-6xl space-y-8">
 
       {/* Enhanced Usage Summary */}
       {usage && (
