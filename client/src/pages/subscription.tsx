@@ -151,48 +151,89 @@ export default function SubscriptionPage() {
   const currentPlan = currentSubscription?.subscription?.plan;
 
   return (
-    <div className="container mx-auto p-6 space-y-10">
-      {/* Enhanced Header */}
-      <div className="text-center space-y-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-green-600/20 blur-3xl animate-pulse" />
-          <div className="relative space-y-4">
-            <div className="flex items-center justify-center gap-4">
-              <div className="relative">
-                <Crown className="w-16 h-16 text-primary animate-bounce" />
-                <div className="absolute inset-0 bg-primary/20 blur-xl animate-ping" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/30 dark:via-red-900/30 dark:to-pink-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/50 dark:via-red-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="text-center space-y-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                <Crown className="w-8 h-8 text-white" />
               </div>
-              <div className="space-y-2">
-                <h1 className="text-6xl font-bold bg-gradient-to-r from-primary via-purple-600 to-green-600 bg-clip-text text-transparent animate-in slide-in-from-top duration-700">
-                  Premium Plans
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
+                  👑 Premium Plans
                 </h1>
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-2 mt-2">
                   <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
-                  <span className="text-lg font-medium text-yellow-600 dark:text-yellow-400">Unlock AI-Powered Financial Success</span>
+                  <span className="text-lg text-muted-foreground">Unlock AI-powered financial success</span>
                   <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
                 </div>
               </div>
             </div>
-            <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed animate-in fade-in duration-1000 delay-500">
-              🚀 Transform your financial future with AI-powered insights • 💰 Smart budget optimization • 🎯 Achieve your goals faster
-            </p>
-            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground pt-4">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-green-500" />
-                <span>25x More Cost-Effective</span>
+            
+            {/* Subscription Benefits Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium">Cost Effective</span>
+                </div>
+                <div className="text-2xl font-bold text-green-600">
+                  25x
+                </div>
+                <div className="text-xs text-muted-foreground">More value</div>
               </div>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-blue-500" />
-                <span>Powered by Google Gemini</span>
+              
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm font-medium">AI Power</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  Gemini
+                </div>
+                <div className="text-xs text-muted-foreground">Google AI</div>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-purple-500" />
-                <span>No Long-term Commitment</span>
+              
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Check className="w-5 h-5 text-purple-500" />
+                  <span className="text-sm font-medium">Flexible</span>
+                </div>
+                <div className="text-2xl font-bold text-purple-600">
+                  ✅
+                </div>
+                <div className="text-xs text-muted-foreground">Cancel anytime</div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                  <span className="text-sm font-medium">Instant</span>
+                </div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  ⚡
+                </div>
+                <div className="text-xs text-muted-foreground">Activation</div>
+              </div>
+            </div>
+            
+            {/* Welcome Message */}
+            <div className="bg-gradient-to-r from-white/80 to-orange-50/80 dark:from-gray-800/80 dark:to-orange-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3">
+                <Crown className="w-6 h-6 text-orange-500" />
+                <div>
+                  <h2 className="text-lg font-semibold text-orange-800 dark:text-orange-200">Premium Financial Experience 🚀</h2>
+                  <p className="text-orange-600 dark:text-orange-300">Transform your financial future with AI-powered insights, smart budget optimization, and accelerated goal achievement.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </header>
+      
+      <div className="container mx-auto p-6 space-y-10">
 
       {/* Enhanced Current Plan Status */}
       {currentPlan && (
@@ -639,6 +680,7 @@ export default function SubscriptionPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
