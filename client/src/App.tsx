@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserProvider } from "@/lib/userContext";
+import { ThemeProvider } from "@/components/theme-provider";
 // Lazy load pages for better mobile performance
 import { lazy, Suspense, startTransition } from 'react';
 import { Card } from "@/components/ui/card";
@@ -104,14 +105,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <UserProvider>
-        <TooltipProvider>
-          <Toaster />
-          <OfflineIndicator />
-          <PWAInstallPrompt />
-          <ErrorBoundary>
-            <Router />
-          </ErrorBoundary>
-        </TooltipProvider>
+        <ThemeProvider defaultTheme="system" storageKey="twealth-theme">
+          <TooltipProvider>
+            <Toaster />
+            <OfflineIndicator />
+            <PWAInstallPrompt />
+            <ErrorBoundary>
+              <Router />
+            </ErrorBoundary>
+          </TooltipProvider>
+        </ThemeProvider>
       </UserProvider>
     </QueryClientProvider>
   );
