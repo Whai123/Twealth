@@ -18,6 +18,8 @@ import {
   Sparkles
 } from "lucide-react";
 import { differenceInDays, format, addDays } from "date-fns";
+import ShareButton from "@/components/social/share-button";
+import { getAchievementShareContent, AchievementShareData } from "@/lib/social-sharing";
 
 interface Goal {
   id: string;
@@ -409,14 +411,31 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
                         )}
                       </div>
                       {milestone.status === 'completed' && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => onCelebrate?.(milestone)}
-                          data-testid={`button-celebrate-${milestone.id}`}
-                        >
-                          🎉 Celebrate
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => onCelebrate?.(milestone)}
+                            data-testid={`button-celebrate-${milestone.id}`}
+                          >
+                            🎉 Celebrate
+                          </Button>
+                          <ShareButton
+                            shareData={getAchievementShareContent({
+                              title: milestone.title,
+                              description: milestone.description,
+                              achievementType: milestone.type === 'progress' ? 'milestone' : 'goal_completed',
+                              goalTitle: goals.find(g => g.id === milestone.goalId)?.title,
+                              progress: milestone.progress,
+                              category: milestone.category
+                            })}
+                            variant="outline"
+                            size="sm"
+                            showText={false}
+                            achievement={true}
+                            data-testid={`button-share-${milestone.id}`}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
