@@ -127,13 +127,9 @@ function QuickStats() {
       {statCards.map((stat, index) => (
         <Card 
           key={index} 
-          className="fade-in bg-gradient-card border-0 cursor-pointer group transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl hover:-translate-y-1 touch-manipulation" 
+          className="fade-in bg-gradient-card border-0 cursor-pointer group transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1 touch-manipulation p-4 md:p-6 backdrop-blur-sm" 
           style={{
             animationDelay: `${index * 0.1}s`,
-            padding: 'clamp(1rem, 4vw, 1.5rem)',
-            background: 'var(--gradient-card)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: 'var(--shadow-md)',
             minHeight: 'clamp(140px, 20vw, 180px)'
           }}
           data-testid={`card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
