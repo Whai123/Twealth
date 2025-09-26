@@ -45,6 +45,12 @@ import {
   type InsertUsageTracking,
   type SubscriptionAddOn,
   type InsertSubscriptionAddOn,
+  type ReferralCode,
+  type InsertReferralCode,
+  type Referral,
+  type InsertReferral,
+  type BonusCredit,
+  type InsertBonusCredit,
   users,
   groups,
   groupMembers,
@@ -67,7 +73,10 @@ import {
   subscriptionPlans,
   subscriptions,
   usageTracking,
-  subscriptionAddOns
+  subscriptionAddOns,
+  referralCodes,
+  referrals,
+  bonusCredits
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -291,6 +300,17 @@ export interface IStorage {
   initializeDefaultSubscription(userId: string): Promise<Subscription>;
   checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }>;
   resetUsage(userId: string): Promise<void>;
+
+  // Referral methods
+  getUserReferralCode(userId: string): Promise<ReferralCode | undefined>;
+  createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode>;
+  getReferralByCode(code: string): Promise<ReferralCode | undefined>;
+  processReferral(referredUserId: string, referralCode: string): Promise<Referral>;
+  getUserReferrals(userId: string): Promise<Referral[]>;
+  getUserBonusCredits(userId: string): Promise<BonusCredit[]>;
+  addBonusCredits(bonusCredit: InsertBonusCredit): Promise<BonusCredit>;
+  getAvailableBonusCredits(userId: string): Promise<number>;
+  useBonusCredits(userId: string, amount: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2049,6 +2069,153 @@ export class DatabaseStorage implements IStorage {
         aiDeepAnalysisUsed: 0,
         aiInsightsGenerated: 0,
       });
+    }
+  }
+
+  // Referral methods
+  async getUserReferralCode(userId: string): Promise<ReferralCode | undefined> {
+    const [result] = await db.select()
+      .from(referralCodes)
+      .where(and(eq(referralCodes.userId, userId), eq(referralCodes.isActive, true)))
+      .limit(1);
+    return result;
+  }
+
+  async createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode> {
+    const [result] = await db.insert(referralCodes).values(referralCode).returning();
+    return result;
+  }
+
+  async getReferralByCode(code: string): Promise<ReferralCode | undefined> {
+    const [result] = await db.select()
+      .from(referralCodes)
+      .where(and(eq(referralCodes.code, code), eq(referralCodes.isActive, true)))
+      .limit(1);
+    return result;
+  }
+
+  async processReferral(referredUserId: string, referralCode: string): Promise<Referral> {
+    const referralCodeRecord = await this.getReferralByCode(referralCode);
+    if (!referralCodeRecord) {
+      throw new Error('Invalid referral code');
+    }
+
+    // Check if referral already exists
+    const [existingReferral] = await db.select()
+      .from(referrals)
+      .where(eq(referrals.referredUserId, referredUserId))
+      .limit(1);
+    
+    if (existingReferral) {
+      throw new Error('User has already been referred');
+    }
+
+    // Create referral record
+    const [referral] = await db.insert(referrals).values({
+      referrerUserId: referralCodeRecord.userId,
+      referredUserId: referredUserId,
+      referralCodeId: referralCodeRecord.id,
+      status: 'pending'
+    }).returning();
+
+    // Update referral code usage count
+    await db.update(referralCodes)
+      .set({ currentUses: sql`${referralCodes.currentUses} + 1` })
+      .where(eq(referralCodes.id, referralCodeRecord.id));
+
+    return referral;
+  }
+
+  async getUserReferrals(userId: string): Promise<Referral[]> {
+    return await db.select()
+      .from(referrals)
+      .where(eq(referrals.referrerUserId, userId))
+      .orderBy(desc(referrals.createdAt));
+  }
+
+  async getUserBonusCredits(userId: string): Promise<BonusCredit[]> {
+    return await db.select()
+      .from(bonusCredits)
+      .where(eq(bonusCredits.userId, userId))
+      .orderBy(desc(bonusCredits.createdAt));
+  }
+
+  async addBonusCredits(bonusCredit: InsertBonusCredit): Promise<BonusCredit> {
+    const [result] = await db.insert(bonusCredits).values(bonusCredit).returning();
+    return result;
+  }
+
+  async getAvailableBonusCredits(userId: string): Promise<number> {
+    const [result] = await db.select({
+      total: sql<number>`sum(${bonusCredits.amount})`
+    })
+    .from(bonusCredits)
+    .where(and(
+      eq(bonusCredits.userId, userId),
+      eq(bonusCredits.isUsed, false),
+      or(
+        sql`${bonusCredits.expiresAt} IS NULL`,
+        gte(bonusCredits.expiresAt, new Date())
+      )
+    ));
+    
+    return result?.total || 0;
+  }
+
+  async useBonusCredits(userId: string, amount: number): Promise<void> {
+    const availableCredits = await db.select()
+      .from(bonusCredits)
+      .where(and(
+        eq(bonusCredits.userId, userId),
+        eq(bonusCredits.isUsed, false),
+        or(
+          sql`${bonusCredits.expiresAt} IS NULL`,
+          gte(bonusCredits.expiresAt, new Date())
+        )
+      ))
+      .orderBy(bonusCredits.createdAt); // Use oldest credits first
+
+    let remainingAmount = amount;
+    const creditsToUpdate: string[] = [];
+
+    for (const credit of availableCredits) {
+      if (remainingAmount <= 0) break;
+      
+      if (credit.amount <= remainingAmount) {
+        creditsToUpdate.push(credit.id);
+        remainingAmount -= credit.amount;
+      } else {
+        // Partial use - split the credit
+        await db.update(bonusCredits)
+          .set({ amount: credit.amount - remainingAmount })
+          .where(eq(bonusCredits.id, credit.id));
+        
+        // Create a new record for the used portion
+        await db.insert(bonusCredits).values({
+          userId: userId,
+          amount: remainingAmount,
+          source: credit.source,
+          referralId: credit.referralId,
+          description: `${credit.description} (used portion)`,
+          expiresAt: credit.expiresAt,
+          isUsed: true,
+          usedAt: new Date()
+        });
+        
+        remainingAmount = 0;
+        break;
+      }
+    }
+
+    // Mark credits as used
+    if (creditsToUpdate.length > 0) {
+      await db.update(bonusCredits)
+        .set({ isUsed: true, usedAt: new Date() })
+        .where(sql`${bonusCredits.id} = ANY(${creditsToUpdate})`);
+    }
+
+    if (remainingAmount > 0) {
+      throw new Error('Insufficient bonus credits available');
     }
   }
 }

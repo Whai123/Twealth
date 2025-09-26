@@ -733,11 +733,52 @@ export const subscriptionAddOns = pgTable("subscription_add_ons", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Referral system tables
+export const referralCodes = pgTable("referral_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  code: text("code").notNull().unique(), // Unique referral code (e.g., "ALEX123")
+  maxUses: integer("max_uses").default(100), // Maximum number of times it can be used
+  currentUses: integer("current_uses").default(0), // Current number of uses
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiration date
+});
+
+export const referrals = pgTable("referrals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  referrerUserId: varchar("referrer_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  referredUserId: varchar("referred_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  referralCodeId: varchar("referral_code_id").notNull().references(() => referralCodes.id, { onDelete: "cascade" }),
+  status: text("status").default("pending"), // pending, completed, cancelled
+  bonusCreditsPaid: boolean("bonus_credits_paid").default(false),
+  completedAt: timestamp("completed_at"), // When referred user completed required action (e.g., upgraded)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const bonusCredits = pgTable("bonus_credits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(), // Number of bonus AI credits
+  source: text("source").notNull(), // "referral_made", "referral_signup", "promotion", etc.
+  referralId: varchar("referral_id").references(() => referrals.id, { onDelete: "set null" }),
+  description: text("description"), // Human-readable description
+  expiresAt: timestamp("expires_at"), // Optional expiration date for credits
+  isUsed: boolean("is_used").default(false),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Subscription schema exports
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true });
 export const insertUsageTrackingSchema = createInsertSchema(usageTracking).omit({ id: true, createdAt: true });
 export const insertSubscriptionAddOnSchema = createInsertSchema(subscriptionAddOns).omit({ id: true, createdAt: true });
+
+// Referral schema exports
+export const insertReferralCodeSchema = createInsertSchema(referralCodes).omit({ id: true, createdAt: true });
+export const insertReferralSchema = createInsertSchema(referrals).omit({ id: true, createdAt: true });
+export const insertBonusCreditSchema = createInsertSchema(bonusCredits).omit({ id: true, createdAt: true });
 
 // Subscription types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -749,6 +790,15 @@ export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
 export type InsertUsageTracking = z.infer<typeof insertUsageTrackingSchema>;
 export type InsertSubscriptionAddOn = z.infer<typeof insertSubscriptionAddOnSchema>;
+
+// Referral types
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type Referral = typeof referrals.$inferSelect;
+export type BonusCredit = typeof bonusCredits.$inferSelect;
+
+export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type InsertBonusCredit = z.infer<typeof insertBonusCreditSchema>;
 
 // Subscription relations
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
@@ -787,5 +837,41 @@ export const subscriptionAddOnsRelations = relations(subscriptionAddOns, ({ one 
   subscription: one(subscriptions, {
     fields: [subscriptionAddOns.subscriptionId],
     references: [subscriptions.id],
+  }),
+}));
+
+// Referral relations
+export const referralCodesRelations = relations(referralCodes, ({ one, many }) => ({
+  user: one(users, {
+    fields: [referralCodes.userId],
+    references: [users.id],
+  }),
+  referrals: many(referrals),
+}));
+
+export const referralsRelations = relations(referrals, ({ one, many }) => ({
+  referrer: one(users, {
+    fields: [referrals.referrerUserId],
+    references: [users.id],
+  }),
+  referred: one(users, {
+    fields: [referrals.referredUserId],
+    references: [users.id],
+  }),
+  referralCode: one(referralCodes, {
+    fields: [referrals.referralCodeId],
+    references: [referralCodes.id],
+  }),
+  bonusCredits: many(bonusCredits),
+}));
+
+export const bonusCreditsRelations = relations(bonusCredits, ({ one }) => ({
+  user: one(users, {
+    fields: [bonusCredits.userId],
+    references: [users.id],
+  }),
+  referral: one(referrals, {
+    fields: [bonusCredits.referralId],
+    references: [referrals.id],
   }),
 }));

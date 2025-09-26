@@ -21,7 +21,10 @@ import {
   insertEventTimeLogSchema,
   insertNotificationSchema,
   insertChatConversationSchema,
-  insertChatMessageSchema
+  insertChatMessageSchema,
+  insertReferralCodeSchema,
+  insertReferralSchema,
+  insertBonusCreditSchema
 } from "@shared/schema";
 import { aiService, type UserContext } from "./aiService";
 import Stripe from "stripe";
@@ -1841,6 +1844,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ received: true });
     } catch (error: any) {
       console.error('Webhook error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Referral System API routes
+  app.get("/api/referrals/my-code", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      let referralCode = await storage.getUserReferralCode(user.id);
+      
+      // Create referral code if user doesn't have one
+      if (!referralCode) {
+        const code = `${user.username.toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        referralCode = await storage.createReferralCode({
+          userId: user.id,
+          code: code,
+          maxUses: 100,
+          currentUses: 0,
+          isActive: true
+        });
+      }
+      
+      res.json(referralCode);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/referrals/use-code", async (req, res) => {
+    try {
+      const { referralCode } = req.body;
+      if (!referralCode) {
+        return res.status(400).json({ message: "Referral code is required" });
+      }
+
+      const user = await storage.createDemoUserIfNeeded();
+      
+      // Process the referral
+      const referral = await storage.processReferral(user.id, referralCode);
+      
+      // Add bonus credits for the referred user (10 AI chats)
+      await storage.addBonusCredits({
+        userId: user.id,
+        amount: 10,
+        source: "referral_signup",
+        referralId: referral.id,
+        description: "Welcome bonus: 10 AI chats for using referral code"
+      });
+
+      // Add bonus credits for the referrer (10 AI chats)
+      await storage.addBonusCredits({
+        userId: referral.referrerUserId,
+        amount: 10,
+        source: "referral_made",
+        referralId: referral.id,
+        description: "Referral bonus: 10 AI chats for successful referral"
+      });
+      
+      res.json({ 
+        success: true, 
+        bonusCredits: 10,
+        message: "Referral successful! You and your friend both received 10 bonus AI chats!"
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/referrals/my-referrals", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const referrals = await storage.getUserReferrals(user.id);
+      res.json(referrals);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/referrals/bonus-credits", async (req, res) => {
+    try {
+      const user = await storage.createDemoUserIfNeeded();
+      const [credits, availableAmount] = await Promise.all([
+        storage.getUserBonusCredits(user.id),
+        storage.getAvailableBonusCredits(user.id)
+      ]);
+      
+      res.json({
+        credits,
+        availableAmount
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/referrals/validate-code", async (req, res) => {
+    try {
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ message: "Referral code is required" });
+      }
+      
+      const referralCode = await storage.getReferralByCode(code);
+      if (!referralCode) {
+        return res.status(404).json({ message: "Invalid referral code" });
+      }
+      
+      const currentUses = referralCode.currentUses ?? 0;
+      const maxUses = referralCode.maxUses ?? 100;
+      
+      if (currentUses >= maxUses) {
+        return res.status(400).json({ message: "Referral code has reached maximum uses" });
+      }
+      
+      res.json({ 
+        valid: true, 
+        usesRemaining: maxUses - currentUses 
+      });
+    } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
