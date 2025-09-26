@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useTranslation } from 'react-i18next';
 import { 
   Home, 
   Users, 
@@ -13,20 +14,23 @@ import {
   Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import LanguageSwitcher from "@/components/language-switcher";
 
-const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "แชทกับ AI", href: "/ai-assistant", icon: Brain },
-  { name: "Groups", href: "/groups", icon: Users },
-  { name: "Calendar", href: "/calendar", icon: Calendar },
-  { name: "Financial Goals", href: "/financial-goals", icon: Target },
-  { name: "Money Tracking", href: "/money-tracking", icon: TrendingUp },
+const getNavigation = (t: (key: string) => string) => [
+  { name: t('navigation.dashboard'), href: "/", icon: Home },
+  { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain },
+  { name: t('navigation.groups'), href: "/groups", icon: Users },
+  { name: t('navigation.calendar'), href: "/calendar", icon: Calendar },
+  { name: t('navigation.goals'), href: "/financial-goals", icon: Target },
+  { name: t('navigation.money'), href: "/money-tracking", icon: TrendingUp },
   { name: "Planning", href: "/planning", icon: Lightbulb },
-  { name: "Subscription", href: "/subscription", icon: Crown },
+  { name: "Premium", href: "/subscription", icon: Crown },
 ];
 
 export default function Sidebar() {
   const [location] = useLocation();
+  const { t } = useTranslation();
+  const navigation = getNavigation(t);
 
   return (
     <aside className="w-64 bg-card border-r border-border shadow-sm">
@@ -76,15 +80,18 @@ export default function Sidebar() {
               <p className="text-xs text-muted-foreground">demo@example.com</p>
             </div>
           </div>
-          <Link href="/settings">
-            <button 
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center"
-              data-testid="button-settings"
-            >
-              <Settings size={12} className="mr-1" />
-              Settings
-            </button>
-          </Link>
+          <div className="space-y-2">
+            <LanguageSwitcher />
+            <Link href="/settings">
+              <button 
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center"
+                data-testid="button-settings"
+              >
+                <Settings size={12} className="mr-1" />
+                {t('navigation.settings')}
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
     </aside>

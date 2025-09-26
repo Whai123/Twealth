@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +81,7 @@ interface QuickAction {
 }
 
 export default function AIAssistantPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [currentMessage, setCurrentMessage] = useState("");
   const [selectedQuickAction, setSelectedQuickAction] = useState<string | null>(null);
@@ -198,18 +200,18 @@ export default function AIAssistantPage() {
     onError: (error: any) => {
       if (error.message.includes("limit exceeded")) {
         toast({
-          title: "🚀 Upgrade Required",
-          description: "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+          title: t('aiAssistant.upgradeRequired'),
+          description: t('aiAssistant.quotaExceeded'),
           variant: "destructive",
           duration: 8000,
           action: (
             <ToastAction 
-              altText="Upgrade to Premium"
+              altText={t('aiAssistant.upgradeButton')}
               onClick={() => window.location.href = '/subscription'}
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-300"
             >
               <Crown className="w-4 h-4 mr-2" />
-              Upgrade
+              {t('aiAssistant.upgradeButton')}
             </ToastAction>
           )
         });
@@ -226,18 +228,18 @@ export default function AIAssistantPage() {
   const handleQuickAction = (action: QuickAction) => {
     if (isLimitExceeded) {
       toast({
-        title: "🚀 Upgrade Required",
-        description: "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+        title: t('aiAssistant.upgradeRequired'),
+        description: t('aiAssistant.quotaExceeded'),
         variant: "destructive",
         duration: 8000,
         action: (
           <ToastAction 
-            altText="Upgrade to Premium"
+            altText={t('aiAssistant.upgradeButton')}
             onClick={() => window.location.href = '/subscription'}
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-300"
           >
             <Crown className="w-4 h-4 mr-2" />
-            Upgrade
+            {t('aiAssistant.upgradeButton')}
           </ToastAction>
         )
       });
@@ -256,18 +258,18 @@ export default function AIAssistantPage() {
     
     if (isLimitExceeded) {
       toast({
-        title: "🚀 Upgrade Required",
-        description: "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+        title: t('aiAssistant.upgradeRequired'),
+        description: t('aiAssistant.quotaExceeded'),
         variant: "destructive",
         duration: 8000,
         action: (
           <ToastAction 
-            altText="Upgrade to Premium"
+            altText={t('aiAssistant.upgradeButton')}
             onClick={() => window.location.href = '/subscription'}
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-300"
           >
             <Crown className="w-4 h-4 mr-2" />
-            Upgrade
+            {t('aiAssistant.upgradeButton')}
           </ToastAction>
         )
       });
@@ -294,7 +296,7 @@ export default function AIAssistantPage() {
             </div>
             <div className="space-y-2">
               <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent animate-in slide-in-from-top duration-700">
-                AI Financial Assistant
+                {t('aiAssistant.title')}
               </h1>
               <div className="flex items-center justify-center gap-2">
                 <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
@@ -305,7 +307,7 @@ export default function AIAssistantPage() {
           </div>
         </div>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-in fade-in duration-1000 delay-300">
-          🎯 Get personalized financial advice • 📊 Smart budget analysis • 💡 AI-powered recommendations
+          {t('aiAssistant.subtitle')}
         </p>
       </div>
 
@@ -316,7 +318,7 @@ export default function AIAssistantPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 backdrop-blur-3xl" />
           <CardContent className="relative p-8">
             <div className="mb-6 text-center">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent mb-2">Your AI Usage</h2>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent mb-2">{t('aiAssistant.usageTitle')}</h2>
               <p className="text-sm text-muted-foreground">Track your AI assistant activity this month</p>
             </div>
             
@@ -670,8 +672,8 @@ export default function AIAssistantPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl blur-sm" />
               <Textarea
                 placeholder={isLimitExceeded ? 
-                  "🚫 Chat limit reached. Upgrade to Premium for unlimited AI assistance!" :
-                  "💬 Ask me anything about your finances... Try: 'How can I save more money?' or 'Should I invest right now?'"
+                  t('aiAssistant.quotaExceeded') :
+                  t('aiAssistant.chatPlaceholder')
                 }
                 value={currentMessage}
                 onChange={(e) => !isLimitExceeded && setCurrentMessage(e.target.value)}
@@ -720,7 +722,7 @@ export default function AIAssistantPage() {
                 {isLimitExceeded ? (
                   <>
                     <Crown className="w-4 h-4 mr-2" />
-                    Upgrade to Chat
+                    {t('aiAssistant.upgradeToChat')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 ) : sendMessageMutation.isPending ? (
@@ -733,7 +735,7 @@ export default function AIAssistantPage() {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-                    Send Message
+                    {t('aiAssistant.send')}
                     <Sparkles className="w-3 h-3 ml-2 animate-pulse" />
                   </>
                 )}

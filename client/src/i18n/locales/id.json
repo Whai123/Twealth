@@ -1,0 +1,75 @@
+{
+  "navigation": {
+    "dashboard": "Dasbor",
+    "calendar": "Kalender", 
+    "money": "Uang",
+    "goals": "Tujuan",
+    "groups": "Grup",
+    "aiAssistant": "Asisten AI",
+    "settings": "Pengaturan"
+  },
+  "aiAssistant": {
+    "title": "Asisten Keuangan AI",
+    "subtitle": "Dapatkan saran keuangan personal dan wawasan bertenaga AI",
+    "usageTitle": "Penggunaan AI",
+    "unlimited": "Tidak Terbatas",
+    "quotaExceeded": "Anda telah mencapai batas chat AI. Upgrade ke Premium untuk bantuan AI unlimited!",
+    "runningLow": "Chat AI Anda hampir habis. Pertimbangkan upgrade ke Premium untuk akses unlimited.",
+    "upgradeRequired": "🚀 Upgrade Diperlukan",
+    "upgradeButton": "Upgrade ke Premium",
+    "chatPlaceholder": "Tanyakan apa saja tentang keuangan Anda...",
+    "send": "Kirim",
+    "upgradeToChat": "Upgrade untuk Chat",
+    "quickActions": {
+      "title": "Aksi Cepat AI",
+      "subtitle": "Dapatkan wawasan AI instan untuk kebutuhan keuangan Anda",
+      "budgetAnalysis": {
+        "title": "Analisis Anggaran",
+        "description": "Dapatkan wawasan AI tentang pola pengeluaran dan saran optimasi anggaran.",
+        "category": "Analisis"
+      },
+      "savingsStrategy": {
+        "title": "Strategi Menabung", 
+        "description": "Terima rekomendasi menabung personal berdasarkan tujuan keuangan Anda.",
+        "category": "Perencanaan"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Pilih Paket Anda",
+    "subtitle": "Buka wawasan AI unlimited dan fitur premium",
+    "free": {
+      "title": "Gratis",
+      "price": "Gratis",
+      "features": [
+        "5 chat AI per bulan",
+        "Pelacakan keuangan dasar",
+        "Integrasi kalender",
+        "Pembagian biaya grup"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "Rp 29.000",
+      "period": "/bulan",
+      "features": [
+        "Chat AI unlimited",
+        "Wawasan keuangan lanjutan",
+        "Dukungan prioritas",
+        "Ekspor data",
+        "Kategori kustom"
+      ],
+      "popular": "Paling Populer"
+    },
+    "upgradeButton": "Upgrade Sekarang",
+    "currentPlan": "Paket Saat Ini"
+  },
+  "referral": {
+    "title": "Ajak Teman & Dapatkan Bonus",
+    "subtitle": "Dapatkan kredit AI bonus ketika teman bergabung dengan Twealth",
+    "yourCode": "Kode Referral Anda",
+    "shareMessage": "Bergabunglah dengan saya di Twealth - cara paling cerdas mengelola uang dan jadwal! Gunakan kode saya {{code}} dan kita berdua dapat kredit AI bonus!",
+    "bonusCredits": "+10 Kredit AI",
+    "howItWorks": "Cara kerja"
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "calendar": "Calendar", 
+    "money": "Money",
+    "goals": "Goals",
+    "groups": "Groups",
+    "aiAssistant": "AI Assistant",
+    "settings": "Settings"
+  },
+  "aiAssistant": {
+    "title": "AI Financial Assistant",
+    "subtitle": "Get personalized financial advice and insights powered by AI",
+    "usageTitle": "AI Usage",
+    "unlimited": "Unlimited",
+    "quotaExceeded": "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+    "runningLow": "You're running low on AI chats. Consider upgrading to Premium for unlimited access.",
+    "upgradeRequired": "🚀 Upgrade Required",
+    "upgradeButton": "Upgrade to Premium",
+    "chatPlaceholder": "Ask me anything about your finances...",
+    "send": "Send",
+    "upgradeToChat": "Upgrade to Chat",
+    "quickActions": {
+      "title": "Quick AI Actions",
+      "subtitle": "Get instant AI insights for your financial needs",
+      "budgetAnalysis": {
+        "title": "Budget Analysis",
+        "description": "Get AI insights on your spending patterns and budget optimization suggestions.",
+        "category": "Analysis"
+      },
+      "savingsStrategy": {
+        "title": "Savings Strategy", 
+        "description": "Receive personalized savings recommendations based on your financial goals.",
+        "category": "Planning"
+      },
+      "expenseOptimization": {
+        "title": "Expense Optimization",
+        "description": "Discover ways to reduce unnecessary expenses and improve financial efficiency.",
+        "category": "Optimization"
+      },
+      "goalPlanning": {
+        "title": "Goal Planning",
+        "description": "Create actionable plans to achieve your short and long-term financial goals.",
+        "category": "Goals"
+      },
+      "investmentGuidance": {
+        "title": "Investment Guidance",
+        "description": "Get basic investment principles and portfolio diversification advice.",
+        "category": "Investment"
+      },
+      "debtManagement": {
+        "title": "Debt Management",
+        "description": "Strategies for paying off debts efficiently and improving credit health.",
+        "category": "Debt"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Choose Your Plan",
+    "subtitle": "Unlock unlimited AI insights and premium features",
+    "free": {
+      "title": "Free",
+      "price": "Free",
+      "features": [
+        "5 AI chats per month",
+        "Basic financial tracking",
+        "Calendar integration",
+        "Group expense splitting"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "$2.99",
+      "period": "/month",
+      "features": [
+        "Unlimited AI chats",
+        "Advanced financial insights",
+        "Priority support",
+        "Export data",
+        "Custom categories"
+      ],
+      "popular": "Most Popular"
+    },
+    "upgradeButton": "Upgrade Now",
+    "currentPlan": "Current Plan"
+  },
+  "dashboard": {
+    "welcome": "Welcome back!",
+    "totalSavings": "Total Savings",
+    "activeGoals": "Active Goals", 
+    "monthlyProgress": "Monthly Progress",
+    "recentTransactions": "Recent Transactions",
+    "upcomingEvents": "Upcoming Events",
+    "quickActions": "Quick Actions"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "done": "Done"
+  },
+  "referral": {
+    "title": "Invite Friends & Earn",
+    "subtitle": "Get bonus AI credits when your friends join Twealth",
+    "yourCode": "Your Referral Code",
+    "shareMessage": "Join me on Twealth - the smartest way to manage money and schedule! Use my code {{code}} and we both get bonus AI credits!",
+    "bonusCredits": "+10 AI Credits",
+    "howItWorks": "How it works",
+    "steps": [
+      "Share your unique referral code",
+      "Friends sign up and upgrade to Premium", 
+      "You both get 10 bonus AI credits!"
+    ]
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "navigation": {
+    "dashboard": "Painel",
+    "calendar": "Calendário", 
+    "money": "Dinheiro",
+    "goals": "Metas",
+    "groups": "Grupos",
+    "aiAssistant": "Assistente IA",
+    "settings": "Configurações"
+  },
+  "aiAssistant": {
+    "title": "Assistente Financeiro IA",
+    "subtitle": "Obtenha conselhos financeiros personalizados e insights com IA",
+    "usageTitle": "Uso da IA",
+    "unlimited": "Ilimitado",
+    "quotaExceeded": "Você atingiu seu limite de chats com IA. Faça upgrade para Premium para assistência ilimitada!",
+    "runningLow": "Seus chats com IA estão acabando. Considere fazer upgrade para Premium para acesso ilimitado.",
+    "upgradeRequired": "🚀 Upgrade Necessário",
+    "upgradeButton": "Fazer Upgrade para Premium",
+    "chatPlaceholder": "Pergunte qualquer coisa sobre suas finanças...",
+    "send": "Enviar",
+    "upgradeToChat": "Upgrade para Conversar",
+    "quickActions": {
+      "title": "Ações Rápidas IA",
+      "subtitle": "Obtenha insights instantâneos de IA para suas necessidades financeiras",
+      "budgetAnalysis": {
+        "title": "Análise de Orçamento",
+        "description": "Obtenha insights de IA sobre seus padrões de gastos e sugestões de otimização.",
+        "category": "Análise"
+      },
+      "savingsStrategy": {
+        "title": "Estratégia de Poupança", 
+        "description": "Receba recomendações personalizadas de poupança baseadas em suas metas financeiras.",
+        "category": "Planejamento"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Escolha Seu Plano",
+    "subtitle": "Desbloqueie insights ilimitados de IA e recursos premium",
+    "free": {
+      "title": "Grátis",
+      "price": "Grátis",
+      "features": [
+        "5 chats IA por mês",
+        "Rastreamento financeiro básico",
+        "Integração de calendário",
+        "Divisão de gastos em grupo"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "R$ 14,99",
+      "period": "/mês",
+      "features": [
+        "Chats IA ilimitados",
+        "Insights financeiros avançados",
+        "Suporte prioritário",
+        "Exportar dados",
+        "Categorias personalizadas"
+      ],
+      "popular": "Mais Popular"
+    },
+    "upgradeButton": "Fazer Upgrade Agora",
+    "currentPlan": "Plano Atual"
+  },
+  "referral": {
+    "title": "Convide Amigos e Ganhe",
+    "subtitle": "Ganhe créditos IA bônus quando seus amigos entrarem no Twealth",
+    "yourCode": "Seu Código de Indicação",
+    "shareMessage": "Junte-se a mim no Twealth - a forma mais inteligente de gerenciar dinheiro e agenda! Use meu código {{code}} e nós dois ganhamos créditos IA bônus!",
+    "bonusCredits": "+10 Créditos IA",
+    "howItWorks": "Como funciona"
+  }
+}

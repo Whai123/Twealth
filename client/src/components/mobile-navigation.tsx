@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useTranslation } from 'react-i18next';
 import { 
   Home, 
   Calendar, 
@@ -12,16 +13,18 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const navigation = [
-  { name: "Dashboard", href: "/", icon: Home, label: "Home" },
-  { name: "แชทกับ AI", href: "/ai-assistant", icon: Brain, label: "AI" },
-  { name: "Calendar", href: "/calendar", icon: Calendar, label: "Calendar" },
-  { name: "Money", href: "/money-tracking", icon: DollarSign, label: "Money" },
+const getNavigation = (t: (key: string) => string) => [
+  { name: t('navigation.dashboard'), href: "/", icon: Home, label: "Home" },
+  { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain, label: "AI" },
+  { name: t('navigation.calendar'), href: "/calendar", icon: Calendar, label: "Calendar" },
+  { name: t('navigation.money'), href: "/money-tracking", icon: DollarSign, label: "Money" },
   { name: "Premium", href: "/subscription", icon: Crown, label: "Premium" },
 ];
 
 export default function MobileNavigation() {
   const [location] = useLocation();
+  const { t } = useTranslation();
+  const navigation = getNavigation(t);
 
   return (
     <>
