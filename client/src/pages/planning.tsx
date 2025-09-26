@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Lightbulb, TrendingUp, Calendar, Target, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Lightbulb, TrendingUp, Calendar, Target, AlertTriangle, CheckCircle, Clock, Brain, Zap, Star, Rocket, Award, BarChart3, DollarSign, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -161,67 +161,140 @@ export default function Planning() {
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center">
-            <Lightbulb className="mr-2" size={24} />
-            Financial Planning
-          </h1>
-          <p className="text-muted-foreground">Smart insights and recommendations for your financial journey</p>
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="suggestions" data-testid="tab-suggestions">Smart Suggestions</TabsTrigger>
-          <TabsTrigger value="insights" data-testid="tab-insights">Financial Insights</TabsTrigger>
-          <TabsTrigger value="projections" data-testid="tab-projections">Goal Projections</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="suggestions" className="space-y-6">
-          {/* Quick Actions */}
-          <Card className="p-6">
-            <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-create-budget" asChild>
-                  <Link href="/money-tracking?budget=1">
-                    <Target size={20} />
-                    <span className="text-sm">Create Budget</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-review-goals" asChild>
-                  <Link href="/financial-goals">
-                    <TrendingUp size={20} />
-                    <span className="text-sm">Review Goals</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-schedule-review" asChild>
-                  <Link href="/calendar?create=1">
-                    <Calendar size={20} />
-                    <span className="text-sm">Schedule Review</span>
-                  </Link>
-                </Button>
-                <Button variant="outline" className="h-20 flex-col space-y-2" data-testid="button-optimize-savings" asChild>
-                  <Link href="/financial-goals">
-                    <Lightbulb size={20} />
-                    <span className="text-sm">Optimize Savings</span>
-                  </Link>
-                </Button>
+    <>
+      {/* Modern Header with gradient background */}
+      <header className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-border/50">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    🧠 Smart Financial Planning
+                  </h1>
+                  <p className="text-muted-foreground text-lg">AI-powered insights to accelerate your financial success</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+              
+              {/* Quick Stats Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <span className="text-sm font-medium">Planning Score</span>
+                  </div>
+                  <div className="text-xl font-bold text-indigo-600">85/100</div>
+                </div>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Rocket className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-medium">Active Goals</span>
+                  </div>
+                  <div className="text-xl font-bold text-green-600">{goals?.filter((g: any) => g.status === "active")?.length || 0}</div>
+                </div>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-orange-500" />
+                    <span className="text-sm font-medium">Optimization</span>
+                  </div>
+                  <div className="text-xl font-bold text-orange-600">92%</div>
+                </div>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-purple-500" />
+                    <span className="text-sm font-medium">AI Insights</span>
+                  </div>
+                  <div className="text-xl font-bold text-purple-600">{suggestions.length}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-          {/* Smart Suggestions */}
-          <Card className="p-6">
-            <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-lg font-semibold">Personalized Recommendations</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
+      <div className="p-6">
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-1 rounded-xl border border-indigo-200/50 dark:border-indigo-700/50">
+            <TabsTrigger 
+              value="suggestions" 
+              data-testid="tab-suggestions"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              💡 Smart Suggestions
+            </TabsTrigger>
+            <TabsTrigger 
+              value="insights" 
+              data-testid="tab-insights"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              📊 Financial Insights
+            </TabsTrigger>
+            <TabsTrigger 
+              value="projections" 
+              data-testid="tab-projections"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2"
+            >
+              <Target className="w-4 h-4" />
+              🎯 Goal Projections
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="suggestions" className="space-y-6">
+            {/* Modern Quick Actions */}
+            <Card className="bg-gradient-to-br from-white to-indigo-50/50 dark:from-gray-900 dark:to-indigo-900/20 border-indigo-200/50 dark:border-indigo-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
+                  <Rocket className="w-6 h-6 text-indigo-600" />
+                  🚀 Quick Actions to Boost Your Wealth
+                </CardTitle>
+                <p className="text-muted-foreground">Take immediate action to improve your financial position</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Link href="/money-tracking?budget=1" className="group">
+                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-create-budget">
+                      <Target className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
+                      <span className="font-semibold">💰 Create Budget</span>
+                    </div>
+                  </Link>
+                  <Link href="/financial-goals" className="group">
+                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-review-goals">
+                      <TrendingUp className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
+                      <span className="font-semibold">📈 Review Goals</span>
+                    </div>
+                  </Link>
+                  <Link href="/calendar?create=1" className="group">
+                    <div className="bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-schedule-review">
+                      <Calendar className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
+                      <span className="font-semibold">📅 Schedule Review</span>
+                    </div>
+                  </Link>
+                  <Link href="/financial-goals" className="group">
+                    <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-optimize-savings">
+                      <Lightbulb className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
+                      <span className="font-semibold">⚡ Optimize Savings</span>
+                    </div>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Smart Suggestions */}
+            <Card className="bg-gradient-to-br from-white to-purple-50/50 dark:from-gray-900 dark:to-purple-900/20 border-purple-200/50 dark:border-purple-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
+                  <Brain className="w-6 h-6 text-purple-600" />
+                  🤖 AI-Powered Recommendations
+                </CardTitle>
+                <p className="text-muted-foreground">Smart insights tailored to your financial behavior and goals</p>
+              </CardHeader>
+              <CardContent>
               {suggestions.length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle className="mx-auto h-12 w-12 text-green-600 mb-4" />
