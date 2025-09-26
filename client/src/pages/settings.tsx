@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database } from "lucide-react";
+import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database, Sparkles, Lock, CreditCard, Brain, Zap, Cog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -133,40 +133,105 @@ function Settings() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2 rounded-lg time-money-gradient">
-            <SettingsIcon className="text-white" size={24} />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Settings</h1>
-            <p className="text-muted-foreground">Personalize your Twealth experience with comprehensive preferences and controls</p>
+    <>
+      {/* Modern Header with gradient background */}
+      <header className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900/50 dark:to-indigo-900/50 border-b border-border/50">
+        <div className="container mx-auto p-6 max-w-6xl">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+                  <Cog className="w-8 h-8 text-white animate-spin-slow" />
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    ⚙️ Settings & Preferences
+                  </h1>
+                  <p className="text-xl text-muted-foreground">Customize your experience to perfection</p>
+                </div>
+              </div>
+              
+              {/* Quick Settings Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium">Account</span>
+                  </div>
+                  <div className="text-lg font-bold text-blue-600">Personal</div>
+                  <div className="text-xs text-muted-foreground">Time & money settings</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Palette className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium">Preferences</span>
+                  </div>
+                  <div className="text-lg font-bold text-purple-600">Theme</div>
+                  <div className="text-xs text-muted-foreground">Interface customization</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CreditCard className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium">Financial</span>
+                  </div>
+                  <div className="text-lg font-bold text-green-600">Goals</div>
+                  <div className="text-xs text-muted-foreground">Money preferences</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield className="w-5 h-5 text-red-500" />
+                    <span className="text-sm font-medium">Privacy</span>
+                  </div>
+                  <div className="text-lg font-bold text-red-600">Secure</div>
+                  <div className="text-xs text-muted-foreground">Data protection</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Modern Tab Interface */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="account" className="flex items-center gap-2" data-testid="tab-account">
-            <Clock size={16} />
-            <span className="hidden sm:inline">Account</span>
-          </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center gap-2" data-testid="tab-preferences">
-            <Palette size={16} />
-            <span className="hidden sm:inline">Preferences</span>
-          </TabsTrigger>
-          <TabsTrigger value="financial" className="flex items-center gap-2" data-testid="tab-financial">
-            <DollarSign size={16} />
-            <span className="hidden sm:inline">Financial</span>
-          </TabsTrigger>
-          <TabsTrigger value="privacy" className="flex items-center gap-2" data-testid="tab-privacy">
-            <Shield size={16} />
-            <span className="hidden sm:inline">Privacy</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className="container mx-auto p-6 max-w-6xl">
+
+        {/* Enhanced Modern Tab Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-8 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-900/20 dark:to-indigo-900/20 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+            <TabsTrigger 
+              value="account" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2" 
+              data-testid="tab-account"
+            >
+              <User size={16} />
+              <span className="hidden sm:inline">👤 Account</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preferences" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2" 
+              data-testid="tab-preferences"
+            >
+              <Palette size={16} />
+              <span className="hidden sm:inline">🎨 Preferences</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="financial" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2" 
+              data-testid="tab-financial"
+            >
+              <CreditCard size={16} />
+              <span className="hidden sm:inline">💰 Financial</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="privacy" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2" 
+              data-testid="tab-privacy"
+            >
+              <Shield size={16} />
+              <span className="hidden sm:inline">🔒 Privacy</span>
+            </TabsTrigger>
+          </TabsList>
 
         {/* Account Tab (Original Time-Value Settings) */}
         <TabsContent value="account" className="space-y-6">
@@ -452,8 +517,9 @@ function Settings() {
         <TabsContent value="privacy" className="space-y-6">
           <DataPrivacy />
         </TabsContent>
-      </Tabs>
-    </div>
+        </Tabs>
+      </div>
+    </>
   );
 }
 
