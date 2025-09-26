@@ -18,6 +18,7 @@ const Settings = lazy(() => import("@/pages/settings"));
 const Subscription = lazy(() => import("@/pages/subscription"));
 const Upgrade = lazy(() => import("@/pages/upgrade"));
 const AIAssistant = lazy(() => import("@/pages/ai-assistant"));
+const Referrals = lazy(() => import("@/pages/referrals"));
 const PublicCalendar = lazy(() => import("@/pages/public-calendar"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
@@ -76,6 +77,7 @@ function Router() {
               <Route path="/money-tracking" component={MoneyTracking} />
               <Route path="/planning" component={Planning} />
               <Route path="/ai-assistant" component={AIAssistant} />
+              <Route path="/referrals" component={Referrals} />
               <Route path="/subscription" component={Subscription} />
               <Route path="/upgrade" component={Upgrade} />
               <Route path="/settings" component={Settings} />

@@ -6,6 +6,7 @@
     "goals": "Goals",
     "groups": "Groups",
     "aiAssistant": "AI Assistant",
+    "referrals": "Referrals",
     "settings": "Settings"
   },
   "aiAssistant": {
@@ -110,18 +111,39 @@
     "close": "Close",
     "done": "Done"
   },
-  "referral": {
-    "title": "Invite Friends & Earn",
-    "subtitle": "Get bonus AI credits when your friends join Twealth",
-    "yourCode": "Your Referral Code",
-    "shareMessage": "Join me on Twealth - the smartest way to manage money and schedule! Use my code {{code}} and we both get bonus AI credits!",
-    "bonusCredits": "+10 AI Credits",
-    "howItWorks": "How it works",
-    "steps": [
-      "Share your unique referral code",
-      "Friends sign up and upgrade to Premium", 
-      "You both get 10 bonus AI credits!"
-    ]
+  "referrals": {
+    "title": "Refer Friends & Earn",
+    "description": "Invite friends to Twealth and both of you get bonus AI credits!",
+    "myCode": "My Referral Code",
+    "myCodeDescription": "Share this code with friends to earn bonus AI credits",
+    "useCode": "Use Referral Code",
+    "useCodeDescription": "Have a referral code? Enter it here to earn bonus credits",
+    "enterCode": "Enter referral code",
+    "codePlaceholder": "FRIEND1234",
+    "useCodeButton": "Use Code",
+    "processing": "Processing...",
+    "shareCode": "Share Code",
+    "shareTitle": "Join Twealth with my referral code!",
+    "shareText": "Join me on Twealth and get bonus AI credits! Use my code: {code}",
+    "copied": "Copied!",
+    "copiedDescription": "Referral code copied to clipboard",
+    "success": "Success!",
+    "error": "Error",
+    "bonusCredits": "Bonus Credits",
+    "availableCredits": "AI chats available",
+    "totalEarned": "Total earned",
+    "uses": "Uses",
+    "active": "Active",
+    "inactive": "Inactive",
+    "history": "Referral History",
+    "historyDescription": "Track your successful referrals and earned credits",
+    "noReferrals": "No referrals yet",
+    "startSharing": "Start sharing your code to earn bonus credits!",
+    "friend": "Friend",
+    "credits": "credits",
+    "creditsHistory": "Credits History",
+    "used": "Used",
+    "bonusInfo": "Both you and your friend will receive 10 bonus AI chats when they use your referral code!"
   },
   "currency": {
     "usd": "USD ($)",

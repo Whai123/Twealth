@@ -11,7 +11,8 @@ import {
   Settings,
   User,
   Crown,
-  Brain
+  Brain,
+  Gift
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
@@ -19,6 +20,7 @@ import LanguageSwitcher from "@/components/language-switcher";
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home },
   { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain },
+  { name: t('navigation.referrals'), href: "/referrals", icon: Gift },
   { name: t('navigation.groups'), href: "/groups", icon: Users },
   { name: t('navigation.calendar'), href: "/calendar", icon: Calendar },
   { name: t('navigation.goals'), href: "/financial-goals", icon: Target },

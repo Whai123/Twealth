@@ -8,7 +8,8 @@ import {
   Users,
   Plus,
   Brain,
-  Crown
+  Crown,
+  Gift
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,8 +17,8 @@ import { Button } from "@/components/ui/button";
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home, label: "Home" },
   { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain, label: "AI" },
+  { name: t('navigation.referrals'), href: "/referrals", icon: Gift, label: "Refer" },
   { name: t('navigation.calendar'), href: "/calendar", icon: Calendar, label: "Calendar" },
-  { name: t('navigation.money'), href: "/money-tracking", icon: DollarSign, label: "Money" },
   { name: "Premium", href: "/subscription", icon: Crown, label: "Premium" },
 ];
 
