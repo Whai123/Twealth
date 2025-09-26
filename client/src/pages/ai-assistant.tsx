@@ -222,68 +222,133 @@ export default function AIAssistantPage() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-3">
-          <Brain className="w-10 h-10 text-primary" />
-          <h1 className="text-4xl font-bold">AI Financial Assistant</h1>
-          <Sparkles className="w-6 h-6 text-yellow-500" />
+      {/* Header - Enhanced with animations */}
+      <div className="text-center space-y-6">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 blur-3xl animate-pulse" />
+          <div className="relative flex items-center justify-center gap-4 p-6">
+            <div className="relative">
+              <Brain className="w-12 h-12 text-primary animate-pulse" />
+              <div className="absolute inset-0 bg-primary/20 blur-xl animate-ping" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent animate-in slide-in-from-top duration-700">
+                AI Financial Assistant
+              </h1>
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
+                <span className="text-sm font-medium text-yellow-600 dark:text-yellow-400">Powered by Advanced AI</span>
+                <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Get personalized financial advice, budget analysis, and smart recommendations powered by advanced AI
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-in fade-in duration-1000 delay-300">
+          🎯 Get personalized financial advice • 📊 Smart budget analysis • 💡 AI-powered recommendations
         </p>
       </div>
 
-      {/* Usage Summary */}
+      {/* Enhanced Usage Summary */}
       {usage && (
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-0">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-4 h-4 text-blue-500" />
-                  <span className="font-medium">AI Chats</span>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Used</span>
-                    <span className="font-medium">{usage.chatUsage.used} / {usage.chatUsage.limit}</span>
+        <Card className="relative overflow-hidden border-0 shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 backdrop-blur-3xl" />
+          <CardContent className="relative p-8">
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent mb-2">Your AI Usage</h2>
+              <p className="text-sm text-muted-foreground">Track your AI assistant activity this month</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg">
+                      <MessageCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-bold text-lg">AI Chats</span>
                   </div>
-                  <Progress value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} className="h-2" />
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Progress</span>
+                      <span className="font-bold text-lg">{usage.chatUsage.used} / {usage.chatUsage.limit}</span>
+                    </div>
+                    <div className="relative">
+                      <Progress value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} className="h-3 bg-blue-100 dark:bg-blue-900/30" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full opacity-20 animate-pulse" />
+                    </div>
+                    <div className="text-xs text-muted-foreground text-center">
+                      {usage.chatUsage.remaining} remaining
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4 text-green-500" />
-                  <span className="font-medium">Deep Analysis</span>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span>Used</span>
-                    <span className="font-medium">{usage.analysisUsage.used} / {usage.analysisUsage.limit}</span>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg">
+                      <BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-bold text-lg">Deep Analysis</span>
                   </div>
-                  <Progress value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} className="h-2" />
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Progress</span>
+                      <span className="font-bold text-lg">{usage.analysisUsage.used} / {usage.analysisUsage.limit}</span>
+                    </div>
+                    <div className="relative">
+                      <Progress value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} className="h-3 bg-green-100 dark:bg-green-900/30" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 rounded-full opacity-20 animate-pulse" />
+                    </div>
+                    <div className="text-xs text-muted-foreground text-center">
+                      {usage.analysisUsage.remaining} remaining
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-yellow-500" />
-                  <span className="font-medium">Insights Generated</span>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50 backdrop-blur-sm text-center">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="p-2 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-lg">
+                      <Lightbulb className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-bold text-lg">Insights</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-4xl font-bold bg-gradient-to-br from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                      {usage.insights}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Generated this month</div>
+                    <div className="flex items-center justify-center gap-1 text-xs text-yellow-600 dark:text-yellow-400">
+                      <Sparkles className="w-3 h-3" />
+                      <span>Keep exploring!</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-2xl font-bold text-primary">{usage.insights}</div>
-                <div className="text-xs text-muted-foreground">This month</div>
               </div>
             </div>
             
             {(usage.chatUsage.used >= usage.chatUsage.limit * 0.8 || usage.analysisUsage.used >= usage.analysisUsage.limit * 0.8) && (
-              <div className="mt-4 p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
-                <div className="flex items-center gap-2 text-orange-700 dark:text-orange-400">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span className="text-sm font-medium">
-                    You're running low on AI quota. Consider upgrading your plan for unlimited access.
-                  </span>
+              <div className="mt-8 p-4 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl border border-orange-200 dark:border-orange-800 animate-in slide-in-from-top duration-500">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-orange-700 dark:text-orange-300">Running Low on AI Quota!</div>
+                      <div className="text-sm text-orange-600 dark:text-orange-400">Upgrade for unlimited access to AI features</div>
+                    </div>
+                  </div>
+                  <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Upgrade Now
+                  </Button>
                 </div>
               </div>
             )}
@@ -336,34 +401,47 @@ export default function AIAssistantPage() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quickActions.map((action) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {quickActions.map((action, index) => (
             <Card 
               key={action.id} 
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                selectedQuickAction === action.id ? 'ring-2 ring-primary bg-primary/5' : ''
-              }`}
+              className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 ${
+                selectedQuickAction === action.id 
+                  ? 'ring-2 ring-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg scale-105 -translate-y-1' 
+                  : 'hover:bg-gradient-to-br hover:from-blue-50/50 hover:to-purple-50/50 dark:hover:from-blue-950/20 dark:hover:to-purple-950/20'
+              } animate-in fade-in slide-in-from-bottom duration-500`}
+              style={{ animationDelay: `${index * 100}ms` }}
               onClick={() => handleQuickAction(action)}
               data-testid={`card-quick-action-${action.id}`}
             >
-              <CardContent className="p-4">
-                <div className="space-y-3">
+              <CardContent className="p-6">
+                <div className="space-y-4">
                   <div className="flex items-start justify-between">
-                    {action.icon}
-                    <Badge variant="outline" className="text-xs">
+                    <div className="relative">
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-inner group-hover:shadow-lg transition-all duration-300">
+                        {action.icon}
+                      </div>
+                      {selectedQuickAction === action.id && (
+                        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-xl blur opacity-30 animate-pulse" />
+                      )}
+                    </div>
+                    <Badge variant="outline" className="text-xs font-medium group-hover:bg-primary/10 transition-colors duration-300">
                       {action.category}
                     </Badge>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{action.title}</h3>
-                    <p className="text-sm text-muted-foreground">{action.description}</p>
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-lg group-hover:text-primary transition-colors duration-300">{action.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{action.description}</p>
                   </div>
-                  {action.requiresAnalysis && (
-                    <Badge variant="secondary" className="text-xs">
-                      <BarChart3 className="w-3 h-3 mr-1" />
-                      Deep Analysis
-                    </Badge>
-                  )}
+                  <div className="flex items-center justify-between pt-2">
+                    {action.requiresAnalysis && (
+                      <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30">
+                        <BarChart3 className="w-3 h-3 mr-1" />
+                        Deep Analysis
+                      </Badge>
+                    )}
+                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -383,69 +461,126 @@ export default function AIAssistantPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Messages Display */}
+          {/* Messages Display - Enhanced Chat UI */}
           {currentConversation?.messages && currentConversation.messages.length > 0 && (
-            <div className="border rounded-lg p-4 bg-muted/20 max-h-80 overflow-y-auto space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground mb-3">Conversation</h4>
-              {currentConversation.messages.map((message: ChatMessage) => (
+            <div className="relative border-2 border-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-xl p-6 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-950/20 dark:to-purple-950/20 max-h-96 overflow-y-auto space-y-4 backdrop-blur-sm">
+              <div className="sticky top-0 bg-background/80 backdrop-blur-md rounded-lg p-2 mb-4">
+                <h4 className="text-sm font-bold text-center bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  AI Conversation
+                  <Sparkles className="w-4 h-4 text-yellow-500" />
+                </h4>
+              </div>
+              {currentConversation.messages.map((message: ChatMessage, index) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom duration-500`}
+                  style={{ animationDelay: `${index * 100}ms` }}
                   data-testid={`message-${message.role}-${message.id}`}
                 >
-                  <div
-                    className={`max-w-[85%] rounded-lg p-3 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-background border'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-2">
-                      {new Date(message.createdAt).toLocaleTimeString()}
-                    </p>
+                  <div className="flex items-end gap-2 max-w-[85%]">
+                    {message.role === 'assistant' && (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+                        <Brain className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <div
+                      className={`relative rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg ${
+                        message.role === 'user'
+                          ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm'
+                          : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-bl-sm'
+                      }`}
+                    >
+                      {message.role === 'assistant' && (
+                        <div className="absolute -top-1 -left-1 w-3 h-3 bg-gradient-to-br from-primary to-purple-600 rounded-full animate-pulse" />
+                      )}
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-xs opacity-70 mt-2 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {new Date(message.createdAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                    {message.role === 'user' && (
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg">
+                        <span className="text-white text-sm font-bold">You</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
               {sendMessageMutation.isPending && (
-                <div className="flex justify-start">
-                  <div className="bg-background border rounded-lg p-3 flex items-center gap-2">
-                    <Brain className="h-4 w-4 animate-pulse text-primary" />
-                    <span className="text-sm text-muted-foreground">AI is thinking...</span>
+                <div className="flex justify-start animate-in slide-in-from-bottom duration-300">
+                  <div className="flex items-end gap-2">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+                      <Brain className="w-4 h-4 text-white animate-pulse" />
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-sm p-4 flex items-center gap-3 shadow-md">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100" />
+                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200" />
+                      </div>
+                      <span className="text-sm text-muted-foreground font-medium">AI is analyzing your request...</span>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          <div className="space-y-3">
-            <Textarea
-              placeholder="Ask about your budget, savings goals, investment strategies, or any financial question..."
-              value={currentMessage}
-              onChange={(e) => setCurrentMessage(e.target.value)}
-              className="min-h-[100px] resize-none"
-              data-testid="textarea-ai-message"
-            />
+          {/* Enhanced Input Area */}
+          <div className="space-y-4">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl blur-sm" />
+              <Textarea
+                placeholder="💬 Ask me anything about your finances... Try: 'How can I save more money?' or 'Should I invest right now?'"
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                className="relative min-h-[120px] resize-none border-2 border-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 text-base leading-relaxed"
+                data-testid="textarea-ai-message"
+              />
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground bg-background/80 rounded-full px-2 py-1">
+                  <span className={currentMessage.length > 800 ? 'text-orange-500 font-medium' : ''}>
+                    {currentMessage.length}
+                  </span>
+                  <span>/1000</span>
+                </div>
+              </div>
+            </div>
             
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-muted-foreground">
-                {currentMessage.length}/1000 characters
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Sparkles className="w-3 h-3 text-yellow-500" />
+                  <span>Powered by AI</span>
+                </div>
+                {selectedQuickAction && (
+                  <Badge variant="secondary" className="text-xs bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 animate-pulse">
+                    <Zap className="w-3 h-3 mr-1" />
+                    Quick Action Selected
+                  </Badge>
+                )}
               </div>
               
               <Button
                 onClick={handleSendMessage}
                 disabled={!currentMessage.trim() || sendMessageMutation.isPending}
+                className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-8 py-2"
                 data-testid="button-send-ai-message"
               >
                 {sendMessageMutation.isPending ? (
                   <>
-                    <Brain className="w-4 h-4 mr-2 animate-pulse" />
-                    Thinking...
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Analyzing...</span>
+                    </div>
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform duration-300" />
                     Send Message
+                    <Sparkles className="w-3 h-3 ml-2 animate-pulse" />
                   </>
                 )}
               </Button>
