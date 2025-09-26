@@ -140,7 +140,7 @@ Role: Provide specific, actionable financial advice (max 150 words)
   private findTemplateMatch(message: string): string | null {
     const normalizedMessage = message.toLowerCase();
     
-    for (const [keyword, template] of ADVICE_TEMPLATES) {
+    for (const [keyword, template] of Array.from(ADVICE_TEMPLATES.entries())) {
       if (normalizedMessage.includes(keyword)) {
         return template;
       }
@@ -198,7 +198,7 @@ Q: ${userMessage}
 A:`;
 
       const response = await genai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: fullPrompt
       });
       
@@ -267,7 +267,7 @@ A:`;
 
     try {
       const response = await genai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         contents: insightPrompt
       });
       
