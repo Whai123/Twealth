@@ -25,6 +25,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface UsageInfo {
@@ -179,6 +180,13 @@ export default function AIAssistantPage() {
       const messageResponse = await apiRequest("POST", `/api/chat/conversations/${conversationId}/messages`, { 
         content 
       });
+      
+      // Handle quota exceeded error
+      if (messageResponse.status === 429) {
+        const errorData = await messageResponse.json();
+        throw new Error(errorData.message || "Usage limit exceeded");
+      }
+      
       return await messageResponse.json();
     },
     onSuccess: () => {
@@ -188,15 +196,54 @@ export default function AIAssistantPage() {
       setSelectedQuickAction(null);
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
-        variant: "destructive"
-      });
+      if (error.message.includes("limit exceeded")) {
+        toast({
+          title: "🚀 Upgrade Required",
+          description: "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+          variant: "destructive",
+          duration: 8000,
+          action: (
+            <ToastAction 
+              altText="Upgrade to Premium"
+              onClick={() => window.location.href = '/subscription'}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-300"
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              Upgrade
+            </ToastAction>
+          )
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send message",
+          variant: "destructive"
+        });
+      }
     }
   });
 
   const handleQuickAction = (action: QuickAction) => {
+    if (isLimitExceeded) {
+      toast({
+        title: "🚀 Upgrade Required",
+        description: "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+        variant: "destructive",
+        duration: 8000,
+        action: (
+          <ToastAction 
+            altText="Upgrade to Premium"
+            onClick={() => window.location.href = '/subscription'}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-300"
+          >
+            <Crown className="w-4 h-4 mr-2" />
+            Upgrade
+          </ToastAction>
+        )
+      });
+      return;
+    }
+    
     setSelectedQuickAction(action.id);
     setCurrentMessage(action.prompt);
   };
@@ -204,12 +251,25 @@ export default function AIAssistantPage() {
   const handleSendMessage = () => {
     if (!currentMessage.trim()) return;
     
-    // Only block if usage is loaded and explicitly not allowed
-    if (usage && !usage.chatUsage.allowed) {
+    // Check if user has exceeded their limit
+    const isLimitExceeded = usage && usage.chatUsage.used >= usage.chatUsage.limit;
+    
+    if (isLimitExceeded) {
       toast({
-        title: "Upgrade Required",
-        description: "You've reached your AI chat limit. Upgrade your plan to continue.",
-        variant: "destructive"
+        title: "🚀 Upgrade Required",
+        description: "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
+        variant: "destructive",
+        duration: 8000,
+        action: (
+          <ToastAction 
+            altText="Upgrade to Premium"
+            onClick={() => window.location.href = '/subscription'}
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-orange-300"
+          >
+            <Crown className="w-4 h-4 mr-2" />
+            Upgrade
+          </ToastAction>
+        )
       });
       return;
     }
@@ -219,6 +279,7 @@ export default function AIAssistantPage() {
 
   const currentPlan = (currentData as any)?.subscription?.plan;
   const isFreePlan = currentPlan?.name === 'Free';
+  const isLimitExceeded = usage && usage.chatUsage.used >= usage.chatUsage.limit;
 
   return (
     <div className="container mx-auto p-6 max-w-6xl space-y-8">
@@ -333,21 +394,79 @@ export default function AIAssistantPage() {
               </div>
             </div>
             
-            {(usage.chatUsage.used >= usage.chatUsage.limit * 0.8 || usage.analysisUsage.used >= usage.analysisUsage.limit * 0.8) && (
-              <div className="mt-8 p-4 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl border border-orange-200 dark:border-orange-800 animate-in slide-in-from-top duration-500">
+            {/* Dynamic quota status messages */}
+            {usage.chatUsage.used >= usage.chatUsage.limit && (
+              <div className="mt-8 p-6 bg-gradient-to-r from-red-500/20 to-pink-500/20 rounded-xl border-2 border-red-300 dark:border-red-700 animate-in slide-in-from-top duration-500 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl shadow-lg">
+                      <AlertTriangle className="w-6 h-6 text-white animate-bounce" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-xl text-red-700 dark:text-red-300 mb-1">🚫 AI Chat Limit Reached!</div>
+                      <div className="text-red-600 dark:text-red-400 mb-2">You've used all {usage.chatUsage.limit} AI chats for this month</div>
+                      <div className="text-sm text-red-600 dark:text-red-400">Upgrade to Premium for unlimited AI assistance</div>
+                    </div>
+                  </div>
+                  <Button 
+                    size="lg" 
+                    className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-lg transform hover:scale-105 transition-all duration-300"
+                    onClick={() => window.location.href = '/subscription'}
+                    data-testid="button-upgrade-from-quota"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    Upgrade Now
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {(usage.chatUsage.used >= usage.chatUsage.limit * 0.8 && usage.chatUsage.used < usage.chatUsage.limit) && (
+              <div className="mt-8 p-4 bg-gradient-to-r from-orange-500/10 to-yellow-500/10 rounded-xl border border-orange-200 dark:border-orange-800 animate-in slide-in-from-top duration-500">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
+                    <div className="p-2 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-lg">
                       <AlertTriangle className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-bold text-orange-700 dark:text-orange-300">Running Low on AI Quota!</div>
-                      <div className="text-sm text-orange-600 dark:text-orange-400">Upgrade for unlimited access to AI features</div>
+                      <div className="font-bold text-orange-700 dark:text-orange-300">⚠️ Running Low on AI Quota!</div>
+                      <div className="text-sm text-orange-600 dark:text-orange-400">Only {usage.chatUsage.remaining} AI chats remaining. Upgrade for unlimited access!</div>
                     </div>
                   </div>
-                  <Button size="sm" className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg">
+                  <Button 
+                    size="sm" 
+                    className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 shadow-lg"
+                    onClick={() => window.location.href = '/subscription'}
+                    data-testid="button-upgrade-warning"
+                  >
                     <Crown className="w-4 h-4 mr-2" />
-                    Upgrade Now
+                    Upgrade
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {usage.chatUsage.used < usage.chatUsage.limit * 0.8 && isFreePlan && (
+              <div className="mt-8 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl border border-blue-200 dark:border-blue-800 animate-in slide-in-from-top duration-500">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-blue-700 dark:text-blue-300">✨ Loving the AI Assistant?</div>
+                      <div className="text-sm text-blue-600 dark:text-blue-400">Upgrade to Premium for unlimited chats and advanced features!</div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950"
+                    onClick={() => window.location.href = '/subscription'}
+                    data-testid="button-upgrade-promotion"
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    See Plans
                   </Button>
                 </div>
               </div>
@@ -405,11 +524,13 @@ export default function AIAssistantPage() {
           {quickActions.map((action, index) => (
             <Card 
               key={action.id} 
-              className={`group cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-2 ${
-                selectedQuickAction === action.id 
-                  ? 'ring-2 ring-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg scale-105 -translate-y-1' 
-                  : 'hover:bg-gradient-to-br hover:from-blue-50/50 hover:to-purple-50/50 dark:hover:from-blue-950/20 dark:hover:to-purple-950/20'
-              } animate-in fade-in slide-in-from-bottom duration-500`}
+              className={`group transition-all duration-300 animate-in fade-in slide-in-from-bottom duration-500 ${
+                isLimitExceeded 
+                  ? 'cursor-not-allowed opacity-60 grayscale hover:grayscale-0 hover:opacity-80 bg-gradient-to-br from-red-50/30 to-pink-50/30 dark:from-red-950/10 dark:to-pink-950/10 border-red-200 dark:border-red-800' 
+                  : selectedQuickAction === action.id 
+                    ? 'ring-2 ring-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg scale-105 -translate-y-1 cursor-pointer' 
+                    : 'cursor-pointer hover:shadow-xl hover:scale-105 hover:-translate-y-2 hover:bg-gradient-to-br hover:from-blue-50/50 hover:to-purple-50/50 dark:hover:from-blue-950/20 dark:hover:to-purple-950/20'
+              }`}
               style={{ animationDelay: `${index * 100}ms` }}
               onClick={() => handleQuickAction(action)}
               data-testid={`card-quick-action-${action.id}`}
@@ -424,8 +545,23 @@ export default function AIAssistantPage() {
                       {selectedQuickAction === action.id && (
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-xl blur opacity-30 animate-pulse" />
                       )}
+                      {isLimitExceeded && (
+                        <div className="absolute -inset-1 bg-red-500/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                          <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                            <Crown className="w-3 h-3" />
+                            <span>Upgrade</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <Badge variant="outline" className="text-xs font-medium group-hover:bg-primary/10 transition-colors duration-300">
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs font-medium transition-colors duration-300 ${
+                        isLimitExceeded 
+                          ? 'border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30' 
+                          : 'group-hover:bg-primary/10'
+                      }`}
+                    >
                       {action.category}
                     </Badge>
                   </div>
@@ -533,10 +669,18 @@ export default function AIAssistantPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl blur-sm" />
               <Textarea
-                placeholder="💬 Ask me anything about your finances... Try: 'How can I save more money?' or 'Should I invest right now?'"
+                placeholder={isLimitExceeded ? 
+                  "🚫 Chat limit reached. Upgrade to Premium for unlimited AI assistance!" :
+                  "💬 Ask me anything about your finances... Try: 'How can I save more money?' or 'Should I invest right now?'"
+                }
                 value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                className="relative min-h-[120px] resize-none border-2 border-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-xl bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 text-base leading-relaxed"
+                onChange={(e) => !isLimitExceeded && setCurrentMessage(e.target.value)}
+                disabled={isLimitExceeded}
+                className={`relative min-h-[120px] resize-none border-2 rounded-xl backdrop-blur-sm focus:ring-2 focus:ring-primary transition-all duration-300 text-base leading-relaxed ${
+                  isLimitExceeded 
+                    ? 'border-red-300 bg-red-50/50 dark:bg-red-950/20 dark:border-red-700 text-red-600 dark:text-red-400 placeholder-red-400 dark:placeholder-red-500 cursor-not-allowed opacity-70' 
+                    : 'border-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 bg-white/50 dark:bg-gray-900/50 focus:border-transparent'
+                }`}
                 data-testid="textarea-ai-message"
               />
               <div className="absolute bottom-3 right-3 flex items-center gap-2">
@@ -564,12 +708,22 @@ export default function AIAssistantPage() {
               </div>
               
               <Button
-                onClick={handleSendMessage}
-                disabled={!currentMessage.trim() || sendMessageMutation.isPending}
-                className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-8 py-2"
+                onClick={isLimitExceeded ? () => window.location.href = '/subscription' : handleSendMessage}
+                disabled={(!currentMessage.trim() || sendMessageMutation.isPending) && !isLimitExceeded}
+                className={`shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-8 py-2 ${
+                  isLimitExceeded 
+                    ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600' 
+                    : 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
+                }`}
                 data-testid="button-send-ai-message"
               >
-                {sendMessageMutation.isPending ? (
+                {isLimitExceeded ? (
+                  <>
+                    <Crown className="w-4 h-4 mr-2" />
+                    Upgrade to Chat
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </>
+                ) : sendMessageMutation.isPending ? (
                   <>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
