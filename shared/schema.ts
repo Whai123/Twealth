@@ -131,6 +131,7 @@ export const userPreferences = pgTable("user_preferences", {
   timeZone: text("time_zone").default("UTC"),
   dateFormat: text("date_format").default("MM/dd/yyyy"),
   currency: text("currency").default("USD"),
+  hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
   emailNotifications: boolean("email_notifications").default(true),
   pushNotifications: boolean("push_notifications").default(true),
   marketingEmails: boolean("marketing_emails").default(false),

@@ -9,6 +9,7 @@ import { lazy, Suspense, startTransition } from 'react';
 import { Card } from "@/components/ui/card";
 
 const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Welcome = lazy(() => import("@/pages/welcome"));
 const Groups = lazy(() => import("@/pages/groups"));
 const Calendar = lazy(() => import("@/pages/calendar"));
 const FinancialGoals = lazy(() => import("@/pages/financial-goals"));
@@ -35,6 +36,7 @@ const PageLoader = () => (
 import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import ErrorBoundary from "@/components/error-boundary";
+import { OnboardingRedirect } from "@/components/onboarding-redirect";
 
 function Router() {
   const [location] = useLocation();
@@ -59,37 +61,40 @@ function Router() {
   
   // Regular routes with responsive navigation
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Desktop Sidebar - hidden on mobile */}
-      <div className="hidden md:block">
-        <Sidebar />
+    <OnboardingRedirect>
+      <div className="flex min-h-screen bg-background">
+        {/* Desktop Sidebar - hidden on mobile */}
+        <div className="hidden md:block">
+          <Sidebar />
+        </div>
+        
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-auto pb-20 md:pb-0">
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Switch>
+                <Route path="/" component={Dashboard} />
+                <Route path="/welcome" component={Welcome} />
+                <Route path="/groups" component={Groups} />
+                <Route path="/calendar" component={Calendar} />
+                <Route path="/financial-goals" component={FinancialGoals} />
+                <Route path="/money-tracking" component={MoneyTracking} />
+                <Route path="/planning" component={Planning} />
+                <Route path="/ai-assistant" component={AIAssistant} />
+                <Route path="/referrals" component={Referrals} />
+                <Route path="/subscription" component={Subscription} />
+                <Route path="/upgrade" component={Upgrade} />
+                <Route path="/settings" component={Settings} />
+                <Route component={NotFound} />
+              </Switch>
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+        
+        {/* Mobile Navigation - shown only on mobile */}
+        <MobileNavigation />
       </div>
-      
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-auto pb-20 md:pb-0">
-        <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
-            <Switch>
-              <Route path="/" component={Dashboard} />
-              <Route path="/groups" component={Groups} />
-              <Route path="/calendar" component={Calendar} />
-              <Route path="/financial-goals" component={FinancialGoals} />
-              <Route path="/money-tracking" component={MoneyTracking} />
-              <Route path="/planning" component={Planning} />
-              <Route path="/ai-assistant" component={AIAssistant} />
-              <Route path="/referrals" component={Referrals} />
-              <Route path="/subscription" component={Subscription} />
-              <Route path="/upgrade" component={Upgrade} />
-              <Route path="/settings" component={Settings} />
-              <Route component={NotFound} />
-            </Switch>
-          </Suspense>
-        </ErrorBoundary>
-      </main>
-      
-      {/* Mobile Navigation - shown only on mobile */}
-      <MobileNavigation />
-    </div>
+    </OnboardingRedirect>
   );
 }
 
