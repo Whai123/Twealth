@@ -1,0 +1,160 @@
+{
+  "navigation": {
+    "dashboard": "Bảng điều khiển",
+    "calendar": "Lịch", 
+    "money": "Tiền",
+    "goals": "Mục tiêu",
+    "groups": "Nhóm",
+    "aiAssistant": "Trợ lý AI",
+    "referrals": "Giới thiệu",
+    "settings": "Cài đặt"
+  },
+  "aiAssistant": {
+    "title": "Trợ lý Tài chính AI",
+    "subtitle": "Nhận lời khuyên tài chính cá nhân hóa và thông tin chi tiết được hỗ trợ bởi AI",
+    "usageTitle": "Sử dụng AI",
+    "unlimited": "Không giới hạn",
+    "quotaExceeded": "Bạn đã đạt đến giới hạn trò chuyện AI. Nâng cấp lên Premium để được hỗ trợ AI không giới hạn!",
+    "runningLow": "Bạn sắp hết lượt trò chuyện AI. Hãy xem xét nâng cấp lên Premium để truy cập không giới hạn.",
+    "upgradeRequired": "🚀 Cần nâng cấp",
+    "upgradeButton": "Nâng cấp lên Premium",
+    "chatPlaceholder": "Hỏi tôi bất cứ điều gì về tài chính của bạn...",
+    "send": "Gửi",
+    "upgradeToChat": "Nâng cấp để trò chuyện",
+    "quickActions": {
+      "title": "Hành động AI nhanh",
+      "subtitle": "Nhận thông tin chi tiết AI ngay lập tức cho nhu cầu tài chính của bạn",
+      "budgetAnalysis": {
+        "title": "Phân tích ngân sách",
+        "description": "Nhận thông tin chi tiết AI về các mô hình chi tiêu và đề xuất tối ưu hóa ngân sách.",
+        "category": "Phân tích"
+      },
+      "savingsStrategy": {
+        "title": "Chiến lược tiết kiệm", 
+        "description": "Nhận các khuyến nghị tiết kiệm cá nhân hóa dựa trên mục tiêu tài chính của bạn.",
+        "category": "Lập kế hoạch"
+      },
+      "expenseOptimization": {
+        "title": "Tối ưu hóa chi phí",
+        "description": "Khám phá các cách để giảm chi phí không cần thiết và cải thiện hiệu quả tài chính.",
+        "category": "Tối ưu hóa"
+      },
+      "goalPlanning": {
+        "title": "Lập kế hoạch mục tiêu",
+        "description": "Tạo các kế hoạch khả thi để đạt được mục tiêu tài chính ngắn hạn và dài hạn.",
+        "category": "Mục tiêu"
+      },
+      "investmentGuidance": {
+        "title": "Hướng dẫn đầu tư",
+        "description": "Nhận các nguyên tắc đầu tư cơ bản và lời khuyên đa dạng hóa danh mục đầu tư.",
+        "category": "Đầu tư"
+      },
+      "debtManagement": {
+        "title": "Quản lý nợ",
+        "description": "Chiến lược trả nợ hiệu quả và cải thiện sức khỏe tín dụng.",
+        "category": "Nợ"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Chọn gói của bạn",
+    "subtitle": "Mở khóa thông tin chi tiết AI không giới hạn và các tính năng cao cấp",
+    "free": {
+      "title": "Miễn phí",
+      "price": "Miễn phí",
+      "features": [
+        "5 cuộc trò chuyện AI mỗi tháng",
+        "Theo dõi tài chính cơ bản",
+        "Tích hợp lịch",
+        "Chia sẻ chi phí nhóm"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "60.000₫",
+      "period": "/tháng",
+      "features": [
+        "Trò chuyện AI không giới hạn",
+        "Thông tin tài chính nâng cao",
+        "Hỗ trợ ưu tiên",
+        "Xuất dữ liệu",
+        "Danh mục tùy chỉnh"
+      ],
+      "popular": "Phổ biến nhất"
+    },
+    "upgradeButton": "Nâng cấp ngay",
+    "currentPlan": "Gói hiện tại"
+  },
+  "dashboard": {
+    "welcome": "Chào mừng trở lại!",
+    "totalSavings": "Tổng tiết kiệm",
+    "activeGoals": "Mục tiêu đang hoạt động", 
+    "monthlyProgress": "Tiến độ hàng tháng",
+    "recentTransactions": "Giao dịch gần đây",
+    "upcomingEvents": "Sự kiện sắp tới",
+    "quickActions": "Hành động nhanh"
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Đã có lỗi xảy ra",
+    "retry": "Thử lại",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "add": "Thêm",
+    "remove": "Xóa",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước đó",
+    "close": "Đóng",
+    "done": "Hoàn thành"
+  },
+  "referrals": {
+    "title": "Giới thiệu bạn bè & Kiếm tiền",
+    "description": "Mời bạn bè đến Twealth và cả hai bạn đều nhận được tín dụng AI thưởng!",
+    "myCode": "Mã giới thiệu của tôi",
+    "myCodeDescription": "Chia sẻ mã này với bạn bè để kiếm tín dụng AI thưởng",
+    "useCode": "Sử dụng mã giới thiệu",
+    "useCodeDescription": "Có mã giới thiệu? Nhập vào đây để kiếm tín dụng thưởng",
+    "enterCode": "Nhập mã giới thiệu",
+    "codePlaceholder": "FRIEND1234",
+    "useCodeButton": "Sử dụng mã",
+    "processing": "Đang xử lý...",
+    "shareCode": "Chia sẻ mã",
+    "shareTitle": "Tham gia Twealth với mã giới thiệu của tôi!",
+    "shareText": "Tham gia cùng tôi trên Twealth và nhận tín dụng AI thưởng! Sử dụng mã của tôi: {code}",
+    "copied": "Đã sao chép!",
+    "copiedDescription": "Mã giới thiệu đã được sao chép vào clipboard",
+    "success": "Thành công!",
+    "error": "Lỗi",
+    "bonusCredits": "Tín dụng thưởng",
+    "availableCredits": "Cuộc trò chuyện AI có sẵn",
+    "totalEarned": "Tổng kiếm được",
+    "uses": "Lượt sử dụng",
+    "active": "Đang hoạt động",
+    "inactive": "Không hoạt động",
+    "history": "Lịch sử giới thiệu",
+    "historyDescription": "Theo dõi các giới thiệu thành công và tín dụng đã kiếm được",
+    "noReferrals": "Chưa có giới thiệu nào",
+    "startSharing": "Bắt đầu chia sẻ mã của bạn để kiếm tín dụng thưởng!",
+    "friend": "Bạn bè",
+    "credits": "tín dụng",
+    "creditsHistory": "Lịch sử tín dụng",
+    "used": "Đã sử dụng",
+    "bonusInfo": "Cả bạn và bạn bè sẽ nhận được 10 cuộc trò chuyện AI thưởng khi họ sử dụng mã giới thiệu của bạn!"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)",
+    "vnd": "VND (₫)"
+  }
+}

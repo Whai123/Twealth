@@ -82,9 +82,14 @@ export default function UserPreferences({ }: UserPreferencesProps) {
   const languages = [
     { value: "en", label: "English", flag: "🇺🇸" },
     { value: "es", label: "Español", flag: "🇪🇸" },
-    { value: "fr", label: "Français", flag: "🇫🇷" },
-    { value: "de", label: "Deutsch", flag: "🇩🇪" },
-    { value: "zh", label: "中文", flag: "🇨🇳" }
+    { value: "th", label: "ไทย", flag: "🇹🇭" },
+    { value: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },
+    { value: "pt", label: "Português", flag: "🇧🇷" },
+    { value: "hi", label: "हिन्दी", flag: "🇮🇳" },
+    { value: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
+    { value: "tl", label: "Filipino", flag: "🇵🇭" },
+    { value: "ms", label: "Bahasa Melayu", flag: "🇲🇾" },
+    { value: "tr", label: "Türkçe", flag: "🇹🇷" }
   ];
 
   const currencies = [
@@ -92,9 +97,13 @@ export default function UserPreferences({ }: UserPreferencesProps) {
     { value: "THB", label: "Thai Baht", symbol: "฿", flag: "🇹🇭" },
     { value: "EUR", label: "Euro", symbol: "€", flag: "🇪🇺" },
     { value: "IDR", label: "Indonesian Rupiah", symbol: "Rp", flag: "🇮🇩" },
+    { value: "VND", label: "Vietnamese Dong", symbol: "₫", flag: "🇻🇳" },
     { value: "INR", label: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
+    { value: "PHP", label: "Philippine Peso", symbol: "₱", flag: "🇵🇭" },
     { value: "BRL", label: "Brazilian Real", symbol: "R$", flag: "🇧🇷" },
+    { value: "MYR", label: "Malaysian Ringgit", symbol: "RM", flag: "🇲🇾" },
     { value: "MXN", label: "Mexican Peso", symbol: "$", flag: "🇲🇽" },
+    { value: "TRY", label: "Turkish Lira", symbol: "₺", flag: "🇹🇷" },
     { value: "GBP", label: "British Pound", symbol: "£", flag: "🇬🇧" },
     { value: "JPY", label: "Japanese Yen", symbol: "¥", flag: "🇯🇵" },
     { value: "CAD", label: "Canadian Dollar", symbol: "C$", flag: "🇨🇦" },

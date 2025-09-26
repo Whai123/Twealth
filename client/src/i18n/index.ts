@@ -9,6 +9,10 @@ import id from './locales/id.json';
 import th from './locales/th.json';
 import pt from './locales/pt.json';
 import hi from './locales/hi.json';
+import vi from './locales/vi.json';
+import tl from './locales/tl.json';
+import ms from './locales/ms.json';
+import tr from './locales/tr.json';
 
 const resources = {
   en: { translation: en },
@@ -16,7 +20,11 @@ const resources = {
   id: { translation: id },
   th: { translation: th },
   pt: { translation: pt },
-  hi: { translation: hi }
+  hi: { translation: hi },
+  vi: { translation: vi },
+  tl: { translation: tl },
+  ms: { translation: ms },
+  tr: { translation: tr }
 };
 
 i18n

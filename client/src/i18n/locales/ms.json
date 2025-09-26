@@ -1,0 +1,160 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "calendar": "Kalendar", 
+    "money": "Wang",
+    "goals": "Matlamat",
+    "groups": "Kumpulan",
+    "aiAssistant": "Pembantu AI",
+    "referrals": "Rujukan",
+    "settings": "Tetapan"
+  },
+  "aiAssistant": {
+    "title": "Pembantu Kewangan AI",
+    "subtitle": "Dapatkan nasihat kewangan peribadi dan wawasan yang dikuasakan oleh AI",
+    "usageTitle": "Penggunaan AI",
+    "unlimited": "Tanpa had",
+    "quotaExceeded": "Anda telah mencapai had sembang AI. Naik taraf ke Premium untuk bantuan AI tanpa had!",
+    "runningLow": "Anda hampir kehabisan sembang AI. Pertimbangkan untuk naik taraf ke Premium untuk akses tanpa had.",
+    "upgradeRequired": "🚀 Naik Taraf Diperlukan",
+    "upgradeButton": "Naik Taraf ke Premium",
+    "chatPlaceholder": "Tanya saya apa-apa tentang kewangan anda...",
+    "send": "Hantar",
+    "upgradeToChat": "Naik Taraf untuk Sembang",
+    "quickActions": {
+      "title": "Tindakan AI Pantas",
+      "subtitle": "Dapatkan wawasan AI segera untuk keperluan kewangan anda",
+      "budgetAnalysis": {
+        "title": "Analisis Belanjawan",
+        "description": "Dapatkan wawasan AI tentang corak perbelanjaan dan cadangan optimisasi belanjawan anda.",
+        "category": "Analisis"
+      },
+      "savingsStrategy": {
+        "title": "Strategi Simpanan", 
+        "description": "Terima cadangan simpanan peribadi berdasarkan matlamat kewangan anda.",
+        "category": "Perancangan"
+      },
+      "expenseOptimization": {
+        "title": "Pengoptimuman Perbelanjaan",
+        "description": "Temui cara untuk mengurangkan perbelanjaan yang tidak perlu dan meningkatkan kecekapan kewangan.",
+        "category": "Pengoptimuman"
+      },
+      "goalPlanning": {
+        "title": "Perancangan Matlamat",
+        "description": "Buat rancangan yang boleh dilaksanakan untuk mencapai matlamat kewangan jangka pendek dan panjang anda.",
+        "category": "Matlamat"
+      },
+      "investmentGuidance": {
+        "title": "Panduan Pelaburan",
+        "description": "Dapatkan prinsip pelaburan asas dan nasihat kepelbagaian portfolio.",
+        "category": "Pelaburan"
+      },
+      "debtManagement": {
+        "title": "Pengurusan Hutang",
+        "description": "Strategi untuk membayar hutang dengan cekap dan meningkatkan kesihatan kredit.",
+        "category": "Hutang"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Pilih Pelan Anda",
+    "subtitle": "Buka kunci wawasan AI tanpa had dan ciri premium",
+    "free": {
+      "title": "Percuma",
+      "price": "Percuma",
+      "features": [
+        "5 sembang AI sebulan",
+        "Penjejakan kewangan asas",
+        "Integrasi kalendar",
+        "Pembahagian perbelanjaan kumpulan"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "RM12",
+      "period": "/bulan",
+      "features": [
+        "Sembang AI tanpa had",
+        "Wawasan kewangan lanjutan",
+        "Sokongan keutamaan",
+        "Eksport data",
+        "Kategori tersuai"
+      ],
+      "popular": "Paling Popular"
+    },
+    "upgradeButton": "Naik Taraf Sekarang",
+    "currentPlan": "Pelan Semasa"
+  },
+  "dashboard": {
+    "welcome": "Selamat kembali!",
+    "totalSavings": "Jumlah Simpanan",
+    "activeGoals": "Matlamat Aktif", 
+    "monthlyProgress": "Kemajuan Bulanan",
+    "recentTransactions": "Transaksi Terkini",
+    "upcomingEvents": "Acara Akan Datang",
+    "quickActions": "Tindakan Pantas"
+  },
+  "common": {
+    "loading": "Memuatkan...",
+    "error": "Sesuatu tidak kena",
+    "retry": "Cuba Lagi",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Padam",
+    "edit": "Edit",
+    "add": "Tambah",
+    "remove": "Buang",
+    "confirm": "Sahkan",
+    "back": "Kembali",
+    "next": "Seterusnya",
+    "previous": "Sebelumnya",
+    "close": "Tutup",
+    "done": "Selesai"
+  },
+  "referrals": {
+    "title": "Rujuk Kawan & Dapat Untung",
+    "description": "Jemput kawan ke Twealth dan kedua-dua anda mendapat kredit AI bonus!",
+    "myCode": "Kod Rujukan Saya",
+    "myCodeDescription": "Kongsi kod ini dengan kawan untuk mendapat kredit AI bonus",
+    "useCode": "Guna Kod Rujukan",
+    "useCodeDescription": "Ada kod rujukan? Masukkan di sini untuk mendapat kredit bonus",
+    "enterCode": "Masukkan kod rujukan",
+    "codePlaceholder": "FRIEND1234",
+    "useCodeButton": "Guna Kod",
+    "processing": "Memproses...",
+    "shareCode": "Kongsi Kod",
+    "shareTitle": "Sertai Twealth dengan kod rujukan saya!",
+    "shareText": "Sertai saya di Twealth dan dapatkan kredit AI bonus! Guna kod saya: {code}",
+    "copied": "Disalin!",
+    "copiedDescription": "Kod rujukan disalin ke clipboard",
+    "success": "Berjaya!",
+    "error": "Ralat",
+    "bonusCredits": "Kredit Bonus",
+    "availableCredits": "Sembang AI tersedia",
+    "totalEarned": "Jumlah diperoleh",
+    "uses": "Penggunaan",
+    "active": "Aktif",
+    "inactive": "Tidak aktif",
+    "history": "Sejarah Rujukan",
+    "historyDescription": "Jejaki rujukan berjaya dan kredit yang diperoleh",
+    "noReferrals": "Tiada rujukan lagi",
+    "startSharing": "Mula kongsi kod anda untuk mendapat kredit bonus!",
+    "friend": "Kawan",
+    "credits": "kredit",
+    "creditsHistory": "Sejarah Kredit",
+    "used": "Digunakan",
+    "bonusInfo": "Anda dan kawan anda akan menerima 10 sembang AI bonus apabila mereka menggunakan kod rujukan anda!"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)",
+    "myr": "MYR (RM)"
+  }
+}

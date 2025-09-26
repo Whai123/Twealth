@@ -1,0 +1,160 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "calendar": "Kalendaryo", 
+    "money": "Pera",
+    "goals": "Mga layunin",
+    "groups": "Mga grupo",
+    "aiAssistant": "AI Assistant",
+    "referrals": "Mga referral",
+    "settings": "Mga setting"
+  },
+  "aiAssistant": {
+    "title": "AI Financial Assistant",
+    "subtitle": "Makakuha ng personalized na financial advice at insights na powered ng AI",
+    "usageTitle": "AI Usage",
+    "unlimited": "Walang limitasyon",
+    "quotaExceeded": "Naabot mo na ang iyong AI chat limit. Mag-upgrade sa Premium para sa unlimited AI assistance!",
+    "runningLow": "Konti na lang ang AI chats mo. Isaalang-alang ang pag-upgrade sa Premium para sa unlimited access.",
+    "upgradeRequired": "🚀 Kailangan ng Upgrade",
+    "upgradeButton": "Mag-upgrade sa Premium",
+    "chatPlaceholder": "Tanungin mo ako tungkol sa inyong finances...",
+    "send": "Ipadala",
+    "upgradeToChat": "Mag-upgrade para makakuha",
+    "quickActions": {
+      "title": "Mga Mabilis na AI Actions",
+      "subtitle": "Makakuha ng instant AI insights para sa inyong financial needs",
+      "budgetAnalysis": {
+        "title": "Budget Analysis",
+        "description": "Makakuha ng AI insights sa inyong spending patterns at budget optimization suggestions.",
+        "category": "Analysis"
+      },
+      "savingsStrategy": {
+        "title": "Savings Strategy", 
+        "description": "Makatanggap ng personalized savings recommendations based sa inyong financial goals.",
+        "category": "Planning"
+      },
+      "expenseOptimization": {
+        "title": "Expense Optimization",
+        "description": "Tuklasin ang mga paraan para mabawasan ang unnecessary expenses at mapahusay ang financial efficiency.",
+        "category": "Optimization"
+      },
+      "goalPlanning": {
+        "title": "Goal Planning",
+        "description": "Gumawa ng actionable plans para maabot ang inyong short at long-term financial goals.",
+        "category": "Goals"
+      },
+      "investmentGuidance": {
+        "title": "Investment Guidance",
+        "description": "Makakuha ng basic investment principles at portfolio diversification advice.",
+        "category": "Investment"
+      },
+      "debtManagement": {
+        "title": "Debt Management",
+        "description": "Mga estratehiya para sa efficient na pagbabayad ng mga utang at pagpapahusay ng credit health.",
+        "category": "Debt"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Piliin ang inyong Plan",
+    "subtitle": "I-unlock ang unlimited AI insights at premium features",
+    "free": {
+      "title": "Free",
+      "price": "Free",
+      "features": [
+        "5 AI chats bawat buwan",
+        "Basic financial tracking",
+        "Calendar integration",
+        "Group expense splitting"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "₱149",
+      "period": "/buwan",
+      "features": [
+        "Unlimited AI chats",
+        "Advanced financial insights",
+        "Priority support",
+        "Export data",
+        "Custom categories"
+      ],
+      "popular": "Pinaka-popular"
+    },
+    "upgradeButton": "Mag-upgrade Ngayon",
+    "currentPlan": "Kasalukuyang Plan"
+  },
+  "dashboard": {
+    "welcome": "Welcome back!",
+    "totalSavings": "Kabuuang Savings",
+    "activeGoals": "Active Goals", 
+    "monthlyProgress": "Monthly Progress",
+    "recentTransactions": "Mga Kamakailang Transaksyon",
+    "upcomingEvents": "Mga Paparating na Events",
+    "quickActions": "Mga Mabilis na Actions"
+  },
+  "common": {
+    "loading": "Naglo-load...",
+    "error": "May nangyaring mali",
+    "retry": "Subukan Ulit",
+    "save": "I-save",
+    "cancel": "Cancel",
+    "delete": "Tanggalin",
+    "edit": "I-edit",
+    "add": "Idagdag",
+    "remove": "Alisin",
+    "confirm": "Kumpirmahin",
+    "back": "Bumalik",
+    "next": "Susunod",
+    "previous": "Nakaraan",
+    "close": "Isara",
+    "done": "Tapos"
+  },
+  "referrals": {
+    "title": "Mag-refer ng mga Kaibigan at Kumita",
+    "description": "Imbitahan ang mga kaibigan sa Twealth at pareho kayong makakakuha ng bonus AI credits!",
+    "myCode": "Aking Referral Code",
+    "myCodeDescription": "I-share ang code na ito sa mga kaibigan para kumita ng bonus AI credits",
+    "useCode": "Gamitin ang Referral Code",
+    "useCodeDescription": "May referral code ka? I-enter mo dito para kumita ng bonus credits",
+    "enterCode": "I-enter ang referral code",
+    "codePlaceholder": "FRIEND1234",
+    "useCodeButton": "Gamitin ang Code",
+    "processing": "Ginagawa...",
+    "shareCode": "I-share ang Code",
+    "shareTitle": "Sumali sa Twealth gamit ang aking referral code!",
+    "shareText": "Sumali sa akin sa Twealth at makakuha ng bonus AI credits! Gamitin ang aking code: {code}",
+    "copied": "Na-copy na!",
+    "copiedDescription": "Na-copy na ang referral code sa clipboard",
+    "success": "Success!",
+    "error": "Error",
+    "bonusCredits": "Bonus Credits",
+    "availableCredits": "Available AI chats",
+    "totalEarned": "Kabuuang nakita",
+    "uses": "Mga gamit",
+    "active": "Active",
+    "inactive": "Inactive",
+    "history": "Referral History",
+    "historyDescription": "I-track ang inyong successful referrals at earned credits",
+    "noReferrals": "Walang referrals pa",
+    "startSharing": "Simulang i-share ang inyong code para kumita ng bonus credits!",
+    "friend": "Kaibigan",
+    "credits": "credits",
+    "creditsHistory": "Credits History",
+    "used": "Nagamit",
+    "bonusInfo": "Kayo at ang inyong kaibigan ay makatanggap ng 10 bonus AI chats kapag ginamit nila ang inyong referral code!"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)",
+    "php": "PHP (₱)"
+  }
+}

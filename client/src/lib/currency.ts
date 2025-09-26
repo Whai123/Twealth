@@ -20,6 +20,10 @@ export const CURRENCIES: Record<string, Currency> = {
   JPY: { code: 'JPY', name: 'Japanese Yen', symbol: '¥', flag: '🇯🇵', decimals: 0 },
   CAD: { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', flag: '🇨🇦', decimals: 2 },
   AUD: { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', flag: '🇦🇺', decimals: 2 },
+  VND: { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', flag: '🇻🇳', decimals: 0 },
+  PHP: { code: 'PHP', name: 'Philippine Peso', symbol: '₱', flag: '🇵🇭', decimals: 2 },
+  MYR: { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', flag: '🇲🇾', decimals: 2 },
+  TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', flag: '🇹🇷', decimals: 2 },
 };
 
 // Exchange rates relative to USD (updated periodically - in production would be from API)
@@ -35,6 +39,10 @@ export const EXCHANGE_RATES: Record<string, number> = {
   JPY: 150.00,    // 1 USD = 150 JPY
   CAD: 1.35,      // 1 USD = 1.35 CAD
   AUD: 1.50,      // 1 USD = 1.50 AUD
+  VND: 24000,     // 1 USD = 24,000 VND
+  PHP: 56.00,     // 1 USD = 56.00 PHP
+  MYR: 4.65,      // 1 USD = 4.65 MYR
+  TRY: 29.50,     // 1 USD = 29.50 TRY
 };
 
 /**
@@ -132,10 +140,14 @@ export function getLocalizedPrice(
   // Apply purchasing power parity adjustments for emerging markets
   const pppAdjustments: Record<string, number> = {
     IDR: 0.6,   // 40% discount for Indonesia
+    VND: 0.6,   // 40% discount for Vietnam
     INR: 0.65,  // 35% discount for India  
+    PHP: 0.7,   // 30% discount for Philippines
     BRL: 0.7,   // 30% discount for Brazil
+    MYR: 0.75,  // 25% discount for Malaysia
     MXN: 0.75,  // 25% discount for Mexico
     THB: 0.8,   // 20% discount for Thailand
+    TRY: 0.85,  // 15% discount for Turkey
   };
 
   if (pppAdjustments[targetCurrency]) {
@@ -166,9 +178,13 @@ function roundToNicePricing(amount: number, currency: string): number {
   const roundingRules: Record<string, (amount: number) => number> = {
     THB: (amt) => Math.round(amt / 10) * 10,        // Round to nearest 10 THB
     IDR: (amt) => Math.round(amt / 1000) * 1000,    // Round to nearest 1000 IDR  
+    VND: (amt) => Math.round(amt / 1000) * 1000,    // Round to nearest 1000 VND
     INR: (amt) => Math.round(amt / 10) * 10,        // Round to nearest 10 INR
+    PHP: (amt) => Math.round(amt),                  // Round to nearest peso
     BRL: (amt) => Math.round(amt * 2) / 2,          // Round to nearest 0.5 BRL
+    MYR: (amt) => Math.round(amt * 2) / 2,          // Round to nearest 0.5 MYR
     MXN: (amt) => Math.round(amt),                  // Round to nearest peso
+    TRY: (amt) => Math.round(amt),                  // Round to nearest lira
     JPY: (amt) => Math.round(amt / 10) * 10,        // Round to nearest 10 JPY
     default: (amt) => Math.round(amt * 100) / 100   // Round to nearest cent
   };
@@ -215,6 +231,10 @@ export function getRecommendedCurrency(userCountry?: string): string {
     'IT': 'EUR',
     'ES': 'EUR',
     'NL': 'EUR',
+    'VN': 'VND',
+    'PH': 'PHP',
+    'MY': 'MYR',
+    'TR': 'TRY',
   };
 
   return countryToCurrency[userCountry || ''] || 'USD';

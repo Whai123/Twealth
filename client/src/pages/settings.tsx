@@ -229,16 +229,21 @@ function Settings() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="USD">USD ($)</SelectItem>
-                            <SelectItem value="EUR">EUR (€)</SelectItem>
-                            <SelectItem value="GBP">GBP (£)</SelectItem>
-                            <SelectItem value="JPY">JPY (¥)</SelectItem>
-                            <SelectItem value="CAD">CAD (CA$)</SelectItem>
-                            <SelectItem value="AUD">AUD (AU$)</SelectItem>
-                            <SelectItem value="CHF">CHF</SelectItem>
-                            <SelectItem value="CNY">CNY (¥)</SelectItem>
-                            <SelectItem value="SEK">SEK</SelectItem>
-                            <SelectItem value="NZD">NZD</SelectItem>
+                            <SelectItem value="USD">🇺🇸 USD ($)</SelectItem>
+                            <SelectItem value="THB">🇹🇭 THB (฿)</SelectItem>
+                            <SelectItem value="EUR">🇪🇺 EUR (€)</SelectItem>
+                            <SelectItem value="IDR">🇮🇩 IDR (Rp)</SelectItem>
+                            <SelectItem value="VND">🇻🇳 VND (₫)</SelectItem>
+                            <SelectItem value="INR">🇮🇳 INR (₹)</SelectItem>
+                            <SelectItem value="PHP">🇵🇭 PHP (₱)</SelectItem>
+                            <SelectItem value="BRL">🇧🇷 BRL (R$)</SelectItem>
+                            <SelectItem value="MYR">🇲🇾 MYR (RM)</SelectItem>
+                            <SelectItem value="MXN">🇲🇽 MXN ($)</SelectItem>
+                            <SelectItem value="TRY">🇹🇷 TRY (₺)</SelectItem>
+                            <SelectItem value="GBP">🇬🇧 GBP (£)</SelectItem>
+                            <SelectItem value="JPY">🇯🇵 JPY (¥)</SelectItem>
+                            <SelectItem value="CAD">🇨🇦 CAD (C$)</SelectItem>
+                            <SelectItem value="AUD">🇦🇺 AUD (A$)</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>

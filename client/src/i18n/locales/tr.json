@@ -1,0 +1,160 @@
+{
+  "navigation": {
+    "dashboard": "Kontrol Paneli",
+    "calendar": "Takvim", 
+    "money": "Para",
+    "goals": "Hedefler",
+    "groups": "Gruplar",
+    "aiAssistant": "AI Asistanı",
+    "referrals": "Referanslar",
+    "settings": "Ayarlar"
+  },
+  "aiAssistant": {
+    "title": "AI Mali Asistan",
+    "subtitle": "AI destekli kişiselleştirilmiş mali tavsiyeler ve içgörüler alın",
+    "usageTitle": "AI Kullanımı",
+    "unlimited": "Sınırsız",
+    "quotaExceeded": "AI sohbet limitinize ulaştınız. Sınırsız AI yardımı için Premium'a yükseltin!",
+    "runningLow": "AI sohbetleriniz azalıyor. Sınırsız erişim için Premium'a yükseltmeyi düşünün.",
+    "upgradeRequired": "🚀 Yükseltme Gerekli",
+    "upgradeButton": "Premium'a Yükselt",
+    "chatPlaceholder": "Finanslarınızla ilgili her şeyi sorabilirsiniz...",
+    "send": "Gönder",
+    "upgradeToChat": "Sohbet için Yükselt",
+    "quickActions": {
+      "title": "Hızlı AI İşlemleri",
+      "subtitle": "Mali ihtiyaçlarınız için anında AI içgörüleri alın",
+      "budgetAnalysis": {
+        "title": "Bütçe Analizi",
+        "description": "Harcama modelleriniz ve bütçe optimizasyon önerileri için AI içgörüleri alın.",
+        "category": "Analiz"
+      },
+      "savingsStrategy": {
+        "title": "Tasarruf Stratejisi", 
+        "description": "Mali hedeflerinize dayalı kişiselleştirilmiş tasarruf önerileri alın.",
+        "category": "Planlama"
+      },
+      "expenseOptimization": {
+        "title": "Gider Optimizasyonu",
+        "description": "Gereksiz giderleri azaltmanın ve mali verimliliği artırmanın yollarını keşfedin.",
+        "category": "Optimizasyon"
+      },
+      "goalPlanning": {
+        "title": "Hedef Planlama",
+        "description": "Kısa ve uzun vadeli mali hedeflerinize ulaşmak için eyleme geçirilebilir planlar oluşturun.",
+        "category": "Hedefler"
+      },
+      "investmentGuidance": {
+        "title": "Yatırım Rehberliği",
+        "description": "Temel yatırım ilkeleri ve portföy çeşitlendirme tavsiyeleri alın.",
+        "category": "Yatırım"
+      },
+      "debtManagement": {
+        "title": "Borç Yönetimi",
+        "description": "Borçları verimli şekilde ödeme ve kredi sağlığını iyileştirme stratejileri.",
+        "category": "Borç"
+      }
+    }
+  },
+  "subscription": {
+    "title": "Planınızı Seçin",
+    "subtitle": "Sınırsız AI içgörüleri ve premium özelliklerin kilidini açın",
+    "free": {
+      "title": "Ücretsiz",
+      "price": "Ücretsiz",
+      "features": [
+        "Ayda 5 AI sohbeti",
+        "Temel mali takip",
+        "Takvim entegrasyonu",
+        "Grup gider paylaşımı"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "₺89",
+      "period": "/ay",
+      "features": [
+        "Sınırsız AI sohbetleri",
+        "Gelişmiş mali içgörüler",
+        "Öncelikli destek",
+        "Veri dışa aktarma",
+        "Özel kategoriler"
+      ],
+      "popular": "En Popüler"
+    },
+    "upgradeButton": "Şimdi Yükselt",
+    "currentPlan": "Mevcut Plan"
+  },
+  "dashboard": {
+    "welcome": "Tekrar hoş geldiniz!",
+    "totalSavings": "Toplam Tasarruf",
+    "activeGoals": "Aktif Hedefler", 
+    "monthlyProgress": "Aylık İlerleme",
+    "recentTransactions": "Son İşlemler",
+    "upcomingEvents": "Yaklaşan Etkinlikler",
+    "quickActions": "Hızlı İşlemler"
+  },
+  "common": {
+    "loading": "Yükleniyor...",
+    "error": "Bir şeyler yanlış gitti",
+    "retry": "Tekrar Dene",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "add": "Ekle",
+    "remove": "Kaldır",
+    "confirm": "Onayla",
+    "back": "Geri",
+    "next": "İleri",
+    "previous": "Önceki",
+    "close": "Kapat",
+    "done": "Tamam"
+  },
+  "referrals": {
+    "title": "Arkadaş Davet Et & Kazan",
+    "description": "Arkadaşlarınızı Twealth'e davet edin ve ikiniz de bonus AI kreditleri kazanın!",
+    "myCode": "Referans Kodum",
+    "myCodeDescription": "Bu kodu arkadaşlarınızla paylaşarak bonus AI kreditleri kazanın",
+    "useCode": "Referans Kodu Kullan",
+    "useCodeDescription": "Referans kodunuz var mı? Bonus krediler kazanmak için buraya girin",
+    "enterCode": "Referans kodunu girin",
+    "codePlaceholder": "FRIEND1234",
+    "useCodeButton": "Kodu Kullan",
+    "processing": "İşleniyor...",
+    "shareCode": "Kodu Paylaş",
+    "shareTitle": "Referans kodumla Twealth'e katıl!",
+    "shareText": "Twealth'te bana katıl ve bonus AI kreditleri kazan! Kodumu kullan: {code}",
+    "copied": "Kopyalandı!",
+    "copiedDescription": "Referans kodu panoya kopyalandı",
+    "success": "Başarılı!",
+    "error": "Hata",
+    "bonusCredits": "Bonus Krediler",
+    "availableCredits": "Mevcut AI sohbetleri",
+    "totalEarned": "Toplam kazanılan",
+    "uses": "Kullanımlar",
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "history": "Referans Geçmişi",
+    "historyDescription": "Başarılı referanslarınızı ve kazandığınız kredileri takip edin",
+    "noReferrals": "Henüz referans yok",
+    "startSharing": "Bonus krediler kazanmak için kodunuzu paylaşmaya başlayın!",
+    "friend": "Arkadaş",
+    "credits": "kredi",
+    "creditsHistory": "Kredi Geçmişi",
+    "used": "Kullanılan",
+    "bonusInfo": "Arkadaşınız referans kodunuzu kullandığında hem siz hem de arkadaşınız 10 bonus AI sohbeti alacaksınız!"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)",
+    "try": "TRY (₺)"
+  }
+}
