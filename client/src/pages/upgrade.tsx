@@ -212,26 +212,99 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => setLocation('/subscription')}
-          className="mb-6 hover:bg-white/50 dark:hover:bg-gray-800/50"
-          data-testid="button-back-subscription"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Subscription
-        </Button>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-900/30 dark:via-teal-900/30 dark:to-cyan-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-900/50 dark:via-teal-900/50 dark:to-cyan-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation('/subscription')}
+            className="mb-6 hover:bg-white/50 dark:hover:bg-gray-800/50"
+            data-testid="button-back-subscription"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Subscription
+          </Button>
 
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Choose Your Plan
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Unlock powerful AI features to supercharge your financial management
-          </p>
+          <div className="text-center space-y-6">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                <Crown className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                  🚀 Choose Your Plan
+                </h1>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <Zap className="w-5 h-5 text-yellow-500 animate-bounce" />
+                  <span className="text-lg text-muted-foreground">Unlock powerful AI features to supercharge your finances</span>
+                  <Zap className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Upgrade Benefits Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium">AI-Powered</span>
+                </div>
+                <div className="text-2xl font-bold text-green-600">
+                  Unlimited
+                </div>
+                <div className="text-xs text-muted-foreground">Analysis & insights</div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm font-medium">Smart</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  Advanced
+                </div>
+                <div className="text-xs text-muted-foreground">Budget optimization</div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Crown className="w-5 h-5 text-purple-500" />
+                  <span className="text-sm font-medium">Premium</span>
+                </div>
+                <div className="text-2xl font-bold text-purple-600">
+                  Priority
+                </div>
+                <div className="text-xs text-muted-foreground">Support & features</div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-5 h-5 text-teal-500" />
+                  <span className="text-sm font-medium">Secure</span>
+                </div>
+                <div className="text-2xl font-bold text-teal-600">
+                  🔒
+                </div>
+                <div className="text-xs text-muted-foreground">Stripe payments</div>
+              </div>
+            </div>
+            
+            {/* Welcome Message */}
+            <div className="bg-gradient-to-r from-white/80 to-emerald-50/80 dark:from-gray-800/80 dark:to-emerald-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+              <div className="flex items-center gap-3">
+                <Crown className="w-6 h-6 text-emerald-500" />
+                <div>
+                  <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Premium Upgrade Experience ⚡</h2>
+                  <p className="text-emerald-600 dark:text-emerald-300">Join thousands who've transformed their financial future with AI-powered insights and advanced features.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </header>
+      
+      <div className="container mx-auto px-4 py-8">
 
         {plansLoading ? (
           <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
