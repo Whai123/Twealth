@@ -1,14 +1,15 @@
-// ScheduleMoney Service Worker for Mobile PWA
-const CACHE_NAME = 'schedulemoney-v1';
-const STATIC_CACHE = 'schedulemoney-static-v1';
-const API_CACHE = 'schedulemoney-api-v1';
+// Twealth Service Worker for Mobile PWA
+const CACHE_NAME = 'twealth-v1';
+const STATIC_CACHE = 'twealth-static-v1';
+const API_CACHE = 'twealth-api-v1';
 
 // Assets to cache for offline functionality (production-safe paths)
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/welcome'
 ];
 
 // API endpoints to cache for offline access
@@ -20,7 +21,11 @@ const API_ENDPOINTS = [
   '/api/financial-goals',
   '/api/groups',
   '/api/transactions',
-  '/api/insights/time-value'
+  '/api/insights/time-value',
+  '/api/user-preferences',
+  '/api/subscription/usage',
+  '/api/subscription/current',
+  '/api/referrals/stats'
 ];
 
 // Install event - cache static assets

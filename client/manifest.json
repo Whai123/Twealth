@@ -1,11 +1,11 @@
 {
-  "name": "ScheduleMoney - Time & Money Tracker",
-  "short_name": "ScheduleMoney",
-  "description": "Mobile-first Progressive Web App for time tracking and financial management with group collaboration",
+  "name": "Twealth - AI Financial Assistant",
+  "short_name": "Twealth",
+  "description": "AI-powered financial planning and goal tracking with multi-currency support and group collaboration",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#2563eb",
+  "theme_color": "#8b5cf6",
   "background_color": "#ffffff",
   "scope": "/",
   "lang": "en",
@@ -26,25 +26,38 @@
   ],
   "shortcuts": [
     {
-      "name": "Time Tracker",
-      "short_name": "Timer",
-      "description": "Quick access to time tracking",
-      "url": "/calendar",
+      "name": "AI Assistant",
+      "short_name": "AI Chat",
+      "description": "Chat with your AI financial assistant",
+      "url": "/ai-assistant",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Financial Goals",
       "short_name": "Goals",
-      "description": "Track your savings goals",
+      "description": "Track your savings goals with AI insights",
       "url": "/financial-goals",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View your overview",
-      "url": "/dashboard",
+      "name": "Money Tracking",
+      "short_name": "Money",
+      "description": "Track expenses and income",
+      "url": "/money-tracking",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Groups",
+      "short_name": "Groups",
+      "description": "Collaborative financial planning",
+      "url": "/groups",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+twealth",
+      "url": "/?utm_source=pwa&action=%s"
     }
   ]
 }

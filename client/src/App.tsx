@@ -37,6 +37,8 @@ import Sidebar from "@/components/sidebar";
 import MobileNavigation from "@/components/mobile-navigation";
 import ErrorBoundary from "@/components/error-boundary";
 import { OnboardingRedirect } from "@/components/onboarding-redirect";
+import { OfflineIndicator } from "@/components/pwa/offline-indicator";
+import { PWAInstallPrompt } from "@/components/pwa/install-prompt";
 
 function Router() {
   const [location] = useLocation();
@@ -104,6 +106,8 @@ function App() {
       <UserProvider>
         <TooltipProvider>
           <Toaster />
+          <OfflineIndicator />
+          <PWAInstallPrompt />
           <ErrorBoundary>
             <Router />
           </ErrorBoundary>

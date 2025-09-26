@@ -18,7 +18,7 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New version available
               console.log('[PWA] New version available. Refresh to update.');
-              if (confirm('A new version of ScheduleMoney is available. Refresh to update?')) {
+              if (confirm('A new version of Twealth is available. Refresh to update?')) {
                 window.location.reload();
               }
             }
