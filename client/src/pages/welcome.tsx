@@ -158,61 +158,120 @@ export default function WelcomePage() {
   const currentStepData = onboardingSteps[currentStep];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header with Skip */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-full blur-xl animate-pulse delay-2000"></div>
+      </div>
+      
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        {/* Enhanced Header with Skip */}
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center">
-              <Crown className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+              <Crown className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold">Twealth</h1>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                💎 Twealth
+              </h1>
+              <p className="text-sm text-muted-foreground">Your AI Financial Assistant</p>
+            </div>
           </div>
           <Button
             variant="ghost"
             onClick={handleSkip}
             disabled={completeOnboardingMutation.isPending}
+            className="hover:bg-white/50 dark:hover:bg-gray-800/50 backdrop-blur-sm transition-all duration-300"
             data-testid="button-skip-onboarding"
           >
-            Skip Tour
+            ⚡ Skip Tour
           </Button>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2">
-            {onboardingSteps.map((_, index) => (
-              <div
-                key={index}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index <= currentStep 
-                    ? 'bg-primary scale-110' 
-                    : 'bg-gray-200 dark:bg-gray-700'
-                }`}
-              />
-            ))}
+        {/* Enhanced Progress Indicator */}
+        <div className="flex justify-center mb-12">
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg">
+            <div className="flex items-center gap-3">
+              {onboardingSteps.map((_, index) => (
+                <div key={index} className="flex items-center">
+                  <div
+                    className={`w-4 h-4 rounded-full transition-all duration-500 ${
+                      index <= currentStep 
+                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 scale-125 shadow-lg' 
+                        : 'bg-gray-200 dark:bg-gray-600'
+                    }`}
+                  />
+                  {index < onboardingSteps.length - 1 && (
+                    <div className={`w-8 h-0.5 mx-1 transition-all duration-500 ${
+                      index < currentStep 
+                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600' 
+                        : 'bg-gray-200 dark:bg-gray-600'
+                    }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-2">
+              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                Step {currentStep + 1} of {onboardingSteps.length}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto">
           {currentStep === 0 ? (
-            // Welcome Screen with Value Proposition
-            <div className="text-center space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <Globe className="w-6 h-6 text-primary" />
-                  <span className="text-lg font-medium flex items-center gap-2">
-                    {currencyData.flag} {currencyData.name}
-                  </span>
+            // Enhanced Welcome Screen with Value Proposition
+            <div className="text-center space-y-12">
+              <div className="space-y-6">
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Globe className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20 shadow-lg">
+                    <span className="text-lg font-semibold flex items-center gap-2">
+                      {currencyData.flag} {currencyData.name}
+                    </span>
+                  </div>
                 </div>
                 
-                <h2 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <h2 className="text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
                   {valueProposition.title}
                 </h2>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
                   {valueProposition.subtitle}
                 </p>
+                
+                {/* Feature Highlights */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
+                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:shadow-lg transition-all duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">🤖 AI Assistant</h3>
+                    <p className="text-sm text-muted-foreground">Chat with AI for instant financial advice</p>
+                  </div>
+                  
+                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:shadow-lg transition-all duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Target className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">🎯 Smart Goals</h3>
+                    <p className="text-sm text-muted-foreground">AI-powered goal tracking and strategies</p>
+                  </div>
+                  
+                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:shadow-lg transition-all duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">👥 Group Planning</h3>
+                    <p className="text-sm text-muted-foreground">Collaborate on shared financial goals</p>
+                  </div>
+                </div>
               </div>
 
               {/* Pricing Card */}
