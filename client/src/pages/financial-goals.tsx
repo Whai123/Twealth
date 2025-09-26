@@ -296,67 +296,116 @@ export default function FinancialGoals() {
   const financialGoals = goals || [];
 
   return (
-    <>
-      {/* Header - Modern Design */}
-      <header 
-        className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
-        style={{ 
-          paddingLeft: 'var(--space-4)', 
-          paddingRight: 'var(--space-4)',
-          paddingTop: 'var(--space-4)',
-          paddingBottom: 'var(--space-4)'
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h1 
-              className="text-xl md:text-2xl font-bold text-brand flex items-center"
-              style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-2xl))' }}
-            >
-              <Target className="mr-2 text-brand" size={20} />
-              Financial Goals
-            </h1>
-            <p 
-              className="text-muted-foreground font-medium truncate"
-              style={{ 
-                fontSize: 'var(--text-sm)',
-                marginTop: 'var(--space-1)'
-              }}
-            >
-              Track your savings targets and progress
-            </p>
-          </div>
-          <div className="flex items-center">
-            <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DrawerTrigger asChild>
-                <Button 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm transition-all duration-200 hover:-translate-y-px min-h-[44px]"
-                  style={{ 
-                    borderRadius: 'var(--radius)',
-                    padding: 'var(--space-3) var(--space-4)'
-                  }}
-                  data-testid="button-create-goal"
-                >
-                  <Plus size={16} className="mr-2" />
-                  <span className="hidden sm:inline">New Goal</span>
-                  <span className="sm:hidden">+</span>
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent className="max-h-[90vh]">
-                <div className="p-4 pb-6">
-                  <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
-                  <DrawerDescription className="text-muted-foreground mb-4">
-                    Set up a new financial goal to track your savings progress
-                  </DrawerDescription>
-                  <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/50 dark:via-emerald-900/50 dark:to-teal-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                  <Target className="w-8 h-8 text-white" />
                 </div>
-              </DrawerContent>
-            </Drawer>
+                <div>
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    🎯 Financial Goals
+                  </h1>
+                  <p className="text-xl text-muted-foreground">AI-powered savings optimization and goal tracking</p>
+                </div>
+              </div>
+              
+              {/* Goals Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium">Total Saved</span>
+                  </div>
+                  <div className="text-2xl font-bold text-green-600">
+                    ${financialGoals.reduce((sum: number, goal: any) => sum + parseFloat(goal.currentAmount), 0).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Across all goals</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-5 h-5 text-emerald-500" />
+                    <span className="text-sm font-medium">Active Goals</span>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600">
+                    {financialGoals.filter((goal: any) => goal.status === "active").length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">In progress</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-teal-500" />
+                    <span className="text-sm font-medium">Progress</span>
+                  </div>
+                  <div className="text-2xl font-bold text-teal-600">
+                    {financialGoals.length > 0 ? Math.round(
+                      financialGoals.reduce((sum: number, goal: any) => {
+                        const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
+                        return sum + progress;
+                      }, 0) / financialGoals.length
+                    ) : 0}%
+                  </div>
+                  <div className="text-xs text-muted-foreground">Average completion</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Award className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm font-medium">Completed</span>
+                  </div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {financialGoals.filter((goal: any) => goal.status === "completed").length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Goals achieved</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Button */}
+            <div className="flex items-center gap-3 ml-6">
+              <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DrawerTrigger asChild>
+                  <Button 
+                    className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    data-testid="button-create-goal"
+                  >
+                    <Plus size={18} className="mr-2" />
+                    💰 New Goal
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent className="max-h-[90vh]">
+                  <div className="p-4 pb-6">
+                    <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
+                    <DrawerDescription className="text-muted-foreground mb-4">
+                      Set up a new financial goal to track your savings progress
+                    </DrawerDescription>
+                    <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
+                  </div>
+                </DrawerContent>
+              </Drawer>
+            </div>
+          </div>
+          
+          {/* Welcome Message */}
+          <div className="bg-gradient-to-r from-white/80 to-green-50/80 dark:from-gray-800/80 dark:to-green-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-6 h-6 text-green-500" />
+              <div>
+                <h2 className="text-lg font-semibold text-green-800 dark:text-green-200">Smart Savings 💡</h2>
+                <p className="text-green-600 dark:text-green-300">AI optimizes your savings strategy and suggests the best paths to reach your financial goals faster.</p>
+              </div>
+            </div>
           </div>
         </div>
       </header>
-
-      <div style={{ padding: 'var(--space-6)', paddingTop: 'var(--space-4)' }}>
+      
+      <div className="container mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center space-x-2" data-testid="tab-overview">
