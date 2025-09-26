@@ -271,76 +271,160 @@ export default function Groups() {
   const userGroups = groups || [];
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-              🚀 Collaborative Events
-            </h1>
-            <p className="text-muted-foreground text-lg mt-2">Plan together, grow together - AI-powered event scheduling</p>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-emerald-900/30 dark:via-blue-900/30 dark:to-purple-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-emerald-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    🚀 Team Collaboration
+                  </h1>
+                  <p className="text-xl text-muted-foreground">Plan together, achieve together - AI-powered group management</p>
+                </div>
+              </div>
+              
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-5 h-5 text-emerald-500" />
+                    <span className="text-sm font-medium">Active Groups</span>
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-600">{userGroups.length}</div>
+                  <div className="text-xs text-muted-foreground">Your teams</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Calendar className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium">Events</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600">{events?.length || 0}</div>
+                  <div className="text-xs text-muted-foreground">This month</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium">Success Rate</span>
+                  </div>
+                  <div className="text-2xl font-bold text-purple-600">85%</div>
+                  <div className="text-xs text-muted-foreground">Event viability</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-pink-500" />
+                    <span className="text-sm font-medium">AI Insights</span>
+                  </div>
+                  <div className="text-2xl font-bold text-pink-600">12</div>
+                  <div className="text-xs text-muted-foreground">This week</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action Button */}
+            <div className="flex items-center gap-3 ml-6">
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    size="lg" 
+                    className="bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-600 hover:from-emerald-600 hover:via-blue-600 hover:to-purple-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl" 
+                    data-testid="button-create-group"
+                  >
+                    <Sparkles size={18} className="mr-2" />
+                    🎯 Create Group
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg" data-testid="button-create-group">
-                <Sparkles size={18} className="mr-2" />
-                🎯 Create Event
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+          
+          {/* Welcome Message */}
+          <div className="bg-gradient-to-r from-white/80 to-emerald-50/80 dark:from-gray-800/80 dark:to-emerald-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="flex items-center gap-3">
+              <Brain className="w-6 h-6 text-emerald-500" />
+              <div>
+                <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Smart Team Management 🤝</h2>
+                <p className="text-emerald-600 dark:text-emerald-300">AI analyzes your group dynamics and suggests optimal planning strategies for maximum success.</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
+      
+      <div className="container mx-auto px-6 py-8">
 
-      {/* Events Grid */}
+      {/* Enhanced Empty State */}
       {userGroups.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="relative mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-green-500/20 rounded-full blur-3xl"></div>
-            <div className="relative bg-gradient-to-r from-purple-500 to-blue-500 rounded-full p-6 w-32 h-32 mx-auto flex items-center justify-center">
-              <Calendar className="h-16 w-16 text-white" />
+        <div className="text-center py-20">
+          <div className="relative mb-12">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
+            <div className="relative bg-gradient-to-br from-emerald-500 via-blue-500 to-purple-600 rounded-3xl p-8 w-40 h-40 mx-auto flex items-center justify-center shadow-2xl animate-pulse">
+              <div className="relative">
+                <Users className="h-20 w-20 text-white" />
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-yellow-800" />
+                </div>
+              </div>
             </div>
           </div>
           
-          <h3 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            🎯 Ready to Plan Together?
+          <h3 className="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            🚀 Ready to Build Teams?
           </h3>
-          <p className="text-muted-foreground text-lg mb-2">
-            Create collaborative events where everyone can RSVP
+          <p className="text-muted-foreground text-xl mb-4 max-w-2xl mx-auto">
+            Create collaborative groups where amazing things happen together
           </p>
-          <p className="text-sm text-muted-foreground mb-8 max-w-lg mx-auto">
-            🤖 Our AI analyzes attendance to give you instant feedback on plan viability and success probability
+          <p className="text-base text-muted-foreground mb-12 max-w-xl mx-auto">
+            🤖 Our AI analyzes team dynamics and provides insights to maximize collaboration success
           </p>
           
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-6 mb-8 max-w-md mx-auto">
-            <div className="flex items-center gap-3 mb-3">
-              <Brain className="h-5 w-5 text-purple-600" />
-              <span className="font-semibold text-sm">Smart Event Planning</span>
+          {/* Feature Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/10 rounded-2xl p-8 border border-emerald-200/50 dark:border-emerald-700/50">
+              <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Users className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-lg mb-3 text-emerald-800 dark:text-emerald-200">🤝 Team Building</h4>
+              <p className="text-sm text-emerald-600 dark:text-emerald-300">Invite members, assign roles, and build amazing teams</p>
             </div>
-            <ul className="text-sm text-muted-foreground space-y-2 text-left">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                Real-time RSVP tracking
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                AI viability analysis
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-500" />
-                Optimal scheduling suggestions
-              </li>
-            </ul>
+            
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-8 border border-blue-200/50 dark:border-blue-700/50">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <Calendar className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-200">📅 Smart Planning</h4>
+              <p className="text-sm text-blue-600 dark:text-blue-300">AI-powered event scheduling with optimal timing suggestions</p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-8 border border-purple-200/50 dark:border-purple-700/50">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <TrendingUp className="h-7 w-7 text-white" />
+              </div>
+              <h4 className="font-bold text-lg mb-3 text-purple-800 dark:text-purple-200">📊 Success Analytics</h4>
+              <p className="text-sm text-purple-600 dark:text-purple-300">Track engagement and optimize group performance</p>
+            </div>
           </div>
           
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="lg" className="bg-gradient-to-r from-purple-600 via-blue-600 to-green-600 hover:from-purple-700 hover:via-blue-700 hover:to-green-700 shadow-xl text-lg px-8 py-3" data-testid="button-create-first-group">
-                <Sparkles size={20} className="mr-2" />
-                🚀 Create Your First Event
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-600 hover:from-emerald-600 hover:via-blue-600 hover:to-purple-700 shadow-2xl text-xl px-12 py-4 h-16 font-bold transition-all duration-300 hover:scale-105 hover:-translate-y-1" 
+                data-testid="button-create-first-group"
+              >
+                <Sparkles size={24} className="mr-3" />
+                🚀 Create Your First Team
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -392,19 +476,24 @@ export default function Groups() {
             const viability = getViabilityColor(eventData.viabilityScore);
             
             return (
-              <Card key={group.id} className="hover:shadow-md transition-shadow duration-200" style={{ padding: 'var(--space-4)' }}>
+              <Card key={group.id} className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/90 to-gray-50/50 dark:from-gray-800/90 dark:to-gray-900/50 backdrop-blur-sm border border-white/20 overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
-                  <CardHeader className="p-0" style={{ marginBottom: 'var(--space-4)' }}>
-                    <div className="flex items-center justify-between">
+                  <CardHeader className="p-6 relative z-10">
+                    <div className="flex items-center justify-between mb-4">
                       <div className="min-w-0 flex-1 pr-2">
-                        <CardTitle 
-                          className="text-lg md:text-xl font-bold text-foreground truncate" 
-                          data-testid={`text-group-name-${group.id}`}
-                          style={{ fontSize: 'var(--text-lg)' }}
-                          title={group.name}
-                        >
-                          {group.name}
-                        </CardTitle>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <Users className="w-5 h-5 text-white" />
+                          </div>
+                          <CardTitle 
+                            className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent truncate" 
+                            data-testid={`text-group-name-${group.id}`}
+                            title={group.name}
+                          >
+                            {group.name}
+                          </CardTitle>
+                        </div>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
