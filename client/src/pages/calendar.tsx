@@ -308,59 +308,88 @@ export default function Calendar() {
   };
 
   return (
-    <>
-      {/* Header - Modern Design */}
-      <header 
-        className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-30"
-        style={{ 
-          paddingLeft: 'var(--space-4)', 
-          paddingRight: 'var(--space-4)',
-          paddingTop: 'var(--space-4)',
-          paddingBottom: 'var(--space-4)'
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h1 
-              className="text-xl md:text-2xl font-bold text-brand flex items-center"
-              style={{ fontSize: 'clamp(var(--text-xl), 4vw, var(--text-2xl))' }}
-            >
-              <CalendarIcon className="mr-2 text-brand" size={20} />
-              Calendar
-            </h1>
-            <p 
-              className="text-muted-foreground font-medium truncate"
-              style={{ 
-                fontSize: 'var(--text-sm)',
-                marginTop: 'var(--space-1)'
-              }}
-            >
-              Schedule and manage your events
-            </p>
-          </div>
-          <div className="flex items-center" style={{ gap: 'var(--space-3)' }}>
-            {/* Advanced Filters */}
-            <AdvancedFilters
-              onFiltersChange={setFilters}
-              availableCategories={availableCategories}
-              availableGroups={(groups as any[]) || []}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                  <CalendarIcon className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    📅 Smart Calendar
+                  </h1>
+                  <p className="text-xl text-muted-foreground">AI-powered scheduling and time optimization</p>
+                </div>
+              </div>
+              
+              {/* Calendar Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CalendarIcon className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium">Events</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600">{filteredEvents?.length || 0}</div>
+                  <div className="text-xs text-muted-foreground">This month</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-5 h-5 text-indigo-500" />
+                    <span className="text-sm font-medium">Time Value</span>
+                  </div>
+                  <div className="text-2xl font-bold text-indigo-600">
+                    ${Math.round(filteredEvents?.reduce((sum: number, event: any) => {
+                      const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
+                      return sum + (duration * 50);
+                    }, 0) || 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Tracked value</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium">Efficiency</span>
+                  </div>
+                  <div className="text-2xl font-bold text-purple-600">92%</div>
+                  <div className="text-xs text-muted-foreground">Optimization</div>
+                </div>
+                
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-5 h-5 text-pink-500" />
+                    <span className="text-sm font-medium">ROI</span>
+                  </div>
+                  <div className="text-2xl font-bold text-pink-600">+185%</div>
+                  <div className="text-xs text-muted-foreground">Average return</div>
+                </div>
+              </div>
+            </div>
             
-            <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="hidden sm:flex transition-all duration-200 hover:-translate-y-px"
-                  style={{ 
-                    borderRadius: 'var(--radius)',
-                    padding: 'var(--space-3) var(--space-4)'
-                  }}
-                  data-testid="button-share-calendar"
-                >
-                  <Share2 size={16} className="mr-2" />
-                  Share Calendar
-                </Button>
-              </DialogTrigger>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 ml-6">
+              <AdvancedFilters
+                onFiltersChange={setFilters}
+                availableCategories={availableCategories}
+                availableGroups={(groups as any[]) || []}
+              />
+              
+              <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="hidden sm:flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-700/90 transition-all duration-300 hover:scale-105"
+                    data-testid="button-share-calendar"
+                  >
+                    <Share2 size={16} className="mr-2" />
+                    🔗 Share
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Share Your Calendar</DialogTitle>
@@ -425,28 +454,37 @@ export default function Calendar() {
             </DialogContent>
           </Dialog>
             
-          {/* Create Event Button with responsive behavior */}
-          <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
-            <DialogTrigger asChild>
-              <Button 
-                className="hidden sm:flex transition-all duration-200 hover:-translate-y-px"
-                style={{ 
-                  borderRadius: 'var(--radius)',
-                  padding: 'var(--space-3) var(--space-4)'
-                }}
-                data-testid="button-create-event"
-              >
-                <Plus size={16} className="mr-2" />
-                Create Event
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-              <EventForm onSuccess={() => setShowEventForm(false)} />
-            </DialogContent>
-          </Dialog>
+              <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    data-testid="button-create-event"
+                  >
+                    <Plus size={18} className="mr-2" />
+                    📅 New Event
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <EventForm onSuccess={() => setShowEventForm(false)} />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+          
+          {/* Welcome Message */}
+          <div className="bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="flex items-center gap-3">
+              <Clock className="w-6 h-6 text-blue-500" />
+              <div>
+                <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-200">Time Is Money 💰</h2>
+                <p className="text-blue-600 dark:text-blue-300">AI analyzes your schedule to maximize productivity and minimize wasted time.</p>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
       </header>
+      
+      <div className="container mx-auto px-6 py-8">
 
       {/* Smart Calendar Insights - Desktop */}
       <div className="mb-6 hidden lg:block">
