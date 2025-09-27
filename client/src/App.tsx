@@ -65,14 +65,12 @@ function Router() {
   if (isPublicRoute) {
     return (
       <main className="min-h-screen">
-        <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
-            <Switch>
-              <Route path="/shared/calendar/:token" component={PublicCalendar} />
-              <Route component={NotFound} />
-            </Switch>
-          </Suspense>
-        </ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Switch>
+            <Route path="/shared/calendar/:token" component={PublicCalendar} />
+            <Route component={NotFound} />
+          </Switch>
+        </Suspense>
       </main>
     );
   }
@@ -81,14 +79,12 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen">
-        <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
-            <Switch>
-              <Route path="/" component={Landing} />
-              <Route component={Landing} />
-            </Switch>
-          </Suspense>
-        </ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Switch>
+            <Route path="/" component={Landing} />
+            <Route component={Landing} />
+          </Switch>
+        </Suspense>
       </main>
     );
   }
@@ -104,25 +100,23 @@ function Router() {
         
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto pb-20 md:pb-0">
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Switch>
-                <Route path="/" component={Dashboard} />
-                <Route path="/welcome" component={Welcome} />
-                <Route path="/groups" component={Groups} />
-                <Route path="/calendar" component={Calendar} />
-                <Route path="/financial-goals" component={FinancialGoals} />
-                <Route path="/money-tracking" component={MoneyTracking} />
-                <Route path="/planning" component={Planning} />
-                <Route path="/ai-assistant" component={AIAssistant} />
-                <Route path="/referrals" component={Referrals} />
-                <Route path="/subscription" component={Subscription} />
-                <Route path="/upgrade" component={Upgrade} />
-                <Route path="/settings" component={Settings} />
-                <Route component={NotFound} />
-              </Switch>
-            </Suspense>
-          </ErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/welcome" component={Welcome} />
+              <Route path="/groups" component={Groups} />
+              <Route path="/calendar" component={Calendar} />
+              <Route path="/financial-goals" component={FinancialGoals} />
+              <Route path="/money-tracking" component={MoneyTracking} />
+              <Route path="/planning" component={Planning} />
+              <Route path="/ai-assistant" component={AIAssistant} />
+              <Route path="/referrals" component={Referrals} />
+              <Route path="/subscription" component={Subscription} />
+              <Route path="/upgrade" component={Upgrade} />
+              <Route path="/settings" component={Settings} />
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
         </main>
         
         {/* Mobile Navigation - shown only on mobile */}
@@ -134,20 +128,20 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <ThemeProvider defaultTheme="system" storageKey="twealth-theme">
-          <TooltipProvider>
-            <Toaster />
-            <OfflineIndicator />
-            <PWAInstallPrompt />
-            <ErrorBoundary>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
+          <ThemeProvider defaultTheme="system" storageKey="twealth-theme">
+            <TooltipProvider>
               <Router />
-            </ErrorBoundary>
-          </TooltipProvider>
-        </ThemeProvider>
-      </UserProvider>
-    </QueryClientProvider>
+              <Toaster />
+              <OfflineIndicator />
+              <PWAInstallPrompt />
+            </TooltipProvider>
+          </ThemeProvider>
+        </UserProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
