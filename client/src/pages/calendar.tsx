@@ -299,8 +299,8 @@ export default function Calendar() {
   
   // Extract available categories for filters
   const availableCategories = Array.from(new Set(
-    (events || []).map((event: any) => event.category).filter(Boolean)
-  ));
+    (Array.isArray(events) ? events : []).map((event: any) => event.category).filter(Boolean)
+  )) as string[];
   
   const handleQuickEvent = () => {
     // Quick event creation with current date/time
@@ -308,86 +308,86 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30">
-      {/* Spectacular Header */}
-      <header className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Professional Header */}
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
         <div className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
-                  <CalendarIcon className="w-8 h-8 text-white" />
+                <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
+                  <CalendarIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    📅 Smart Calendar
+                  <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
+                    Calendar & Schedule Management
                   </h1>
-                  <p className="text-xl text-muted-foreground">AI-powered scheduling and time optimization</p>
+                  <p className="text-lg text-gray-600 dark:text-gray-400">Professional time tracking and event scheduling</p>
                 </div>
               </div>
               
-              {/* Calendar Stats */}
+              {/* Professional Calendar Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
-                    <CalendarIcon className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-medium">Events</span>
+                    <CalendarIcon className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Events</span>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600">{filteredEvents?.length || 0}</div>
-                  <div className="text-xs text-muted-foreground">This month</div>
+                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">{filteredEvents?.length || 0}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">This month</div>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-5 h-5 text-indigo-500" />
-                    <span className="text-sm font-medium">Time Value</span>
+                    <Clock className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Value</span>
                   </div>
-                  <div className="text-2xl font-bold text-indigo-600">
+                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">
                     ${Math.round(filteredEvents?.reduce((sum: number, event: any) => {
                       const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
                       return sum + (duration * 50);
                     }, 0) || 0)}
                   </div>
-                  <div className="text-xs text-muted-foreground">Tracked value</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Tracked value</div>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-5 h-5 text-purple-500" />
-                    <span className="text-sm font-medium">Efficiency</span>
+                    <TrendingUp className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Efficiency</span>
                   </div>
-                  <div className="text-2xl font-bold text-purple-600">92%</div>
-                  <div className="text-xs text-muted-foreground">Optimization</div>
+                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">High</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Time optimization</div>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
-                    <BarChart3 className="w-5 h-5 text-pink-500" />
-                    <span className="text-sm font-medium">ROI</span>
+                    <BarChart3 className="w-4 h-4 text-gray-600" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Performance</span>
                   </div>
-                  <div className="text-2xl font-bold text-pink-600">+185%</div>
-                  <div className="text-xs text-muted-foreground">Average return</div>
+                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">Strong</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">Schedule adherence</div>
                 </div>
               </div>
             </div>
             
-            {/* Action Buttons */}
+            {/* Professional Action Buttons */}
             <div className="flex items-center gap-3 ml-6">
               <AdvancedFilters
                 onFiltersChange={setFilters}
-                availableCategories={availableCategories}
-                availableGroups={(groups as any[]) || []}
+                availableCategories={(Array.isArray(events) ? events.map((event: any) => event.category).filter(Boolean) : []) as string[]}
+                availableGroups={(Array.isArray(groups) ? groups : []) as any[]}
               />
               
               <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="hidden sm:flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-700/90 transition-all duration-300 hover:scale-105"
+                    className="hidden sm:flex bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                     data-testid="button-share-calendar"
                   >
                     <Share2 size={16} className="mr-2" />
-                    🔗 Share
+                    Share
                   </Button>
                 </DialogTrigger>
               <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
@@ -457,11 +457,11 @@ export default function Calendar() {
               <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
                 <DialogTrigger asChild>
                   <Button 
-                    className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-semibold px-6 py-3 h-12"
                     data-testid="button-create-event"
                   >
                     <Plus size={18} className="mr-2" />
-                    📅 New Event
+                    New Event
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -471,13 +471,15 @@ export default function Calendar() {
             </div>
           </div>
           
-          {/* Welcome Message */}
-          <div className="bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          {/* Professional Service Message */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-blue-500" />
+              <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                <Clock className="w-4 h-4 text-white" />
+              </div>
               <div>
-                <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-200">Time Is Money 💰</h2>
-                <p className="text-blue-600 dark:text-blue-300">AI analyzes your schedule to maximize productivity and minimize wasted time.</p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Professional Time Management</h2>
+                <p className="text-gray-600 dark:text-gray-400">Comprehensive scheduling and time optimization for professional productivity.</p>
               </div>
             </div>
           </div>
@@ -1299,9 +1301,9 @@ export default function Calendar() {
           onOpenChange={setIsFiltersOpen}
           onFiltersChange={setFilters}
           availableCategories={availableCategories}
-          availableGroups={(groups as any[]) || []}
+          availableGroups={(Array.isArray(groups) ? groups : []) as any[]}
         />
       </div>
-    </>
+    </div>
   );
 }
