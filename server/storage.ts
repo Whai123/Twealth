@@ -741,19 +741,16 @@ export class DatabaseStorage implements IStorage {
   // Utility methods
   async getFirstUser(): Promise<SafeUser | undefined> {
     const [user] = await db.select().from(users).limit(1);
-    if (!user) return undefined;
-    // Return user without password
-    const { password, ...safeUser } = user;
-    return safeUser;
+    return user;
   }
 
   async createDemoUserIfNeeded(): Promise<SafeUser> {
     let user = await this.getFirstUser();
     if (!user) {
       user = await this.createUser({
-        username: "demo_user",
         email: "demo@example.com",
-        password: "demo_password"
+        firstName: "Demo",
+        lastName: "User"
       });
     }
     return user;
