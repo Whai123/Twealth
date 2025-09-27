@@ -43,7 +43,10 @@ import { OfflineIndicator } from "./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from "./components/pwa/install-prompt";
 
 function Router() {
+  console.log('=== ROUTER COMPONENT STARTING ===');
+  
   const [location] = useLocation();
+  console.log('=== LOCATION HOOK OK ===', location);
   
   // Use useQuery directly to avoid circular dependencies
   const { data: user, isLoading } = useQuery({
@@ -51,11 +54,14 @@ function Router() {
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
   });
+  console.log('=== QUERY HOOK OK ===', { user, isLoading });
   
   const isAuthenticated = !!user;
+  console.log('=== ROUTER AUTH STATE ===', { isAuthenticated, isLoading });
   
   // Show loading screen while checking authentication
   if (isLoading) {
+    console.log('=== RETURNING LOADER ===');
     return <PageLoader />;
   }
   
