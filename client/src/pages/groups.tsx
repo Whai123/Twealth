@@ -891,6 +891,7 @@ export default function Groups() {
         </DialogContent>
       </Dialog>
       
+      </div>
     </div>
   );
 }
