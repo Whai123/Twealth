@@ -42,40 +42,14 @@ import ErrorBoundary from "./components/error-boundary";
 import { OnboardingRedirect } from "./components/onboarding-redirect";
 import { OfflineIndicator } from "./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from "./components/pwa/install-prompt";
-import { AuthDebug } from "./components/auth-debug";
 
 function Router() {
   const [location] = useLocation();
-  
-  // TEMPORARY: Force landing page to test if the issue is with authentication logic
-  return (
-    <main className="min-h-screen">
-      <div style={{ background: "green", color: "white", padding: "10px" }}>
-        TEMP DEBUG: Always showing landing page
-      </div>
-      <ErrorBoundary>
-        <Suspense fallback={<PageLoader />}>
-          <Switch>
-            <Route path="/" component={Landing} />
-            <Route component={Landing} />
-          </Switch>
-        </Suspense>
-      </ErrorBoundary>
-    </main>
-  );
-  
-  // COMMENTED OUT ORIGINAL LOGIC:
-  /*
   const { isAuthenticated, isLoading } = useAuth();
   
   // Show loading screen while checking authentication
   if (isLoading) {
-    return (
-      <>
-        <AuthDebug />
-        <PageLoader />
-      </>
-    );
+    return <PageLoader />;
   }
   
   // Public routes that don't need sidebar
@@ -100,7 +74,6 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen">
-        <AuthDebug />
         <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Switch>
@@ -112,7 +85,6 @@ function Router() {
       </main>
     );
   }
-  */
   
   // Authenticated routes with responsive navigation
   return (
@@ -154,19 +126,6 @@ function Router() {
 }
 
 function App() {
-  // TEMPORARY: Minimal app without any API-calling providers
-  return (
-    <div style={{ background: "blue", color: "white", padding: "20px" }}>
-      <h1>MINIMAL TEST: Twealth App</h1>
-      <p>This is a completely minimal version to test if the 502 error persists.</p>
-      <button style={{ padding: "10px", fontSize: "16px" }}>
-        Test Button
-      </button>
-    </div>
-  );
-  
-  // COMMENTED OUT ORIGINAL:
-  /*
   return (
     <QueryClientProvider client={queryClient}>
       <UserProvider>
@@ -183,7 +142,6 @@ function App() {
       </UserProvider>
     </QueryClientProvider>
   );
-  */
 }
 
 export default App;

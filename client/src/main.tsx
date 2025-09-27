@@ -43,19 +43,4 @@ if ('serviceWorker' in navigator && import.meta.env.DEV) {
   });
 }
 
-// TEMPORARY: Bypass all React components to test if caching is the issue
-const rootElement = document.getElementById("root")!;
-rootElement.innerHTML = `
-  <div style="background: red; color: white; padding: 30px; font-family: Arial;">
-    <h1>DIRECT HTML TEST - NO REACT</h1>
-    <p>This bypasses all React components, PWA caching, and service workers.</p>
-    <p>Timestamp: ${new Date().toISOString()}</p>
-    <button onclick="alert('Button works!')">Test Button</button>
-    <div style="margin-top: 20px; font-size: 14px;">
-      If you can see this, the server is working and the issue was with React/PWA caching.
-    </div>
-  </div>
-`;
-
-// COMMENTED OUT ORIGINAL:
-// createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<App />);
