@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "../hooks/useAuth";
+import { getQueryFn } from "../lib/queryClient";
 
 type Theme = "light" | "dark" | "system";
 
@@ -28,8 +28,6 @@ export function ThemeProvider({
   storageKey = "twealth-theme",
   ...props
 }: ThemeProviderProps) {
-  const { isAuthenticated } = useAuth();
-  
   const [theme, setTheme] = useState<Theme>(() => {
     // Check localStorage first for immediate theme application
     if (typeof window !== "undefined") {
@@ -41,11 +39,11 @@ export function ThemeProvider({
     return defaultTheme;
   });
 
-  // Fetch user preferences from API only if authenticated
+  // Fetch user preferences from API - handle 401s gracefully
   const { data: userPreferences } = useQuery<{ theme?: Theme }>({
     queryKey: ["/api/user-preferences"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    enabled: isAuthenticated, // Only fetch if authenticated
   });
 
   // Update theme when user preferences are loaded

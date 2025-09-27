@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "../hooks/useAuth";
+import { getQueryFn } from "./queryClient";
 
 interface User {
   id: string;
@@ -21,20 +21,15 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  
+  // Use the same approach as useAuth - handle 401s gracefully
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/users/me"],
-    queryFn: () => fetch("/api/users/me").then(res => {
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return res.json();
-    }),
+    queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: isAuthenticated, // Only fetch user data if authenticated
   });
 
   return (
-    <UserContext.Provider value={{ user: user || null, isLoading, error }}>
+    <UserContext.Provider value={{ user: (user as User) || null, isLoading, error }}>
       {children}
     </UserContext.Provider>
   );
