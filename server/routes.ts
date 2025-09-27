@@ -1571,7 +1571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const customer = await stripe.customers.create({
           email: user.email,
-          name: user.username,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
           metadata: {
             userId: user.id,
             plan: plan.name
@@ -1648,7 +1648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const customer = await stripe.customers.create({
           email: user.email,
-          name: user.username,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
           metadata: { userId: user.id }
         });
         stripeCustomerId = customer.id;
@@ -1874,7 +1874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create referral code if user doesn't have one
       if (!referralCode) {
-        const code = `${user.username.toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const code = `${(user.firstName || user.email?.split('@')[0] || 'USER').toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         referralCode = await storage.createReferralCode({
           userId: user.id,
           code: code,

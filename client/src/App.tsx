@@ -24,7 +24,7 @@ const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
-const Landing = lazy(() => import("./pages/landing"));
+const Landing = lazy(() => import("./pages/landing.tsx"));
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
