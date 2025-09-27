@@ -5,6 +5,7 @@ import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { UserProvider } from "./lib/userContext";
 import { ThemeProvider } from "./components/theme-provider";
+import { useAuth } from "./hooks/useAuth";
 // Lazy load pages for better mobile performance
 import { lazy, Suspense, startTransition } from 'react';
 import { Card } from "./components/ui/card";
@@ -23,6 +24,7 @@ const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
+const Landing = lazy(() => import("./pages/landing"));
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
@@ -43,6 +45,12 @@ import { PWAInstallPrompt } from "./components/pwa/install-prompt";
 
 function Router() {
   const [location] = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return <PageLoader />;
+  }
   
   // Public routes that don't need sidebar
   const isPublicRoute = location.startsWith('/shared/');
@@ -62,7 +70,23 @@ function Router() {
     );
   }
   
-  // Regular routes with responsive navigation
+  // Show landing page for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen">
+        <ErrorBoundary>
+          <Suspense fallback={<PageLoader />}>
+            <Switch>
+              <Route path="/" component={Landing} />
+              <Route component={Landing} />
+            </Switch>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
+    );
+  }
+  
+  // Authenticated routes with responsive navigation
   return (
     <OnboardingRedirect>
       <div className="flex min-h-screen bg-background">
