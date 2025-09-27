@@ -34,62 +34,62 @@ export default function Dashboard() {
       {/* AI Chat Button - Floating */}
       <AIChatButton />
       
-      {/* Professional Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
                   <div className="relative">
-                    <Clock className="w-6 h-6 text-white" />
-                    <DollarSign className="w-3 h-3 text-blue-200 absolute -top-0.5 -right-0.5" />
+                    <Clock className="w-8 h-8 text-white" />
+                    <DollarSign className="w-4 h-4 text-yellow-300 absolute -top-1 -right-1" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
-                    Twealth Dashboard
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    💎 Twealth Dashboard
                   </h1>
-                  <p className="text-lg text-gray-600 dark:text-gray-400">Professional wealth management platform</p>
+                  <p className="text-xl text-muted-foreground">Transform time into wealth with smart financial management</p>
                 </div>
               </div>
               
-              {/* Professional Trust Indicators */}
+              {/* Dashboard Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-security-status">Security Status</span>
+                    <TrendingUp className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium">Growth</span>
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Verified</div>
-                  <div className="text-xs text-gray-500">256-bit encryption</div>
+                  <div className="text-2xl font-bold text-green-600">+23%</div>
+                  <div className="text-xs text-muted-foreground">This month</div>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-data-sync">Data Sync</span>
+                    <Target className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-medium">Goals</span>
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Live</div>
-                  <div className="text-xs text-gray-500">Real-time updates</div>
+                  <div className="text-2xl font-bold text-blue-600">7/11</div>
+                  <div className="text-xs text-muted-foreground">On track</div>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-backup-status">Backup Status</span>
+                    <Award className="w-5 h-5 text-orange-500" />
+                    <span className="text-sm font-medium">Score</span>
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Protected</div>
-                  <div className="text-xs text-gray-500">Auto-backup enabled</div>
+                  <div className="text-2xl font-bold text-orange-600">850</div>
+                  <div className="text-xs text-muted-foreground">Excellent</div>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-uptime-status">Service Uptime</span>
+                    <Crown className="w-5 h-5 text-purple-500" />
+                    <span className="text-sm font-medium">Streak</span>
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">99.9%</div>
-                  <div className="text-xs text-gray-500">Last 30 days</div>
+                  <div className="text-2xl font-bold text-purple-600">42</div>
+                  <div className="text-xs text-muted-foreground">Days</div>
                 </div>
               </div>
             </div>
@@ -99,11 +99,11 @@ export default function Dashboard() {
               <Drawer open={isCreateGoalOpen} onOpenChange={setIsCreateGoalOpen}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 h-10 transition-colors shadow-sm"
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                     data-testid="button-new-goal"
                   >
-                    <Plus size={16} className="mr-2" />
-                    <span className="hidden sm:inline">New Goal</span>
+                    <Plus size={18} className="mr-2" />
+                    <span className="hidden sm:inline">🎯 New Goal</span>
                     <span className="sm:hidden">+</span>
                   </Button>
                 </DrawerTrigger>
@@ -121,22 +121,26 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Professional Status Banner */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+          {/* Welcome Message */}
+          <div className="bg-gradient-to-r from-white/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <Star className="w-4 h-4 text-white" />
-              </div>
+              <Sparkles className="w-6 h-6 text-indigo-500" />
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white" data-testid="text-account-status">Account Status: Active</h2>
-                <p className="text-gray-600 dark:text-gray-400">Your financial portfolio is secure and up-to-date. Last synchronized: {new Date().toLocaleDateString()}</p>
+                <h2 className="text-lg font-semibold text-indigo-800 dark:text-indigo-200">Welcome back! 👋</h2>
+                <p className="text-indigo-600 dark:text-indigo-300">You're making excellent progress on your financial journey. Here's what's happening today.</p>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="space-y-6 px-4 py-6">
+      <div 
+        className="space-y-6" 
+        style={{ 
+          padding: 'var(--space-6)',
+          paddingTop: 'var(--space-4)'
+        }}
+      >
         {/* Quick Stats Cards */}
         <QuickStats />
 
@@ -152,17 +156,17 @@ export default function Dashboard() {
         {/* Smart Financial Insights */}
         <SmartInsights />
 
-        {/* AI Advisory Services */}
-        <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+        {/* AI Assistant CTA Banner */}
+        <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20 border-blue-200 dark:border-blue-800">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">AI Financial Advisory</h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">Professional financial analysis, portfolio optimization, and strategic planning</p>
+                  <h3 className="font-semibold text-lg">Meet Your AI Financial Assistant</h3>
+                  <p className="text-muted-foreground text-sm">Get personalized budget analysis, savings strategies, and investment guidance</p>
                 </div>
               </div>
               <div className="flex space-x-2">
@@ -170,15 +174,14 @@ export default function Dashboard() {
                   variant="outline" 
                   onClick={() => setIsChatOpen(true)}
                   data-testid="button-try-ai-chat"
-                  className="border-gray-300 dark:border-gray-600"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Consult AI
+                  Try AI Chat
                 </Button>
                 <Link href="/ai-assistant">
-                  <Button data-testid="button-explore-ai" className="bg-blue-600 hover:bg-blue-700">
-                    <Brain className="w-4 h-4 mr-2" />
-                    Advisory Services
+                  <Button data-testid="button-explore-ai">
+                    <Zap className="w-4 h-4 mr-2" />
+                    Explore AI Features
                   </Button>
                 </Link>
               </div>

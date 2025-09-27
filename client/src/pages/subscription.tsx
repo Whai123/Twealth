@@ -151,81 +151,81 @@ export default function SubscriptionPage() {
   const currentPlan = currentSubscription?.subscription?.plan;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Professional Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/30 dark:via-red-900/30 dark:to-pink-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/50 dark:via-red-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-8">
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                <Crown className="w-6 h-6 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                <Crown className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
-                  Subscription Plans
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
+                  👑 Premium Plans
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  <span className="text-lg text-gray-600 dark:text-gray-400">Professional AI financial advisory service</span>
+                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
+                  <span className="text-lg text-muted-foreground">Unlock AI-powered financial success</span>
+                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
                 </div>
               </div>
             </div>
             
-            {/* Professional Service Features */}
+            {/* Subscription Benefits Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Cost Effective</span>
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span className="text-sm font-medium">Cost Effective</span>
                 </div>
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  Value
+                <div className="text-2xl font-bold text-green-600">
+                  25x
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Proven results</div>
+                <div className="text-xs text-muted-foreground">More value</div>
               </div>
               
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Technology</span>
+                  <Zap className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm font-medium">AI Power</span>
                 </div>
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  Advanced
+                <div className="text-2xl font-bold text-blue-600">
+                  Gemini
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Google Gemini AI</div>
+                <div className="text-xs text-muted-foreground">Google AI</div>
               </div>
               
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <Check className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Flexibility</span>
+                  <Check className="w-5 h-5 text-purple-500" />
+                  <span className="text-sm font-medium">Flexible</span>
                 </div>
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  Assured
+                <div className="text-2xl font-bold text-purple-600">
+                  ✅
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Cancel anytime</div>
+                <div className="text-xs text-muted-foreground">Cancel anytime</div>
               </div>
               
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-4 h-4 text-gray-600" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Service</span>
+                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                  <span className="text-sm font-medium">Instant</span>
                 </div>
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  Instant
+                <div className="text-2xl font-bold text-yellow-600">
+                  ⚡
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Immediate access</div>
+                <div className="text-xs text-muted-foreground">Activation</div>
               </div>
             </div>
             
-            {/* Professional Service Description */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            {/* Welcome Message */}
+            <div className="bg-gradient-to-r from-white/80 to-orange-50/80 dark:from-gray-800/80 dark:to-orange-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                  <Crown className="w-4 h-4 text-white" />
-                </div>
+                <Crown className="w-6 h-6 text-orange-500" />
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Professional Financial Advisory Service</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Reliable AI-powered insights, comprehensive budget analysis, and strategic goal achievement support.</p>
+                  <h2 className="text-lg font-semibold text-orange-800 dark:text-orange-200">Premium Financial Experience 🚀</h2>
+                  <p className="text-orange-600 dark:text-orange-300">Transform your financial future with AI-powered insights, smart budget optimization, and accelerated goal achievement.</p>
                 </div>
               </div>
             </div>
@@ -235,126 +235,136 @@ export default function SubscriptionPage() {
       
       <div className="container mx-auto p-6 space-y-10">
 
-      {/* Professional Current Plan Status */}
+      {/* Enhanced Current Plan Status */}
       {currentPlan && (
-        <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-          <CardHeader>
+        <Card className="relative overflow-hidden border-0 shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-green-500/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 backdrop-blur-3xl" />
+          <CardHeader className="relative">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
-                  <Crown className="h-5 h-5 text-white" />
+                <div className="p-3 bg-gradient-to-br from-primary to-purple-600 rounded-xl shadow-lg">
+                  <Crown className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                    Current Subscription
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                    Your Current Plan
                   </h2>
-                  <p className="text-lg font-medium text-gray-700 dark:text-gray-300">{currentPlan.displayName}</p>
+                  <p className="text-lg font-semibold text-foreground">{currentPlan.displayName}</p>
                 </div>
               </div>
-              <Badge className="bg-gray-600 text-white px-3 py-1 text-sm font-medium">
+              <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 py-2 text-sm font-semibold animate-pulse">
                 Active
               </Badge>
             </CardTitle>
-            <CardDescription className="text-base leading-relaxed text-gray-600 dark:text-gray-400">
+            <CardDescription className="text-base leading-relaxed">
               {currentPlan.description}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="relative space-y-6">
             {usage && (
               <div className="grid gap-6 md:grid-cols-2">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Crown className="w-4 h-4 text-gray-600" />
-                      <span className="font-semibold text-gray-900 dark:text-white">AI Consultations</span>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-blue-500" />
+                        <span className="font-bold">AI Chats</span>
+                      </div>
+                      <span className="font-bold text-lg">
+                        {usage.chatUsage.used} / {usage.chatUsage.limit}
+                      </span>
                     </div>
-                    <span className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {usage.chatUsage.used} / {usage.chatUsage.limit}
-                    </span>
-                  </div>
-                  <div>
-                    <Progress 
-                      value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} 
-                      className="h-2 bg-gray-200 dark:bg-gray-700"
-                    />
-                  </div>
-                  {usage.chatUsage.used >= usage.chatUsage.limit * 0.8 && (
-                    <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-lg p-2">
-                      <AlertTriangle className="h-3 w-3" />
-                      <span className="font-medium">Usage approaching limit - consider upgrading</span>
+                    <div className="relative">
+                      <Progress 
+                        value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} 
+                        className="h-3 bg-blue-100 dark:bg-blue-900/30"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full opacity-20 animate-pulse" />
                     </div>
-                  )}
+                    {usage.chatUsage.used >= usage.chatUsage.limit * 0.8 && (
+                      <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span className="font-medium">Running low on quota - consider upgrading!</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-gray-600" />
-                      <span className="font-semibold text-gray-900 dark:text-white">Deep Analysis</span>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <span className="font-bold">Deep Analysis</span>
+                      </div>
+                      <span className="font-bold text-lg">
+                        {usage.analysisUsage.used} / {usage.analysisUsage.limit}
+                      </span>
                     </div>
-                    <span className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {usage.analysisUsage.used} / {usage.analysisUsage.limit}
-                    </span>
-                  </div>
-                  <div>
-                    <Progress 
-                      value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} 
-                      className="h-2 bg-gray-200 dark:bg-gray-700"
-                    />
+                    <div className="relative">
+                      <Progress 
+                        value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} 
+                        className="h-3 bg-green-100 dark:bg-green-900/30"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 rounded-full opacity-20 animate-pulse" />
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+              <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50">
+                <div className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
                   {usage?.insights || 0}
                 </div>
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Insights Generated</div>
+                <div className="text-sm font-medium text-muted-foreground">Insights Generated</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
+                <div className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
                   {usage?.totalTokens?.toLocaleString() || 0}
                 </div>
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Tokens Processed</div>
+                <div className="text-sm font-medium text-muted-foreground">Tokens Used</div>
               </div>
-              <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-xl border border-green-200/50 dark:border-green-800/50">
+                <div className="text-2xl font-bold bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent">
                   ${usage?.estimatedCost || '0.000'}
                 </div>
-                <div className="text-sm font-medium text-gray-600 dark:text-gray-400">Service Costs This Month</div>
+                <div className="text-sm font-medium text-muted-foreground">AI Costs This Month</div>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Professional Pricing Plans */}
+      {/* Enhanced Pricing Plans */}
       <div className="space-y-8">
         <div className="text-center space-y-4">
-          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
-            Service Plans
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            Choose Your Perfect Plan
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Transparent pricing for reliable financial advisory services. Start with our free tier, upgrade as needed.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Start free, upgrade anytime. All plans include our core financial tracking features.
           </p>
-          <div className="flex items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-gray-600" />
+          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Check className="w-4 h-4 text-green-500" />
               <span>Cancel anytime</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-gray-600" />
+            <div className="flex items-center gap-1">
+              <Check className="w-4 h-4 text-green-500" />
               <span>Instant activation</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-gray-600" />
+            <div className="flex items-center gap-1">
+              <Check className="w-4 h-4 text-green-500" />
               <span>No setup fees</span>
             </div>
           </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-3">
           {plans?.map((plan, index) => {
             const isCurrentPlan = currentPlan?.id === plan.id;
             const isPremium = plan.name !== 'Free';
@@ -363,36 +373,45 @@ export default function SubscriptionPage() {
             return (
               <Card 
                 key={plan.id} 
-                className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-lg ${
+                className={`relative group cursor-pointer transition-all duration-500 hover:scale-105 hover:-translate-y-4 ${
                   isMostPopular 
-                    ? 'border-gray-400 dark:border-gray-600 shadow-md' 
-                    : ''
-                } ${isCurrentPlan ? 'border-gray-600 dark:border-gray-500 bg-gray-50 dark:bg-gray-800' : ''}`}
+                    ? 'border-0 shadow-2xl bg-gradient-to-br from-primary/10 via-purple-500/10 to-pink-500/10 ring-2 ring-primary/50' 
+                    : isPremium 
+                    ? 'border-primary/30 hover:border-primary shadow-lg hover:shadow-xl' 
+                    : 'hover:shadow-lg'
+                } ${isCurrentPlan ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' : ''}
+                animate-in fade-in slide-in-from-bottom duration-500`}
+                style={{ animationDelay: `${index * 150}ms` }}
                 data-testid={`card-plan-${plan.name.toLowerCase()}`}
               >
                 {isMostPopular && (
-                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-gray-600 text-white px-3 py-1 text-sm font-medium">
-                    Most Popular
-                  </Badge>
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-50 animate-pulse" />
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-purple-600 text-white px-4 py-1 text-sm font-bold shadow-lg animate-bounce z-10">
+                      🔥 MOST POPULAR 🔥
+                    </Badge>
+                  </>
                 )}
                 {isPremium && !isMostPopular && (
-                  <Badge className="absolute -top-2 left-4 bg-gray-500 text-white px-3 py-1 text-xs font-medium">
+                  <Badge className="absolute -top-2 left-4 bg-gradient-to-r from-blue-500 to-green-500 text-white px-3 py-1 text-xs font-bold shadow-md">
                     Recommended
                   </Badge>
                 )}
                 
-                <CardHeader className="space-y-4">
+                <CardHeader className="relative space-y-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    <CardTitle className={`text-2xl font-bold ${
+                      isMostPopular ? 'bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent' : ''
+                    }`}>
                       {plan.displayName}
                     </CardTitle>
                     {isCurrentPlan && (
-                      <Badge className="bg-gray-600 text-white px-3 py-1 text-xs font-medium">
-                        Active
+                      <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-3 py-1 text-xs font-bold animate-pulse">
+                        ✓ Active
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-base leading-relaxed text-gray-600 dark:text-gray-400">{plan.description}</CardDescription>
+                  <CardDescription className="text-base leading-relaxed">{plan.description}</CardDescription>
                   
                   <div className="space-y-2">
                     <div className="flex items-baseline gap-2">
@@ -413,10 +432,12 @@ export default function SubscriptionPage() {
                         return (
                           <>
                             <div className="flex items-end gap-2">
-                              <span className="text-4xl font-semibold text-gray-900 dark:text-white">
+                              <span className={`text-5xl font-bold ${
+                                isMostPopular ? 'bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent' : ''
+                              }`}>
                                 {localizedPrice.currency.symbol}{Math.round(localizedPrice.amount)}
                               </span>
-                              <span className="text-gray-600 dark:text-gray-400 text-lg">/month</span>
+                              <span className="text-muted-foreground text-lg">/month</span>
                             </div>
                             {localizedPrice.isDiscounted && localizedPrice.originalAmount && (
                               <div className="flex items-center gap-2 mt-1">
@@ -445,72 +466,73 @@ export default function SubscriptionPage() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-6">
-                  {/* Professional AI Features */}
+                <CardContent className="relative space-y-6">
+                  {/* AI Features Highlights */}
                   <div className="space-y-4">
-                    <h4 className="font-semibold text-lg flex items-center gap-2 text-gray-900 dark:text-white">
-                      <Crown className="w-5 h-5 text-gray-600" />
-                      AI Advisory Services
+                    <h4 className="font-bold text-lg flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-primary" />
+                      AI Features
                     </h4>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <Crown className="w-4 h-4 text-gray-600" />
-                          <span className="font-medium text-gray-900 dark:text-white">AI Consultations</span>
+                          <Sparkles className="w-4 h-4 text-blue-500" />
+                          <span className="font-medium">AI Chats</span>
                         </div>
-                        <span className="font-semibold text-lg text-gray-900 dark:text-white">
+                        <span className="font-bold text-lg text-primary">
                           {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-gray-600" />
-                          <span className="font-medium text-gray-900 dark:text-white">Deep Analysis</span>
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                          <span className="font-medium">Deep Analysis</span>
                         </div>
-                        <span className="font-semibold text-lg text-gray-900 dark:text-white">
+                        <span className="font-bold text-lg text-primary">
                           {plan.aiDeepAnalysisLimit === 999999 ? 'Unlimited' : plan.aiDeepAnalysisLimit}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-gray-600" />
-                          <span className="font-medium text-gray-900 dark:text-white">AI Insights</span>
+                          <Zap className="w-4 h-4 text-yellow-500" />
+                          <span className="font-medium">AI Insights</span>
                         </div>
-                        <span className="font-semibold text-lg text-gray-900 dark:text-white capitalize">
+                        <span className="font-bold text-lg text-primary capitalize">
                           {plan.aiInsightsFrequency}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Professional Core Features */}
+                  {/* Core Features */}
                   <div className="space-y-3">
-                    <h4 className="font-semibold text-base flex items-center gap-2 text-gray-900 dark:text-white">
-                      <Check className="w-5 h-5 text-gray-600" />
-                      Service Features
+                    <h4 className="font-bold text-base flex items-center gap-2">
+                      <Check className="w-5 h-5 text-green-500" />
+                      Everything Included
                     </h4>
                     <ul className="space-y-2">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-center gap-3 text-sm">
-                          <div className="w-5 h-5 bg-gray-600 rounded-sm flex items-center justify-center">
+                          <div className="p-1 bg-gradient-to-br from-green-500 to-blue-500 rounded-full">
+                            {getFeatureIcon(feature)}
                             <Check className="w-3 h-3 text-white" />
                           </div>
-                          <span className="font-medium text-gray-900 dark:text-white">{formatFeatureName(feature)}</span>
+                          <span className="font-medium">{formatFeatureName(feature)}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Professional Action Button */}
+                  {/* Enhanced CTA Button */}
                   <Button
-                    className={`w-full h-12 text-base font-semibold transition-colors hover:shadow-md ${
+                    className={`w-full h-14 text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
                       isCurrentPlan 
-                        ? 'bg-gray-500 hover:bg-gray-600 text-white cursor-default' 
+                        ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white' 
                         : isMostPopular 
-                        ? 'bg-gray-600 hover:bg-gray-700 text-white' 
+                        ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white' 
                         : isPremium 
-                        ? 'bg-gray-600 hover:bg-gray-700 text-white'
-                        : 'bg-gray-600 hover:bg-gray-700 text-white'
+                        ? 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
+                        : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white'
                     }`}
                     disabled={isCurrentPlan || upgradeMutation.isPending}
                     onClick={() => upgradeMutation.mutate(plan.id)}
@@ -518,31 +540,31 @@ export default function SubscriptionPage() {
                   >
                     {upgradeMutation.isPending ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Processing...</span>
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Upgrading...</span>
                       </div>
                     ) : isCurrentPlan ? (
                       <>
-                        <Check className="w-4 h-4 mr-2" />
-                        Current Plan
+                        <Crown className="w-5 h-5 mr-2" />
+                        Your Current Plan
                       </>
                     ) : plan.name === 'Free' ? (
                       <>
-                        <span>Start Free</span>
-                        <Check className="w-4 h-4 ml-2" />
+                        <span>Start Free Today</span>
+                        <Sparkles className="w-5 h-5 ml-2" />
                       </>
                     ) : (
                       <>
-                        <span>Select {plan.name}</span>
-                        <Check className="w-4 h-4 ml-2" />
+                        <span>Upgrade to {plan.name}</span>
+                        <Crown className="w-5 h-5 ml-2" />
                       </>
                     )}
                   </Button>
                   
                   {isMostPopular && (
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Recommended for professional use
+                      <p className="text-sm text-muted-foreground">
+                        🔥 Save 60% compared to competitors
                       </p>
                     </div>
                   )}
@@ -553,105 +575,105 @@ export default function SubscriptionPage() {
         </div>
       </div>
 
-      {/* Professional Service Information */}
-      <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-        <CardContent className="p-8">
+      {/* Enhanced Value Proposition */}
+      <Card className="relative overflow-hidden border-0 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-blue-500/20 to-purple-500/20 animate-gradient-x" />
+        <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-blue-600/10 backdrop-blur-xl" />
+        <CardContent className="relative p-8">
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-4">
-              <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                <Zap className="h-6 w-6 text-white" />
+              <div className="p-4 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl shadow-lg animate-bounce">
+                <Zap className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  Professional AI Financial Advisory
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                  Why Choose Twealth AI?
                 </h3>
-                <p className="text-lg text-gray-600 dark:text-gray-400">
-                  Enterprise-grade technology at accessible pricing
+                <p className="text-lg text-muted-foreground">
+                  Advanced AI technology at unbeatable prices
                 </p>
               </div>
             </div>
             
             <div className="grid gap-6 md:grid-cols-3">
-              <div className="text-center space-y-3 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="text-3xl font-semibold text-gray-900 dark:text-white">Proven</div>
-                <div className="font-semibold text-gray-900 dark:text-white">Cost-Effective</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Compared to traditional advisors</div>
+              <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50">
+                <div className="text-4xl font-bold text-green-600">25x</div>
+                <div className="font-semibold">More Cost-Effective</div>
+                <div className="text-sm text-muted-foreground">Than traditional financial advisors</div>
               </div>
               
-              <div className="text-center space-y-3 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="text-3xl font-semibold text-gray-900 dark:text-white">24/7</div>
-                <div className="font-semibold text-gray-900 dark:text-white">AI Assistant</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Always available when needed</div>
+              <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+                <div className="text-4xl font-bold text-blue-600">24/7</div>
+                <div className="font-semibold">AI Assistant</div>
+                <div className="text-sm text-muted-foreground">Always available when you need help</div>
               </div>
               
-              <div className="text-center space-y-3 p-6 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="text-3xl font-semibold text-gray-900 dark:text-white">Professional</div>
-                <div className="font-semibold text-gray-900 dark:text-white">Service Quality</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Reliable financial guidance</div>
+              <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
+                <div className="text-4xl font-bold text-purple-600">฿99</div>
+                <div className="font-semibold">Affordable Premium</div>
+                <div className="text-sm text-muted-foreground">Less than a coffee per day</div>
               </div>
             </div>
             
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-xl p-6">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-white" />
-                </div>
-                <h4 className="text-xl font-semibold text-gray-900 dark:text-white">Powered by Google Gemini AI</h4>
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04IDEwSDI0VjIySDE4VjE2SDhWMTBaTTEwIDEyVjE0SDEyVjEySDE0VjE0SDE2VjEySDEwWk0xOCAxNFYxNkgyMFYxNEgyMlYxNkgyNFYxNEgxOFoiIGZpbGw9IiM0Mjg1RjQiLz4KPC9zdmc+" alt="Google" className="w-8 h-8" />
+                <h4 className="text-xl font-bold">Powered by Google Gemini</h4>
+                <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
               </div>
-              <p className="text-base text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl mx-auto">
-                Our integration with Google's advanced AI technology enables us to provide professional-grade financial advisory services at accessible prices. 
-                <span className="font-semibold text-gray-900 dark:text-white">Enterprise-level intelligence, transparent pricing.</span>
+              <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                Our partnership with Google enables us to provide cutting-edge AI financial advice at fraction of traditional costs. 
+                <span className="font-semibold text-foreground">You get enterprise-level AI intelligence without enterprise-level prices!</span>
               </p>
             </div>
             
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-gray-600" />
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" />
                 <span>No hidden fees</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-gray-600" />
+              <div className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" />
                 <span>Cancel anytime</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-gray-600" />
-                <span>Instant access</span>
+              <div className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Instant AI access</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-gray-600" />
-                <span>Service guarantee</span>
+              <div className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>30-day money-back guarantee</span>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
       
-      {/* Professional Service Call to Action */}
-      <Card className="bg-gray-600 text-white border border-gray-500">
-        <CardContent className="p-8 text-center">
-          <div className="space-y-4">
-            <h3 className="text-2xl font-semibold">Ready to Start Professional Financial Planning?</h3>
-            <p className="text-lg text-gray-200 max-w-2xl mx-auto">
-              Join professionals who trust our AI-powered financial advisory service for reliable insights and strategic planning.
+      {/* Call to Action Banner */}
+      <Card className="relative overflow-hidden border-0 bg-gradient-to-r from-primary via-purple-600 to-pink-600 text-white">
+        <CardContent className="relative p-8 text-center">
+          <div className="absolute inset-0 bg-black/10" />
+          <div className="relative space-y-4">
+            <h3 className="text-3xl font-bold">Ready to Transform Your Financial Future?</h3>
+            <p className="text-xl opacity-90 max-w-2xl mx-auto">
+              Join thousands of users who are already saving money and reaching their financial goals with AI-powered insights.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
               <Button 
                 size="lg" 
-                className="bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 text-base"
+                className="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-4 text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
                 onClick={() => setLocation('/ai-assistant')}
-                data-testid="button-try-ai-assistant"
               >
-                <Crown className="w-4 h-4 mr-2" />
-                Start AI Advisory
+                <Sparkles className="w-5 h-5 mr-2" />
+                Try AI Assistant Now
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white/10 font-semibold px-6 py-3 text-base"
+                className="border-white text-white hover:bg-white/10 font-bold px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300"
                 onClick={() => setLocation('/dashboard')}
-                data-testid="button-view-dashboard"
               >
-                <TrendingUp className="w-4 h-4 mr-2" />
+                <TrendingUp className="w-5 h-5 mr-2" />
                 View Dashboard
               </Button>
             </div>

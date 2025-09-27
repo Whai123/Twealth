@@ -296,54 +296,54 @@ export default function FinancialGoals() {
   const financialGoals = goals || [];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Professional Header */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30">
+      {/* Spectacular Header */}
+      <header className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/50 dark:via-emerald-900/50 dark:to-teal-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-8">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center shadow-sm">
-                  <Target className="w-6 h-6 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+                  <Target className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-semibold text-gray-900 dark:text-white">
-                    Financial Goals
+                  <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    🎯 Financial Goals
                   </h1>
-                  <p className="text-lg text-gray-600 dark:text-gray-400">Professional savings management and goal tracking</p>
+                  <p className="text-xl text-muted-foreground">AI-powered savings optimization and goal tracking</p>
                 </div>
               </div>
               
-              {/* Professional Metrics */}
+              {/* Goals Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-total-saved">Total Saved</span>
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    <span className="text-sm font-medium">Total Saved</span>
                   </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-green-600">
                     ${financialGoals.reduce((sum: number, goal: any) => sum + parseFloat(goal.currentAmount), 0).toLocaleString()}
                   </div>
-                  <div className="text-xs text-gray-500">Portfolio value</div>
+                  <div className="text-xs text-muted-foreground">Across all goals</div>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-active-goals">Active Goals</span>
+                    <Target className="w-5 h-5 text-emerald-500" />
+                    <span className="text-sm font-medium">Active Goals</span>
                   </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-emerald-600">
                     {financialGoals.filter((goal: any) => goal.status === "active").length}
                   </div>
-                  <div className="text-xs text-gray-500">In progress</div>
+                  <div className="text-xs text-muted-foreground">In progress</div>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-avg-progress">Avg Progress</span>
+                    <TrendingUp className="w-5 h-5 text-teal-500" />
+                    <span className="text-sm font-medium">Progress</span>
                   </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-teal-600">
                     {financialGoals.length > 0 ? Math.round(
                       financialGoals.reduce((sum: number, goal: any) => {
                         const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
@@ -351,18 +351,18 @@ export default function FinancialGoals() {
                       }, 0) / financialGoals.length
                     ) : 0}%
                   </div>
-                  <div className="text-xs text-gray-500">Completion rate</div>
+                  <div className="text-xs text-muted-foreground">Average completion</div>
                 </div>
                 
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-4 h-4 text-amber-600" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300" data-testid="text-completed-goals">Completed</span>
+                    <Award className="w-5 h-5 text-yellow-500" />
+                    <span className="text-sm font-medium">Completed</span>
                   </div>
-                  <div className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <div className="text-2xl font-bold text-yellow-600">
                     {financialGoals.filter((goal: any) => goal.status === "completed").length}
                   </div>
-                  <div className="text-xs text-gray-500">Goals achieved</div>
+                  <div className="text-xs text-muted-foreground">Goals achieved</div>
                 </div>
               </div>
             </div>
@@ -372,11 +372,11 @@ export default function FinancialGoals() {
               <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 h-10 transition-colors shadow-sm"
+                    className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                     data-testid="button-create-goal"
                   >
-                    <Plus size={16} className="mr-2" />
-                    New Goal
+                    <Plus size={18} className="mr-2" />
+                    💰 New Goal
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="max-h-[90vh]">
@@ -392,37 +392,35 @@ export default function FinancialGoals() {
             </div>
           </div>
           
-          {/* Professional Status */}
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+          {/* Welcome Message */}
+          <div className="bg-gradient-to-r from-white/80 to-green-50/80 dark:from-gray-800/80 dark:to-green-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-white" />
-              </div>
+              <TrendingUp className="w-6 h-6 text-green-500" />
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white" data-testid="text-goals-status">Goals Portfolio Active</h2>
-                <p className="text-gray-600 dark:text-gray-400">Professional goal tracking with automated progress monitoring and milestone alerts.</p>
+                <h2 className="text-lg font-semibold text-green-800 dark:text-green-200">Smart Savings 💡</h2>
+                <p className="text-green-600 dark:text-green-300">AI optimizes your savings strategy and suggests the best paths to reach your financial goals faster.</p>
               </div>
             </div>
           </div>
         </div>
       </header>
       
-      <div className="container mx-auto px-6 py-6">
+      <div className="container mx-auto px-6 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800">
-            <TabsTrigger value="overview" className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-overview">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center space-x-2" data-testid="tab-overview">
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-analytics">
+            <TabsTrigger value="analytics" className="flex items-center space-x-2" data-testid="tab-analytics">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-insights">
+            <TabsTrigger value="insights" className="flex items-center space-x-2" data-testid="tab-insights">
               <Lightbulb className="h-4 w-4" />
               <span className="hidden sm:inline">Insights</span>
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center space-x-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700" data-testid="tab-achievements">
+            <TabsTrigger value="achievements" className="flex items-center space-x-2" data-testid="tab-achievements">
               <Award className="h-4 w-4" />
               <span className="hidden sm:inline">Achievements</span>
             </TabsTrigger>
@@ -457,41 +455,37 @@ export default function FinancialGoals() {
         </div>
       ) : (
         <>
-          {/* Professional Summary */}
+          {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Portfolio Value</p>
-                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <p className="text-sm text-muted-foreground">Total Saved</p>
+                  <p className="text-2xl font-bold">
                     ${financialGoals.reduce((sum: number, goal: any) => sum + parseFloat(goal.currentAmount), 0).toLocaleString()}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="text-green-600" size={20} />
-                </div>
+                <TrendingUp className="text-green-600" size={24} />
               </div>
             </Card>
             
-            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Active Objectives</p>
-                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <p className="text-sm text-muted-foreground">Active Goals</p>
+                  <p className="text-2xl font-bold">
                     {financialGoals.filter((goal: any) => goal.status === "active").length}
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                  <Target className="text-blue-600" size={20} />
-                </div>
+                <Target className="text-blue-600" size={24} />
               </div>
             </Card>
             
-            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6">
+            <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Performance Rate</p>
-                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <p className="text-sm text-muted-foreground">Average Progress</p>
+                  <p className="text-2xl font-bold">
                     {Math.round(
                       financialGoals.reduce((sum: number, goal: any) => {
                         const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
@@ -500,9 +494,7 @@ export default function FinancialGoals() {
                     )}%
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="text-purple-600" size={20} />
-                </div>
+                <TrendingUp className="text-purple-600" size={24} />
               </div>
             </Card>
           </div>
@@ -515,14 +507,13 @@ export default function FinancialGoals() {
               const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
               
               return (
-                <Card key={goal.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
+                <Card key={goal.id} className="p-6 hover:shadow-lg transition-shadow">
                   <CardHeader className="p-0 mb-4">
                     <div className="flex items-center justify-between">
                       <CardTitle 
-                        className="text-lg font-semibold text-gray-900 dark:text-white truncate pr-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors" 
+                        className="text-lg truncate pr-2" 
                         data-testid={`text-goal-title-${goal.id}`}
                         title={goal.title}
-                        onClick={() => handleViewDetails(goal)}
                       >
                         {goal.title}
                       </CardTitle>
@@ -648,8 +639,6 @@ export default function FinancialGoals() {
           onCelebrate={handleCelebrateMilestone}
         />
       </TabsContent>
-      </Tabs>
-      </div>
       
       {/* Edit Goal Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -762,6 +751,8 @@ export default function FinancialGoals() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </Tabs>
+      </div>
+    </>
   );
 }
