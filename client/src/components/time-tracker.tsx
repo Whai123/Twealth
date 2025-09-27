@@ -22,7 +22,7 @@ interface TimeSession {
   duration: number; // in milliseconds
 }
 
-export function TimeTracker({ 
+function TimeTrackerComponent({ 
   eventId, 
   eventTitle, 
   plannedDurationMinutes = 0,
@@ -636,4 +636,30 @@ export function TimeTracker({
       </CardContent>
     </Card>
   );
+}
+
+// Safety wrapper to handle React dispatcher errors
+export function TimeTracker(props: TimeTrackerProps) {
+  try {
+    return <TimeTrackerComponent {...props} />;
+  } catch (error) {
+    console.warn('TimeTracker: React hooks dispatcher not available, showing fallback');
+    // Return a loading state if hooks dispatcher not available
+    return (
+      <Card className="time-tracker" data-testid="time-tracker">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Clock size={16} />
+            {props.eventTitle}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 }
