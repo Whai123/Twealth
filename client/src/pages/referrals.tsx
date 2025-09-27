@@ -486,5 +486,6 @@ export default function ReferralsPage() {
         </Card>
       )}
     </div>
+    </>
   );
 }
