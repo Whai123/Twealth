@@ -1302,6 +1302,7 @@ export default function Calendar() {
           availableGroups={(groups as any[]) || []}
         />
       </div>
-    </>
+      </div>
+    </div>
   );
 }

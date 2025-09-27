@@ -753,6 +753,6 @@ export default function FinancialGoals() {
       </Dialog>
       </Tabs>
       </div>
-    </>
+    </div>
   );
 }
