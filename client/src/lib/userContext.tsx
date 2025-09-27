@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../hooks/useAuth";
 
 interface User {
   id: string;
@@ -20,6 +21,8 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/users/me"],
     queryFn: () => fetch("/api/users/me").then(res => {
@@ -27,6 +30,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       return res.json();
     }),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isAuthenticated, // Only fetch user data if authenticated
   });
 
   return (

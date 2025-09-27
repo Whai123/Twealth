@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 interface UserPreferences {
   hasCompletedOnboarding?: boolean;
@@ -15,9 +16,11 @@ interface OnboardingRedirectProps {
 
 export function OnboardingRedirect({ children }: OnboardingRedirectProps) {
   const [location, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
   
   const { data: userPreferences, isLoading } = useQuery<UserPreferences>({
     queryKey: ["/api/user-preferences"],
+    enabled: isAuthenticated, // Only fetch if authenticated
   });
   
   useEffect(() => {
