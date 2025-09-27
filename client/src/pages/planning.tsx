@@ -493,5 +493,6 @@ export default function Planning() {
         </TabsContent>
       </Tabs>
     </div>
+    </>
   );
 }
