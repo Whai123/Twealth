@@ -899,6 +899,7 @@ export default function AIAssistantPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
