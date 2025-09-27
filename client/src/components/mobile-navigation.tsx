@@ -11,8 +11,8 @@ import {
   Crown,
   Gift
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn } from "../lib/utils";
+import { Button } from "./ui/button";
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home, label: "Home" },
