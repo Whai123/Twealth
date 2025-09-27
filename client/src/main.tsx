@@ -43,13 +43,4 @@ if ('serviceWorker' in navigator && import.meta.env.DEV) {
   });
 }
 
-console.log('=== STARTING REACT APP ===');
-
-try {
-  const root = createRoot(document.getElementById("root")!);
-  console.log('=== ROOT CREATED ===');
-  root.render(<App />);
-  console.log('=== APP RENDERED ===');
-} catch (error) {
-  console.error('=== FAILED TO START APP ===', error);
-}
+createRoot(document.getElementById("root")!).render(<App />);
