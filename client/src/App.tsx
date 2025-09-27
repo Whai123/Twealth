@@ -1,11 +1,10 @@
 import { Switch, Route, useLocation } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient, getQueryFn } from "./lib/queryClient";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { UserProvider } from "./lib/userContext";
 import { ThemeProvider } from "./components/theme-provider";
-import { useAuth } from "./hooks/useAuth";
 // Lazy load pages for better mobile performance
 import { lazy, Suspense, startTransition } from 'react';
 import { Card } from "./components/ui/card";
@@ -45,7 +44,15 @@ import { PWAInstallPrompt } from "./components/pwa/install-prompt";
 
 function Router() {
   const [location] = useLocation();
-  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Use useQuery directly to avoid circular dependencies
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["/api/auth/user"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
+    retry: false,
+  });
+  
+  const isAuthenticated = !!user;
   
   // Show loading screen while checking authentication
   if (isLoading) {
