@@ -35,7 +35,6 @@ export default function QuickActions() {
   // Get upcoming events for timer
   const { data: upcomingEvents } = useQuery({
     queryKey: ['/api/events/upcoming'],
-    queryFn: () => fetch('/api/events/upcoming?limit=5').then(res => res.json()),
   });
 
   // Keyboard shortcuts handler
