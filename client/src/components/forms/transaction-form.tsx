@@ -58,7 +58,25 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, isLoading: userLoading } = useUser();
+  
+  // Add safety check for UserProvider
+  let user = null;
+  let userLoading = true;
+  
+  try {
+    const userData = useUser();
+    user = userData.user;
+    userLoading = userData.isLoading;
+  } catch (error) {
+    console.warn('TransactionForm: UserProvider not available, form will be disabled');
+    // Return loading state if context not available
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+      </div>
+    );
+  }
 
   const { data: goals } = useQuery({
     queryKey: ["/api/financial-goals"],

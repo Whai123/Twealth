@@ -2,6 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { 
   insertUserSchema,
   insertGroupSchema,
@@ -44,14 +45,32 @@ try {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Auth middleware setup
+  await setupAuth(app);
+  
   // Raw body middleware for Stripe webhooks
   app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
   
-  // User routes
-  app.get("/api/users/me", async (req, res) => {
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Return the demo user (or create if needed)
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  
+  // User routes - Protected
+  app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
       res.json(user);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -70,12 +89,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard routes
-  app.get("/api/dashboard/stats", async (req, res) => {
+  // Dashboard routes - Protected
+  app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
     try {
-      // For demo, use first user or create one
-      const user = await storage.createDemoUserIfNeeded();
-      const stats = await storage.getUserStats(user.id);
+      const userId = req.user.claims.sub;
+      const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1553,7 +1571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const customer = await stripe.customers.create({
           email: user.email,
-          name: user.username,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
           metadata: {
             userId: user.id,
             plan: plan.name
@@ -1630,7 +1648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const customer = await stripe.customers.create({
           email: user.email,
-          name: user.username,
+          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
           metadata: { userId: user.id }
         });
         stripeCustomerId = customer.id;
@@ -1856,7 +1874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create referral code if user doesn't have one
       if (!referralCode) {
-        const code = `${user.username.toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+        const code = `${(user.firstName || user.email?.split('@')[0] || 'USER').toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         referralCode = await storage.createReferralCode({
           userId: user.id,
           code: code,

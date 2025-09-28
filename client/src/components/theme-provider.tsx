@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { getQueryFn } from "../lib/queryClient";
 
 type Theme = "light" | "dark" | "system";
 
@@ -38,9 +39,10 @@ export function ThemeProvider({
     return defaultTheme;
   });
 
-  // Fetch user preferences from API
+  // Fetch user preferences from API - handle 401s gracefully
   const { data: userPreferences } = useQuery<{ theme?: Theme }>({
     queryKey: ["/api/user-preferences"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 

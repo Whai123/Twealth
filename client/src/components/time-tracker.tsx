@@ -22,7 +22,7 @@ interface TimeSession {
   duration: number; // in milliseconds
 }
 
-export function TimeTracker({ 
+function TimeTrackerComponent({ 
   eventId, 
   eventTitle, 
   plannedDurationMinutes = 0,
@@ -30,6 +30,20 @@ export function TimeTracker({
   isActive = false,
   onTimeUpdate 
 }: TimeTrackerProps) {
+  // Early return if essential props are missing
+  if (!eventId || !eventTitle) {
+    return (
+      <Card className="time-tracker" data-testid="time-tracker">
+        <CardContent>
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const [isTracking, setIsTracking] = useState(isActive);
   const [elapsedTime, setElapsedTime] = useState(actualDurationMinutes * 60 * 1000); // Convert to milliseconds
   const [accumulatedActiveMs, setAccumulatedActiveMs] = useState(actualDurationMinutes * 60 * 1000);
@@ -636,4 +650,9 @@ export function TimeTracker({
       </CardContent>
     </Card>
   );
+}
+
+// Export the TimeTracker with the component function directly 
+export function TimeTracker(props: TimeTrackerProps) {
+  return <TimeTrackerComponent {...props} />;
 }
