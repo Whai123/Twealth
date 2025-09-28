@@ -31,16 +31,16 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
-// Skip service worker in development to avoid conflicts
-// if ('serviceWorker' in navigator && import.meta.env.DEV) {
-//   window.addEventListener('load', async () => {
-//     try {
-//       const registration = await navigator.serviceWorker.register('/sw.js');
-//       console.log('[PWA-DEV] Service Worker registered for development:', registration.scope);
-//     } catch (error) {
-//       console.log('[PWA-DEV] Service Worker registration failed (normal in dev):', error);
-//     }
-//   });
-// }
+// Development service worker registration for testing
+if ('serviceWorker' in navigator && import.meta.env.DEV) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('[PWA-DEV] Service Worker registered for development:', registration.scope);
+    } catch (error) {
+      console.log('[PWA-DEV] Service Worker registration failed (normal in dev):', error);
+    }
+  });
+}
 
 createRoot(document.getElementById("root")!).render(<App />);
