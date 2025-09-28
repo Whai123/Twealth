@@ -35,6 +35,7 @@ export default function QuickActions() {
   // Get upcoming events for timer
   const { data: upcomingEvents } = useQuery({
     queryKey: ['/api/events/upcoming'],
+    queryFn: () => fetch('/api/events/upcoming?limit=5').then(res => res.json()),
   });
 
   // Keyboard shortcuts handler
@@ -232,23 +233,14 @@ export default function QuickActions() {
                   </Select>
                 </div>
                 
-                {selectedEventForTimer && Array.isArray(upcomingEvents) && (() => {
-                  const selectedEvent = upcomingEvents.find((e: any) => e.id === selectedEventForTimer);
-                  if (!selectedEvent || !selectedEvent.title) {
-                    return null;
-                  }
-                  return (
-                    <div className="border rounded-lg p-4 bg-muted/20">
-                      <TimeTracker
-                        eventId={selectedEventForTimer}
-                        eventTitle={selectedEvent.title}
-                        plannedDurationMinutes={selectedEvent.plannedDurationMinutes || 0}
-                        actualDurationMinutes={selectedEvent.actualDurationMinutes || 0}
-                        isActive={selectedEvent.isActive || false}
-                      />
-                    </div>
-                  );
-                })()}
+                {selectedEventForTimer && (
+                  <div className="border rounded-lg p-4 bg-muted/20">
+                    <TimeTracker
+                      eventId={selectedEventForTimer}
+                      eventTitle={Array.isArray(upcomingEvents) ? upcomingEvents.find((e: any) => e.id === selectedEventForTimer)?.title || "" : ""}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-8">

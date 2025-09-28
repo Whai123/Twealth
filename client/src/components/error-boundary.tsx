@@ -24,12 +24,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('=== ERROR BOUNDARY CAUGHT ===');
-    console.error('Error:', error);
-    console.error('Error Stack:', error.stack);
-    console.error('Component Stack:', errorInfo.componentStack);
-    console.error('Error Info:', errorInfo);
-    console.error('=== END ERROR BOUNDARY ===');
+    console.error('Error boundary caught an error:', error, errorInfo);
   }
 
   private handleRetry = () => {
@@ -44,21 +39,20 @@ class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="flex items-center justify-center min-h-[200px] p-4">
-          <Card className="w-full max-w-md cursor-default">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-destructive text-xl">
-                <AlertTriangle size={24} />
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle size={20} />
                 Something went wrong
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-center">
+            <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 {this.state.error?.message || 'An unexpected error occurred while loading this page.'}
               </p>
               <Button 
                 onClick={this.handleRetry}
                 className="w-full"
-                variant="default"
                 data-testid="button-retry-error"
               >
                 <RefreshCw size={16} className="mr-2" />

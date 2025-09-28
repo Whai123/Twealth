@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
-import { getQueryFn } from "../lib/queryClient";
 
 interface UserPreferences {
   hasCompletedOnboarding?: boolean;
@@ -19,7 +18,6 @@ export function OnboardingRedirect({ children }: OnboardingRedirectProps) {
   
   const { data: userPreferences, isLoading } = useQuery<UserPreferences>({
     queryKey: ["/api/user-preferences"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
   });
   
   useEffect(() => {

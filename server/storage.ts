@@ -1,7 +1,6 @@
 import { 
   type User, 
-  type InsertUser,
-  type UpsertUser, 
+  type InsertUser, 
   type Group, 
   type InsertGroup,
   type GroupMember,
@@ -97,9 +96,8 @@ export type EventWithGroup = Event & {
 };
 
 export interface IStorage {
-  // User methods (IMPORTANT - these are mandatory for Replit Auth)
-  getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  // User methods
+  getUser(id: string): Promise<SafeUser | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<SafeUser>;
@@ -316,30 +314,18 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  // User methods (IMPORTANT - these are mandatory for Replit Auth)
-  async getUser(id: string): Promise<User | undefined> {
+  // User methods
+  async getUser(id: string): Promise<SafeUser | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
-  }
-
-  async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+    if (!user) return undefined;
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    // This method is kept for compatibility but not used in Replit Auth
-    return undefined;
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
@@ -348,22 +334,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<SafeUser> {
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(insertUser.password, 10);
+    
     const [user] = await db
       .insert(users)
       .values({
         ...insertUser,
+        password: hashedPassword,
         firstName: insertUser.firstName || null,
         lastName: insertUser.lastName || null,
-        profileImageUrl: insertUser.profileImageUrl || null,
+        avatar: insertUser.avatar || null,
       })
       .returning();
     
-    // Return user (no password field to exclude)
-    return user;
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<SafeUser> {
-    const updateData = { ...updates, updatedAt: new Date() };
+    // If password is being updated, hash it
+    const updateData = { ...updates };
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
     
     const [user] = await db
       .update(users)
@@ -371,8 +366,9 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     
-    // Return user (no password field to exclude)
-    return user;
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   // Group methods
@@ -436,12 +432,12 @@ export class DatabaseStorage implements IStorage {
         member: groupMembers,
         user: {
           id: users.id,
+          username: users.username,
           email: users.email,
           firstName: users.firstName,
           lastName: users.lastName,
-          profileImageUrl: users.profileImageUrl,
+          avatar: users.avatar,
           createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
         }
       })
       .from(groupMembers)
@@ -741,16 +737,19 @@ export class DatabaseStorage implements IStorage {
   // Utility methods
   async getFirstUser(): Promise<SafeUser | undefined> {
     const [user] = await db.select().from(users).limit(1);
-    return user;
+    if (!user) return undefined;
+    // Return user without password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
   async createDemoUserIfNeeded(): Promise<SafeUser> {
     let user = await this.getFirstUser();
     if (!user) {
       user = await this.createUser({
+        username: "demo_user",
         email: "demo@example.com",
-        firstName: "Demo",
-        lastName: "User"
+        password: "demo_password"
       });
     }
     return user;
