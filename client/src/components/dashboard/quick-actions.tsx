@@ -233,14 +233,23 @@ export default function QuickActions() {
                   </Select>
                 </div>
                 
-                {selectedEventForTimer && (
-                  <div className="border rounded-lg p-4 bg-muted/20">
-                    <TimeTracker
-                      eventId={selectedEventForTimer}
-                      eventTitle={Array.isArray(upcomingEvents) ? upcomingEvents.find((e: any) => e.id === selectedEventForTimer)?.title || "" : ""}
-                    />
-                  </div>
-                )}
+                {selectedEventForTimer && Array.isArray(upcomingEvents) && (() => {
+                  const selectedEvent = upcomingEvents.find((e: any) => e.id === selectedEventForTimer);
+                  if (!selectedEvent || !selectedEvent.title) {
+                    return null;
+                  }
+                  return (
+                    <div className="border rounded-lg p-4 bg-muted/20">
+                      <TimeTracker
+                        eventId={selectedEventForTimer}
+                        eventTitle={selectedEvent.title}
+                        plannedDurationMinutes={selectedEvent.plannedDurationMinutes || 0}
+                        actualDurationMinutes={selectedEvent.actualDurationMinutes || 0}
+                        isActive={selectedEvent.isActive || false}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <div className="text-center py-8">
