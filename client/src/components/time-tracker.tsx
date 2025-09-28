@@ -30,6 +30,20 @@ function TimeTrackerComponent({
   isActive = false,
   onTimeUpdate 
 }: TimeTrackerProps) {
+  // Early return if essential props are missing
+  if (!eventId || !eventTitle) {
+    return (
+      <Card className="time-tracker" data-testid="time-tracker">
+        <CardContent>
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const [isTracking, setIsTracking] = useState(isActive);
   const [elapsedTime, setElapsedTime] = useState(actualDurationMinutes * 60 * 1000); // Convert to milliseconds
   const [accumulatedActiveMs, setAccumulatedActiveMs] = useState(actualDurationMinutes * 60 * 1000);
@@ -638,28 +652,7 @@ function TimeTrackerComponent({
   );
 }
 
-// Safety wrapper to handle React dispatcher errors
+// Export the TimeTracker with the component function directly 
 export function TimeTracker(props: TimeTrackerProps) {
-  try {
-    return <TimeTrackerComponent {...props} />;
-  } catch (error) {
-    console.warn('TimeTracker: React hooks dispatcher not available, showing fallback');
-    // Return a loading state if hooks dispatcher not available
-    return (
-      <Card className="time-tracker" data-testid="time-tracker">
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Clock size={16} />
-            {props.eventTitle}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center p-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  return <TimeTrackerComponent {...props} />;
 }
