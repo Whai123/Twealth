@@ -126,6 +126,8 @@ export default function FinancialGoals() {
     queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
   });
 
+  const financialGoals = goals || [];
+
   const deleteGoalMutation = useMutation({
     mutationFn: (goalId: string) => apiRequest("DELETE", `/api/financial-goals/${goalId}`),
     onSuccess: () => {
@@ -292,8 +294,6 @@ export default function FinancialGoals() {
       </>
     );
   }
-
-  const financialGoals = goals || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30">
