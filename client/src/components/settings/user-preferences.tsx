@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useTheme } from "@/components/theme-provider";
 import { 
   Palette, 
   Moon, 
@@ -47,6 +48,7 @@ type UserPreferences = {
 
 export default function UserPreferences({ }: UserPreferencesProps) {
   const { toast } = useToast();
+  const { setTheme } = useTheme();
 
   // Fetch user preferences
   const { data: preferences, isLoading } = useQuery<UserPreferences>({
@@ -111,6 +113,9 @@ export default function UserPreferences({ }: UserPreferencesProps) {
   ];
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
+    // Update theme context immediately for instant UI change
+    setTheme(theme);
+    // Also update database preferences
     updatePreferencesMutation.mutate({ theme });
   };
 

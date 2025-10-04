@@ -12,10 +12,14 @@ import {
   User,
   Crown,
   Brain,
-  Gift
+  Gift,
+  Moon,
+  Sun
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
+import { useTheme } from "@/components/theme-provider";
+import { Button } from "@/components/ui/button";
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home },
@@ -32,7 +36,16 @@ const getNavigation = (t: (key: string) => string) => [
 export default function Sidebar() {
   const [location] = useLocation();
   const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const navigation = getNavigation(t);
+
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  };
 
   return (
     <aside className="w-64 bg-card border-r border-border shadow-sm">
@@ -83,7 +96,22 @@ export default function Sidebar() {
             </div>
           </div>
           <div className="space-y-2">
-            <LanguageSwitcher />
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="h-8 w-8 p-0"
+                data-testid="button-theme-toggle"
+              >
+                {theme === "dark" ? (
+                  <Sun size={16} className="text-muted-foreground hover:text-foreground" />
+                ) : (
+                  <Moon size={16} className="text-muted-foreground hover:text-foreground" />
+                )}
+              </Button>
+            </div>
             <Link href="/settings">
               <button 
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center"
