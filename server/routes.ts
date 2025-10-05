@@ -25,9 +25,13 @@ import {
   insertChatMessageSchema,
   insertReferralCodeSchema,
   insertReferralSchema,
-  insertBonusCreditSchema
+  insertBonusCreditSchema,
+  insertCryptoHoldingSchema,
+  insertCryptoPriceAlertSchema,
+  insertCryptoTransactionSchema
 } from "@shared/schema";
 import { aiService, type UserContext } from "./aiService";
+import { cryptoService } from "./cryptoService";
 import Stripe from "stripe";
 
 // Initialize Stripe (will use environment variable when available)
@@ -1823,6 +1827,295 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: error.message 
       });
+    }
+  });
+
+  // ===== Crypto Routes =====
+  
+  // Get user's crypto holdings
+  app.get("/api/crypto/holdings", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const holdings = await storage.getUserCryptoHoldings(userId);
+      
+      // Fetch current prices for all holdings
+      const updatedHoldings = await Promise.all(holdings.map(async (holding) => {
+        try {
+          const priceData = await cryptoService.getCryptoPrice(holding.coinId);
+          if (priceData) {
+            const updatedHolding = await storage.updateCryptoHolding(holding.id, {
+              currentPrice: priceData.current_price.toString(),
+              lastPriceUpdate: new Date()
+            });
+            return { ...updatedHolding, priceChange24h: priceData.price_change_percentage_24h };
+          }
+          return { ...holding, priceChange24h: 0 };
+        } catch (error) {
+          return { ...holding, priceChange24h: 0 };
+        }
+      }));
+      
+      res.json(updatedHoldings);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Create new crypto holding
+  app.post("/api/crypto/holdings", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertCryptoHoldingSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      // Fetch initial price
+      const priceData = await cryptoService.getCryptoPrice(validatedData.coinId);
+      if (priceData) {
+        validatedData.currentPrice = priceData.current_price.toString();
+        validatedData.lastPriceUpdate = new Date();
+      }
+      
+      const holding = await storage.createCryptoHolding(validatedData);
+      res.json(holding);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Update crypto holding
+  app.put("/api/crypto/holdings/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const holdingId = req.params.id;
+      
+      // Verify ownership
+      const holding = await storage.getCryptoHolding(holdingId);
+      if (!holding || holding.userId !== userId) {
+        return res.status(404).json({ message: "Holding not found" });
+      }
+      
+      const updatedHolding = await storage.updateCryptoHolding(holdingId, req.body);
+      res.json(updatedHolding);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Delete crypto holding
+  app.delete("/api/crypto/holdings/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const holdingId = req.params.id;
+      
+      // Verify ownership
+      const holding = await storage.getCryptoHolding(holdingId);
+      if (!holding || holding.userId !== userId) {
+        return res.status(404).json({ message: "Holding not found" });
+      }
+      
+      await storage.deleteCryptoHolding(holdingId);
+      res.json({ message: "Holding deleted successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get current prices for multiple cryptos
+  app.get("/api/crypto/prices", async (req, res) => {
+    try {
+      const { ids } = req.query;
+      if (!ids || typeof ids !== 'string') {
+        return res.status(400).json({ message: "Coin IDs are required" });
+      }
+      
+      const coinIds = ids.split(',');
+      const prices = await cryptoService.getCryptoPrices(coinIds);
+      res.json(prices);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get price for single crypto
+  app.get("/api/crypto/prices/:coinId", async (req, res) => {
+    try {
+      const { coinId } = req.params;
+      const price = await cryptoService.getCryptoPrice(coinId);
+      
+      if (!price) {
+        return res.status(404).json({ message: "Cryptocurrency not found" });
+      }
+      
+      res.json(price);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Search cryptocurrencies
+  app.get("/api/crypto/search", async (req, res) => {
+    try {
+      const { query } = req.query;
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const results = await cryptoService.searchCrypto(query);
+      res.json(results);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get crypto portfolio summary
+  app.get("/api/crypto/portfolio", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const portfolio = await storage.getUserCryptoPortfolioValue(userId);
+      
+      // Update with latest prices
+      const holdingsWithPrices = await Promise.all(
+        portfolio.holdings.map(async (holding) => {
+          try {
+            const coinId = (await storage.getUserCryptoHoldings(userId))
+              .find(h => h.symbol === holding.symbol)?.coinId;
+            
+            if (coinId) {
+              const priceData = await cryptoService.getCryptoPrice(coinId);
+              if (priceData) {
+                const amount = parseFloat(holding.amount);
+                const currentPrice = priceData.current_price;
+                return {
+                  ...holding,
+                  currentPrice: currentPrice.toString(),
+                  value: amount * currentPrice,
+                  change24h: priceData.price_change_percentage_24h || 0
+                };
+              }
+            }
+            return holding;
+          } catch (error) {
+            return holding;
+          }
+        })
+      );
+      
+      const totalValue = holdingsWithPrices.reduce((sum, h) => sum + h.value, 0);
+      res.json({ totalValue, holdings: holdingsWithPrices });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get user's crypto transactions
+  app.get("/api/crypto/transactions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const transactions = await storage.getUserCryptoTransactions(userId, limit);
+      res.json(transactions);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Create crypto transaction
+  app.post("/api/crypto/transactions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertCryptoTransactionSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const transaction = await storage.createCryptoTransaction(validatedData);
+      
+      // Update holding if it's a buy/sell transaction
+      if (transaction.holdingId) {
+        const holding = await storage.getCryptoHolding(transaction.holdingId);
+        if (holding) {
+          const currentAmount = parseFloat(holding.amount);
+          const transactionAmount = parseFloat(transaction.amount);
+          const newAmount = transaction.type === 'buy' 
+            ? currentAmount + transactionAmount 
+            : currentAmount - transactionAmount;
+          
+          await storage.updateCryptoHolding(transaction.holdingId, {
+            amount: newAmount.toString()
+          });
+        }
+      }
+      
+      res.json(transaction);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get user's price alerts
+  app.get("/api/crypto/alerts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const alerts = await storage.getUserCryptoPriceAlerts(userId);
+      res.json(alerts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Create price alert
+  app.post("/api/crypto/alerts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const validatedData = insertCryptoPriceAlertSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const alert = await storage.createCryptoPriceAlert(validatedData);
+      res.json(alert);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Update price alert
+  app.put("/api/crypto/alerts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const alertId = req.params.id;
+      
+      // Verify ownership
+      const alert = await storage.getCryptoPriceAlert(alertId);
+      if (!alert || alert.userId !== userId) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      const updatedAlert = await storage.updateCryptoPriceAlert(alertId, req.body);
+      res.json(updatedAlert);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Delete price alert
+  app.delete("/api/crypto/alerts/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const alertId = req.params.id;
+      
+      // Verify ownership
+      const alert = await storage.getCryptoPriceAlert(alertId);
+      if (!alert || alert.userId !== userId) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      await storage.deleteCryptoPriceAlert(alertId);
+      res.json({ message: "Alert deleted successfully" });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

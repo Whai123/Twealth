@@ -180,6 +180,134 @@ export class CryptoService {
   clearCache(): void {
     priceCache = null;
   }
+
+  /**
+   * Get price for a single cryptocurrency by CoinGecko ID
+   * Returns detailed price data matching CoinGecko API format
+   */
+  async getCryptoPrice(coinId: string): Promise<{
+    id: string;
+    symbol: string;
+    name: string;
+    current_price: number;
+    market_cap: number;
+    price_change_percentage_24h: number;
+  } | null> {
+    const url = `${COINGECKO_API}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
+    
+    try {
+      console.log(`[CryptoService] Fetching price for coin ID: ${coinId}`);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data[coinId]) {
+        return null;
+      }
+
+      // Find symbol from ID
+      const symbol = Object.entries(SYMBOL_TO_ID_MAP).find(([_, id]) => id === coinId)?.[0] || coinId.toUpperCase();
+      
+      return {
+        id: coinId,
+        symbol: symbol,
+        name: this.getCryptoInfo(symbol)?.name || coinId,
+        current_price: data[coinId].usd,
+        market_cap: data[coinId].usd_market_cap,
+        price_change_percentage_24h: data[coinId].usd_24h_change,
+      };
+    } catch (error) {
+      console.error(`[CryptoService] Error fetching price for ${coinId}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Get prices for multiple cryptocurrencies by CoinGecko IDs
+   */
+  async getCryptoPrices(coinIds: string[]): Promise<Array<{
+    id: string;
+    symbol: string;
+    name: string;
+    current_price: number;
+    market_cap: number;
+    price_change_percentage_24h: number;
+  }>> {
+    const ids = coinIds.join(',');
+    const url = `${COINGECKO_API}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
+    
+    try {
+      console.log(`[CryptoService] Fetching prices for coin IDs: ${coinIds.join(', ')}`);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      return coinIds.map(coinId => {
+        if (!data[coinId]) return null;
+        
+        const symbol = Object.entries(SYMBOL_TO_ID_MAP).find(([_, id]) => id === coinId)?.[0] || coinId.toUpperCase();
+        
+        return {
+          id: coinId,
+          symbol: symbol,
+          name: this.getCryptoInfo(symbol)?.name || coinId,
+          current_price: data[coinId].usd,
+          market_cap: data[coinId].usd_market_cap,
+          price_change_percentage_24h: data[coinId].usd_24h_change,
+        };
+      }).filter(Boolean) as Array<{
+        id: string;
+        symbol: string;
+        name: string;
+        current_price: number;
+        market_cap: number;
+        price_change_percentage_24h: number;
+      }>;
+    } catch (error) {
+      console.error(`[CryptoService] Error fetching prices:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Search cryptocurrencies by query
+   */
+  async searchCrypto(query: string): Promise<Array<{
+    id: string;
+    symbol: string;
+    name: string;
+  }>> {
+    try {
+      const url = `${COINGECKO_API}/search?query=${encodeURIComponent(query)}`;
+      console.log(`[CryptoService] Searching for: ${query}`);
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Return top 10 coin results
+      return (data.coins || []).slice(0, 10).map((coin: any) => ({
+        id: coin.id,
+        symbol: coin.symbol?.toUpperCase() || '',
+        name: coin.name,
+      }));
+    } catch (error) {
+      console.error(`[CryptoService] Error searching crypto:`, error);
+      return [];
+    }
+  }
 }
 
 // Export singleton instance

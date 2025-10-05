@@ -790,6 +790,7 @@ export const bonusCredits = pgTable("bonus_credits", {
 export const cryptoHoldings = pgTable("crypto_holdings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  coinId: varchar("coin_id", { length: 50 }).notNull(), // CoinGecko ID: bitcoin, ethereum
   symbol: varchar("symbol", { length: 20 }).notNull(), // BTC, ETH, etc.
   name: text("name").notNull(), // Bitcoin, Ethereum
   amount: decimal("amount", { precision: 20, scale: 8 }).notNull(), // Support small fractions
