@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from 'react-i18next';
 import { 
@@ -9,10 +10,20 @@ import {
   Plus,
   Brain,
   Crown,
-  Gift
+  Gift,
+  Clock
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerTitle,
+} from "./ui/drawer";
+import GoalForm from "./forms/goal-form";
+import TransactionForm from "./forms/transaction-form";
+import EventForm from "./forms/event-form";
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home, label: "Home" },
@@ -26,6 +37,39 @@ export default function MobileNavigation() {
   const [location] = useLocation();
   const { t } = useTranslation();
   const navigation = getNavigation(t);
+  
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
+  const [activeAction, setActiveAction] = useState<'goal' | 'transaction' | 'event' | null>(null);
+
+  const quickActions = [
+    {
+      id: "add-goal",
+      title: "New Goal",
+      description: "Set financial target",
+      icon: Target,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      action: () => { setActiveAction('goal'); setIsQuickActionsOpen(false); }
+    },
+    {
+      id: "add-transaction",
+      title: "Add Transaction",
+      description: "Record income/expense",
+      icon: DollarSign,
+      color: "text-success",
+      bgColor: "bg-success/10",
+      action: () => { setActiveAction('transaction'); setIsQuickActionsOpen(false); }
+    },
+    {
+      id: "schedule-event",
+      title: "Schedule Event",
+      description: "Plan new activity",
+      icon: Calendar,
+      color: "text-warning",
+      bgColor: "bg-warning/10",
+      action: () => { setActiveAction('event'); setIsQuickActionsOpen(false); }
+    }
+  ];
 
   return (
     <>
@@ -33,6 +77,7 @@ export default function MobileNavigation() {
       <div className="fixed bottom-20 right-4 z-50 md:hidden">
         <Button
           size="lg"
+          onClick={() => setIsQuickActionsOpen(true)}
           className="w-14 h-14 rounded-full shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground border-0 ring-2 ring-primary/20 ring-offset-2 ring-offset-background"
           style={{ 
             boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.3), 0 10px 10px -5px hsl(var(--primary) / 0.1)',
@@ -44,6 +89,84 @@ export default function MobileNavigation() {
           <Plus size={24} className="drop-shadow-sm" />
         </Button>
       </div>
+
+      {/* Quick Actions Drawer */}
+      <Drawer open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
+        <DrawerContent className="max-h-[50vh]">
+          <div className="p-4 pb-6">
+            <DrawerTitle className="text-xl font-semibold mb-2">Quick Actions</DrawerTitle>
+            <DrawerDescription className="text-muted-foreground mb-4">
+              Create goals, transactions, or events instantly
+            </DrawerDescription>
+            <div className="grid grid-cols-3 gap-3">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.id}
+                  variant="ghost"
+                  onClick={action.action}
+                  className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent border transition-all"
+                  data-testid={`button-${action.id}`}
+                >
+                  <div className={`w-12 h-12 rounded-xl ${action.bgColor} ${action.color} flex items-center justify-center`}>
+                    <action.icon size={24} />
+                  </div>
+                  <p className="font-medium text-xs text-center leading-tight">
+                    {action.title}
+                  </p>
+                </Button>
+              ))}
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Goal Creation Drawer */}
+      <Drawer open={activeAction === 'goal'} onOpenChange={(open) => !open && setActiveAction(null)}>
+        <DrawerContent className="max-h-[90vh]">
+          <div className="p-4 pb-6">
+            <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              Create New Financial Goal
+            </DrawerTitle>
+            <DrawerDescription className="text-muted-foreground mb-4">
+              Set up a new savings target and track your progress
+            </DrawerDescription>
+            <GoalForm onSuccess={() => setActiveAction(null)} />
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Transaction Creation Drawer */}
+      <Drawer open={activeAction === 'transaction'} onOpenChange={(open) => !open && setActiveAction(null)}>
+        <DrawerContent className="max-h-[90vh]">
+          <div className="p-4 pb-6">
+            <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-success" />
+              Add New Transaction
+            </DrawerTitle>
+            <DrawerDescription className="text-muted-foreground mb-4">
+              Record your income, expenses, or transfers
+            </DrawerDescription>
+            <TransactionForm onSuccess={() => setActiveAction(null)} />
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Event Creation Drawer */}
+      <Drawer open={activeAction === 'event'} onOpenChange={(open) => !open && setActiveAction(null)}>
+        <DrawerContent className="max-h-[90vh]">
+          <div className="p-4 pb-6">
+            <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-warning" />
+              Schedule New Event
+            </DrawerTitle>
+            <DrawerDescription className="text-muted-foreground mb-4">
+              Plan your time effectively and track activities
+            </DrawerDescription>
+            <EventForm onSuccess={() => setActiveAction(null)} />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       {/* Bottom Tab Bar - Modern Design with Gradient Theme */}
       <nav 
