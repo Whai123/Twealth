@@ -1908,7 +1908,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Holding not found" });
       }
       
-      const updatedHolding = await storage.updateCryptoHolding(holdingId, req.body);
+      // Validate update data
+      const validatedData = insertCryptoHoldingSchema.partial().parse(req.body);
+      
+      const updatedHolding = await storage.updateCryptoHolding(holdingId, validatedData);
       res.json(updatedHolding);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
