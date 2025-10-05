@@ -1569,14 +1569,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (currentSubscription?.stripeCustomerId) {
         stripeCustomerId = currentSubscription.stripeCustomerId;
       } else {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
+        const customerData: any = {
           metadata: {
             userId: user.id,
             plan: plan.name
           }
-        });
+        };
+        if (user.email) {
+          customerData.email = user.email;
+        }
+        if (user.firstName && user.lastName) {
+          customerData.name = `${user.firstName} ${user.lastName}`;
+        } else if (user.email) {
+          customerData.name = user.email;
+        }
+        const customer = await stripe.customers.create(customerData);
         stripeCustomerId = customer.id;
         
         // Save the customer ID to the subscription
@@ -1646,11 +1653,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (currentSubscription?.stripeCustomerId) {
         stripeCustomerId = currentSubscription.stripeCustomerId;
       } else {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email,
+        const customerData: any = {
           metadata: { userId: user.id }
-        });
+        };
+        if (user.email) {
+          customerData.email = user.email;
+        }
+        if (user.firstName && user.lastName) {
+          customerData.name = `${user.firstName} ${user.lastName}`;
+        } else if (user.email) {
+          customerData.name = user.email;
+        }
+        const customer = await stripe.customers.create(customerData);
         stripeCustomerId = customer.id;
         
         // Save the customer ID to the subscription
