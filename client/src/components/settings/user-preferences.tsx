@@ -232,7 +232,7 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               </div>
               <Switch 
                 data-testid="switch-goal-reminders"
-                checked={preferences.goalReminders}
+                checked={preferences.goalReminders ?? true}
                 onCheckedChange={() => handleNotificationToggle('goalReminders')}
                 disabled={updatePreferencesMutation.isPending}
               />
@@ -248,7 +248,7 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               </div>
               <Switch 
                 data-testid="switch-expense-alerts"
-                checked={preferences.expenseAlerts}
+                checked={preferences.expenseAlerts ?? true}
                 onCheckedChange={() => handleNotificationToggle('expenseAlerts')}
                 disabled={updatePreferencesMutation.isPending}
               />
@@ -264,7 +264,7 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               </div>
               <Switch 
                 data-testid="switch-weekly-reports"
-                checked={preferences.weeklyReports}
+                checked={preferences.weeklyReports ?? true}
                 onCheckedChange={() => handleNotificationToggle('weeklyReports')}
                 disabled={updatePreferencesMutation.isPending}
               />
@@ -280,7 +280,7 @@ export default function UserPreferences({ }: UserPreferencesProps) {
               </div>
               <Switch 
                 data-testid="switch-email-notifications"
-                checked={preferences.emailNotifications}
+                checked={preferences.emailNotifications ?? true}
                 onCheckedChange={() => handleNotificationToggle('emailNotifications')}
                 disabled={updatePreferencesMutation.isPending}
               />
@@ -302,7 +302,7 @@ export default function UserPreferences({ }: UserPreferencesProps) {
             <div>
               <label className="text-sm font-medium mb-2 block">Language</label>
               <Select 
-                value={preferences.language} 
+                value={preferences.language ?? "en"} 
                 onValueChange={handleLanguageChange}
                 disabled={updatePreferencesMutation.isPending}
               >
@@ -325,7 +325,7 @@ export default function UserPreferences({ }: UserPreferencesProps) {
             <div>
               <label className="text-sm font-medium mb-2 block">Default Currency</label>
               <Select 
-                value={preferences.currency} 
+                value={preferences.currency ?? "USD"} 
                 onValueChange={handleCurrencyChange}
                 disabled={updatePreferencesMutation.isPending}
               >
