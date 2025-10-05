@@ -11,7 +11,8 @@ import {
   Brain,
   Crown,
   Gift,
-  Clock
+  Clock,
+  Bitcoin
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
@@ -28,7 +29,7 @@ import EventForm from "./forms/event-form";
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home, label: "Home" },
   { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain, label: "AI" },
-  { name: t('navigation.referrals'), href: "/referrals", icon: Gift, label: "Refer" },
+  { name: "Crypto", href: "/crypto", icon: Bitcoin, label: "Crypto" },
   { name: t('navigation.calendar'), href: "/calendar", icon: Calendar, label: "Calendar" },
   { name: "Premium", href: "/subscription", icon: Crown, label: "Premium" },
 ];

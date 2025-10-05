@@ -14,7 +14,8 @@ import {
   Brain,
   Gift,
   Moon,
-  Sun
+  Sun,
+  Bitcoin
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
@@ -29,6 +30,7 @@ const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.calendar'), href: "/calendar", icon: Calendar },
   { name: t('navigation.goals'), href: "/financial-goals", icon: Target },
   { name: t('navigation.money'), href: "/money-tracking", icon: TrendingUp },
+  { name: "Crypto", href: "/crypto", icon: Bitcoin },
   { name: "Planning", href: "/planning", icon: Lightbulb },
   { name: "Premium", href: "/subscription", icon: Crown },
 ];
