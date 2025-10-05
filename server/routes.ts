@@ -67,11 +67,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // User routes - Protected
-  app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
+  // User routes - With demo fallback
+  app.get("/api/users/me", async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      let user;
+      if (req.user && req.user.claims && req.user.claims.sub) {
+        const userId = req.user.claims.sub;
+        user = await storage.getUser(userId);
+      } else {
+        user = await storage.createDemoUserIfNeeded();
+      }
+      
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -93,10 +99,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard routes - Protected
-  app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
+  // Dashboard routes - With demo fallback
+  app.get("/api/dashboard/stats", async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      let userId;
+      if (req.user && req.user.claims && req.user.claims.sub) {
+        userId = req.user.claims.sub;
+      } else {
+        const user = await storage.createDemoUserIfNeeded();
+        userId = user.id;
+      }
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error: any) {

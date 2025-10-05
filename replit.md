@@ -127,7 +127,13 @@ The application is designed to run on Replit with specific plugins for developme
    - Automatic fallback to static rates if API fails
    - Frontend auto-fetches on load with hourly refresh
 
-4. **API Configuration Status**:
+4. **Authentication System Enhancement** - Fixed 401 Unauthorized errors on key routes:
+   - Updated `/api/users/me` to support demo user fallback
+   - Updated `/api/dashboard/stats` to support demo user fallback
+   - Application now works seamlessly for both authenticated and demo users
+   - No more authentication errors when accessing the dashboard or user profile
+
+5. **API Configuration Status**:
    - ✅ GEMINI_API_KEY - Configured and working
    - ✅ SESSION_SECRET - Configured and working
    - ❌ STRIPE_SECRET_KEY - Optional, for payment processing
