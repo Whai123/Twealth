@@ -26,24 +26,53 @@ export const CURRENCIES: Record<string, Currency> = {
   TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', flag: '🇹🇷', decimals: 2 },
 };
 
-// Exchange rates relative to USD (updated periodically - in production would be from API)
-export const EXCHANGE_RATES: Record<string, number> = {
+// Exchange rates - fetched from backend API with fallback to static rates
+let EXCHANGE_RATES: Record<string, number> = {
   USD: 1.00,
-  THB: 33.50,     // 1 USD = 33.50 THB
-  EUR: 0.85,      // 1 USD = 0.85 EUR
-  IDR: 15200,     // 1 USD = 15,200 IDR
-  INR: 83.10,     // 1 USD = 83.10 INR
-  BRL: 5.20,      // 1 USD = 5.20 BRL
-  MXN: 18.00,     // 1 USD = 18.00 MXN
-  GBP: 0.78,      // 1 USD = 0.78 GBP
-  JPY: 150.00,    // 1 USD = 150 JPY
-  CAD: 1.35,      // 1 USD = 1.35 CAD
-  AUD: 1.50,      // 1 USD = 1.50 AUD
-  VND: 24000,     // 1 USD = 24,000 VND
-  PHP: 56.00,     // 1 USD = 56.00 PHP
-  MYR: 4.65,      // 1 USD = 4.65 MYR
-  TRY: 29.50,     // 1 USD = 29.50 TRY
+  THB: 33.50,
+  EUR: 0.85,
+  IDR: 15200,
+  INR: 83.10,
+  BRL: 5.20,
+  MXN: 18.00,
+  GBP: 0.78,
+  JPY: 150.00,
+  CAD: 1.35,
+  AUD: 1.50,
+  VND: 24000,
+  PHP: 56.00,
+  MYR: 4.65,
+  TRY: 29.50,
 };
+
+let ratesLastFetched = 0;
+const RATES_FETCH_INTERVAL = 60 * 60 * 1000; // Fetch every hour
+
+/**
+ * Fetch live exchange rates from backend API
+ * @returns Promise that resolves when rates are updated
+ */
+export async function fetchLiveExchangeRates(): Promise<void> {
+  // Skip if rates were fetched recently
+  if (Date.now() - ratesLastFetched < RATES_FETCH_INTERVAL) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/currency/rates');
+    if (response.ok) {
+      const data = await response.json();
+      EXCHANGE_RATES = data.rates;
+      ratesLastFetched = Date.now();
+      console.log('💱 Exchange rates updated:', data.lastUpdated);
+    }
+  } catch (error) {
+    console.warn('Failed to fetch live exchange rates, using fallback:', error);
+  }
+}
+
+// Auto-fetch rates on module load
+fetchLiveExchangeRates();
 
 /**
  * Convert amount from one currency to another

@@ -2082,6 +2082,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Currency Exchange Rates API
+  let cachedRates: any = null;
+  let ratesCacheTime = 0;
+  const RATES_CACHE_TTL = 60 * 60 * 1000; // Cache for 1 hour
+
+  app.get("/api/currency/rates", async (req, res) => {
+    try {
+      // Return cached rates if still valid
+      if (cachedRates && Date.now() - ratesCacheTime < RATES_CACHE_TTL) {
+        return res.json(cachedRates);
+      }
+
+      // Fetch live rates from exchangerate-api.com (free tier)
+      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch exchange rates');
+      }
+
+      const data = await response.json();
+      
+      // Extract only the currencies we support
+      const supportedCurrencies = ['USD', 'THB', 'EUR', 'IDR', 'INR', 'BRL', 'MXN', 'GBP', 'JPY', 'CAD', 'AUD', 'VND', 'PHP', 'MYR', 'TRY'];
+      const rates: Record<string, number> = {};
+      
+      supportedCurrencies.forEach(currency => {
+        rates[currency] = data.rates[currency] || 1;
+      });
+
+      cachedRates = {
+        rates,
+        lastUpdated: data.date || new Date().toISOString(),
+        base: 'USD'
+      };
+      ratesCacheTime = Date.now();
+
+      res.json(cachedRates);
+    } catch (error: any) {
+      console.error('Currency API Error:', error);
+      // Return fallback rates if API fails
+      res.json({
+        rates: {
+          USD: 1.00,
+          THB: 33.50,
+          EUR: 0.85,
+          IDR: 15200,
+          INR: 83.10,
+          BRL: 5.20,
+          MXN: 18.00,
+          GBP: 0.78,
+          JPY: 150.00,
+          CAD: 1.35,
+          AUD: 1.50,
+          VND: 24000,
+          PHP: 56.00,
+          MYR: 4.65,
+          TRY: 29.50,
+        },
+        lastUpdated: new Date().toISOString(),
+        base: 'USD',
+        fallback: true
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
