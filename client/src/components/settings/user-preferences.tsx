@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTheme } from "@/components/theme-provider";
+import { UserPreferences } from "@shared/schema";
 import { 
   Palette, 
   Moon, 
@@ -28,24 +29,6 @@ interface UserPreferencesProps {
   // Add props as needed for user settings
 }
 
-type UserPreferences = {
-  id: string;
-  userId: string;
-  theme: "light" | "dark" | "system";
-  language: string;
-  timeZone: string;
-  dateFormat: string;
-  currency: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  marketingEmails: boolean;
-  weeklyReports: boolean;
-  goalReminders: boolean;
-  expenseAlerts: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export default function UserPreferences({ }: UserPreferencesProps) {
   const { toast } = useToast();
   const { setTheme } = useTheme();
@@ -55,10 +38,28 @@ export default function UserPreferences({ }: UserPreferencesProps) {
     queryKey: ['/api/user-preferences'],
   });
 
-  // Update preferences mutation
+  // Update preferences mutation with optimistic updates
   const updatePreferencesMutation = useMutation({
     mutationFn: (updates: Partial<UserPreferences>) =>
       apiRequest('PUT', '/api/user-preferences', updates),
+    onMutate: async (updates) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/user-preferences'] });
+      
+      // Snapshot the previous value
+      const previousPreferences = queryClient.getQueryData<UserPreferences>(['/api/user-preferences']);
+      
+      // Optimistically update to the new value
+      if (previousPreferences) {
+        queryClient.setQueryData<UserPreferences>(['/api/user-preferences'], {
+          ...previousPreferences,
+          ...updates,
+        });
+      }
+      
+      // Return a context object with the snapshotted value
+      return { previousPreferences };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user-preferences'] });
       toast({
@@ -66,7 +67,11 @@ export default function UserPreferences({ }: UserPreferencesProps) {
         description: "Your preferences have been saved successfully.",
       });
     },
-    onError: () => {
+    onError: (error, variables, context) => {
+      // Rollback to the previous value on error
+      if (context?.previousPreferences) {
+        queryClient.setQueryData(['/api/user-preferences'], context.previousPreferences);
+      }
       toast({
         title: "Error",
         description: "Failed to update preferences. Please try again.",
@@ -134,13 +139,21 @@ export default function UserPreferences({ }: UserPreferencesProps) {
     updatePreferencesMutation.mutate({ currency });
   };
 
-  const handleSaveAll = () => {
-    // This will trigger a re-validation of all settings
-    queryClient.invalidateQueries({ queryKey: ['/api/user-preferences'] });
-    toast({
-      title: "All preferences saved",
-      description: "Your settings have been synchronized.",
-    });
+  const handleSaveAll = async () => {
+    // Force refresh from server to ensure sync
+    try {
+      await queryClient.refetchQueries({ queryKey: ['/api/user-preferences'] });
+      toast({
+        title: "Settings synchronized",
+        description: "Your preferences have been refreshed from the server.",
+      });
+    } catch (error) {
+      toast({
+        title: "Sync failed",
+        description: "Could not refresh settings. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
