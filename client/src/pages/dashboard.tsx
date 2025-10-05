@@ -24,6 +24,7 @@ import SmartInsights from "@/components/dashboard/smart-insights";
 import EnhancedFinancialTrends from "@/components/dashboard/enhanced-financial-trends";
 import AIChatButton from "@/components/chat/ai-chat-button";
 import AIInsightsCard from "@/components/dashboard/ai-insights-card";
+import CryptoPortfolioWidget from "@/components/dashboard/crypto-portfolio-widget";
 
 export default function Dashboard() {
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
@@ -200,12 +201,15 @@ export default function Dashboard() {
           </div>
           
           {/* Secondary Cards Grid - Stack on mobile, side-by-side on desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Upcoming Events */}
             <UpcomingEvents />
             
             {/* Recent Transactions */}
             <RecentTransactions />
+
+            {/* Crypto Portfolio */}
+            <CryptoPortfolioWidget />
           </div>
           
           {/* Tertiary Cards - Full width */}
