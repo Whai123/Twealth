@@ -786,6 +786,51 @@ export const bonusCredits = pgTable("bonus_credits", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Crypto tracking tables
+export const cryptoHoldings = pgTable("crypto_holdings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  symbol: varchar("symbol", { length: 20 }).notNull(), // BTC, ETH, etc.
+  name: text("name").notNull(), // Bitcoin, Ethereum
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(), // Support small fractions
+  averageBuyPrice: decimal("average_buy_price", { precision: 20, scale: 2 }), // USD price when bought
+  currentPrice: decimal("current_price", { precision: 20, scale: 2 }), // Current USD price (cached)
+  source: text("source").default("manual"), // manual, coinbase, binance, wallet
+  walletAddress: text("wallet_address"), // For blockchain wallet tracking
+  notes: text("notes"),
+  lastPriceUpdate: timestamp("last_price_update"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const cryptoPriceAlerts = pgTable("crypto_price_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  symbol: varchar("symbol", { length: 20 }).notNull(), // BTC, ETH
+  targetPrice: decimal("target_price", { precision: 20, scale: 2 }).notNull(),
+  condition: text("condition", { enum: ["above", "below"] }).notNull(),
+  isActive: boolean("is_active").default(true),
+  triggered: boolean("triggered").default(false),
+  triggeredAt: timestamp("triggered_at"),
+  notificationSent: boolean("notification_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const cryptoTransactions = pgTable("crypto_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  holdingId: varchar("holding_id").references(() => cryptoHoldings.id, { onDelete: "set null" }),
+  type: text("type", { enum: ["buy", "sell", "transfer_in", "transfer_out"] }).notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  amount: decimal("amount", { precision: 20, scale: 8 }).notNull(),
+  pricePerUnit: decimal("price_per_unit", { precision: 20, scale: 2 }).notNull(), // USD price at transaction
+  totalValue: decimal("total_value", { precision: 20, scale: 2 }).notNull(), // Total USD value
+  fee: decimal("fee", { precision: 20, scale: 2 }).default("0"),
+  notes: text("notes"),
+  transactionDate: timestamp("transaction_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Subscription schema exports
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true });
@@ -796,6 +841,11 @@ export const insertSubscriptionAddOnSchema = createInsertSchema(subscriptionAddO
 export const insertReferralCodeSchema = createInsertSchema(referralCodes).omit({ id: true, createdAt: true });
 export const insertReferralSchema = createInsertSchema(referrals).omit({ id: true, createdAt: true });
 export const insertBonusCreditSchema = createInsertSchema(bonusCredits).omit({ id: true, createdAt: true });
+
+// Crypto schema exports
+export const insertCryptoHoldingSchema = createInsertSchema(cryptoHoldings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCryptoPriceAlertSchema = createInsertSchema(cryptoPriceAlerts).omit({ id: true, createdAt: true });
+export const insertCryptoTransactionSchema = createInsertSchema(cryptoTransactions).omit({ id: true, createdAt: true });
 
 // Subscription types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -816,6 +866,15 @@ export type BonusCredit = typeof bonusCredits.$inferSelect;
 export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
 export type InsertBonusCredit = z.infer<typeof insertBonusCreditSchema>;
+
+// Crypto types
+export type CryptoHolding = typeof cryptoHoldings.$inferSelect;
+export type CryptoPriceAlert = typeof cryptoPriceAlerts.$inferSelect;
+export type CryptoTransaction = typeof cryptoTransactions.$inferSelect;
+
+export type InsertCryptoHolding = z.infer<typeof insertCryptoHoldingSchema>;
+export type InsertCryptoPriceAlert = z.infer<typeof insertCryptoPriceAlertSchema>;
+export type InsertCryptoTransaction = z.infer<typeof insertCryptoTransactionSchema>;
 
 // Subscription relations
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
