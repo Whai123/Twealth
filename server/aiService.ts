@@ -18,6 +18,8 @@ class ResponseCache {
   private cache = new Map<string, CacheEntry>();
   private readonly CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
   private readonly MAX_CACHE_SIZE = 1000;
+  private hits = 0;
+  private misses = 0;
 
   private generateCacheKey(message: string, context: Partial<UserContext>): string {
     // Create a stable hash for similar queries and contexts
@@ -48,14 +50,19 @@ class ResponseCache {
     const key = this.generateCacheKey(message, context);
     const entry = this.cache.get(key);
     
-    if (!entry) return null;
+    if (!entry) {
+      this.misses++;
+      return null;
+    }
     
     // Check if expired
     if (Date.now() - entry.timestamp > this.CACHE_TTL) {
       this.cache.delete(key);
+      this.misses++;
       return null;
     }
     
+    this.hits++;
     return entry.response;
   }
 
@@ -75,10 +82,16 @@ class ResponseCache {
     });
   }
 
-  getStats(): { size: number; hitRate: number } {
+  getStats(): { size: number; hitRate: number; hits: number; misses: number; totalRequests: number } {
+    const totalRequests = this.hits + this.misses;
+    const hitRate = totalRequests > 0 ? this.hits / totalRequests : 0;
+    
     return {
       size: this.cache.size,
-      hitRate: 0.85 // Placeholder - could track actual hits/misses
+      hitRate,
+      hits: this.hits,
+      misses: this.misses,
+      totalRequests
     };
   }
 }
