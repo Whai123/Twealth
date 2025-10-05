@@ -52,6 +52,12 @@ import {
   type InsertReferral,
   type BonusCredit,
   type InsertBonusCredit,
+  type CryptoHolding,
+  type InsertCryptoHolding,
+  type CryptoPriceAlert,
+  type InsertCryptoPriceAlert,
+  type CryptoTransaction,
+  type InsertCryptoTransaction,
   users,
   groups,
   groupMembers,
@@ -77,7 +83,10 @@ import {
   subscriptionAddOns,
   referralCodes,
   referrals,
-  bonusCredits
+  bonusCredits,
+  cryptoHoldings,
+  cryptoPriceAlerts,
+  cryptoTransactions
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -313,6 +322,35 @@ export interface IStorage {
   addBonusCredits(bonusCredit: InsertBonusCredit): Promise<BonusCredit>;
   getAvailableBonusCredits(userId: string): Promise<number>;
   useBonusCredits(userId: string, amount: number): Promise<void>;
+
+  // Crypto methods
+  getCryptoHolding(id: string): Promise<CryptoHolding | undefined>;
+  getUserCryptoHoldings(userId: string): Promise<CryptoHolding[]>;
+  createCryptoHolding(holding: InsertCryptoHolding): Promise<CryptoHolding>;
+  updateCryptoHolding(id: string, updates: Partial<CryptoHolding>): Promise<CryptoHolding>;
+  deleteCryptoHolding(id: string): Promise<void>;
+  
+  getCryptoPriceAlert(id: string): Promise<CryptoPriceAlert | undefined>;
+  getUserCryptoPriceAlerts(userId: string): Promise<CryptoPriceAlert[]>;
+  createCryptoPriceAlert(alert: InsertCryptoPriceAlert): Promise<CryptoPriceAlert>;
+  updateCryptoPriceAlert(id: string, updates: Partial<CryptoPriceAlert>): Promise<CryptoPriceAlert>;
+  deleteCryptoPriceAlert(id: string): Promise<void>;
+  
+  getCryptoTransaction(id: string): Promise<CryptoTransaction | undefined>;
+  getUserCryptoTransactions(userId: string, limit?: number): Promise<CryptoTransaction[]>;
+  createCryptoTransaction(transaction: InsertCryptoTransaction): Promise<CryptoTransaction>;
+  
+  getUserCryptoPortfolioValue(userId: string): Promise<{
+    totalValue: number;
+    holdings: Array<{
+      symbol: string;
+      name: string;
+      amount: string;
+      currentPrice: string;
+      value: number;
+      change24h: number;
+    }>;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2218,6 +2256,118 @@ export class DatabaseStorage implements IStorage {
     if (remainingAmount > 0) {
       throw new Error('Insufficient bonus credits available');
     }
+  }
+
+  // Crypto methods
+  async getCryptoHolding(id: string): Promise<CryptoHolding | undefined> {
+    const [holding] = await db.select().from(cryptoHoldings).where(eq(cryptoHoldings.id, id));
+    return holding;
+  }
+
+  async getUserCryptoHoldings(userId: string): Promise<CryptoHolding[]> {
+    return await db.select()
+      .from(cryptoHoldings)
+      .where(eq(cryptoHoldings.userId, userId))
+      .orderBy(desc(cryptoHoldings.createdAt));
+  }
+
+  async createCryptoHolding(holding: InsertCryptoHolding): Promise<CryptoHolding> {
+    const [result] = await db.insert(cryptoHoldings).values(holding).returning();
+    return result;
+  }
+
+  async updateCryptoHolding(id: string, updates: Partial<CryptoHolding>): Promise<CryptoHolding> {
+    const [result] = await db.update(cryptoHoldings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(cryptoHoldings.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteCryptoHolding(id: string): Promise<void> {
+    await db.delete(cryptoHoldings).where(eq(cryptoHoldings.id, id));
+  }
+
+  async getCryptoPriceAlert(id: string): Promise<CryptoPriceAlert | undefined> {
+    const [alert] = await db.select().from(cryptoPriceAlerts).where(eq(cryptoPriceAlerts.id, id));
+    return alert;
+  }
+
+  async getUserCryptoPriceAlerts(userId: string): Promise<CryptoPriceAlert[]> {
+    return await db.select()
+      .from(cryptoPriceAlerts)
+      .where(eq(cryptoPriceAlerts.userId, userId))
+      .orderBy(desc(cryptoPriceAlerts.createdAt));
+  }
+
+  async createCryptoPriceAlert(alert: InsertCryptoPriceAlert): Promise<CryptoPriceAlert> {
+    const [result] = await db.insert(cryptoPriceAlerts).values(alert).returning();
+    return result;
+  }
+
+  async updateCryptoPriceAlert(id: string, updates: Partial<CryptoPriceAlert>): Promise<CryptoPriceAlert> {
+    const [result] = await db.update(cryptoPriceAlerts)
+      .set(updates)
+      .where(eq(cryptoPriceAlerts.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteCryptoPriceAlert(id: string): Promise<void> {
+    await db.delete(cryptoPriceAlerts).where(eq(cryptoPriceAlerts.id, id));
+  }
+
+  async getCryptoTransaction(id: string): Promise<CryptoTransaction | undefined> {
+    const [transaction] = await db.select().from(cryptoTransactions).where(eq(cryptoTransactions.id, id));
+    return transaction;
+  }
+
+  async getUserCryptoTransactions(userId: string, limit: number = 50): Promise<CryptoTransaction[]> {
+    return await db.select()
+      .from(cryptoTransactions)
+      .where(eq(cryptoTransactions.userId, userId))
+      .orderBy(desc(cryptoTransactions.transactionDate))
+      .limit(limit);
+  }
+
+  async createCryptoTransaction(transaction: InsertCryptoTransaction): Promise<CryptoTransaction> {
+    const [result] = await db.insert(cryptoTransactions).values(transaction).returning();
+    return result;
+  }
+
+  async getUserCryptoPortfolioValue(userId: string): Promise<{
+    totalValue: number;
+    holdings: Array<{
+      symbol: string;
+      name: string;
+      amount: string;
+      currentPrice: string;
+      value: number;
+      change24h: number;
+    }>;
+  }> {
+    const holdings = await this.getUserCryptoHoldings(userId);
+    
+    const result = {
+      totalValue: 0,
+      holdings: holdings.map(h => {
+        const amount = parseFloat(h.amount);
+        const price = parseFloat(h.currentPrice || '0');
+        const value = amount * price;
+        
+        return {
+          symbol: h.symbol,
+          name: h.name,
+          amount: h.amount,
+          currentPrice: h.currentPrice || '0',
+          value,
+          change24h: 0 // Will be updated by API call
+        };
+      })
+    };
+
+    result.totalValue = result.holdings.reduce((sum, h) => sum + h.value, 0);
+    return result;
   }
 }
 
