@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
+import CryptoTicker from "@/components/crypto-ticker";
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home },
@@ -86,7 +87,11 @@ export default function Sidebar() {
         </ul>
       </nav>
       
-      <div className="px-4 mt-8">
+      <div className="px-4 mt-4 mb-4">
+        <CryptoTicker />
+      </div>
+      
+      <div className="px-4 mt-4">
         <div className="bg-muted rounded-lg p-4">
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
