@@ -43,6 +43,30 @@ export default function CryptoTicker() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-3 border border-red-200 dark:border-red-900/30">
+        <div className="flex items-center gap-2 mb-2">
+          <Bitcoin className="w-4 h-4 text-red-500" />
+          <h3 className="text-xs font-semibold text-foreground">Crypto Prices</h3>
+        </div>
+        <p className="text-xs text-red-600 dark:text-red-400">Unable to load prices</p>
+      </div>
+    );
+  }
+
+  if (!prices || !Array.isArray(prices) || prices.length === 0) {
+    return (
+      <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Bitcoin className="w-4 h-4 text-orange-500" />
+          <h3 className="text-xs font-semibold text-foreground">Crypto Prices</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">No data available</p>
+      </div>
+    );
+  }
+
   const priceData = prices as any;
 
   return (
