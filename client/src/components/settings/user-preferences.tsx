@@ -120,6 +120,13 @@ export default function UserPreferences({ }: UserPreferencesProps) {
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
     // Update theme context immediately for instant UI change
     setTheme(theme);
+    
+    // Invalidate cache immediately to prevent stale data from overwriting
+    queryClient.setQueryData<UserPreferences>(['/api/user-preferences'], (old) => {
+      if (!old) return old;
+      return { ...old, theme };
+    });
+    
     // Also update database preferences
     updatePreferencesMutation.mutate({ theme });
   };

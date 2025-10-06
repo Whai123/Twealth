@@ -38,19 +38,27 @@ export function ThemeProvider({
     return defaultTheme;
   });
 
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   // Fetch user preferences from API
   const { data: userPreferences } = useQuery<{ theme?: Theme }>({
     queryKey: ["/api/user-preferences"],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
-  // Update theme when user preferences are loaded
+  // Update theme when user preferences are loaded (only on initial load)
   useEffect(() => {
-    if (userPreferences?.theme && userPreferences.theme !== theme) {
-      setTheme(userPreferences.theme);
-      localStorage.setItem(storageKey, userPreferences.theme);
+    if (!hasInitialized && userPreferences?.theme) {
+      const storedTheme = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+      
+      // Only sync from API if localStorage doesn't have a value or if they match
+      if (!storedTheme || storedTheme === userPreferences.theme) {
+        setTheme(userPreferences.theme);
+        localStorage.setItem(storageKey, userPreferences.theme);
+      }
+      setHasInitialized(true);
     }
-  }, [userPreferences?.theme, theme, storageKey]);
+  }, [userPreferences?.theme, hasInitialized, storageKey]);
 
   useEffect(() => {
     const root = window.document.documentElement;
