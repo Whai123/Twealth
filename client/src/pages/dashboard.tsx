@@ -65,7 +65,7 @@ export default function Dashboard() {
   const prevTimeValue = (prevTimeStats as any)?.timeValue || 0;
   const growthPercent = prevTimeValue ? Math.round(((currentTimeValue - prevTimeValue) / prevTimeValue) * 100) : 0;
   
-  const totalSavings = stats?.totalSavings || 0;
+  const totalSavings = (stats as any)?.totalSavings || 0;
   const financialScore = Math.min(850, Math.round(200 + (totalSavings / 100) + (activeGoalsCount * 50) + (goalsOnTrack * 100)));
   
   const userCreatedAt = new Date();
