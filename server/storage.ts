@@ -105,6 +105,15 @@ export type EventWithGroup = Event & {
   } | null;
 };
 
+// Event with populated attendee user details
+export type EventWithAttendees = Event & {
+  attendeesWithUsers?: Array<{
+    userId: string;
+    status: 'yes' | 'no' | 'maybe';
+    user: SafeUser;
+  }>;
+};
+
 export interface IStorage {
   // User methods (IMPORTANT - these are mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
@@ -134,6 +143,7 @@ export interface IStorage {
   getEventsByGroupId(groupId: string): Promise<Event[]>;
   getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]>;
   getUpcomingEvents(userId: string, limit?: number): Promise<Event[]>;
+  getUpcomingEventsWithAttendees(userId: string, limit?: number): Promise<EventWithAttendees[]>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, updates: Partial<Event>): Promise<Event>;
   deleteEvent(id: string): Promise<void>;
@@ -582,6 +592,52 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(events.createdBy, userId), gte(events.startTime, new Date())))
       .orderBy(events.startTime)
       .limit(limit);
+  }
+
+  async getUpcomingEventsWithAttendees(userId: string, limit: number = 10): Promise<EventWithAttendees[]> {
+    const upcomingEvents = await this.getUpcomingEvents(userId, limit);
+    
+    // Populate attendee user details for each event
+    const eventsWithAttendees: EventWithAttendees[] = await Promise.all(
+      upcomingEvents.map(async (event) => {
+        const attendees = Array.isArray(event.attendees) ? event.attendees : [];
+        
+        // Fetch user details for each attendee
+        const attendeesWithUsers = await Promise.all(
+          attendees.map(async (attendee: any) => {
+            const user = await this.getUser(attendee.userId);
+            return {
+              userId: attendee.userId,
+              status: attendee.status as 'yes' | 'no' | 'maybe',
+              user: user ? {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                profileImageUrl: user.profileImageUrl,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+              } as SafeUser : {
+                id: attendee.userId,
+                email: '',
+                firstName: null,
+                lastName: null,
+                profileImageUrl: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              } as SafeUser,
+            };
+          })
+        );
+        
+        return {
+          ...event,
+          attendeesWithUsers,
+        };
+      })
+    );
+    
+    return eventsWithAttendees;
   }
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
