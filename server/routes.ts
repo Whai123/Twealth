@@ -296,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Use authenticated user from session
       const user = await storage.createDemoUserIfNeeded();
-      const events = await storage.getUpcomingEvents(user.id, limit);
+      const events = await storage.getUpcomingEventsWithAttendees(user.id, limit);
       res.json(events);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
