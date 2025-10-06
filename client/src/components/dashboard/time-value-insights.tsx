@@ -153,18 +153,24 @@ export default function TimeValueInsights() {
                 <Target size={16} className="text-primary" />
                 Category Performance
               </h3>
-              <div className="h-64">
+              <div className="h-80">
                 <ChartContainer config={{
                   timeHours: { label: "Time Hours", color: "hsl(var(--time-primary))" },
                   value: { label: "Value", color: "hsl(var(--money-primary))" }
                 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData}>
+                    <ComposedChart 
+                      data={chartData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis 
                         dataKey="category" 
-                        fontSize={12}
+                        fontSize={11}
                         tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
                       />
                       <YAxis 
                         yAxisId="time"
@@ -181,17 +187,20 @@ export default function TimeValueInsights() {
                       <Tooltip 
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
+                            const hours = Number(payload[0]?.value || 0);
+                            const value = Number(payload[1]?.value || 0);
+                            const efficiency = hours > 0 ? value / hours : 0;
                             return (
-                              <div className="bg-card border rounded-lg p-3 shadow-lg">
-                                <p className="font-medium mb-2">{label}</p>
+                              <div className="bg-card border rounded-lg p-3 shadow-lg min-w-[200px]">
+                                <p className="font-medium mb-2 truncate">{label}</p>
                                 <p className="text-sm text-time">
-                                  ⏰ {payload[0]?.value}h tracked
+                                  ⏰ {hours.toFixed(1)}h tracked
                                 </p>
                                 <p className="text-sm text-money">
-                                  💰 {currencySymbol}{Math.round(Number(payload[1]?.value || 0)).toLocaleString()} earned
+                                  💰 {currencySymbol}{Math.round(value).toLocaleString()} earned
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  Efficiency: {currencySymbol}{Math.round(Number(payload[1]?.value || 0) / Number(payload[0]?.value || 1))}/hr
+                                  Efficiency: {currencySymbol}{Math.round(efficiency)}/hr
                                 </p>
                               </div>
                             );
@@ -288,14 +297,17 @@ export default function TimeValueInsights() {
                       <Tooltip 
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
+                            const hours = Number(payload[0]?.value || 0);
+                            const percentage = Math.round((hours / (insights?.totalTimeHours || 1)) * 100);
+                            const value = Number(payload[1]?.value || 0);
                             return (
-                              <div className="bg-card border rounded-lg p-3 shadow-lg">
-                                <p className="font-medium mb-2">{label}</p>
+                              <div className="bg-card border rounded-lg p-3 shadow-lg min-w-[200px]">
+                                <p className="font-medium mb-2 truncate">{label}</p>
                                 <p className="text-sm text-time">
-                                  ⏰ {payload[0]?.value}h ({Math.round((Number(payload[0]?.value || 0) / (insights?.totalTimeHours || 1)) * 100)}%)
+                                  ⏰ {hours.toFixed(1)}h ({percentage}%)
                                 </p>
                                 <p className="text-sm text-money">
-                                  💰 {currencySymbol}{Math.round(Number(payload[1]?.value || 0)).toLocaleString()}
+                                  💰 {currencySymbol}{Math.round(value).toLocaleString()}
                                 </p>
                               </div>
                             );
