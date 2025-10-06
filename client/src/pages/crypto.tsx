@@ -51,7 +51,7 @@ export default function CryptoPage() {
   // Add holding mutation
   const addHoldingMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest("/api/crypto/holdings", "POST", data);
+      return apiRequest("POST", "/api/crypto/holdings", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });
@@ -78,7 +78,7 @@ export default function CryptoPage() {
   // Delete holding mutation
   const deleteHoldingMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/crypto/holdings/${id}`, "DELETE");
+      return apiRequest("DELETE", `/api/crypto/holdings/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });

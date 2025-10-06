@@ -10,8 +10,17 @@ const POPULAR_CRYPTOS = [
 export default function CryptoTicker() {
   const coinIds = POPULAR_CRYPTOS.map(c => c.id).join(',');
   
-  const { data: prices, isLoading } = useQuery({
-    queryKey: ['/api/crypto/prices', { ids: coinIds }],
+  const { data: prices, isLoading, error } = useQuery({
+    queryKey: ['/api/crypto/prices', coinIds],
+    queryFn: async () => {
+      const res = await fetch(`/api/crypto/prices?ids=${coinIds}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch crypto prices: ${res.status}`);
+      }
+      return res.json();
+    },
     refetchInterval: 60000,
   });
 
