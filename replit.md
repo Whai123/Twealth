@@ -140,7 +140,25 @@ The application is designed to run on Replit with specific plugins for developme
    - Application now works seamlessly for both authenticated and demo users
    - No more authentication errors when accessing the dashboard or user profile
 
-5. **API Configuration Status**:
+5. **Dark Mode Theme Switching Fixed** (October 6, 2025):
+   - **Issue**: Theme changes in Settings weren't applying immediately; stale cached data was overwriting manual selections
+   - **Root Cause**: ThemeProvider's useEffect was continuously syncing from API cache, causing race conditions
+   - **Fixes Applied**:
+     - Updated ThemeProvider to only sync from API on initial load, not on every cache update
+     - Added immediate cache update in user-preferences component when theme is changed
+     - Fixed duplicate `UserPreferences` type declaration in onboarding-redirect.tsx
+   - **Result**: Theme changes now apply instantly without being overwritten by cached data
+
+6. **Cryptocurrency Prices Integration Fixed** (October 6, 2025):
+   - **Issue**: Crypto ticker not displaying prices; API calls failing silently
+   - **Root Cause**: React Query's default query function couldn't handle query parameters properly; mutation parameter order incorrect
+   - **Fixes Applied**:
+     - Added custom queryFn to crypto-ticker.tsx to properly format `/api/crypto/prices?ids=bitcoin,ethereum,binancecoin`
+     - Fixed apiRequest parameter order in crypto page (was `url, method` instead of `method, url`)
+     - CoinGecko API integration now working with 60-second caching
+   - **Result**: Live crypto prices (BTC, ETH, BNB) now display correctly with 24h change indicators
+
+7. **API Configuration Status**:
    - ✅ GEMINI_API_KEY - Configured and working
    - ✅ SESSION_SECRET - Configured and working
    - ❌ STRIPE_SECRET_KEY - Optional, for payment processing
