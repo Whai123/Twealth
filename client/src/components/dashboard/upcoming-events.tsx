@@ -5,6 +5,20 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Calendar } from "lucide-react";
 import { Link } from "wouter";
 
+// Helper function to get user initials
+const getUserInitials = (user: any): string => {
+  if (user.firstName && user.lastName) {
+    return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  }
+  if (user.firstName) {
+    return user.firstName[0].toUpperCase();
+  }
+  if (user.email) {
+    return user.email.slice(0, 2).toUpperCase();
+  }
+  return "U";
+};
+
 export default function UpcomingEvents() {
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events/upcoming"],
@@ -66,20 +80,20 @@ export default function UpcomingEvents() {
                   <p className="text-xs text-muted-foreground">
                     {event.groupId ? "Group Event" : "Personal"} • {new Date(event.startTime).toLocaleString()}
                   </p>
-                  {event.attendees && event.attendees.length > 0 && (
+                  {event.attendeesWithUsers && event.attendeesWithUsers.length > 0 && (
                     <div className="flex items-center mt-2 space-x-2">
                       <div className="flex -space-x-1">
-                        {event.attendees.slice(0, 3).map((attendee: string, index: number) => (
+                        {event.attendeesWithUsers.slice(0, 3).map((attendee: any, index: number) => (
                           <Avatar key={index} className="w-6 h-6 border-2 border-background">
                             <AvatarFallback className="text-xs">
-                              {attendee.slice(0, 2).toUpperCase()}
+                              {getUserInitials(attendee.user)}
                             </AvatarFallback>
                           </Avatar>
                         ))}
-                        {event.attendees.length > 3 && (
+                        {event.attendeesWithUsers.length > 3 && (
                           <Avatar className="w-6 h-6 border-2 border-background">
                             <AvatarFallback className="text-xs">
-                              +{event.attendees.length - 3}
+                              +{event.attendeesWithUsers.length - 3}
                             </AvatarFallback>
                           </Avatar>
                         )}
