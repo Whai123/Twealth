@@ -232,17 +232,23 @@ export default function TimeValueInsights() {
           <TabsContent value="efficiency" className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Hourly Rate by Category</h3>
-              <div className="h-64">
+              <div className="h-80">
                 <ChartContainer config={{
                   efficiency: { label: "Efficiency", color: "hsl(var(--productivity-medium))" }
                 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData}>
+                    <BarChart 
+                      data={chartData}
+                      margin={{ top: 5, right: 20, left: 20, bottom: 60 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis 
                         dataKey="category" 
-                        fontSize={12}
+                        fontSize={11}
                         tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
                       />
                       <YAxis 
                         fontSize={12}
@@ -278,17 +284,23 @@ export default function TimeValueInsights() {
           <TabsContent value="distribution" className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Time Distribution</h3>
-              <div className="h-64">
+              <div className="h-80">
                 <ChartContainer config={{
                   hours: { label: "Hours", color: "hsl(var(--time-primary))" }
                 }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={timeDistribution}>
+                    <AreaChart 
+                      data={timeDistribution}
+                      margin={{ top: 5, right: 20, left: 20, bottom: 60 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis 
                         dataKey="name" 
-                        fontSize={12}
+                        fontSize={11}
                         tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
                       />
                       <YAxis 
                         fontSize={12}
