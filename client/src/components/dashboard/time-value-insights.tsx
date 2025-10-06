@@ -153,7 +153,7 @@ export default function TimeValueInsights() {
                 <Target size={16} className="text-primary" />
                 Category Performance
               </h3>
-              <div className="h-80">
+              <div className="h-80 overflow-hidden">
                 <ChartContainer config={{
                   timeHours: { label: "Time Hours", color: "hsl(var(--time-primary))" },
                   value: { label: "Value", color: "hsl(var(--money-primary))" }
@@ -161,7 +161,7 @@ export default function TimeValueInsights() {
                   <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart 
                       data={chartData}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 40 }}
+                      margin={{ top: 10, right: 30, left: 20, bottom: 65 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis 
@@ -232,14 +232,14 @@ export default function TimeValueInsights() {
           <TabsContent value="efficiency" className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Hourly Rate by Category</h3>
-              <div className="h-80">
+              <div className="h-80 overflow-hidden">
                 <ChartContainer config={{
                   efficiency: { label: "Efficiency", color: "hsl(var(--productivity-medium))" }
                 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart 
                       data={chartData}
-                      margin={{ top: 5, right: 20, left: 20, bottom: 60 }}
+                      margin={{ top: 10, right: 20, left: 20, bottom: 65 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis 
@@ -284,14 +284,14 @@ export default function TimeValueInsights() {
           <TabsContent value="distribution" className="space-y-6">
             <div className="space-y-4">
               <h3 className="text-base font-semibold">Time Distribution</h3>
-              <div className="h-80">
+              <div className="h-80 overflow-hidden">
                 <ChartContainer config={{
                   hours: { label: "Hours", color: "hsl(var(--time-primary))" }
                 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart 
                       data={timeDistribution}
-                      margin={{ top: 5, right: 20, left: 20, bottom: 60 }}
+                      margin={{ top: 10, right: 20, left: 20, bottom: 65 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                       <XAxis 
