@@ -1,13 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useEffect } from "react";
-
-interface UserPreferences {
-  hasCompletedOnboarding?: boolean;
-  currency?: string;
-  theme?: string;
-  [key: string]: any;
-}
+import { UserPreferences } from "@shared/schema";
 
 interface OnboardingRedirectProps {
   children: React.ReactNode;
