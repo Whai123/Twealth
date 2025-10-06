@@ -29,7 +29,7 @@ interface UserPreferencesProps {
   // Add props as needed for user settings
 }
 
-export default function UserPreferences({ }: UserPreferencesProps) {
+export default function UserPreferencesSettings({ }: UserPreferencesProps) {
   const { toast } = useToast();
   const { setTheme } = useTheme();
 
