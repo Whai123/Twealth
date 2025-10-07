@@ -127,12 +127,29 @@ export async function setupAuth(app: Express) {
         console.error("Auth callback failed - no user:", info);
         return res.redirect("/api/login");
       }
-      req.logIn(user, (loginErr: any) => {
-        if (loginErr) {
-          console.error("Login error:", loginErr);
+      
+      // Regenerate session to ensure fresh session in all browser contexts
+      req.session.regenerate((regenerateErr: any) => {
+        if (regenerateErr) {
+          console.error("Session regeneration error:", regenerateErr);
           return res.redirect("/api/login");
         }
-        return res.redirect("/");
+        
+        req.logIn(user, (loginErr: any) => {
+          if (loginErr) {
+            console.error("Login error:", loginErr);
+            return res.redirect("/api/login");
+          }
+          
+          // Explicitly save session before redirecting
+          req.session.save((saveErr: any) => {
+            if (saveErr) {
+              console.error("Session save error:", saveErr);
+              return res.redirect("/api/login");
+            }
+            return res.redirect("/");
+          });
+        });
       });
     })(req, res, next);
   });
