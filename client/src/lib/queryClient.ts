@@ -2,8 +2,35 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = res.statusText;
+    
+    try {
+      const text = await res.text();
+      if (text) {
+        // Try to parse as JSON first
+        try {
+          const json = JSON.parse(text);
+          errorMessage = json.message || json.error || text;
+        } catch {
+          errorMessage = text;
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing response:', e);
+    }
+    
+    // Create user-friendly error messages
+    const userFriendlyMessage = res.status === 401 
+      ? 'Please sign in to continue'
+      : res.status === 403
+      ? 'You don\'t have permission to access this resource'
+      : res.status === 404
+      ? 'The requested resource was not found'
+      : res.status >= 500
+      ? 'Server error. Please try again later'
+      : errorMessage;
+    
+    throw new Error(userFriendlyMessage);
   }
 }
 
@@ -48,10 +75,24 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error instanceof Error && error.message.includes('401')) return false;
+        if (error instanceof Error && error.message.includes('403')) return false;
+        if (error instanceof Error && error.message.includes('404')) return false;
+        
+        // Retry up to 2 times for other errors
+        return failureCount < 2;
+      },
     },
     mutations: {
-      retry: false,
+      retry: (failureCount, error) => {
+        // Don't retry mutations on client errors
+        if (error instanceof Error && error.message.includes('40')) return false;
+        
+        // Retry once for network errors
+        return failureCount < 1;
+      },
     },
   },
 });
