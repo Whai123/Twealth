@@ -1334,16 +1334,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
-        // Generate AI response
-        const aiResponse = await aiService.generateAdvice(userMessage, userContext, conversationHistory);
+        // Generate AI response with potential tool calls
+        const aiResult = await aiService.generateAdvice(userMessage, userContext, conversationHistory);
+        
+        // Handle tool calls if AI wants to take actions
+        const actionsPerformed: any[] = [];
+        if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
+          for (const toolCall of aiResult.toolCalls) {
+            try {
+              if (toolCall.name === 'create_financial_goal') {
+                const goal = await storage.createFinancialGoal({
+                  userId: user.id,
+                  name: toolCall.arguments.name,
+                  targetAmount: toolCall.arguments.targetAmount.toString(),
+                  currentAmount: '0',
+                  targetDate: new Date(toolCall.arguments.targetDate),
+                  description: toolCall.arguments.description || null,
+                  category: 'savings',
+                  priority: 'medium',
+                  isCompleted: false
+                });
+                actionsPerformed.push({
+                  type: 'goal_created',
+                  data: goal
+                });
+              } else if (toolCall.name === 'create_calendar_event') {
+                const event = await storage.createEvent({
+                  userId: user.id,
+                  groupId: null,
+                  title: toolCall.arguments.title,
+                  description: toolCall.arguments.description || null,
+                  startTime: new Date(toolCall.arguments.date),
+                  endTime: new Date(toolCall.arguments.date),
+                  location: null,
+                  isRecurring: false,
+                  recurrencePattern: null,
+                  reminderMinutes: 60,
+                  attendees: [],
+                  budget: null,
+                  actualSpent: null,
+                  isPaid: false
+                });
+                actionsPerformed.push({
+                  type: 'event_created',
+                  data: event
+                });
+              } else if (toolCall.name === 'add_transaction') {
+                const transaction = await storage.createTransaction({
+                  userId: user.id,
+                  type: toolCall.arguments.type,
+                  amount: toolCall.arguments.amount.toString(),
+                  category: toolCall.arguments.category,
+                  description: toolCall.arguments.description || null,
+                  date: toolCall.arguments.date ? new Date(toolCall.arguments.date) : new Date(),
+                  isPaid: true,
+                  paymentMethod: null,
+                  tags: []
+                });
+                actionsPerformed.push({
+                  type: 'transaction_added',
+                  data: transaction
+                });
+              }
+            } catch (toolError) {
+              console.error(`Tool execution error (${toolCall.name}):`, toolError);
+              actionsPerformed.push({
+                type: 'error',
+                tool: toolCall.name,
+                error: 'Failed to execute action'
+              });
+            }
+          }
+        }
         
         // Save AI response
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
           role: 'assistant',
-          content: aiResponse,
+          content: aiResult.response,
           userContext: userContext,
-          tokenCount: Math.ceil(aiResponse.length / 4),
+          tokenCount: Math.ceil(aiResult.response.length / 4),
           cost: isDeepAnalysis ? '0.0005' : '0.0001' // Higher cost for deep analysis
         });
 
@@ -1357,7 +1427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({
           userMessage: userChatMessage,
-          aiMessage: aiChatMessage
+          aiMessage: aiChatMessage,
+          actionsPerformed: actionsPerformed.length > 0 ? actionsPerformed : undefined
         });
 
       } catch (aiError: any) {
