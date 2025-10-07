@@ -31,11 +31,11 @@ export default function Dashboard() {
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
-  const { data: stats } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
   });
   
-  const { data: timeStats } = useQuery({
+  const { data: timeStats, isLoading: timeStatsLoading } = useQuery({
     queryKey: ["/api/dashboard/time-stats"],
   });
   
@@ -44,7 +44,7 @@ export default function Dashboard() {
     queryFn: () => fetch("/api/dashboard/time-stats?previous=true").then(res => res.json()),
   });
   
-  const { data: goals } = useQuery({
+  const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["/api/financial-goals"],
   });
   
@@ -100,47 +100,71 @@ export default function Dashboard() {
               
               {/* Dashboard Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20" data-testid="stat-growth">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className={`w-5 h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-                    <span className="text-sm font-medium">Growth</span>
+                {timeStatsLoading ? (
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 animate-pulse">
+                    <div className="h-5 w-20 bg-muted rounded mb-2"></div>
+                    <div className="h-8 w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-3 w-24 bg-muted rounded"></div>
                   </div>
-                  <div className={`text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="value-growth">
-                    {growthPercent >= 0 ? '+' : ''}{growthPercent}%
+                ) : (
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-growth">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className={`w-5 h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
+                      <span className="text-sm font-medium">Growth</span>
+                    </div>
+                    <div className={`text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
+                      {growthPercent >= 0 ? '+' : ''}{growthPercent}%
+                    </div>
+                    <div className="text-xs text-muted-foreground">This period</div>
                   </div>
-                  <div className="text-xs text-muted-foreground">This period</div>
-                </div>
+                )}
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20" data-testid="stat-goals">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-medium">Goals</span>
+                {goalsLoading ? (
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 animate-pulse">
+                    <div className="h-5 w-20 bg-muted rounded mb-2"></div>
+                    <div className="h-8 w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-3 w-24 bg-muted rounded"></div>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600" data-testid="value-goals">
-                    {goalsOnTrack}/{activeGoalsCount}
+                ) : (
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-goals">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="w-5 h-5 text-blue-500" aria-hidden="true" />
+                      <span className="text-sm font-medium">Goals</span>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
+                      {goalsOnTrack}/{activeGoalsCount}
+                    </div>
+                    <div className="text-xs text-muted-foreground">On track</div>
                   </div>
-                  <div className="text-xs text-muted-foreground">On track</div>
-                </div>
+                )}
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20" data-testid="stat-score">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-5 h-5 text-orange-500" />
-                    <span className="text-sm font-medium">Score</span>
+                {statsLoading ? (
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 animate-pulse">
+                    <div className="h-5 w-20 bg-muted rounded mb-2"></div>
+                    <div className="h-8 w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-3 w-24 bg-muted rounded"></div>
                   </div>
-                  <div className="text-2xl font-bold text-orange-600" data-testid="value-score">
-                    {financialScore}
+                ) : (
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-score">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="w-5 h-5 text-orange-500" aria-hidden="true" />
+                      <span className="text-sm font-medium">Score</span>
+                    </div>
+                    <div className="text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
+                      {financialScore}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {financialScore >= 800 ? 'Excellent' : financialScore >= 600 ? 'Good' : financialScore >= 400 ? 'Fair' : 'Building'}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {financialScore >= 800 ? 'Excellent' : financialScore >= 600 ? 'Good' : financialScore >= 400 ? 'Fair' : 'Building'}
-                  </div>
-                </div>
+                )}
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20" data-testid="stat-streak">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-streak">
                   <div className="flex items-center gap-2 mb-2">
-                    <Crown className="w-5 h-5 text-purple-500" />
+                    <Crown className="w-5 h-5 text-purple-500" aria-hidden="true" />
                     <span className="text-sm font-medium">Streak</span>
                   </div>
-                  <div className="text-2xl font-bold text-purple-600" data-testid="value-streak">
+                  <div className="text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
                     {streak}
                   </div>
                   <div className="text-xs text-muted-foreground">Days active</div>
@@ -176,9 +200,9 @@ export default function Dashboard() {
           </div>
           
           {/* Welcome Message */}
-          <div className="bg-gradient-to-r from-white/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="bg-gradient-to-r from-white/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20 transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-700" role="banner">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-indigo-500" />
+              <Sparkles className="w-6 h-6 text-indigo-500 animate-pulse" aria-hidden="true" />
               <div>
                 <h2 className="text-lg font-semibold text-indigo-800 dark:text-indigo-200">Welcome back! 👋</h2>
                 <p className="text-indigo-600 dark:text-indigo-300">You're making excellent progress on your financial journey. Here's what's happening today.</p>
