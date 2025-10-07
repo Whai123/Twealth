@@ -61,8 +61,8 @@ export default function Sidebar() {
         </div>
       </div>
       
-      <nav className="px-4 pb-4">
-        <ul className="space-y-2">
+      <nav className="px-4 pb-4" aria-label="Main navigation">
+        <ul className="space-y-2" role="list">
           {navigation.map((item) => {
             const isActive = location === item.href;
             return (
@@ -76,8 +76,11 @@ export default function Sidebar() {
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                     data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    role="link"
+                    aria-label={`Navigate to ${item.name}`}
+                    aria-current={isActive ? "page" : undefined}
                   >
-                    <item.icon size={20} />
+                    <item.icon size={20} aria-hidden="true" />
                     <span>{item.name}</span>
                   </div>
                 </Link>
@@ -111,11 +114,12 @@ export default function Sidebar() {
                 onClick={toggleTheme}
                 className="h-8 w-8 p-0"
                 data-testid="button-theme-toggle"
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               >
                 {theme === "dark" ? (
-                  <Sun size={16} className="text-muted-foreground hover:text-foreground" />
+                  <Sun size={16} className="text-muted-foreground hover:text-foreground" aria-hidden="true" />
                 ) : (
-                  <Moon size={16} className="text-muted-foreground hover:text-foreground" />
+                  <Moon size={16} className="text-muted-foreground hover:text-foreground" aria-hidden="true" />
                 )}
               </Button>
             </div>

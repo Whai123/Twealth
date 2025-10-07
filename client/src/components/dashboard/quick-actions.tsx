@@ -111,10 +111,10 @@ export default function QuickActions() {
 
   return (
     <>
-      <Card className="overflow-hidden border-0 bg-gradient-hero shadow-lg">
+      <Card className="overflow-hidden border-0 bg-gradient-hero shadow-lg" role="region" aria-label="Quick Actions">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold text-primary-foreground flex items-center gap-2">
-            <Zap className="h-5 w-5" />
+            <Zap className="h-5 w-5" aria-hidden="true" />
             Quick Actions
           </CardTitle>
         </CardHeader>
@@ -132,6 +132,7 @@ export default function QuickActions() {
                   minHeight: 'clamp(100px, 15vw, 120px)'
                 }}
                 data-testid={`button-${action.id}`}
+                aria-label={`${action.title}: ${action.description}. Keyboard shortcut: ${action.shortcut}`}
               >
                 <div 
                   className={`w-8 h-8 md:w-10 md:h-10 rounded-xl ${action.bgColor} ${action.color} flex items-center justify-center transition-all duration-300 group-hover:scale-110`}
