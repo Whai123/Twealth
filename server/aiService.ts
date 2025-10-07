@@ -1,10 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 import crypto from 'crypto';
 
-// Using Gemini for cost-effective financial advice - 25x cheaper than OpenAI
-// Blueprint integration: javascript_gemini
-const genai = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || "" 
+// Using Groq with Llama 3.1 for fast, free AI with function calling
+const groq = new Groq({ 
+  apiKey: process.env.GROQ_API_KEY || "" 
 });
 
 // Cost optimization: In-memory cache for AI responses
@@ -96,17 +95,6 @@ class ResponseCache {
   }
 }
 
-// Financial advice templates for common queries
-const ADVICE_TEMPLATES = new Map<string, string>([
-  ['budget', 'Follow the 50/30/20 rule: 50% for needs, 30% for wants, 20% for savings. Track your expenses using categories to identify areas for improvement.'],
-  ['emergency fund', 'Build an emergency fund with 3-6 months of expenses. Start with $1,000 as your initial goal, then gradually increase it.'],
-  ['debt payoff', 'Use the debt avalanche method: pay minimums on all debts, then put extra money toward the highest interest rate debt first.'],
-  ['investment start', 'Start investing with low-cost index funds. Begin with 10-15% of your income if possible, and increase gradually over time.'],
-  ['save money', 'Cut unnecessary subscriptions, cook at home more often, and use the 24-hour rule before making non-essential purchases.'],
-  ['retirement', 'Contribute to retirement accounts early. Time is your biggest advantage - even small amounts grow significantly over decades.'],
-  ['credit score', 'Pay bills on time, keep credit utilization below 30%, and avoid closing old credit cards to maintain credit history length.']
-]);
-
 const responseCache = new ResponseCache();
 
 export interface UserContext {
@@ -133,33 +121,130 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface ToolCall {
+  name: string;
+  arguments: any;
+}
+
+// Define available tools for the AI agent
+const TOOLS = [
+  {
+    type: "function",
+    function: {
+      name: "create_financial_goal",
+      description: "Create a new financial goal for the user. Use this when the user expresses a desire to save for something specific (e.g., 'I want to buy a Lamborghini in 2 years')",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The name of the goal (e.g., 'Buy Lamborghini')"
+          },
+          targetAmount: {
+            type: "number",
+            description: "The target amount in dollars"
+          },
+          targetDate: {
+            type: "string",
+            description: "The target date in YYYY-MM-DD format"
+          },
+          description: {
+            type: "string",
+            description: "A brief description of the goal and plan to achieve it"
+          }
+        },
+        required: ["name", "targetAmount", "targetDate"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_calendar_event",
+      description: "Create a calendar event for the user. Use this when the user mentions a financial appointment or important date (e.g., 'Remind me to review my portfolio next month')",
+      parameters: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description: "The event title"
+          },
+          date: {
+            type: "string",
+            description: "The event date in YYYY-MM-DD format"
+          },
+          description: {
+            type: "string",
+            description: "Event description or notes"
+          }
+        },
+        required: ["title", "date"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "add_transaction",
+      description: "Record a financial transaction. Use this when the user mentions spending or receiving money (e.g., 'I spent $50 on groceries today')",
+      parameters: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+            enum: ["income", "expense"],
+            description: "Type of transaction"
+          },
+          amount: {
+            type: "number",
+            description: "Transaction amount in dollars"
+          },
+          category: {
+            type: "string",
+            description: "Transaction category (e.g., 'groceries', 'salary', 'entertainment')"
+          },
+          description: {
+            type: "string",
+            description: "Transaction description"
+          },
+          date: {
+            type: "string",
+            description: "Transaction date in YYYY-MM-DD format (defaults to today if not specified)"
+          }
+        },
+        required: ["type", "amount", "category"]
+      }
+    }
+  }
+];
+
 export class TwealthAIService {
-  private buildOptimizedSystemPrompt(context: UserContext): string {
-    // Optimized context - include only essential data to reduce token usage
+  private buildSystemPrompt(context: UserContext): string {
     const savingsRate = ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome) * 100;
     const netWorth = context.totalSavings;
     const goals = context.activeGoals;
 
-    return `You are Twealth AI, a personal financial assistant.
+    return `You are Twealth AI, an intelligent financial assistant with the ability to take actions on behalf of users.
 
-Context: $${netWorth.toLocaleString()} savings, ${savingsRate.toFixed(0)}% savings rate, ${goals} goals
+User's Financial Context:
+- Total Savings: $${netWorth.toLocaleString()}
+- Monthly Income: $${context.monthlyIncome.toLocaleString()}
+- Monthly Expenses: $${context.monthlyExpenses.toLocaleString()}
+- Savings Rate: ${savingsRate.toFixed(1)}%
+- Active Goals: ${goals}
 
-Role: Provide specific, actionable financial advice (max 150 words)
-- Reference their actual data
-- Give practical tips for immediate implementation
-- Be encouraging but realistic`;
-  }
+Your Capabilities:
+1. Provide personalized financial advice
+2. Create financial goals when users express savings desires
+3. Schedule calendar events for financial planning
+4. Record transactions when users mention spending
 
-  private findTemplateMatch(message: string): string | null {
-    const normalizedMessage = message.toLowerCase();
-    
-    for (const [keyword, template] of Array.from(ADVICE_TEMPLATES.entries())) {
-      if (normalizedMessage.includes(keyword)) {
-        return template;
-      }
-    }
-    
-    return null;
+Guidelines:
+- When users express a savings goal (e.g., "I want to buy a Lamborghini in 2 years"), calculate the required monthly savings and offer to create the goal
+- Be proactive: if the goal seems achievable based on their finances, encourage them; if challenging, provide realistic alternatives
+- Always explain your reasoning before taking action
+- Keep responses concise and actionable (max 200 words)
+- Use tools when appropriate to help users achieve their goals`;
   }
 
   private estimateTokenCount(text: string): number {
@@ -171,90 +256,84 @@ Role: Provide specific, actionable financial advice (max 150 words)
     userMessage: string, 
     context: UserContext, 
     conversationHistory: ChatMessage[] = []
-  ): Promise<string> {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('Gemini API key not configured');
+  ): Promise<{ response: string; toolCalls?: ToolCall[] }> {
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error('Groq API key not configured');
     }
 
-    // Cost optimization 1: Check cache first
+    // Check cache first (only for non-tool-using queries)
     const cachedResponse = responseCache.get(userMessage, context);
-    if (cachedResponse) {
+    if (cachedResponse && conversationHistory.length < 2) {
       console.log('🎯 Cache hit - saved API call');
-      return cachedResponse;
-    }
-
-    // Cost optimization 2: Check for template match
-    const templateMatch = this.findTemplateMatch(userMessage);
-    if (templateMatch && conversationHistory.length === 0) {
-      // Use template for first-time common questions
-      const personalizedTemplate = this.personalizeTemplate(templateMatch, context);
-      responseCache.set(userMessage, context, personalizedTemplate, this.estimateTokenCount(personalizedTemplate));
-      console.log('📋 Template used - saved API call');
-      return personalizedTemplate;
+      return { response: cachedResponse };
     }
 
     try {
-      // Cost optimization 3: Use optimized prompt
-      const systemPrompt = this.buildOptimizedSystemPrompt(context);
+      const systemPrompt = this.buildSystemPrompt(context);
       
-      // Cost optimization 4: Limit conversation history to 4 most recent messages
-      const conversationContext = conversationHistory.slice(-4).map(msg => 
-        `${msg.role}: ${msg.content.slice(0, 100)}` // Truncate long messages
-      ).join('\n');
-      
-      const fullPrompt = `${systemPrompt}
+      // Build messages array
+      const messages: any[] = [
+        { role: "system", content: systemPrompt }
+      ];
 
-History: ${conversationContext}
-
-Q: ${userMessage}
-
-A:`;
-
-      const response = await genai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: fullPrompt
+      // Add conversation history (last 6 messages for context)
+      conversationHistory.slice(-6).forEach(msg => {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        });
       });
+
+      // Add current user message
+      messages.push({ role: "user", content: userMessage });
+
+      const response = await groq.chat.completions.create({
+        model: "llama-3.1-70b-versatile",
+        messages: messages,
+        tools: TOOLS,
+        tool_choice: "auto",
+        temperature: 0.7,
+        max_tokens: 500
+      });
+
+      const assistantMessage = response.choices[0]?.message;
       
-      const text = response.text || 'Sorry, I could not generate a response.';
+      if (!assistantMessage) {
+        throw new Error('No response from AI');
+      }
+
+      // Check if AI wants to use tools
+      const toolCalls = assistantMessage.tool_calls?.map(tc => ({
+        name: tc.function.name,
+        arguments: JSON.parse(tc.function.arguments)
+      }));
+
+      const text = assistantMessage.content || '';
       
-      // Cache the response
-      const tokenCount = this.estimateTokenCount(fullPrompt + text);
-      responseCache.set(userMessage, context, text, tokenCount);
+      // Cache only if no tools were used
+      if (!toolCalls || toolCalls.length === 0) {
+        const tokenCount = this.estimateTokenCount(systemPrompt + userMessage + text);
+        responseCache.set(userMessage, context, text, tokenCount);
+        console.log(`💰 Groq call made - ~${tokenCount} tokens`);
+      } else {
+        console.log(`🔧 Groq call with ${toolCalls.length} tool(s):`, toolCalls.map(t => t.name).join(', '));
+      }
       
-      console.log(`💰 AI call made - ~${tokenCount} tokens`);
-      
-      return text;
+      return { response: text, toolCalls };
     } catch (error) {
       console.error('AI Service Error:', error);
       throw new Error('Failed to generate AI response');
     }
   }
 
-  private personalizeTemplate(template: string, context: UserContext): string {
-    const savingsRate = ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome) * 100;
-    
-    // Add personalization based on user's situation
-    let personalized = template;
-    
-    if (context.totalSavings < 1000) {
-      personalized += ` With your current savings, focus on building that emergency fund first.`;
-    } else if (savingsRate > 20) {
-      personalized += ` Your ${savingsRate.toFixed(0)}% savings rate is excellent - keep it up!`;
-    } else if (savingsRate < 10) {
-      personalized += ` Consider increasing your savings rate from ${savingsRate.toFixed(0)}% to at least 15%.`;
-    }
-    
-    return personalized;
-  }
-
   async generateProactiveInsight(context: UserContext): Promise<string> {
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.GROQ_API_KEY) {
       return 'AI insights unavailable - API key not configured';
     }
 
     const savingsRate = ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome) * 100;
     
-    // Cost optimization: Rule-based insights for common scenarios
+    // Rule-based insights for common scenarios
     if (savingsRate < 5) {
       return `Your savings rate is ${savingsRate.toFixed(1)}% - try to save at least 10% by reducing one major expense category.`;
     }
@@ -268,7 +347,7 @@ A:`;
       return `Set 2-3 specific financial goals this month to stay motivated and track your progress effectively.`;
     }
 
-    // Only use AI for complex scenarios
+    // Use AI for complex insights
     const cacheKey = `insight_${savingsRate.toFixed(0)}_${context.activeGoals}`;
     const cached = responseCache.get(cacheKey, context);
     if (cached) {
@@ -276,19 +355,24 @@ A:`;
       return cached;
     }
 
-    const insightPrompt = `Financial insight for: ${savingsRate.toFixed(1)}% rate, $${context.totalSavings} saved, ${context.activeGoals} goals. One specific tip (20 words max):`;
+    const insightPrompt = `Based on: ${savingsRate.toFixed(1)}% savings rate, $${context.totalSavings} saved, ${context.activeGoals} active goals. Provide one specific, actionable financial tip in 25 words or less.`;
 
     try {
-      const response = await genai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: insightPrompt
+      const response = await groq.chat.completions.create({
+        model: "llama-3.1-70b-versatile",
+        messages: [
+          { role: "system", content: "You are a financial advisor. Give concise, actionable advice." },
+          { role: "user", content: insightPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 100
       });
       
-      const text = response.text || 'Keep up the great work with your financial management!';
+      const text = response.choices[0]?.message?.content || 'Keep up the great work with your financial management!';
       
       // Cache insight
       responseCache.set(cacheKey, context, text, this.estimateTokenCount(insightPrompt + text));
-      console.log('💰 Insight AI call made');
+      console.log('💰 Insight call made');
       
       return text;
     } catch (error) {
