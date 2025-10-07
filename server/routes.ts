@@ -1430,13 +1430,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
+        // Generate response content - use AI response or create confirmation if empty
+        let responseContent = aiResult.response;
+        
+        // If AI used tools but didn't provide a text response, generate confirmation
+        if ((!responseContent || responseContent.trim() === '') && actionsPerformed.length > 0) {
+          const confirmations = actionsPerformed.map(action => {
+            if (action.type === 'goal_created') {
+              const goal = action.data;
+              return `✅ Goal created: Save $${parseFloat(goal.targetAmount).toLocaleString()} for "${goal.title}" by ${new Date(goal.targetDate).toLocaleDateString()}! I've added this to your financial goals.`;
+            } else if (action.type === 'event_created') {
+              const event = action.data;
+              return `📅 Reminder set: "${event.title}" on ${new Date(event.startTime).toLocaleDateString()}! You'll be notified when it's time.`;
+            } else if (action.type === 'transaction_added') {
+              const txn = action.data;
+              return `💸 Tracked: ${txn.type === 'income' ? 'Received' : 'Spent'} $${parseFloat(txn.amount).toLocaleString()} on ${txn.category}. Your balance has been updated!`;
+            } else if (action.type === 'group_created') {
+              const group = action.data;
+              return `👥 Created "${group.name}" group! You can now collaborate with others on shared financial planning.`;
+            } else if (action.type === 'crypto_added') {
+              const crypto = action.data;
+              return `₿ Tracked: ${crypto.amount} ${crypto.symbol} at $${parseFloat(crypto.averageBuyPrice).toLocaleString()}/coin. Total investment: $${(parseFloat(crypto.amount) * parseFloat(crypto.averageBuyPrice)).toLocaleString()}`;
+            }
+            return '';
+          }).filter(Boolean).join(' ');
+          
+          responseContent = confirmations || 'Action completed successfully!';
+        }
+        
         // Save AI response
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
           role: 'assistant',
-          content: aiResult.response,
+          content: responseContent,
           userContext: userContext,
-          tokenCount: Math.ceil(aiResult.response.length / 4),
+          tokenCount: Math.ceil(responseContent.length / 4),
           cost: isDeepAnalysis ? '0.0005' : '0.0001' // Higher cost for deep analysis
         });
 
