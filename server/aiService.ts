@@ -161,21 +161,21 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_calendar_event",
-      description: "Create a calendar event for the user. Use this when the user mentions a financial appointment or important date (e.g., 'Remind me to review my portfolio next month')",
+      description: "Create a calendar event for the user. Use this when the user mentions a financial appointment or important date (e.g., 'Remind me to review my portfolio next month'). IMPORTANT: Calculate dates properly - 'next week' = 7 days from now, 'next month' = 30 days from now, 'tomorrow' = 1 day from now.",
       parameters: {
         type: "object",
         properties: {
           title: {
             type: "string",
-            description: "The event title"
+            description: "The event title (e.g., 'Review Portfolio', 'Pay Rent', 'Check Budget')"
           },
           date: {
             type: "string",
-            description: "The event date in YYYY-MM-DD format"
+            description: "The event date in YYYY-MM-DD format. Calculate from today's date if relative (next week, tomorrow, etc.)"
           },
           description: {
             type: "string",
-            description: "Event description or notes"
+            description: "Event description or notes with financial context"
           }
         },
         required: ["title", "date"]
@@ -270,9 +270,12 @@ export class TwealthAIService {
     const netWorth = context.totalSavings;
     const goals = context.activeGoals;
 
+    const today = new Date().toISOString().split('T')[0];
+    
     return `You are Twealth AI, an elite financial assistant that transforms conversations into actions. You have full control over the user's financial life.
 
 📊 USER FINANCIAL SNAPSHOT:
+• Today: ${today}
 • Net Worth: $${netWorth.toLocaleString()} | Savings Rate: ${savingsRate.toFixed(1)}% | Active Goals: ${goals}
 
 🎯 YOUR SUPERPOWERS - Use tools to take immediate action:
