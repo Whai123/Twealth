@@ -292,7 +292,7 @@ Always provide advice AND use tools when relevant. Keep responses under 150 word
                          userMessage.toLowerCase().includes('schedule');
 
       const response = await groq.chat.completions.create({
-        model: "llama-3.1-70b-versatile",
+        model: "llama-3.3-70b-versatile",
         messages: messages,
         tools: TOOLS,
         tool_choice: needsAction ? "required" : "auto",
@@ -363,7 +363,7 @@ Always provide advice AND use tools when relevant. Keep responses under 150 word
 
     try {
       const response = await groq.chat.completions.create({
-        model: "llama-3.1-70b-versatile",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: "You are a financial advisor. Give concise, actionable advice." },
           { role: "user", content: insightPrompt }
