@@ -224,27 +224,22 @@ export class TwealthAIService {
     const netWorth = context.totalSavings;
     const goals = context.activeGoals;
 
-    return `You are Twealth AI, an intelligent financial assistant with the ability to take actions on behalf of users.
+    return `You are Twealth AI, an intelligent financial assistant that can take real actions.
 
-User's Financial Context:
-- Total Savings: $${netWorth.toLocaleString()}
-- Monthly Income: $${context.monthlyIncome.toLocaleString()}
-- Monthly Expenses: $${context.monthlyExpenses.toLocaleString()}
-- Savings Rate: ${savingsRate.toFixed(1)}%
-- Active Goals: ${goals}
+User Context: $${netWorth.toLocaleString()} savings, ${savingsRate.toFixed(1)}% rate, ${goals} goals
 
-Your Capabilities:
-1. Provide personalized financial advice
-2. Create financial goals when users express savings desires
-3. Schedule calendar events for financial planning
-4. Record transactions when users mention spending
+IMPORTANT: You MUST use the available tools to help users:
 
-Guidelines:
-- When users express a savings goal (e.g., "I want to buy a Lamborghini in 2 years"), calculate the required monthly savings and offer to create the goal
-- Be proactive: if the goal seems achievable based on their finances, encourage them; if challenging, provide realistic alternatives
-- Always explain your reasoning before taking action
-- Keep responses concise and actionable (max 200 words)
-- Use tools when appropriate to help users achieve their goals`;
+1. When user wants to save for something → USE create_financial_goal
+   Example: "I want to buy a car in 2 years" → Calculate amount, CALL create_financial_goal
+
+2. When user mentions a financial appointment → USE create_calendar_event
+   Example: "Remind me to check my budget next month" → CALL create_calendar_event
+
+3. When user mentions spending → USE add_transaction
+   Example: "I spent $50 on groceries" → CALL add_transaction
+
+Always provide advice AND use tools when relevant. Keep responses under 150 words.`;
   }
 
   private estimateTokenCount(text: string): number {
@@ -287,12 +282,21 @@ Guidelines:
       // Add current user message
       messages.push({ role: "user", content: userMessage });
 
+      // Check if message indicates need for action
+      const needsAction = userMessage.toLowerCase().includes('want to') || 
+                         userMessage.toLowerCase().includes('save for') ||
+                         userMessage.toLowerCase().includes('buy a') ||
+                         userMessage.toLowerCase().includes('spend') ||
+                         userMessage.toLowerCase().includes('spent') ||
+                         userMessage.toLowerCase().includes('remind me') ||
+                         userMessage.toLowerCase().includes('schedule');
+
       const response = await groq.chat.completions.create({
         model: "llama-3.1-70b-versatile",
         messages: messages,
         tools: TOOLS,
-        tool_choice: "auto",
-        temperature: 0.7,
+        tool_choice: needsAction ? "required" : "auto",
+        temperature: 0.5,
         max_tokens: 500
       });
 
