@@ -429,14 +429,18 @@ export class DatabaseStorage implements IStorage {
     return group || undefined;
   }
 
-  async getGroupsByUserId(userId: string): Promise<Group[]> {
+  async getGroupsByUserId(userId: string): Promise<any[]> {
     const userGroups = await db
-      .select({ group: groups })
+      .select({ 
+        group: groups,
+        memberCount: sql<number>`count(distinct ${groupMembers.userId})::int`
+      })
       .from(groups)
       .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-      .where(eq(groupMembers.userId, userId));
+      .where(eq(groupMembers.userId, userId))
+      .groupBy(groups.id);
     
-    return userGroups.map(ug => ug.group);
+    return userGroups.map(ug => ({ ...ug.group, memberCount: ug.memberCount }));
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {

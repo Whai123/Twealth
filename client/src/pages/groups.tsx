@@ -477,7 +477,7 @@ export default function Groups() {
             
             return (
               <Card key={group.id} className="hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-gradient-to-br from-white/90 to-gray-50/50 dark:from-gray-800/90 dark:to-gray-900/50 backdrop-blur-sm border border-white/20 overflow-hidden group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   
                   <CardHeader className="p-6 relative z-10">
                     <div className="flex items-center justify-between mb-4">
@@ -543,7 +543,7 @@ export default function Groups() {
                     )}
                   </CardHeader>
                   
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 relative z-10">
                     {/* Next Event Info - Simplified */}
                     <div 
                       className="bg-muted/50 rounded-lg border border-border/50" 
