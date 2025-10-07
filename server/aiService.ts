@@ -142,7 +142,7 @@ const TOOLS = [
           },
           targetAmount: {
             type: "number",
-            description: "The target amount in dollars"
+            description: "The target amount in dollars. MUST be a number, not a string."
           },
           targetDate: {
             type: "string",
@@ -197,7 +197,7 @@ const TOOLS = [
           },
           amount: {
             type: "number",
-            description: "Transaction amount in dollars"
+            description: "Transaction amount in dollars. MUST be a number, not a string."
           },
           category: {
             type: "string",
@@ -215,6 +215,52 @@ const TOOLS = [
         required: ["type", "amount", "category"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_group",
+      description: "Create a new group for collaborative financial planning. Use when user wants to create a family budget, team expense tracking, etc.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The group name (e.g., 'Family Budget', 'Roommates Expenses')"
+          },
+          description: {
+            type: "string",
+            description: "What this group is for"
+          }
+        },
+        required: ["name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "add_crypto_holding",
+      description: "Track a cryptocurrency holding. Use when user mentions buying or owning crypto.",
+      parameters: {
+        type: "object",
+        properties: {
+          symbol: {
+            type: "string",
+            description: "Crypto symbol in uppercase (e.g., 'BTC', 'ETH', 'BNB')"
+          },
+          amount: {
+            type: "number",
+            description: "Amount of cryptocurrency owned. MUST be a number, not a string."
+          },
+          purchasePrice: {
+            type: "number",
+            description: "Purchase price per unit in USD. MUST be a number, not a string."
+          }
+        },
+        required: ["symbol", "amount", "purchasePrice"]
+      }
+    }
   }
 ];
 
@@ -224,22 +270,43 @@ export class TwealthAIService {
     const netWorth = context.totalSavings;
     const goals = context.activeGoals;
 
-    return `You are Twealth AI, an intelligent financial assistant that can take real actions.
+    return `You are Twealth AI, a professional financial assistant with the ability to take real actions on behalf of users.
 
-User Context: $${netWorth.toLocaleString()} savings, ${savingsRate.toFixed(1)}% rate, ${goals} goals
+User Financial Profile:
+- Total Savings: $${netWorth.toLocaleString()}
+- Savings Rate: ${savingsRate.toFixed(1)}%
+- Active Goals: ${goals}
 
-IMPORTANT: You MUST use the available tools to help users:
+CRITICAL INSTRUCTIONS FOR TOOL USAGE:
 
-1. When user wants to save for something → USE create_financial_goal
-   Example: "I want to buy a car in 2 years" → Calculate amount, CALL create_financial_goal
+1. Financial Goals: When users express saving intentions → create_financial_goal
+   Example: "I want to buy a house in 3 years for $300000" 
+   → Call create_financial_goal with targetAmount as NUMBER (not string): 300000
 
-2. When user mentions a financial appointment → USE create_calendar_event
-   Example: "Remind me to check my budget next month" → CALL create_calendar_event
+2. Calendar Events: When users mention appointments or reminders → create_calendar_event
+   Example: "Remind me to review my portfolio on March 15th"
+   → Call create_calendar_event
 
-3. When user mentions spending → USE add_transaction
-   Example: "I spent $50 on groceries" → CALL add_transaction
+3. Transactions: When users mention spending or income → add_transaction
+   Example: "I received $5000 salary today"
+   → Call add_transaction with amount as NUMBER: 5000
 
-Always provide advice AND use tools when relevant. Keep responses under 150 words.`;
+4. Groups: When users want to create a collaborative group → create_group
+   Example: "Create a group for family budget planning"
+
+5. Group Members: When users want to add someone to a group → add_group_member
+   Example: "Add John to my family group"
+
+6. Crypto Holdings: When users want to track crypto → add_crypto_holding
+   Example: "I bought 0.5 Bitcoin"
+
+FORMATTING RULES:
+- ALL numeric values (amounts, quantities) MUST be raw numbers without quotes
+- Dates must be in YYYY-MM-DD format  
+- Provide clear, professional responses in under 150 words
+- Always confirm actions taken with specific details
+
+Your role is to make financial management effortless through intelligent automation.`;
   }
 
   private estimateTokenCount(text: string): number {
@@ -285,11 +352,23 @@ Always provide advice AND use tools when relevant. Keep responses under 150 word
       // Check if message indicates need for action
       const needsAction = userMessage.toLowerCase().includes('want to') || 
                          userMessage.toLowerCase().includes('save for') ||
-                         userMessage.toLowerCase().includes('buy a') ||
+                         userMessage.toLowerCase().includes('buy') ||
+                         userMessage.toLowerCase().includes('purchase') ||
                          userMessage.toLowerCase().includes('spend') ||
                          userMessage.toLowerCase().includes('spent') ||
+                         userMessage.toLowerCase().includes('paid') ||
+                         userMessage.toLowerCase().includes('received') ||
+                         userMessage.toLowerCase().includes('earned') ||
+                         userMessage.toLowerCase().includes('bought') ||
                          userMessage.toLowerCase().includes('remind me') ||
-                         userMessage.toLowerCase().includes('schedule');
+                         userMessage.toLowerCase().includes('schedule') ||
+                         userMessage.toLowerCase().includes('create') ||
+                         userMessage.toLowerCase().includes('add') ||
+                         userMessage.toLowerCase().includes('track') ||
+                         userMessage.toLowerCase().includes('group') ||
+                         userMessage.toLowerCase().includes('crypto') ||
+                         userMessage.toLowerCase().includes('bitcoin') ||
+                         userMessage.toLowerCase().includes('ethereum');
 
       const response = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",

@@ -1381,6 +1381,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   type: 'transaction_added',
                   data: transaction
                 });
+              } else if (toolCall.name === 'create_group') {
+                const group = await storage.createGroup({
+                  name: toolCall.arguments.name,
+                  description: toolCall.arguments.description || null,
+                  ownerId: user.id
+                });
+                actionsPerformed.push({
+                  type: 'group_created',
+                  data: group
+                });
+              } else if (toolCall.name === 'add_crypto_holding') {
+                const holding = await storage.createCryptoHolding({
+                  userId: user.id,
+                  coinId: toolCall.arguments.symbol.toLowerCase(),
+                  symbol: toolCall.arguments.symbol.toUpperCase(),
+                  amount: toolCall.arguments.amount.toString(),
+                  purchasePrice: toolCall.arguments.purchasePrice.toString()
+                });
+                actionsPerformed.push({
+                  type: 'crypto_added',
+                  data: holding
+                });
               }
             } catch (toolError) {
               console.error(`Tool execution error (${toolCall.name}):`, toolError);
@@ -1418,8 +1440,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
       } catch (aiError: any) {
-        // Save error message as AI response
-        const errorMessage = "I'm sorry, I'm having trouble processing your request right now. Please try again later.";
+        // Provide more specific error messages based on error type
+        console.error('AI Chat Error:', aiError.message);
+        let errorMessage = "I apologize for the inconvenience. I'm experiencing a temporary issue processing your request. Please try rephrasing your message or try again in a moment.";
+        
+        // If it's a Groq API error, provide helpful guidance
+        if (aiError.message?.includes('decommissioned')) {
+          errorMessage = "Our AI system is currently being updated. Please try again in a few moments.";
+        }
+        
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
           role: 'assistant',
