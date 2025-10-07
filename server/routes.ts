@@ -1345,14 +1345,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (toolCall.name === 'create_financial_goal') {
                 const goal = await storage.createFinancialGoal({
                   userId: user.id,
-                  name: toolCall.arguments.name,
+                  title: toolCall.arguments.name,
                   targetAmount: toolCall.arguments.targetAmount.toString(),
                   currentAmount: '0',
                   targetDate: new Date(toolCall.arguments.targetDate),
                   description: toolCall.arguments.description || null,
-                  category: 'savings',
-                  priority: 'medium',
-                  isCompleted: false
+                  category: 'savings'
                 });
                 actionsPerformed.push({
                   type: 'goal_created',
@@ -1360,20 +1358,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
               } else if (toolCall.name === 'create_calendar_event') {
                 const event = await storage.createEvent({
-                  userId: user.id,
-                  groupId: null,
+                  createdBy: user.id,
                   title: toolCall.arguments.title,
                   description: toolCall.arguments.description || null,
                   startTime: new Date(toolCall.arguments.date),
-                  endTime: new Date(toolCall.arguments.date),
-                  location: null,
-                  isRecurring: false,
-                  recurrencePattern: null,
-                  reminderMinutes: 60,
-                  attendees: [],
-                  budget: null,
-                  actualSpent: null,
-                  isPaid: false
+                  endTime: new Date(toolCall.arguments.date)
                 });
                 actionsPerformed.push({
                   type: 'event_created',
@@ -1386,10 +1375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   amount: toolCall.arguments.amount.toString(),
                   category: toolCall.arguments.category,
                   description: toolCall.arguments.description || null,
-                  date: toolCall.arguments.date ? new Date(toolCall.arguments.date) : new Date(),
-                  isPaid: true,
-                  paymentMethod: null,
-                  tags: []
+                  date: toolCall.arguments.date ? new Date(toolCall.arguments.date) : new Date()
                 });
                 actionsPerformed.push({
                   type: 'transaction_added',

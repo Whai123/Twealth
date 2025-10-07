@@ -24,6 +24,12 @@ interface ChatConversation {
 interface APIResponse {
   userMessage: ChatMessage;
   aiMessage: ChatMessage;
+  actionsPerformed?: Array<{
+    type: 'goal_created' | 'event_created' | 'transaction_added' | 'error';
+    data?: any;
+    tool?: string;
+    error?: string;
+  }>;
   error?: string;
 }
 
@@ -67,9 +73,23 @@ export default function AIChatButton() {
       });
       return await response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: APIResponse) => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", currentConversationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
+      
+      // Invalidate related data if AI performed actions
+      if (data.actionsPerformed && data.actionsPerformed.length > 0) {
+        data.actionsPerformed.forEach(action => {
+          if (action.type === 'goal_created') {
+            queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
+          } else if (action.type === 'event_created') {
+            queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+          } else if (action.type === 'transaction_added') {
+            queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+          }
+        });
+      }
+      
       setCurrentMessage("");
     }
   });
