@@ -191,9 +191,9 @@ export default function SubscriptionPage() {
                   <span className="text-sm font-medium">AI Power</span>
                 </div>
                 <div className="text-2xl font-bold text-blue-600">
-                  Gemini
+                  Llama 3.3
                 </div>
-                <div className="text-xs text-muted-foreground">Google AI</div>
+                <div className="text-xs text-muted-foreground">Groq AI</div>
               </div>
               
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
@@ -617,12 +617,12 @@ export default function SubscriptionPage() {
             
             <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-xl p-6">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik04IDEwSDI0VjIySDE4VjE2SDhWMTBaTTEwIDEyVjE0SDEyVjEySDE0VjE0SDE2VjEySDEwWk0xOCAxNFYxNkgyMFYxNEgyMlYxNkgyNFYxNEgxOFoiIGZpbGw9IiM0Mjg1RjQiLz4KPC9zdmc+" alt="Google" className="w-8 h-8" />
-                <h4 className="text-xl font-bold">Powered by Google Gemini</h4>
+                <Zap className="w-8 h-8 text-blue-500" />
+                <h4 className="text-xl font-bold">Powered by Groq & Llama 3.3</h4>
                 <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
               </div>
               <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                Our partnership with Google enables us to provide cutting-edge AI financial advice at fraction of traditional costs. 
+                Lightning-fast AI responses powered by Groq's cutting-edge infrastructure and Meta's Llama 3.3 model. 
                 <span className="font-semibold text-foreground">You get enterprise-level AI intelligence without enterprise-level prices!</span>
               </p>
             </div>

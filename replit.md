@@ -102,7 +102,7 @@ Note: Some routes use `createDemoUserIfNeeded()` as a fallback for demo purposes
 - **Microsoft Graph API**: Outlook calendar integration via Replit Connector
 - **Stripe**: Payment processing with customer management and subscription handling (optional, requires API key)
 - **Replit Connectors**: OAuth integration for external services
-- **Google Gemini AI**: Cost-effective AI financial advisor with response caching and hit rate tracking
+- **Groq AI with Llama 3.3**: Lightning-fast AI financial advisor with response caching and hit rate tracking
 - **Exchange Rate API**: Live currency conversion rates with 1-hour backend caching
 
 ## Development Tools
@@ -162,7 +162,7 @@ The application is designed to run on Replit with specific plugins for developme
    - **Issue**: AI was experiencing validation errors when creating goals; limited to only 3 basic actions
    - **Root Cause**: Groq API model (llama-3.1-70b-versatile) was decommissioned; AI was formatting numbers as strings in JSON
    - **Major Improvements Applied**:
-     - Upgraded to llama-3.3-70b-versatile model (current stable version)
+     - Upgraded to llama-3.3-70b-versatile model (current stable version with improved reasoning)
      - Enhanced system prompt to explicitly require numeric values without quotes
      - Expanded AI capabilities from 3 to 5 comprehensive tools:
        * `create_financial_goal` - Set savings targets for purchases
@@ -177,10 +177,10 @@ The application is designed to run on Replit with specific plugins for developme
    - **Premium Feature**: This comprehensive AI automation is designed as a paid feature to provide premium value to subscribers
 
 8. **API Configuration Status**:
-   - ✅ GROQ_API_KEY - Configured and working (AI backend)
+   - ✅ GROQ_API_KEY - Configured and working (Llama 3.3 AI backend)
    - ✅ SESSION_SECRET - Configured and working
    - ❌ STRIPE_SECRET_KEY - Optional, for payment processing
-   - ❌ GEMINI_API_KEY - Not used (switched to Groq for AI)
-   - ❌ OPENAI_API_KEY - Not used (switched to Groq for AI)
+   - ❌ GEMINI_API_KEY - Not used (removed, using Groq instead)
+   - ❌ OPENAI_API_KEY - Not used (removed, using Groq instead)
 
 All core systems are now fully functional and production-ready.

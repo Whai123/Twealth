@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 import crypto from 'crypto';
 
-// Using Groq with Llama 3.1 for fast, free AI with function calling
+// Using Groq with Llama 3.3 for fast, powerful AI with function calling
 const groq = new Groq({ 
   apiKey: process.env.GROQ_API_KEY || "" 
 });
