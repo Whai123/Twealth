@@ -1392,12 +1392,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   data: group
                 });
               } else if (toolCall.name === 'add_crypto_holding') {
+                // Map common crypto symbols to their full names
+                const cryptoNames: Record<string, string> = {
+                  'BTC': 'Bitcoin',
+                  'ETH': 'Ethereum',
+                  'BNB': 'Binance Coin',
+                  'USDT': 'Tether',
+                  'SOL': 'Solana',
+                  'ADA': 'Cardano',
+                  'DOT': 'Polkadot'
+                };
+                const symbol = toolCall.arguments.symbol.toUpperCase();
+                const coinId = toolCall.arguments.symbol.toLowerCase();
+                const name = cryptoNames[symbol] || symbol;
+                
                 const holding = await storage.createCryptoHolding({
                   userId: user.id,
-                  coinId: toolCall.arguments.symbol.toLowerCase(),
-                  symbol: toolCall.arguments.symbol.toUpperCase(),
+                  coinId: coinId,
+                  symbol: symbol,
+                  name: name,
                   amount: toolCall.arguments.amount.toString(),
-                  purchasePrice: toolCall.arguments.purchasePrice.toString()
+                  averageBuyPrice: toolCall.arguments.purchasePrice.toString()
                 });
                 actionsPerformed.push({
                   type: 'crypto_added',
