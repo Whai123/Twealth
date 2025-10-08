@@ -31,6 +31,7 @@ type EventFormData = z.infer<typeof eventFormSchema>;
 interface EventFormProps {
   onSuccess?: () => void;
   eventToEdit?: any;
+  groupId?: string;
 }
 
 // Helper functions for time conversion
@@ -71,7 +72,7 @@ const getCurrentDate = (currentStartTime?: string) => {
   return new Date();
 };
 
-export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
+export default function EventForm({ onSuccess, eventToEdit, groupId }: EventFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -118,7 +119,7 @@ export default function EventForm({ onSuccess, eventToEdit }: EventFormProps) {
             return formatDateTimeLocal(now);
           })(),
       location: eventToEdit?.location || "",
-      groupId: eventToEdit?.groupId || undefined,
+      groupId: eventToEdit?.groupId || groupId || undefined,
     },
   });
 

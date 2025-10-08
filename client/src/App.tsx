@@ -24,6 +24,7 @@ const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const Crypto = lazy(() => import("./pages/crypto"));
 const Friends = lazy(() => import("./pages/friends"));
+const InvitePage = lazy(() => import("./pages/invite"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
@@ -104,6 +105,7 @@ function Router() {
               <Switch>
                 <Route path="/" component={Dashboard} />
                 <Route path="/welcome" component={Welcome} />
+                <Route path="/invite/:token" component={InvitePage} />
                 <Route path="/groups" component={Groups} />
                 <Route path="/calendar" component={Calendar} />
                 <Route path="/financial-goals" component={FinancialGoals} />

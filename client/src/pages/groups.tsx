@@ -343,7 +343,7 @@ export default function Groups() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
+                  <GroupForm onSuccess={() => setIsCreateDialogOpen(false)} />
                 </DialogContent>
               </Dialog>
             </div>
@@ -428,7 +428,7 @@ export default function Groups() {
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
+              <GroupForm onSuccess={() => setIsCreateDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
@@ -881,6 +881,7 @@ export default function Groups() {
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
           {selectedGroupForEvent && (
             <EventForm 
+              groupId={selectedGroupForEvent.id}
               onSuccess={() => {
                 setIsCreateEventDialogOpen(false);
                 queryClient.invalidateQueries({ queryKey: ['/api/events'] });
