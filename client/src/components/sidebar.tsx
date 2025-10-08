@@ -22,6 +22,7 @@ import LanguageSwitcher from "@/components/language-switcher";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import CryptoTicker from "@/components/crypto-ticker";
+import { useAuth } from "@/hooks/useAuth";
 
 const getNavigation = (t: (key: string) => string) => [
   { name: t('navigation.dashboard'), href: "/", icon: Home },
@@ -40,6 +41,7 @@ export default function Sidebar() {
   const [location] = useLocation();
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
   const navigation = getNavigation(t);
 
   const toggleTheme = () => {
@@ -101,8 +103,12 @@ export default function Sidebar() {
               <User className="text-primary-foreground" size={20} />
             </div>
             <div>
-              <p className="font-semibold text-sm">Demo User</p>
-              <p className="text-xs text-muted-foreground">demo@example.com</p>
+              <p className="font-semibold text-sm" data-testid="text-username">
+                {user ? `${user.firstName} ${user.lastName}` : 'Loading...'}
+              </p>
+              <p className="text-xs text-muted-foreground" data-testid="text-useremail">
+                {user?.email || 'Loading...'}
+              </p>
             </div>
           </div>
           <div className="space-y-2">
