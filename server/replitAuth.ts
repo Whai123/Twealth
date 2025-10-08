@@ -31,6 +31,9 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -38,7 +41,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: sessionTtl,
     },
@@ -108,10 +111,15 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error before OAuth:", err);
+      }
+      passport.authenticate(`replitauth:${req.hostname}`, {
+        prompt: "login consent",
+        scope: ["openid", "email", "profile", "offline_access"],
+      })(req, res, next);
+    });
   });
 
   app.get("/api/callback", (req, res, next) => {
