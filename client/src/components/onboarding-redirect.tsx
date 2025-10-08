@@ -15,13 +15,19 @@ export function OnboardingRedirect({ children }: OnboardingRedirectProps) {
   });
   
   useEffect(() => {
-    // Don't redirect if we're already on the welcome page or still loading
-    if (isLoading || location === "/welcome") {
+    // Don't do anything while loading
+    if (isLoading) {
       return;
     }
     
-    // If user hasn't completed onboarding, redirect to welcome page
-    if (!userPreferences?.hasCompletedOnboarding) {
+    // If on welcome page and onboarding is complete, redirect to dashboard
+    if (location === "/welcome" && userPreferences?.hasCompletedOnboarding) {
+      setLocation("/");
+      return;
+    }
+    
+    // If not on welcome page and onboarding is not complete, redirect to welcome
+    if (location !== "/welcome" && !userPreferences?.hasCompletedOnboarding) {
       setLocation("/welcome");
     }
   }, [userPreferences, isLoading, location, setLocation]);
