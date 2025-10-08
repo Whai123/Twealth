@@ -218,7 +218,6 @@ export interface IStorage {
   
   // Utility methods for user management
   getFirstUser(): Promise<SafeUser | undefined>;
-  createDemoUserIfNeeded(): Promise<SafeUser>;
   
   // User settings methods
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
@@ -839,18 +838,6 @@ export class DatabaseStorage implements IStorage {
   // Utility methods
   async getFirstUser(): Promise<SafeUser | undefined> {
     const [user] = await db.select().from(users).limit(1);
-    return user;
-  }
-
-  async createDemoUserIfNeeded(): Promise<SafeUser> {
-    let user = await this.getFirstUser();
-    if (!user) {
-      user = await this.createUser({
-        email: "demo@example.com",
-        firstName: "Demo",
-        lastName: "User"
-      });
-    }
     return user;
   }
 

@@ -62,9 +62,9 @@ Fully functional Replit OAuth authentication system:
 - PostgreSQL-backed session management
 - Protected API endpoints with isAuthenticated middleware
 - Automatic user creation on first login
-- Frontend route protection
-
-Note: Some routes use `createDemoUserIfNeeded()` as a fallback for demo purposes and backwards compatibility.
+- Frontend route protection with authentication guard
+- Environment-aware cookie security (secure flag based on NODE_ENV)
+- All routes require real authentication - no demo user fallback
 
 ## Development & Build Process
 
@@ -134,11 +134,18 @@ The application is designed to run on Replit with specific plugins for developme
    - Automatic fallback to static rates if API fails
    - Frontend auto-fetches on load with hourly refresh
 
-4. **Authentication System Enhancement** - Fixed 401 Unauthorized errors on key routes:
-   - Updated `/api/users/me` to support demo user fallback
-   - Updated `/api/dashboard/stats` to support demo user fallback
-   - Application now works seamlessly for both authenticated and demo users
-   - No more authentication errors when accessing the dashboard or user profile
+10. **Real Authentication Implementation** (October 8, 2025):
+   - **Issue**: OAuth login was failing with state mismatch; routes were using demo user fallback instead of real authentication
+   - **Root Cause**: Session cookies not persisting during OAuth flow due to secure flag in development; demo user system bypassing real auth
+   - **Major Fixes Applied**:
+     - Fixed session cookie configuration to be environment-aware (secure: false in dev, true in prod)
+     - Added session save before OAuth redirect to ensure state persistence
+     - Replaced ALL 43 `createDemoUserIfNeeded()` calls with real authentication checks
+     - Added `isAuthenticated` middleware to all protected routes
+     - Created `getUserIdFromRequest()` helper to extract authenticated user ID
+     - Removed demo user system entirely from codebase
+   - **Result**: App now requires real Replit OAuth login; all routes properly protected; session persists correctly across OAuth flow
+   - **Testing**: Comprehensive e2e test validates complete auth flow from landing → login → OAuth → dashboard → protected routes → logout
 
 5. **Dark Mode Theme Switching Fixed** (October 6, 2025):
    - **Issue**: Theme changes in Settings weren't applying immediately; stale cached data was overwriting manual selections
