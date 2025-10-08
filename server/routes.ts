@@ -12,6 +12,7 @@ import {
   insertTransactionSchema,
   insertGroupInviteSchema,
   insertCalendarShareSchema,
+  insertFriendRequestSchema,
   insertEventExpenseSchema,
   insertEventExpenseShareSchema,
   eventAttendeeSchema,
@@ -576,6 +577,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(icsContent);
     } catch (error: any) {
       res.status(404).json({ message: error.message });
+    }
+  });
+
+  // Friend request routes
+  app.post("/api/friend-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const requestData = {
+        fromUserId: userId,
+        toUserId: req.body.toUserId,
+        message: req.body.message,
+      };
+      
+      const validatedData = insertFriendRequestSchema.parse(requestData);
+      const request = await storage.createFriendRequest(validatedData);
+      res.status(201).json(request);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/friend-requests/pending", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const requests = await storage.getPendingFriendRequests(userId);
+      res.json(requests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/friend-requests/sent", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const requests = await storage.getSentFriendRequests(userId);
+      res.json(requests);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/friend-requests/:id/respond", isAuthenticated, async (req: any, res) => {
+    try {
+      const { status } = req.body;
+      
+      if (!['accepted', 'declined'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be 'accepted' or 'declined'" });
+      }
+      
+      const request = await storage.updateFriendRequestStatus(req.params.id, status);
+      res.json(request);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/friend-requests/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      await storage.deleteFriendRequest(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Friendship routes
+  app.get("/api/friends", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const friends = await storage.getFriendsByUserId(userId);
+      res.json(friends);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/friends/:friendId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      await storage.removeFriendship(userId, req.params.friendId);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/users/search", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const query = req.query.q as string;
+      
+      if (!query || query.trim().length < 2) {
+        return res.status(400).json({ message: "Search query must be at least 2 characters" });
+      }
+      
+      const users = await storage.searchUsers(query, userId);
+      res.json(users);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

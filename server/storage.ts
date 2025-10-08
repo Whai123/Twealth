@@ -18,6 +18,10 @@ import {
   type InsertGroupInvite,
   type CalendarShare,
   type InsertCalendarShare,
+  type FriendRequest,
+  type InsertFriendRequest,
+  type Friendship,
+  type InsertFriendship,
   type EventExpense,
   type InsertEventExpense,
   type EventExpenseShare,
@@ -67,6 +71,8 @@ import {
   goalContributions,
   groupInvites,
   calendarShares,
+  friendRequests,
+  friendships,
   eventExpenses,
   eventExpenseShares,
   userSettings,
@@ -186,6 +192,22 @@ export interface IStorage {
   getCalendarShareByToken(token: string): Promise<CalendarShare | undefined>;
   getEventsForShare(token: string): Promise<Event[]>;
 
+  // Friend request methods
+  createFriendRequest(request: InsertFriendRequest): Promise<FriendRequest>;
+  getFriendRequest(id: string): Promise<FriendRequest | undefined>;
+  getFriendRequestsByUserId(userId: string): Promise<Array<FriendRequest & { fromUser: SafeUser; toUser: SafeUser }>>;
+  getPendingFriendRequests(userId: string): Promise<Array<FriendRequest & { fromUser: SafeUser }>>;
+  getSentFriendRequests(userId: string): Promise<Array<FriendRequest & { toUser: SafeUser }>>;
+  updateFriendRequestStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendRequest>;
+  deleteFriendRequest(id: string): Promise<void>;
+  
+  // Friendship methods
+  createFriendship(friendship: InsertFriendship): Promise<Friendship>;
+  getFriendsByUserId(userId: string): Promise<Array<SafeUser>>;
+  areFriends(userId: string, friendId: string): Promise<boolean>;
+  removeFriendship(userId: string, friendId: string): Promise<void>;
+  searchUsers(query: string, excludeUserId: string): Promise<SafeUser[]>;
+  
   // RSVP methods
   updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event>;
   
@@ -988,6 +1010,261 @@ export class DatabaseStorage implements IStorage {
     }
 
     return [];
+  }
+
+  // Friend request methods
+  async createFriendRequest(insertRequest: InsertFriendRequest): Promise<FriendRequest> {
+    // Check if request already exists
+    const [existing] = await db
+      .select()
+      .from(friendRequests)
+      .where(
+        and(
+          eq(friendRequests.fromUserId, insertRequest.fromUserId),
+          eq(friendRequests.toUserId, insertRequest.toUserId),
+          eq(friendRequests.status, 'pending')
+        )
+      );
+
+    if (existing) {
+      throw new Error("Friend request already sent");
+    }
+
+    // Check if they're already friends
+    const areFriends = await this.areFriends(insertRequest.fromUserId, insertRequest.toUserId);
+    if (areFriends) {
+      throw new Error("Already friends with this user");
+    }
+
+    const [request] = await db
+      .insert(friendRequests)
+      .values(insertRequest)
+      .returning();
+
+    return request;
+  }
+
+  async getFriendRequest(id: string): Promise<FriendRequest | undefined> {
+    const [request] = await db
+      .select()
+      .from(friendRequests)
+      .where(eq(friendRequests.id, id));
+    return request || undefined;
+  }
+
+  async getFriendRequestsByUserId(userId: string): Promise<Array<FriendRequest & { fromUser: SafeUser; toUser: SafeUser }>> {
+    const requests = await db
+      .select({
+        request: friendRequests,
+        fromUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+        toUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        }
+      })
+      .from(friendRequests)
+      .innerJoin(users, eq(friendRequests.fromUserId, users.id))
+      .innerJoin(users, eq(friendRequests.toUserId, users.id))
+      .where(
+        or(
+          eq(friendRequests.fromUserId, userId),
+          eq(friendRequests.toUserId, userId)
+        )
+      );
+
+    return requests.map(({ request, fromUser, toUser }) => ({
+      ...request,
+      fromUser,
+      toUser,
+    }));
+  }
+
+  async getPendingFriendRequests(userId: string): Promise<Array<FriendRequest & { fromUser: SafeUser }>> {
+    const requests = await db
+      .select({
+        request: friendRequests,
+        fromUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        }
+      })
+      .from(friendRequests)
+      .innerJoin(users, eq(friendRequests.fromUserId, users.id))
+      .where(
+        and(
+          eq(friendRequests.toUserId, userId),
+          eq(friendRequests.status, 'pending')
+        )
+      );
+
+    return requests.map(({ request, fromUser }) => ({
+      ...request,
+      fromUser,
+    }));
+  }
+
+  async getSentFriendRequests(userId: string): Promise<Array<FriendRequest & { toUser: SafeUser }>> {
+    const requests = await db
+      .select({
+        request: friendRequests,
+        toUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        }
+      })
+      .from(friendRequests)
+      .innerJoin(users, eq(friendRequests.toUserId, users.id))
+      .where(
+        and(
+          eq(friendRequests.fromUserId, userId),
+          eq(friendRequests.status, 'pending')
+        )
+      );
+
+    return requests.map(({ request, toUser }) => ({
+      ...request,
+      toUser,
+    }));
+  }
+
+  async updateFriendRequestStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendRequest> {
+    const [request] = await db
+      .update(friendRequests)
+      .set({ status, respondedAt: new Date() })
+      .where(eq(friendRequests.id, id))
+      .returning();
+
+    // If accepted, create friendship
+    if (status === 'accepted') {
+      await this.createFriendship({
+        userId: request.fromUserId,
+        friendId: request.toUserId,
+      });
+      // Also create reverse friendship for bidirectional lookup
+      await this.createFriendship({
+        userId: request.toUserId,
+        friendId: request.fromUserId,
+      });
+    }
+
+    return request;
+  }
+
+  async deleteFriendRequest(id: string): Promise<void> {
+    await db.delete(friendRequests).where(eq(friendRequests.id, id));
+  }
+
+  // Friendship methods
+  async createFriendship(insertFriendship: InsertFriendship): Promise<Friendship> {
+    const [friendship] = await db
+      .insert(friendships)
+      .values(insertFriendship)
+      .returning();
+
+    return friendship;
+  }
+
+  async getFriendsByUserId(userId: string): Promise<Array<SafeUser>> {
+    const friends = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(friendships)
+      .innerJoin(users, eq(friendships.friendId, users.id))
+      .where(eq(friendships.userId, userId));
+
+    return friends;
+  }
+
+  async areFriends(userId: string, friendId: string): Promise<boolean> {
+    const [friendship] = await db
+      .select()
+      .from(friendships)
+      .where(
+        and(
+          eq(friendships.userId, userId),
+          eq(friendships.friendId, friendId)
+        )
+      );
+
+    return !!friendship;
+  }
+
+  async removeFriendship(userId: string, friendId: string): Promise<void> {
+    // Remove both directions of friendship
+    await db
+      .delete(friendships)
+      .where(
+        or(
+          and(
+            eq(friendships.userId, userId),
+            eq(friendships.friendId, friendId)
+          ),
+          and(
+            eq(friendships.userId, friendId),
+            eq(friendships.friendId, userId)
+          )
+        )
+      );
+  }
+
+  async searchUsers(query: string, excludeUserId: string): Promise<SafeUser[]> {
+    const searchPattern = `%${query.toLowerCase()}%`;
+    
+    const foundUsers = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .where(
+        and(
+          sql`${users.id} != ${excludeUserId}`,
+          or(
+            sql`LOWER(${users.email}) LIKE ${searchPattern}`,
+            sql`LOWER(${users.firstName}) LIKE ${searchPattern}`,
+            sql`LOWER(${users.lastName}) LIKE ${searchPattern}`,
+            sql`LOWER(CONCAT(${users.firstName}, ' ', ${users.lastName})) LIKE ${searchPattern}`
+          )
+        )
+      )
+      .limit(20);
+
+    return foundUsers;
   }
 
   // RSVP methods

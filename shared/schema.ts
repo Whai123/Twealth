@@ -123,6 +123,27 @@ export const calendarShares = pgTable("calendar_shares", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const friendRequests = pgTable("friend_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fromUserId: varchar("from_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  toUserId: varchar("to_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["pending", "accepted", "declined"] }).default("pending"),
+  message: text("message"), // optional message with request
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+});
+
+export const friendships = pgTable("friendships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  friendId: varchar("friend_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    uniqueFriendship: unique().on(table.userId, table.friendId),
+  };
+});
+
 export const userSettings = pgTable("user_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
@@ -331,6 +352,19 @@ export const insertCalendarShareSchema = createInsertSchema(calendarShares).omit
   message: "scope='user' requires ownerId only, scope='group' requires both ownerId and groupId",
 });
 
+export const insertFriendRequestSchema = createInsertSchema(friendRequests).omit({
+  id: true,
+  createdAt: true,
+  respondedAt: true,
+}).extend({
+  status: z.enum(["pending", "accepted", "declined"]).default("pending"),
+});
+
+export const insertFriendshipSchema = createInsertSchema(friendships).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertEventExpenseSchema = createInsertSchema(eventExpenses).omit({
   id: true,
   createdAt: true,
@@ -431,6 +465,12 @@ export type InsertGroupInvite = z.infer<typeof insertGroupInviteSchema>;
 export type CalendarShare = typeof calendarShares.$inferSelect;
 export type InsertCalendarShare = z.infer<typeof insertCalendarShareSchema>;
 
+export type FriendRequest = typeof friendRequests.$inferSelect;
+export type InsertFriendRequest = z.infer<typeof insertFriendRequestSchema>;
+
+export type Friendship = typeof friendships.$inferSelect;
+export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
+
 export type EventExpense = typeof eventExpenses.$inferSelect;
 export type InsertEventExpense = z.infer<typeof insertEventExpenseSchema>;
 
@@ -466,6 +506,36 @@ export const usersRelations = relations(users, ({ many }) => ({
   acceptedInvites: many(groupInvites, { relationName: "acceptedBy" }),
   calendarShares: many(calendarShares),
   notifications: many(notifications),
+  sentFriendRequests: many(friendRequests, { relationName: "fromUser" }),
+  receivedFriendRequests: many(friendRequests, { relationName: "toUser" }),
+  friendships: many(friendships, { relationName: "userFriends" }),
+  friendOf: many(friendships, { relationName: "friendOf" }),
+}));
+
+export const friendRequestsRelations = relations(friendRequests, ({ one }) => ({
+  fromUser: one(users, {
+    fields: [friendRequests.fromUserId],
+    references: [users.id],
+    relationName: "fromUser",
+  }),
+  toUser: one(users, {
+    fields: [friendRequests.toUserId],
+    references: [users.id],
+    relationName: "toUser",
+  }),
+}));
+
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  user: one(users, {
+    fields: [friendships.userId],
+    references: [users.id],
+    relationName: "userFriends",
+  }),
+  friend: one(users, {
+    fields: [friendships.friendId],
+    references: [users.id],
+    relationName: "friendOf",
+  }),
 }));
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({

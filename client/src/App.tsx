@@ -23,6 +23,7 @@ const Upgrade = lazy(() => import("./pages/upgrade"));
 const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const Crypto = lazy(() => import("./pages/crypto"));
+const Friends = lazy(() => import("./pages/friends"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
@@ -109,6 +110,7 @@ function Router() {
                 <Route path="/money-tracking" component={MoneyTracking} />
                 <Route path="/planning" component={Planning} />
                 <Route path="/crypto" component={Crypto} />
+                <Route path="/friends" component={Friends} />
                 <Route path="/ai-assistant" component={AIAssistant} />
                 <Route path="/referrals" component={Referrals} />
                 <Route path="/subscription" component={Subscription} />
