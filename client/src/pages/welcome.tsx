@@ -39,13 +39,18 @@ export default function WelcomePage() {
 
   const completeOnboardingMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("PUT", "/api/user-preferences", { 
+      const response = await apiRequest("PUT", "/api/user-preferences", { 
         hasCompletedOnboarding: true 
       });
+      return response.json();
     },
-    onSuccess: (data) => {
-      // Update cache immediately to prevent race condition
+    onSuccess: async (data) => {
+      // Update cache immediately
       queryClient.setQueryData(["/api/user-preferences"], data);
+      // Invalidate to ensure all instances are updated
+      await queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });
+      // Small delay to ensure React Query propagates changes
+      await new Promise(resolve => setTimeout(resolve, 100));
       // Navigate to dashboard
       setLocation("/");
     }
@@ -196,7 +201,7 @@ export default function WelcomePage() {
             className="hover:bg-white/50 dark:hover:bg-gray-800/50 backdrop-blur-sm transition-all duration-300"
             data-testid="button-skip-onboarding"
           >
-            ⚡ Skip Tour
+            {completeOnboardingMutation.isPending ? "⏳ Loading..." : "⚡ Skip Tour"}
           </Button>
         </div>
 
@@ -323,10 +328,11 @@ export default function WelcomePage() {
               <div className="flex justify-center">
                 <Button
                   onClick={handleNext}
+                  disabled={completeOnboardingMutation.isPending}
                   className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                   data-testid="button-start-onboarding"
                 >
-                  {currentStepData.action}
+                  {completeOnboardingMutation.isPending ? "Starting..." : currentStepData.action}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
@@ -427,10 +433,11 @@ export default function WelcomePage() {
               <div className="flex justify-center">
                 <Button
                   onClick={() => handleActionClick(currentStepData)}
+                  disabled={completeOnboardingMutation.isPending}
                   className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                   data-testid={`button-${currentStepData.id}`}
                 >
-                  {currentStepData.action}
+                  {completeOnboardingMutation.isPending ? "Loading..." : currentStepData.action}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
@@ -453,6 +460,7 @@ export default function WelcomePage() {
               <div className="flex justify-center gap-4">
                 <Button
                   onClick={() => handleActionClick(currentStepData)}
+                  disabled={completeOnboardingMutation.isPending}
                   className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                   data-testid={`button-${currentStepData.id}`}
                 >
@@ -464,10 +472,11 @@ export default function WelcomePage() {
                   <Button
                     variant="outline"
                     onClick={handleNext}
+                    disabled={completeOnboardingMutation.isPending}
                     className="px-6 py-6 text-lg"
                     data-testid="button-next-step"
                   >
-                    Skip This Step
+                    {completeOnboardingMutation.isPending ? "Loading..." : "Skip This Step"}
                   </Button>
                 )}
               </div>
