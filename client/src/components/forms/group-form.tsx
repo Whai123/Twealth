@@ -48,10 +48,7 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
 
   const createGroupMutation = useMutation({
     mutationFn: (data: GroupFormData) => 
-      apiRequest("POST", "/api/groups", {
-        ...data,
-        ownerId: user?.id, // Use actual user ID from context
-      }),
+      apiRequest("POST", "/api/groups", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({

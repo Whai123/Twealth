@@ -133,9 +133,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/groups", async (req, res) => {
+  app.post("/api/groups", isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertGroupSchema.parse(req.body);
+      const userId = getUserIdFromRequest(req);
+      const validatedData = insertGroupSchema.parse({ ...req.body, ownerId: userId });
       const group = await storage.createGroup(validatedData);
       res.status(201).json(group);
     } catch (error: any) {
@@ -143,30 +144,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/groups/:id", async (req, res) => {
+  app.get("/api/groups/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       const group = await storage.getGroup(req.params.id);
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
+      
+      // Check if user is a member of this group
+      const members = await storage.getGroupMembers(req.params.id);
+      const isMember = members.some((m: any) => m.userId === userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       res.json(group);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.put("/api/groups/:id", async (req, res) => {
+  app.put("/api/groups/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
+      const group = await storage.getGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      
+      // Check if user is owner or admin
+      const members = await storage.getGroupMembers(req.params.id);
+      const userMember = members.find((m: any) => m.userId === userId);
+      if (!userMember || (userMember.role !== 'owner' && userMember.role !== 'admin')) {
+        return res.status(403).json({ message: "Only group owners and admins can update the group" });
+      }
+      
       const updateData = insertGroupSchema.partial().parse(req.body);
-      const group = await storage.updateGroup(req.params.id, updateData);
-      res.json(group);
+      const updatedGroup = await storage.updateGroup(req.params.id, updateData);
+      res.json(updatedGroup);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
   });
 
-  app.delete("/api/groups/:id", async (req, res) => {
+  app.delete("/api/groups/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
+      const group = await storage.getGroup(req.params.id);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      
+      // Only owner can delete the group
+      if (group.ownerId !== userId) {
+        return res.status(403).json({ message: "Only the group owner can delete the group" });
+      }
+      
       await storage.deleteGroup(req.params.id);
       res.status(204).send();
     } catch (error: any) {
@@ -175,17 +209,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Group member routes
-  app.get("/api/groups/:id/members", async (req, res) => {
+  app.get("/api/groups/:id/members", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       const members = await storage.getGroupMembers(req.params.id);
+      
+      // Check if user is a member of this group
+      const isMember = members.some((m: any) => m.userId === userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       res.json(members);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.get("/api/groups/:id/members-with-users", async (req, res) => {
+  app.get("/api/groups/:id/members-with-users", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
+      const members = await storage.getGroupMembers(req.params.id);
+      
+      // Check if user is a member of this group
+      const isMember = members.some((m: any) => m.userId === userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
       const membersWithUsers = await storage.getGroupMembersWithUserInfo(req.params.id);
       res.json(membersWithUsers);
     } catch (error: any) {
@@ -193,8 +244,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/groups/:id/members", async (req, res) => {
+  app.post("/api/groups/:id/members", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
+      const members = await storage.getGroupMembers(req.params.id);
+      
+      // Check if user is owner or admin
+      const userMember = members.find((m: any) => m.userId === userId);
+      if (!userMember || (userMember.role !== 'owner' && userMember.role !== 'admin')) {
+        return res.status(403).json({ message: "Only group owners and admins can add members" });
+      }
+      
       const memberData = { ...req.body, groupId: req.params.id };
       const validatedData = insertGroupMemberSchema.parse(memberData);
       const member = await storage.addGroupMember(validatedData);
@@ -204,8 +264,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/groups/:groupId/members/:userId", async (req, res) => {
+  app.delete("/api/groups/:groupId/members/:userId", isAuthenticated, async (req: any, res) => {
     try {
+      const requestingUserId = getUserIdFromRequest(req);
+      const members = await storage.getGroupMembers(req.params.groupId);
+      
+      // Check if user is owner/admin OR removing themselves
+      const userMember = members.find((m: any) => m.userId === requestingUserId);
+      const isOwnerOrAdmin = userMember && (userMember.role === 'owner' || userMember.role === 'admin');
+      const isRemovingSelf = requestingUserId === req.params.userId;
+      
+      if (!isOwnerOrAdmin && !isRemovingSelf) {
+        return res.status(403).json({ message: "Only group owners/admins can remove members, or you can remove yourself" });
+      }
+      
       await storage.removeGroupMember(req.params.groupId, req.params.userId);
       res.status(204).send();
     } catch (error: any) {
