@@ -35,6 +35,10 @@ The application features a modern UI with a redesigned landing page, enhanced ac
 - **AI Financial Advisor**: Integrated with Groq AI (Llama 3.3), the AI can control major app features like creating goals, events, transactions, groups, and tracking crypto holdings through natural language.
 - **Live Currency Rates**: Fetches and caches live exchange rates from an external API.
 - **Cryptocurrency Tracking**: Displays live crypto prices with 24h change indicators.
+- **Enhanced Onboarding**: Comprehensive 6-step onboarding flow including Welcome, AI Assistant introduction, Finance tracking, Goal setting, Group planning, and Pro Tips. The final step teaches keyboard shortcuts and navigation patterns.
+- **Organized Sidebar**: Navigation structured into logical sections (Main, Finance, Social, More) with visual dividers and tooltips on hover for better discoverability.
+- **Keyboard Shortcuts**: Quick access to common actions - G (Create Goal), T (Add Transaction), E (Schedule Event) - work from anywhere in the app.
+- **Contextual Tooltips**: Hover tooltips on all navigation items provide helpful descriptions without cluttering the interface.
 
 # External Dependencies
 

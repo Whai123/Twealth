@@ -43,8 +43,10 @@ export default function WelcomePage() {
         hasCompletedOnboarding: true 
       });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });
+    onSuccess: (data) => {
+      // Update cache immediately to prevent race condition
+      queryClient.setQueryData(["/api/user-preferences"], data);
+      // Navigate to dashboard
       setLocation("/");
     }
   });
