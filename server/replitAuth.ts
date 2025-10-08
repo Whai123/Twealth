@@ -194,3 +194,10 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return;
   }
 };
+
+export function getUserIdFromRequest(req: any): string {
+  if (!req.user || !req.user.claims || !req.user.claims.sub) {
+    throw new Error("User not authenticated");
+  }
+  return req.user.claims.sub;
+}
