@@ -132,6 +132,13 @@ export default function WelcomePage() {
       icon: <Users className="w-8 h-8 text-orange-500" />,
       action: "Create Group",
       route: "/groups?create=1"
+    },
+    {
+      id: "pro-tips",
+      title: "⚡ Pro Tips for Power Users",
+      description: "Master Twealth with keyboard shortcuts and helpful tooltips",
+      icon: <Zap className="w-8 h-8 text-yellow-500" />,
+      action: "Start Using Twealth"
     }
   ];
 
@@ -316,6 +323,110 @@ export default function WelcomePage() {
                   onClick={handleNext}
                   className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                   data-testid="button-start-onboarding"
+                >
+                  {currentStepData.action}
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+          ) : currentStep === onboardingSteps.length - 1 ? (
+            // Pro Tips Step - Final step with shortcuts and navigation guide
+            <div className="max-w-4xl mx-auto space-y-8">
+              <div className="text-center space-y-4">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary/10 to-purple-600/10 rounded-3xl flex items-center justify-center border border-primary/20">
+                  {currentStepData.icon}
+                </div>
+                <h2 className="text-4xl font-bold text-foreground">
+                  {currentStepData.title}
+                </h2>
+                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                  {currentStepData.description}
+                </p>
+              </div>
+
+              {/* Shortcuts & Tips Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Keyboard Shortcuts */}
+                <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">⌨️</span>
+                      Keyboard Shortcuts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                      <span className="text-sm">Create Goal</span>
+                      <kbd className="px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white rounded text-xs font-mono">G</kbd>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                      <span className="text-sm">Add Transaction</span>
+                      <kbd className="px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white rounded text-xs font-mono">T</kbd>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                      <span className="text-sm">Schedule Event</span>
+                      <kbd className="px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white rounded text-xs font-mono">E</kbd>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Navigation Tips */}
+                <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">🧭</span>
+                      Navigation Tips
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                      <p className="text-sm"><strong>Organized Sidebar:</strong> Features grouped into Main, Finance, Social, and More sections</p>
+                    </div>
+                    <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                      <p className="text-sm"><strong>Hover for Help:</strong> Hover over any navigation item to see helpful tooltips</p>
+                    </div>
+                    <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+                      <p className="text-sm"><strong>Quick Actions:</strong> Dashboard has fast access to most common tasks</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* AI Assistant Tip */}
+                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">🤖</span>
+                      AI Assistant Pro Tip
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm">Don't remember how to do something? Just ask the AI! It can create goals, add transactions, schedule events, and more through natural conversation.</p>
+                    <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                      <p className="text-sm italic">"Create a goal to save $5,000 for vacation by December"</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Mobile Tip */}
+                <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <span className="text-2xl">📱</span>
+                      Mobile Users
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm">On mobile, use the bottom navigation bar for quick access to key features.</p>
+                    <p className="text-sm">Tap the <strong className="text-primary">+ button</strong> in the bottom-right corner for quick actions!</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => handleActionClick(currentStepData)}
+                  className="px-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+                  data-testid={`button-${currentStepData.id}`}
                 >
                   {currentStepData.action}
                   <ArrowRight className="ml-2 w-5 h-5" />
