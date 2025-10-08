@@ -40,9 +40,18 @@ export default function Friends() {
   // Search users
   const { data: searchResults = [], isLoading: searchLoading } = useQuery<User[]>({
     queryKey: ["/api/users/search", searchQuery],
-    queryFn: () => searchQuery.length >= 2 
-      ? fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`).then(res => res.json())
-      : [],
+    queryFn: async () => {
+      if (searchQuery.length < 2) return [];
+      
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+      
+      if (!res.ok) {
+        return [];
+      }
+      
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: searchQuery.length >= 2,
   });
 

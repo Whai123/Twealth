@@ -83,6 +83,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/users/search", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const query = req.query.q as string;
+      
+      if (!query || query.trim().length < 2) {
+        return res.status(400).json({ message: "Search query must be at least 2 characters" });
+      }
+      
+      const users = await storage.searchUsers(query, userId);
+      res.json(users);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get("/api/users/:id", async (req, res) => {
     try {
       const user = await storage.getUser(req.params.id);
@@ -658,22 +674,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       await storage.removeFriendship(userId, req.params.friendId);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.get("/api/users/search", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = getUserIdFromRequest(req);
-      const query = req.query.q as string;
-      
-      if (!query || query.trim().length < 2) {
-        return res.status(400).json({ message: "Search query must be at least 2 characters" });
-      }
-      
-      const users = await storage.searchUsers(query, userId);
-      res.json(users);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
