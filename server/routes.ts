@@ -2,7 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, getUserIdFromRequest } from "./replitAuth";
 import { 
   insertUserSchema,
   insertGroupSchema,
@@ -67,16 +67,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // User routes - With demo fallback
-  app.get("/api/users/me", async (req: any, res) => {
+  // User routes - Requires authentication
+  app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
-      let user;
-      if (req.user && req.user.claims && req.user.claims.sub) {
-        const userId = req.user.claims.sub;
-        user = await storage.getUser(userId);
-      } else {
-        user = await storage.createDemoUserIfNeeded();
-      }
+      const userId = getUserIdFromRequest(req);
+      const user = await storage.getUser(userId);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -99,16 +94,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Dashboard routes - With demo fallback
-  app.get("/api/dashboard/stats", async (req: any, res) => {
+  // Dashboard routes - Requires authentication
+  app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
     try {
-      let userId;
-      if (req.user && req.user.claims && req.user.claims.sub) {
-        userId = req.user.claims.sub;
-      } else {
-        const user = await storage.createDemoUserIfNeeded();
-        userId = user.id;
-      }
+      const userId = getUserIdFromRequest(req);
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error: any) {
@@ -117,11 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Group routes
-  app.get("/api/groups", async (req, res) => {
+  app.get("/api/groups", isAuthenticated, async (req: any, res) => {
     try {
-      // Use authenticated user from session
-      const user = await storage.createDemoUserIfNeeded();
-      const groups = await storage.getGroupsByUserId(user.id);
+      const userId = getUserIdFromRequest(req);
+      const groups = await storage.getGroupsByUserId(userId);
       res.json(groups);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -209,13 +197,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Group invite routes
-  app.post("/api/groups/:id/invites", async (req, res) => {
+  app.post("/api/groups/:id/invites", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const inviteData = {
         ...req.body,
         groupId: req.params.id,
-        createdBy: user.id,
+        createdBy: userId,
         expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
       };
       
@@ -251,10 +239,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/invites/:token/accept", async (req, res) => {
+  app.post("/api/invites/:token/accept", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const member = await storage.acceptGroupInvite(req.params.token, user.id);
+      const userId = getUserIdFromRequest(req);
+      const member = await storage.acceptGroupInvite(req.params.token, userId);
       res.status(201).json(member);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -271,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Event routes
-  app.get("/api/events", async (req, res) => {
+  app.get("/api/events", isAuthenticated, async (req: any, res) => {
     try {
       const groupId = req.query.groupId as string;
       
@@ -280,8 +268,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         events = await storage.getEventsByGroupId(groupId);
       } else {
         // Use authenticated user from session
-        const user = await storage.createDemoUserIfNeeded();
-        events = await storage.getEventsByUserId(user.id);
+        const userId = getUserIdFromRequest(req);
+        events = await storage.getEventsByUserId(userId);
       }
       
       res.json(events);
@@ -290,13 +278,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/events/upcoming", async (req, res) => {
+  app.get("/api/events/upcoming", isAuthenticated, async (req: any, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       
       // Use authenticated user from session
-      const user = await storage.createDemoUserIfNeeded();
-      const events = await storage.getUpcomingEventsWithAttendees(user.id, limit);
+      const userId = getUserIdFromRequest(req);
+      const events = await storage.getUpcomingEventsWithAttendees(userId, limit);
       res.json(events);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -365,15 +353,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // RSVP routes
-  app.post("/api/events/:id/rsvp", async (req, res) => {
+  app.post("/api/events/:id/rsvp", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       
       // Validate RSVP data using Zod schema
       const rsvpSchema = eventAttendeeSchema.pick({ status: true });
       const { status } = rsvpSchema.parse(req.body);
       
-      const event = await storage.updateEventRSVP(req.params.id, user.id, status);
+      const event = await storage.updateEventRSVP(req.params.id, userId, status);
       res.json(event);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -381,11 +369,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Financial goal routes
-  app.get("/api/financial-goals", async (req, res) => {
+  app.get("/api/financial-goals", isAuthenticated, async (req: any, res) => {
     try {
-      // Use authenticated user from session
-      const user = await storage.createDemoUserIfNeeded();
-      const goals = await storage.getFinancialGoalsByUserId(user.id);
+      const userId = getUserIdFromRequest(req);
+      const goals = await storage.getFinancialGoalsByUserId(userId);
       res.json(goals);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -440,7 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Transaction routes
-  app.get("/api/transactions", async (req, res) => {
+  app.get("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
       const goalId = req.query.goalId as string;
       const limit = parseInt(req.query.limit as string) || 50;
@@ -449,9 +436,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (goalId) {
         transactions = await storage.getTransactionsByGoalId(goalId);
       } else {
-        // Use authenticated user from session
-        const user = await storage.createDemoUserIfNeeded();
-        transactions = await storage.getTransactionsByUserId(user.id, limit);
+        const userId = getUserIdFromRequest(req);
+        transactions = await storage.getTransactionsByUserId(userId, limit);
       }
       
       res.json(transactions);
@@ -508,23 +494,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Calendar share routes
-  app.get("/api/calendar/shares", async (req, res) => {
+  app.get("/api/calendar/shares", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const shares = await storage.getCalendarSharesByUserId(user.id);
+      const userId = getUserIdFromRequest(req);
+      const shares = await storage.getCalendarSharesByUserId(userId);
       res.json(shares);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post("/api/calendar/shares", async (req, res) => {
+  app.post("/api/calendar/shares", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const shareData = {
         ...req.body,
         // Set owner to current user
-        ownerId: user.id,
+        ownerId: userId,
         // Set default expiry to 30 days if not provided
         ...(req.body.expiresAt ? { expiresAt: new Date(req.body.expiresAt) } : { expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
       };
@@ -762,10 +748,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ===============================
 
   // User Settings Routes
-  app.get("/api/user-settings", async (req, res) => {
+  app.get("/api/user-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const settings = await storage.getUserSettings(user.id);
+      const userId = getUserIdFromRequest(req);
+      const settings = await storage.getUserSettings(userId);
       if (!settings) {
         return res.status(404).json({ message: "User settings not found" });
       }
@@ -778,10 +764,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/user-settings", async (req, res) => {
+  app.post("/api/user-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const settingsData = { ...req.body, userId: user.id };
+      const userId = getUserIdFromRequest(req);
+      const settingsData = { ...req.body, userId: userId };
       const validatedData = insertUserSettingsSchema.parse(settingsData);
       const settings = await storage.createUserSettings(validatedData);
       res.status(201).json({
@@ -793,11 +779,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/user-settings", async (req, res) => {
+  app.put("/api/user-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertUserSettingsSchema.omit({ userId: true }).partial().parse(req.body);
-      const settings = await storage.updateUserSettings(user.id, validatedData);
+      const settings = await storage.updateUserSettings(userId, validatedData);
       res.json({
         ...settings,
         hourlyRate: parseFloat((settings.hourlyRate || 50).toString())
@@ -808,14 +794,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User Preferences Routes
-  app.get("/api/user-preferences", async (req, res) => {
+  app.get("/api/user-preferences", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const preferences = await storage.getUserPreferences(user.id);
+      const userId = getUserIdFromRequest(req);
+      const preferences = await storage.getUserPreferences(userId);
       if (!preferences) {
         // Create default preferences if they don't exist
         const defaultPrefs = { 
-          userId: user.id,
+          userId: userId,
           theme: "system" as const
         };
         const newPrefs = await storage.createUserPreferences(defaultPrefs);
@@ -827,11 +813,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/user-preferences", async (req, res) => {
+  app.put("/api/user-preferences", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertUserPreferencesSchema.omit({ userId: true }).partial().parse(req.body);
-      const preferences = await storage.updateUserPreferences(user.id, validatedData);
+      const preferences = await storage.updateUserPreferences(userId, validatedData);
       res.json(preferences);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -839,14 +825,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Financial Preferences Routes
-  app.get("/api/financial-preferences", async (req, res) => {
+  app.get("/api/financial-preferences", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const preferences = await storage.getFinancialPreferences(user.id);
+      const userId = getUserIdFromRequest(req);
+      const preferences = await storage.getFinancialPreferences(userId);
       if (!preferences) {
         // Create default preferences if they don't exist
         const defaultPrefs = {
-          userId: user.id,
+          userId: userId,
           defaultBudgetPeriod: "monthly" as const,
           autoSavingsAmount: "0.00",
           autoSavingsFrequency: "monthly" as const,
@@ -861,11 +847,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/financial-preferences", async (req, res) => {
+  app.put("/api/financial-preferences", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertFinancialPreferencesSchema.omit({ userId: true }).partial().parse(req.body);
-      const preferences = await storage.updateFinancialPreferences(user.id, validatedData);
+      const preferences = await storage.updateFinancialPreferences(userId, validatedData);
       res.json(preferences);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -873,14 +859,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Privacy Settings Routes
-  app.get("/api/privacy-settings", async (req, res) => {
+  app.get("/api/privacy-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const settings = await storage.getPrivacySettings(user.id);
+      const userId = getUserIdFromRequest(req);
+      const settings = await storage.getPrivacySettings(userId);
       if (!settings) {
         // Create default settings if they don't exist
         const defaultSettings = {
-          userId: user.id,
+          userId: userId,
           profileVisibility: "private" as const
         };
         const newSettings = await storage.createPrivacySettings(defaultSettings);
@@ -892,11 +878,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/privacy-settings", async (req, res) => {
+  app.put("/api/privacy-settings", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertPrivacySettingsSchema.omit({ userId: true }).partial().parse(req.body);
-      const settings = await storage.updatePrivacySettings(user.id, validatedData);
+      const settings = await storage.updatePrivacySettings(userId, validatedData);
       res.json(settings);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -904,21 +890,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Data Export Routes
-  app.get("/api/export-data", async (req, res) => {
+  app.get("/api/export-data", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const format = req.query.format as 'json' | 'csv' || 'json';
       
       if (format !== 'json' && format !== 'csv') {
         return res.status(400).json({ message: "Format must be 'json' or 'csv'" });
       }
 
-      const exportData = await storage.exportUserData(user.id, format);
+      const exportData = await storage.exportUserData(userId, format);
       
       // Update last export timestamp
-      await storage.updatePrivacySettings(user.id, { lastDataExport: new Date() });
+      await storage.updatePrivacySettings(userId, { lastDataExport: new Date() });
       
-      const filename = `twealth-data-${user.id}-${new Date().toISOString().split('T')[0]}.${format}`;
+      const filename = `twealth-data-${userId}-${new Date().toISOString().split('T')[0]}.${format}`;
       
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
@@ -928,9 +914,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/delete-user-data", async (req, res) => {
+  app.delete("/api/delete-user-data", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const { confirmation } = req.body;
       
       if (confirmation !== 'DELETE') {
@@ -939,7 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      await storage.deleteUserData(user.id);
+      await storage.deleteUserData(userId);
       res.json({ message: "All user data has been permanently deleted" });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -947,14 +933,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Time Tracking Routes
-  app.post("/api/time-logs", async (req, res) => {
+  app.post("/api/time-logs", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       
       // Convert date strings to Date objects
       const timeLogData = {
         ...req.body,
-        userId: user.id,
+        userId: userId,
         startedAt: req.body.startedAt ? new Date(req.body.startedAt) : undefined,
         endedAt: req.body.endedAt ? new Date(req.body.endedAt) : undefined
       };
@@ -985,9 +971,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/time-logs", async (req, res) => {
+  app.get("/api/time-logs", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const { range } = req.query;
       
       let startDate: Date | undefined;
@@ -1007,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         endDate = new Date();
       }
       
-      const timeLogs = await storage.getUserTimeLogs(user.id, startDate, endDate);
+      const timeLogs = await storage.getUserTimeLogs(userId, startDate, endDate);
       res.json(timeLogs);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1050,21 +1036,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Time-Value Insights Routes
-  app.get("/api/insights/time-value", async (req, res) => {
+  app.get("/api/insights/time-value", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const range = (req.query.range as '7d' | '30d' | '90d') || '30d';
-      const insights = await storage.getTimeValueInsights(user.id, range);
+      const insights = await storage.getTimeValueInsights(userId, range);
       res.json(insights);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.get("/api/events/:eventId/time-value", async (req, res) => {
+  app.get("/api/events/:eventId/time-value", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const timeValue = await storage.calculateEventTimeValue(req.params.eventId, user.id);
+      const userId = getUserIdFromRequest(req);
+      const timeValue = await storage.calculateEventTimeValue(req.params.eventId, userId);
       res.json(timeValue);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1072,16 +1058,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Enhanced Dashboard Stats (including time-value data)
-  app.get("/api/dashboard/time-stats", async (req, res) => {
+  app.get("/api/dashboard/time-stats", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const range = (req.query.range as '7d' | '30d' | '90d') || '30d';
       
       // Get basic insights
-      const insights = await storage.getTimeValueInsights(user.id, range);
+      const insights = await storage.getTimeValueInsights(userId, range);
       
       // Get user settings for context
-      const settings = await storage.getUserSettings(user.id);
+      const settings = await storage.getUserSettings(userId);
       
       // Calculate additional metrics
       const averageHourlyValue = insights.totalTimeHours > 0 ? insights.timeValue / insights.totalTimeHours : 0;
@@ -1101,35 +1087,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification routes
-  app.get("/api/notifications", async (req, res) => {
+  app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const limit = parseInt(req.query.limit as string) || 50;
       const includeRead = req.query.includeRead === 'true';
       
-      const notifications = await storage.getNotificationsByUserId(user.id, limit, includeRead);
+      const notifications = await storage.getNotificationsByUserId(userId, limit, includeRead);
       res.json(notifications);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.get("/api/notifications/unread-count", async (req, res) => {
+  app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const count = await storage.getUnreadNotificationCount(user.id);
+      const userId = getUserIdFromRequest(req);
+      const count = await storage.getUnreadNotificationCount(userId);
       res.json({ count });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.post("/api/notifications", async (req, res) => {
+  app.post("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const notificationData = {
         ...req.body,
-        userId: user.id,
+        userId: userId,
       };
       
       const validatedData = insertNotificationSchema.parse(notificationData);
@@ -1140,10 +1126,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/notifications/generate", async (req, res) => {
+  app.post("/api/notifications/generate", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const notifications = await storage.generateSmartNotifications(user.id);
+      const userId = getUserIdFromRequest(req);
+      const notifications = await storage.generateSmartNotifications(userId);
       res.json({ 
         generated: notifications.length,
         notifications: notifications.slice(0, 5) // Return first 5 for preview
@@ -1162,10 +1148,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/notifications/mark-all-read", async (req, res) => {
+  app.put("/api/notifications/mark-all-read", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      await storage.markAllNotificationsAsRead(user.id);
+      const userId = getUserIdFromRequest(req);
+      await storage.markAllNotificationsAsRead(userId);
       res.json({ success: true });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1191,10 +1177,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat API routes
-  app.get("/api/chat/conversations", async (req, res) => {
+  app.get("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const conversations = await storage.getChatConversations(user.id);
+      const userId = getUserIdFromRequest(req);
+      const conversations = await storage.getChatConversations(userId);
       res.json(conversations);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1225,12 +1211,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chat/conversations", async (req, res) => {
+  app.post("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertChatConversationSchema.parse({
         ...req.body,
-        userId: user.id
+        userId: userId
       });
       const conversation = await storage.createChatConversation(validatedData);
       res.status(201).json(conversation);
@@ -1239,13 +1225,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/chat/conversations/:id/messages", async (req, res) => {
+  app.post("/api/chat/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
       
       // Check usage limit before processing - strict enforcement
-      const usageCheck = await storage.checkUsageLimit(user.id, 'aiChatsUsed');
+      const usageCheck = await storage.checkUsageLimit(userId, 'aiChatsUsed');
       if (!usageCheck.allowed) {
         return res.status(429).json({ 
           message: "AI chat limit exceeded. Upgrade your plan to continue chatting.",
@@ -1258,7 +1244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Validate conversation exists and belongs to user
       const conversation = await storage.getChatConversation(conversationId);
-      if (!conversation || conversation.userId !== user.id) {
+      if (!conversation || conversation.userId !== userId) {
         return res.status(404).json({ message: "Conversation not found" });
       }
 
@@ -1271,7 +1257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check deep analysis quota if this is a complex query
       if (isDeepAnalysis) {
-        const deepAnalysisCheck = await storage.checkUsageLimit(user.id, 'aiDeepAnalysisUsed');
+        const deepAnalysisCheck = await storage.checkUsageLimit(userId, 'aiDeepAnalysisUsed');
         if (!deepAnalysisCheck.allowed) {
           return res.status(429).json({ 
             message: "Deep analysis limit exceeded. Upgrade your plan for more advanced AI features.",
@@ -1295,10 +1281,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Build user context for AI
       const [stats, goals, recentTransactions, upcomingEvents] = await Promise.all([
-        storage.getUserStats(user.id),
-        storage.getFinancialGoalsByUserId(user.id),
-        storage.getTransactionsByUserId(user.id, 10),
-        storage.getUpcomingEvents(user.id, 5)
+        storage.getUserStats(userId),
+        storage.getFinancialGoalsByUserId(userId),
+        storage.getTransactionsByUserId(userId, 10),
+        storage.getUpcomingEvents(userId, 5)
       ]);
 
       const userContext: UserContext = {
@@ -1328,9 +1314,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Track usage immediately (regardless of AI success/failure)
-      await storage.incrementUsage(user.id, 'aiChatsUsed');
+      await storage.incrementUsage(userId, 'aiChatsUsed');
       if (isDeepAnalysis) {
-        await storage.incrementUsage(user.id, 'aiDeepAnalysisUsed');
+        await storage.incrementUsage(userId, 'aiDeepAnalysisUsed');
       }
 
       try {
@@ -1344,7 +1330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               if (toolCall.name === 'create_financial_goal') {
                 const goal = await storage.createFinancialGoal({
-                  userId: user.id,
+                  userId: userId,
                   title: toolCall.arguments.name,
                   targetAmount: toolCall.arguments.targetAmount.toString(),
                   currentAmount: '0',
@@ -1358,7 +1344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
               } else if (toolCall.name === 'create_calendar_event') {
                 const event = await storage.createEvent({
-                  createdBy: user.id,
+                  createdBy: userId,
                   title: toolCall.arguments.title,
                   description: toolCall.arguments.description || null,
                   startTime: new Date(toolCall.arguments.date),
@@ -1370,7 +1356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 });
               } else if (toolCall.name === 'add_transaction') {
                 const transaction = await storage.createTransaction({
-                  userId: user.id,
+                  userId: userId,
                   type: toolCall.arguments.type,
                   amount: toolCall.arguments.amount.toString(),
                   category: toolCall.arguments.category,
@@ -1385,7 +1371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const group = await storage.createGroup({
                   name: toolCall.arguments.name,
                   description: toolCall.arguments.description || null,
-                  ownerId: user.id
+                  ownerId: userId
                 });
                 actionsPerformed.push({
                   type: 'group_created',
@@ -1407,7 +1393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const name = cryptoNames[symbol] || symbol;
                 
                 const holding = await storage.createCryptoHolding({
-                  userId: user.id,
+                  userId: userId,
                   coinId: coinId,
                   symbol: symbol,
                   name: name,
@@ -1512,12 +1498,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/chat/conversations/:id", async (req, res) => {
+  app.delete("/api/chat/conversations/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const conversation = await storage.getChatConversation(req.params.id);
       
-      if (!conversation || conversation.userId !== user.id) {
+      if (!conversation || conversation.userId !== userId) {
         return res.status(404).json({ message: "Conversation not found" });
       }
 
@@ -1540,15 +1526,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Reset usage endpoint (for testing/development)
-  app.post("/api/subscription/reset-usage", async (req, res) => {
+  app.post("/api/subscription/reset-usage", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      await storage.resetUsage(user.id);
+      const userId = getUserIdFromRequest(req);
+      await storage.resetUsage(userId);
       
-      console.log(`🔄 Usage reset for user ${user.id}`);
+      console.log(`🔄 Usage reset for user ${userId}`);
       res.json({ 
         message: "Usage reset successfully",
-        userId: user.id,
+        userId: userId,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
@@ -1558,12 +1544,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Insights endpoint
-  app.get("/api/ai/insights", async (req, res) => {
+  app.get("/api/ai/insights", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       
       // Check usage limit for insights
-      const usageCheck = await storage.checkUsageLimit(user.id, 'aiChatsUsed'); // Use chat quota for insights
+      const usageCheck = await storage.checkUsageLimit(userId, 'aiChatsUsed'); // Use chat quota for insights
       if (!usageCheck.allowed) {
         return res.status(429).json({ 
           insight: "Upgrade to get more AI insights.",
@@ -1576,9 +1562,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const [stats, goals, recentTransactions] = await Promise.all([
-        storage.getUserStats(user.id),
-        storage.getFinancialGoalsByUserId(user.id),
-        storage.getTransactionsByUserId(user.id, 5)
+        storage.getUserStats(userId),
+        storage.getFinancialGoalsByUserId(userId),
+        storage.getTransactionsByUserId(userId, 5)
       ]);
 
       const userContext: UserContext = {
@@ -1598,7 +1584,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const insight = await aiService.generateProactiveInsight(userContext);
       
       // Track usage
-      await storage.incrementUsage(user.id, 'aiInsightsGenerated');
+      await storage.incrementUsage(userId, 'aiInsightsGenerated');
       
       res.json({ insight });
     } catch (error: any) {
@@ -1619,20 +1605,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/subscription/current", async (req, res) => {
+  app.get("/api/subscription/current", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      let subscription = await storage.getUserSubscription(user.id);
+      const userId = getUserIdFromRequest(req);
+      let subscription = await storage.getUserSubscription(userId);
       
       // Initialize free subscription if user doesn't have one
       if (!subscription) {
-        await storage.initializeDefaultSubscription(user.id);
-        subscription = await storage.getUserSubscription(user.id);
+        await storage.initializeDefaultSubscription(userId);
+        subscription = await storage.getUserSubscription(userId);
       }
       
       // Get current usage
-      const usage = await storage.getUserUsage(user.id);
-      const addOns = await storage.getUserAddOns(user.id);
+      const usage = await storage.getUserUsage(userId);
+      const addOns = await storage.getUserAddOns(userId);
       
       res.json({
         subscription,
@@ -1644,13 +1630,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/subscription/usage", async (req, res) => {
+  app.get("/api/subscription/usage", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const [chatCheck, analysisCheck, usage] = await Promise.all([
-        storage.checkUsageLimit(user.id, 'aiChatsUsed'),
-        storage.checkUsageLimit(user.id, 'aiDeepAnalysisUsed'),
-        storage.getUserUsage(user.id)
+        storage.checkUsageLimit(userId, 'aiChatsUsed'),
+        storage.checkUsageLimit(userId, 'aiDeepAnalysisUsed'),
+        storage.getUserUsage(userId)
       ]);
 
       res.json({
@@ -1676,7 +1662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stripe Payment Intent for Subscription
-  app.post("/api/subscription/create-payment-intent", async (req, res) => {
+  app.post("/api/subscription/create-payment-intent", isAuthenticated, async (req: any, res) => {
     try {
       if (!stripe) {
         return res.status(503).json({ 
@@ -1685,7 +1671,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       const { planId } = req.body;
       
       if (!planId) {
@@ -1702,10 +1693,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const amountInSatang = Math.round(parseFloat(plan.priceThb) * 100);
 
       // Ensure user has a subscription record
-      let currentSubscription = await storage.getUserSubscription(user.id);
+      let currentSubscription = await storage.getUserSubscription(userId);
       if (!currentSubscription) {
-        await storage.initializeDefaultSubscription(user.id);
-        currentSubscription = await storage.getUserSubscription(user.id);
+        await storage.initializeDefaultSubscription(userId);
+        currentSubscription = await storage.getUserSubscription(userId);
       }
 
       // Create or get Stripe customer
@@ -1716,7 +1707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const customerData: any = {
           metadata: {
-            userId: user.id,
+            userId: userId,
             plan: plan.name
           }
         };
@@ -1743,7 +1734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currency: 'thb',
         customer: stripeCustomerId,
         metadata: {
-          userId: user.id,
+          userId: userId,
           planId: plan.id,
           planName: plan.name
         },
@@ -1764,7 +1755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stripe Subscription Management
-  app.post("/api/subscription/create-subscription", async (req, res) => {
+  app.post("/api/subscription/create-subscription", isAuthenticated, async (req: any, res) => {
     try {
       if (!stripe) {
         return res.status(503).json({ 
@@ -1773,7 +1764,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       const { planId, priceId } = req.body; // priceId from Stripe dashboard
       
       if (!planId || !priceId) {
@@ -1786,10 +1782,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Ensure user has a subscription record
-      let currentSubscription = await storage.getUserSubscription(user.id);
+      let currentSubscription = await storage.getUserSubscription(userId);
       if (!currentSubscription) {
-        await storage.initializeDefaultSubscription(user.id);
-        currentSubscription = await storage.getUserSubscription(user.id);
+        await storage.initializeDefaultSubscription(userId);
+        currentSubscription = await storage.getUserSubscription(userId);
       }
 
       // Create or get Stripe customer
@@ -1799,7 +1795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stripeCustomerId = currentSubscription.stripeCustomerId;
       } else {
         const customerData: any = {
-          metadata: { userId: user.id }
+          metadata: { userId: userId }
         };
         if (user.email) {
           customerData.email = user.email;
@@ -1825,7 +1821,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         payment_behavior: 'default_incomplete',
         expand: ['latest_invoice.payment_intent'],
         metadata: {
-          userId: user.id,
+          userId: userId,
           planId: plan.id
         }
       });
@@ -1843,9 +1839,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/subscription/upgrade", async (req, res) => {
+  app.post("/api/subscription/upgrade", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const { planId } = req.body;
       
       if (!planId) {
@@ -1859,10 +1855,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get current subscription
-      let currentSubscription = await storage.getUserSubscription(user.id);
+      let currentSubscription = await storage.getUserSubscription(userId);
       if (!currentSubscription) {
-        await storage.initializeDefaultSubscription(user.id);
-        currentSubscription = await storage.getUserSubscription(user.id);
+        await storage.initializeDefaultSubscription(userId);
+        currentSubscription = await storage.getUserSubscription(userId);
       }
       
       // Check if Stripe is available for real payment processing
@@ -1917,7 +1913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get the updated subscription with plan details
-      const updatedSubscription = await storage.getUserSubscription(user.id);
+      const updatedSubscription = await storage.getUserSubscription(userId);
       
       res.json({ 
         message: "Subscription upgraded successfully",
@@ -1930,9 +1926,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Payment verification endpoint for frontend
-  app.post("/api/subscription/verify-payment", async (req, res) => {
+  app.post("/api/subscription/verify-payment", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const { planId } = req.body;
 
       if (!planId) {
@@ -1940,7 +1936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get current subscription
-      const currentSubscription = await storage.getUserSubscription(user.id);
+      const currentSubscription = await storage.getUserSubscription(userId);
       const plan = await storage.getSubscriptionPlan(planId);
 
       if (!currentSubscription || !plan) {
@@ -2318,16 +2314,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Referral System API routes
-  app.get("/api/referrals/my-code", async (req, res) => {
+  app.get("/api/referrals/my-code", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      let referralCode = await storage.getUserReferralCode(user.id);
+      const userId = getUserIdFromRequest(req);
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      let referralCode = await storage.getUserReferralCode(userId);
       
       // Create referral code if user doesn't have one
       if (!referralCode) {
         const code = `${(user.firstName || user.email?.split('@')[0] || 'USER').toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
         referralCode = await storage.createReferralCode({
-          userId: user.id,
+          userId: userId,
           code: code,
           maxUses: 100,
           currentUses: 0,
@@ -2341,21 +2342,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/referrals/use-code", async (req, res) => {
+  app.post("/api/referrals/use-code", isAuthenticated, async (req: any, res) => {
     try {
       const { referralCode } = req.body;
       if (!referralCode) {
         return res.status(400).json({ message: "Referral code is required" });
       }
 
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       
       // Process the referral
-      const referral = await storage.processReferral(user.id, referralCode);
+      const referral = await storage.processReferral(userId, referralCode);
       
       // Add bonus credits for the referred user (10 AI chats)
       await storage.addBonusCredits({
-        userId: user.id,
+        userId: userId,
         amount: 10,
         source: "referral_signup",
         referralId: referral.id,
@@ -2381,22 +2382,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/referrals/my-referrals", async (req, res) => {
+  app.get("/api/referrals/my-referrals", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
-      const referrals = await storage.getUserReferrals(user.id);
+      const userId = getUserIdFromRequest(req);
+      const referrals = await storage.getUserReferrals(userId);
       res.json(referrals);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.get("/api/referrals/bonus-credits", async (req, res) => {
+  app.get("/api/referrals/bonus-credits", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.createDemoUserIfNeeded();
+      const userId = getUserIdFromRequest(req);
       const [credits, availableAmount] = await Promise.all([
-        storage.getUserBonusCredits(user.id),
-        storage.getAvailableBonusCredits(user.id)
+        storage.getUserBonusCredits(userId),
+        storage.getAvailableBonusCredits(userId)
       ]);
       
       res.json({
