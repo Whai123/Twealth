@@ -1,17 +1,399 @@
 {
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Try Again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "remove": "Remove",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "done": "Done",
+    "submit": "Submit",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "yes": "Yes",
+    "no": "No"
+  },
   "navigation": {
     "dashboard": "Dashboard",
     "calendar": "Calendar", 
     "money": "Money",
     "goals": "Goals",
     "groups": "Groups",
+    "planning": "Planning",
+    "crypto": "Crypto",
+    "friends": "Friends",
     "aiAssistant": "AI Assistant",
     "referrals": "Referrals",
-    "settings": "Settings"
+    "premium": "Premium",
+    "settings": "Settings",
+    "sections": {
+      "main": "Main",
+      "finance": "Finance",
+      "social": "Social",
+      "more": "More"
+    },
+    "descriptions": {
+      "dashboard": "View your financial overview and insights",
+      "aiAssistant": "Chat with AI to manage your finances",
+      "goals": "Set and track savings goals",
+      "money": "Track income and expenses",
+      "crypto": "Monitor cryptocurrency holdings",
+      "friends": "Connect with friends for collaboration",
+      "groups": "Manage shared financial groups",
+      "calendar": "Schedule events and meetings",
+      "planning": "Time tracking and productivity",
+      "referrals": "Invite friends and earn rewards",
+      "premium": "Unlock advanced features"
+    }
+  },
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "mobileNav": {
+    "quickActions": {
+      "newGoal": {
+        "title": "New Goal",
+        "description": "Set financial target"
+      },
+      "addTransaction": {
+        "title": "Add Transaction",
+        "description": "Record income/expense"
+      },
+      "scheduleEvent": {
+        "title": "Schedule Event",
+        "description": "Plan new activity"
+      }
+    },
+    "drawers": {
+      "quickActions": {
+        "title": "Quick Actions",
+        "description": "Create goals, transactions, or events instantly"
+      },
+      "goal": {
+        "title": "Create New Financial Goal",
+        "description": "Set up a new savings target and track your progress"
+      },
+      "transaction": {
+        "title": "Add New Transaction",
+        "description": "Record your income, expenses, or transfers"
+      },
+      "event": {
+        "title": "Schedule New Event",
+        "description": "Plan your time effectively and track activities"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Financial Planning Made Simple",
+      "subtitle": "Track, budget, and achieve your financial goals with our AI-powered platform",
+      "cta": "Get Started Free",
+      "viewDashboard": "View Dashboard"
+    },
+    "features": {
+      "title": "Everything you need to manage your finances",
+      "subtitle": "Powerful features to help you achieve financial freedom",
+      "aiAssistant": {
+        "title": "AI Financial Assistant",
+        "description": "Get personalized financial advice powered by advanced AI"
+      },
+      "smartTracking": {
+        "title": "Smart Expense Tracking",
+        "description": "Automatically categorize and track your spending"
+      },
+      "goalSetting": {
+        "title": "Goal Setting & Planning",
+        "description": "Set financial goals and track your progress"
+      },
+      "groupManagement": {
+        "title": "Group Collaboration",
+        "description": "Share expenses and plan together with friends"
+      }
+    },
+    "pricing": {
+      "title": "Choose Your Plan",
+      "subtitle": "Start free, upgrade when you're ready",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "save": "Save 20%"
+    },
+    "cta": {
+      "title": "Ready to take control of your finances?",
+      "subtitle": "Join thousands of users managing their money smarter",
+      "button": "Start Your Journey"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back,",
+    "overview": "Financial Overview",
+    "stats": {
+      "totalBalance": "Total Balance",
+      "income": "Income",
+      "expenses": "Expenses",
+      "netSavings": "Net Savings",
+      "thisMonth": "This month",
+      "activeGroups": "Active Groups",
+      "yourTeams": "Your teams",
+      "events": "Events",
+      "successRate": "Success Rate",
+      "eventViability": "Event viability",
+      "aiInsights": "AI Insights",
+      "thisWeek": "This week"
+    },
+    "recentTransactions": "Recent Transactions",
+    "financialGoals": "Financial Goals",
+    "upcomingEvents": "Upcoming Events",
+    "quickActions": "Quick Actions",
+    "smartInsights": {
+      "title": "Smart Team Management",
+      "description": "AI analyzes your group dynamics and suggests optimal planning strategies for maximum success."
+    },
+    "empty": {
+      "transactions": "No transactions yet",
+      "goals": "No goals set",
+      "events": "No upcoming events",
+      "startAdding": "Start adding to see your financial journey"
+    }
+  },
+  "goals": {
+    "title": "Financial Goals",
+    "subtitle": "Set and track your savings targets",
+    "addNew": "Add New Goal",
+    "createGoal": "Create Goal",
+    "editGoal": "Edit Goal",
+    "card": {
+      "target": "Target",
+      "current": "Current",
+      "progress": "Progress",
+      "dueDate": "Due Date",
+      "completed": "Completed",
+      "onTrack": "On Track",
+      "behind": "Behind"
+    },
+    "form": {
+      "name": "Goal Name",
+      "namePlaceholder": "e.g., Emergency Fund",
+      "targetAmount": "Target Amount",
+      "currentAmount": "Current Amount",
+      "deadline": "Deadline",
+      "category": "Category",
+      "description": "Description",
+      "descriptionPlaceholder": "What is this goal for?"
+    },
+    "categories": {
+      "savings": "Savings",
+      "investment": "Investment",
+      "debt": "Debt Payoff",
+      "emergency": "Emergency Fund",
+      "purchase": "Major Purchase",
+      "education": "Education",
+      "retirement": "Retirement",
+      "other": "Other"
+    },
+    "empty": {
+      "title": "No goals yet",
+      "description": "Start by creating your first financial goal"
+    }
+  },
+  "moneyTracking": {
+    "title": "Money Tracking",
+    "subtitle": "Track your income and expenses",
+    "addTransaction": "Add Transaction",
+    "createTransaction": "Create Transaction",
+    "editTransaction": "Edit Transaction",
+    "types": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer"
+    },
+    "categories": {
+      "salary": "Salary",
+      "freelance": "Freelance",
+      "investment": "Investment",
+      "food": "Food & Dining",
+      "transport": "Transportation",
+      "utilities": "Utilities",
+      "entertainment": "Entertainment",
+      "shopping": "Shopping",
+      "health": "Healthcare",
+      "education": "Education",
+      "other": "Other"
+    },
+    "form": {
+      "amount": "Amount",
+      "type": "Type",
+      "category": "Category",
+      "date": "Date",
+      "description": "Description",
+      "descriptionPlaceholder": "What was this for?"
+    },
+    "stats": {
+      "totalIncome": "Total Income",
+      "totalExpenses": "Total Expenses",
+      "balance": "Balance",
+      "thisMonth": "This Month"
+    }
+  },
+  "calendar": {
+    "title": "Calendar & Events",
+    "subtitle": "Schedule and track your financial events",
+    "addEvent": "Add Event",
+    "createEvent": "Create Event",
+    "editEvent": "Edit Event",
+    "event": {
+      "title": "Title",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "description": "Description",
+      "attendees": "Attendees",
+      "rsvp": "RSVP"
+    },
+    "rsvpStatus": {
+      "going": "Going",
+      "maybe": "Maybe",
+      "cantGo": "Can't Go"
+    }
+  },
+  "groups": {
+    "title": "Groups",
+    "subtitle": "Manage shared financial groups",
+    "createGroup": "Create Group",
+    "createFirstGroup": "Create Your First Group",
+    "editGroup": "Edit Group",
+    "viewGroup": "View Group",
+    "card": {
+      "members": "members",
+      "member": "member",
+      "nextEvent": "Next Event",
+      "going": "going",
+      "maybe": "maybe",
+      "viable": "viable",
+      "createEvent": "Create Event"
+    },
+    "form": {
+      "name": "Group Name",
+      "namePlaceholder": "e.g., Monthly Book Club",
+      "description": "Description",
+      "descriptionPlaceholder": "What is this group about?",
+      "color": "Color",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "actions": {
+      "invite": "Invite Members",
+      "shareCalendar": "Share Calendar",
+      "delete": "Delete Group"
+    },
+    "empty": {
+      "title": "No groups yet",
+      "description": "Create a group to collaborate with friends"
+    }
+  },
+  "friends": {
+    "title": "Friends",
+    "subtitle": "Connect with friends for collaboration",
+    "addFriend": "Add Friend",
+    "searchPlaceholder": "Search users by email or name",
+    "tabs": {
+      "requests": "Requests",
+      "friends": "Friends",
+      "search": "Find Friends"
+    },
+    "requests": {
+      "received": "Received",
+      "sent": "Sent",
+      "accept": "Accept",
+      "decline": "Decline",
+      "cancel": "Cancel",
+      "noReceived": "No pending requests",
+      "noSent": "No sent requests"
+    },
+    "list": {
+      "sendMessage": "Send Message",
+      "removeFriend": "Remove Friend",
+      "noFriends": "No friends yet",
+      "startConnecting": "Start connecting with others"
+    },
+    "actions": {
+      "sendRequest": "Send Request",
+      "requestSent": "Request Sent",
+      "friends": "Friends"
+    }
+  },
+  "crypto": {
+    "title": "Cryptocurrency",
+    "subtitle": "Monitor your crypto holdings",
+    "livePrices": "Live Crypto Prices",
+    "holdings": "Holdings",
+    "transactions": "Transactions",
+    "portfolio": "Portfolio",
+    "marketCap": "Market Cap",
+    "volume": "24h Volume",
+    "change": "24h Change",
+    "price": "Price"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account and preferences",
+    "sections": {
+      "account": "Account",
+      "preferences": "Preferences",
+      "notifications": "Notifications",
+      "privacy": "Privacy",
+      "security": "Security"
+    },
+    "account": {
+      "profile": "Profile Information",
+      "email": "Email",
+      "language": "Language",
+      "currency": "Currency",
+      "timezone": "Timezone"
+    },
+    "preferences": {
+      "theme": "Theme",
+      "dateFormat": "Date Format",
+      "timeFormat": "Time Format",
+      "numberFormat": "Number Format"
+    },
+    "notifications": {
+      "email": "Email Notifications",
+      "push": "Push Notifications",
+      "sms": "SMS Notifications",
+      "goals": "Goal Reminders",
+      "events": "Event Reminders",
+      "transactions": "Transaction Alerts"
+    }
   },
   "aiAssistant": {
     "title": "AI Financial Assistant",
     "subtitle": "Get personalized financial advice and insights powered by AI",
+    "tagline": "Advanced AI-powered financial advisor",
     "usageTitle": "AI Usage",
     "unlimited": "Unlimited",
     "quotaExceeded": "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
@@ -21,38 +403,79 @@
     "chatPlaceholder": "Ask me anything about your finances...",
     "send": "Send",
     "upgradeToChat": "Upgrade to Chat",
+    "header": {
+      "title": "Intelligent Financial Assistant 🧠"
+    },
+    "stats": {
+      "chatUsage": "Chat Usage",
+      "chatConversations": "AI conversations",
+      "analysis": "Analysis",
+      "deepInsights": "Deep insights",
+      "insights": "Insights",
+      "generated": "Generated",
+      "status": "Status",
+      "limitReached": "Limit reached",
+      "active": "Active"
+    },
+    "usage": {
+      "subtitle": "Track your AI assistant activity this month",
+      "aiChats": "AI Chats",
+      "progress": "Progress",
+      "remaining": "remaining",
+      "deepAnalysis": "Deep Analysis",
+      "generatedThisMonth": "Generated this month",
+      "keepExploring": "Keep exploring!"
+    },
+    "limits": {
+      "chatLimitReached": "🚫 AI Chat Limit Reached!",
+      "allChatsUsed": "You've used all {limit} AI chats for this month",
+      "upgradeMessage": "Upgrade to Premium for unlimited AI assistance",
+      "upgradeNow": "Upgrade Now",
+      "runningLow": "⚠️ Running Low on AI Quota!",
+      "onlyRemaining": "Only {remaining} AI chats remaining. Upgrade for unlimited access!",
+      "upgrade": "Upgrade"
+    },
+    "errors": {
+      "failedToSend": "Failed to send message"
+    },
     "quickActions": {
       "title": "Quick AI Actions",
       "subtitle": "Get instant AI insights for your financial needs",
       "budgetAnalysis": {
-        "title": "Budget Analysis",
-        "description": "Get AI insights on your spending patterns and budget optimization suggestions.",
-        "category": "Analysis"
+        "title": "Analyze My Budget",
+        "description": "Get personalized insights on your spending patterns and budget optimization",
+        "category": "Analysis",
+        "prompt": "Analyze my current budget and spending patterns. Provide insights on where I can optimize and save more."
       },
-      "savingsStrategy": {
+      "savingsGoal": {
         "title": "Savings Strategy", 
-        "description": "Receive personalized savings recommendations based on your financial goals.",
-        "category": "Planning"
+        "description": "Get recommendations for achieving your financial goals faster",
+        "category": "Planning",
+        "prompt": "Based on my financial goals and current savings rate, suggest strategies to achieve my goals faster."
       },
-      "expenseOptimization": {
-        "title": "Expense Optimization",
-        "description": "Discover ways to reduce unnecessary expenses and improve financial efficiency.",
-        "category": "Optimization"
+      "expenseReview": {
+        "title": "Expense Review",
+        "description": "Identify unnecessary expenses and potential savings",
+        "category": "Optimization",
+        "prompt": "Review my recent expenses and identify areas where I might be overspending or where I can cut costs."
       },
-      "goalPlanning": {
-        "title": "Goal Planning",
-        "description": "Create actionable plans to achieve your short and long-term financial goals.",
-        "category": "Goals"
-      },
-      "investmentGuidance": {
+      "investmentAdvice": {
         "title": "Investment Guidance",
-        "description": "Get basic investment principles and portfolio diversification advice.",
-        "category": "Investment"
+        "description": "Get advice on investment opportunities and portfolio allocation",
+        "category": "Investment",
+        "prompt": "Provide guidance on investment strategies and portfolio allocation based on my financial situation and goals."
       },
-      "debtManagement": {
+      "debtStrategy": {
         "title": "Debt Management",
-        "description": "Strategies for paying off debts efficiently and improving credit health.",
-        "category": "Debt"
+        "description": "Create a plan to pay off debts efficiently",
+        "category": "Debt",
+        "prompt": "Help me create a debt payoff strategy. Analyze my current debts and suggest the most efficient repayment plan."
+      },
+      "cashFlow": {
+        "title": "Cash Flow Analysis",
+        "description": "Understand your money flow and optimize timing",
+        "category": "Analysis",
+        "prompt": "Analyze my cash flow patterns and suggest ways to optimize the timing of income and expenses."
       }
     }
   },
@@ -84,32 +507,6 @@
     },
     "upgradeButton": "Upgrade Now",
     "currentPlan": "Current Plan"
-  },
-  "dashboard": {
-    "welcome": "Welcome back!",
-    "totalSavings": "Total Savings",
-    "activeGoals": "Active Goals", 
-    "monthlyProgress": "Monthly Progress",
-    "recentTransactions": "Recent Transactions",
-    "upcomingEvents": "Upcoming Events",
-    "quickActions": "Quick Actions"
-  },
-  "common": {
-    "loading": "Loading...",
-    "error": "Something went wrong",
-    "retry": "Try Again",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit",
-    "add": "Add",
-    "remove": "Remove",
-    "confirm": "Confirm",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "close": "Close",
-    "done": "Done"
   },
   "referrals": {
     "title": "Refer Friends & Earn",
@@ -145,6 +542,37 @@
     "used": "Used",
     "bonusInfo": "Both you and your friend will receive 10 bonus AI chats when they use your referral code!"
   },
+  "notFound": {
+    "title": "Oops! Page Not Found",
+    "description": "The page you're looking for seems to have taken a detour. Let's get you back on track!",
+    "goBack": "Go Back",
+    "backToDashboard": "Back to Dashboard",
+    "quickAccess": "Quick Access",
+    "quickActions": {
+      "dashboard": "Dashboard",
+      "moneyTracking": "Money Tracking",
+      "aiAssistant": "AI Assistant",
+      "goals": "Financial Goals"
+    },
+    "proTip": {
+      "title": "Pro Tip",
+      "description": "Use our AI Assistant to help navigate and find exactly what you're looking for!"
+    }
+  },
+  "invite": {
+    "title": "You're Invited!",
+    "subtitle": "You've been invited to join a group",
+    "acceptInvite": "Accept Invite",
+    "declineInvite": "Decline",
+    "accepting": "Accepting...",
+    "role": "Role",
+    "expires": "Expires",
+    "invalidInvite": "Invalid Invite",
+    "invalidDescription": "This invite link is invalid or has expired.",
+    "expiredInvite": "Invite Expired",
+    "expiredDescription": "This invite link has expired. Please request a new invite from the group owner.",
+    "backToGroups": "Back to Groups"
+  },
   "currency": {
     "usd": "USD ($)",
     "thb": "THB (฿)",
@@ -154,6 +582,22 @@
     "inr": "INR (₹)",
     "brl": "BRL (R$)",
     "mxn": "MXN ($)",
-    "idr": "IDR (Rp)"
+    "idr": "IDR (Rp)",
+    "vnd": "VND (₫)",
+    "php": "PHP (₱)",
+    "myr": "MYR (RM)",
+    "try": "TRY (₺)",
+    "cad": "CAD (C$)",
+    "aud": "AUD (A$)"
+  },
+  "dateFormats": {
+    "short": "MM/DD/YYYY",
+    "medium": "MMM DD, YYYY",
+    "long": "MMMM DD, YYYY",
+    "full": "dddd, MMMM DD, YYYY"
+  },
+  "timeFormats": {
+    "12h": "12-hour",
+    "24h": "24-hour"
   }
 }
