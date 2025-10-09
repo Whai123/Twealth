@@ -1,102 +1,8 @@
 {
-  "navigation": {
-    "dashboard": "Dashboard",
-    "calendar": "Kalendar", 
-    "money": "Wang",
-    "goals": "Matlamat",
-    "groups": "Kumpulan",
-    "aiAssistant": "Pembantu AI",
-    "referrals": "Rujukan",
-    "settings": "Tetapan"
-  },
-  "aiAssistant": {
-    "title": "Pembantu Kewangan AI",
-    "subtitle": "Dapatkan nasihat kewangan peribadi dan wawasan yang dikuasakan oleh AI",
-    "usageTitle": "Penggunaan AI",
-    "unlimited": "Tanpa had",
-    "quotaExceeded": "Anda telah mencapai had sembang AI. Naik taraf ke Premium untuk bantuan AI tanpa had!",
-    "runningLow": "Anda hampir kehabisan sembang AI. Pertimbangkan untuk naik taraf ke Premium untuk akses tanpa had.",
-    "upgradeRequired": "🚀 Naik Taraf Diperlukan",
-    "upgradeButton": "Naik Taraf ke Premium",
-    "chatPlaceholder": "Tanya saya apa-apa tentang kewangan anda...",
-    "send": "Hantar",
-    "upgradeToChat": "Naik Taraf untuk Sembang",
-    "quickActions": {
-      "title": "Tindakan AI Pantas",
-      "subtitle": "Dapatkan wawasan AI segera untuk keperluan kewangan anda",
-      "budgetAnalysis": {
-        "title": "Analisis Belanjawan",
-        "description": "Dapatkan wawasan AI tentang corak perbelanjaan dan cadangan optimisasi belanjawan anda.",
-        "category": "Analisis"
-      },
-      "savingsStrategy": {
-        "title": "Strategi Simpanan", 
-        "description": "Terima cadangan simpanan peribadi berdasarkan matlamat kewangan anda.",
-        "category": "Perancangan"
-      },
-      "expenseOptimization": {
-        "title": "Pengoptimuman Perbelanjaan",
-        "description": "Temui cara untuk mengurangkan perbelanjaan yang tidak perlu dan meningkatkan kecekapan kewangan.",
-        "category": "Pengoptimuman"
-      },
-      "goalPlanning": {
-        "title": "Perancangan Matlamat",
-        "description": "Buat rancangan yang boleh dilaksanakan untuk mencapai matlamat kewangan jangka pendek dan panjang anda.",
-        "category": "Matlamat"
-      },
-      "investmentGuidance": {
-        "title": "Panduan Pelaburan",
-        "description": "Dapatkan prinsip pelaburan asas dan nasihat kepelbagaian portfolio.",
-        "category": "Pelaburan"
-      },
-      "debtManagement": {
-        "title": "Pengurusan Hutang",
-        "description": "Strategi untuk membayar hutang dengan cekap dan meningkatkan kesihatan kredit.",
-        "category": "Hutang"
-      }
-    }
-  },
-  "subscription": {
-    "title": "Pilih Pelan Anda",
-    "subtitle": "Buka kunci wawasan AI tanpa had dan ciri premium",
-    "free": {
-      "title": "Percuma",
-      "price": "Percuma",
-      "features": [
-        "5 sembang AI sebulan",
-        "Penjejakan kewangan asas",
-        "Integrasi kalendar",
-        "Pembahagian perbelanjaan kumpulan"
-      ]
-    },
-    "premium": {
-      "title": "Premium",
-      "price": "RM12",
-      "period": "/bulan",
-      "features": [
-        "Sembang AI tanpa had",
-        "Wawasan kewangan lanjutan",
-        "Sokongan keutamaan",
-        "Eksport data",
-        "Kategori tersuai"
-      ],
-      "popular": "Paling Popular"
-    },
-    "upgradeButton": "Naik Taraf Sekarang",
-    "currentPlan": "Pelan Semasa"
-  },
-  "dashboard": {
-    "welcome": "Selamat kembali!",
-    "totalSavings": "Jumlah Simpanan",
-    "activeGoals": "Matlamat Aktif", 
-    "monthlyProgress": "Kemajuan Bulanan",
-    "recentTransactions": "Transaksi Terkini",
-    "upcomingEvents": "Acara Akan Datang",
-    "quickActions": "Tindakan Pantas"
-  },
   "common": {
     "loading": "Memuatkan...",
-    "error": "Sesuatu tidak kena",
+    "error": "Ralat",
+    "success": "Berjaya",
     "retry": "Cuba Lagi",
     "save": "Simpan",
     "cancel": "Batal",
@@ -109,41 +15,563 @@
     "next": "Seterusnya",
     "previous": "Sebelumnya",
     "close": "Tutup",
-    "done": "Selesai"
+    "done": "Selesai",
+    "submit": "Hantar",
+    "create": "Cipta",
+    "update": "Kemas Kini",
+    "search": "Cari",
+    "filter": "Tapis",
+    "sort": "Susun",
+    "view": "Lihat",
+    "download": "Muat Turun",
+    "upload": "Muat Naik",
+    "share": "Kongsi",
+    "copy": "Salin",
+    "copied": "Disalin!",
+    "yes": "Ya",
+    "no": "Tidak"
+  },
+  "navigation": {
+    "dashboard": "Papan Pemuka",
+    "calendar": "Kalendar",
+    "money": "Wang",
+    "goals": "Matlamat",
+    "groups": "Kumpulan",
+    "planning": "Perancangan",
+    "crypto": "Kripto",
+    "friends": "Rakan",
+    "aiAssistant": "Pembantu AI",
+    "referrals": "Rujukan",
+    "premium": "Premium",
+    "settings": "Tetapan",
+    "sections": {
+      "main": "Utama",
+      "finance": "Kewangan",
+      "social": "Sosial",
+      "more": "Lagi"
+    },
+    "descriptions": {
+      "dashboard": "Lihat gambaran kewangan dan pandangan anda",
+      "aiAssistant": "Sembang dengan AI untuk mengurus kewangan anda",
+      "goals": "Tetapkan dan jejaki matlamat simpanan",
+      "money": "Jejak pendapatan dan perbelanjaan",
+      "crypto": "Pantau pegangan mata wang kripto",
+      "friends": "Berhubung dengan rakan untuk kerjasama",
+      "groups": "Urus kumpulan kewangan bersama",
+      "calendar": "Jadualkan acara dan mesyuarat",
+      "planning": "Penjejakan masa dan produktiviti",
+      "referrals": "Jemput rakan dan dapat ganjaran",
+      "premium": "Buka ciri-ciri lanjutan"
+    }
+  },
+  "theme": {
+    "switchToLight": "Tukar ke mod cerah",
+    "switchToDark": "Tukar ke mod gelap",
+    "light": "Cerah",
+    "dark": "Gelap",
+    "system": "Sistem"
+  },
+  "mobileNav": {
+    "quickActions": {
+      "newGoal": {
+        "title": "Matlamat Baharu",
+        "description": "Tetapkan sasaran kewangan"
+      },
+      "addTransaction": {
+        "title": "Tambah Transaksi",
+        "description": "Rekod pendapatan/perbelanjaan"
+      },
+      "scheduleEvent": {
+        "title": "Jadualkan Acara",
+        "description": "Rancang aktiviti baharu"
+      }
+    },
+    "drawers": {
+      "quickActions": {
+        "title": "Tindakan Pantas",
+        "description": "Cipta matlamat, transaksi atau acara dengan segera"
+      },
+      "goal": {
+        "title": "Cipta Matlamat Kewangan Baharu",
+        "description": "Sediakan sasaran simpanan baharu dan jejaki kemajuan anda"
+      },
+      "transaction": {
+        "title": "Tambah Transaksi Baharu",
+        "description": "Rekodkan pendapatan, perbelanjaan atau pemindahan anda"
+      },
+      "event": {
+        "title": "Jadualkan Acara Baharu",
+        "description": "Rancang masa anda dengan berkesan dan jejaki aktiviti"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Perancangan Kewangan Dipermudahkan",
+      "subtitle": "Jejak, bajet dan capai matlamat kewangan anda dengan platform berkuasa AI kami",
+      "cta": "Mula Percuma",
+      "viewDashboard": "Lihat Papan Pemuka"
+    },
+    "features": {
+      "title": "Semua yang anda perlukan untuk mengurus kewangan",
+      "subtitle": "Ciri berkuasa untuk membantu anda capai kebebasan kewangan",
+      "aiAssistant": {
+        "title": "Pembantu Kewangan AI",
+        "description": "Dapatkan nasihat kewangan diperibadikan berkuasa AI canggih"
+      },
+      "smartTracking": {
+        "title": "Penjejakan Perbelanjaan Pintar",
+        "description": "Kategorikan dan jejaki perbelanjaan anda secara automatik"
+      },
+      "goalSetting": {
+        "title": "Penetapan Matlamat & Perancangan",
+        "description": "Tetapkan matlamat kewangan dan jejaki kemajuan anda"
+      },
+      "groupManagement": {
+        "title": "Kerjasama Kumpulan",
+        "description": "Kongsi perbelanjaan dan rancang bersama rakan"
+      }
+    },
+    "pricing": {
+      "title": "Pilih Pelan Anda",
+      "subtitle": "Mula percuma, naik taraf bila bersedia",
+      "monthly": "Bulanan",
+      "yearly": "Tahunan",
+      "save": "Jimat 20%"
+    },
+    "cta": {
+      "title": "Bersedia untuk mengawal kewangan anda?",
+      "subtitle": "Sertai ribuan pengguna yang mengurus wang mereka dengan lebih bijak",
+      "button": "Mulakan Perjalanan Anda"
+    }
+  },
+  "dashboard": {
+    "welcome": "Selamat kembali,",
+    "overview": "Gambaran Kewangan",
+    "stats": {
+      "totalBalance": "Baki Keseluruhan",
+      "income": "Pendapatan",
+      "expenses": "Perbelanjaan",
+      "netSavings": "Simpanan Bersih",
+      "thisMonth": "Bulan ini",
+      "activeGroups": "Kumpulan Aktif",
+      "yourTeams": "Pasukan anda",
+      "events": "Acara",
+      "successRate": "Kadar Kejayaan",
+      "eventViability": "Daya maju acara",
+      "aiInsights": "Pandangan AI",
+      "thisWeek": "Minggu ini"
+    },
+    "recentTransactions": "Transaksi Terkini",
+    "financialGoals": "Matlamat Kewangan",
+    "upcomingEvents": "Acara Akan Datang",
+    "quickActions": "Tindakan Pantas",
+    "smartInsights": {
+      "title": "Pengurusan Pasukan Pintar",
+      "description": "AI menganalisis dinamik kumpulan anda dan mencadangkan strategi perancangan optimum untuk kejayaan maksimum."
+    },
+    "empty": {
+      "transactions": "Tiada transaksi lagi",
+      "goals": "Tiada matlamat ditetapkan",
+      "events": "Tiada acara akan datang",
+      "startAdding": "Mula tambah untuk lihat perjalanan kewangan anda"
+    }
+  },
+  "goals": {
+    "title": "Matlamat Kewangan",
+    "subtitle": "Tetapkan dan jejaki sasaran simpanan anda",
+    "addNew": "Tambah Matlamat Baharu",
+    "createGoal": "Cipta Matlamat",
+    "editGoal": "Edit Matlamat",
+    "card": {
+      "target": "Sasaran",
+      "current": "Semasa",
+      "progress": "Kemajuan",
+      "dueDate": "Tarikh Akhir",
+      "completed": "Selesai",
+      "onTrack": "Mengikut Jadual",
+      "behind": "Tertinggal"
+    },
+    "form": {
+      "name": "Nama Matlamat",
+      "namePlaceholder": "cth., Dana Kecemasan",
+      "targetAmount": "Jumlah Sasaran",
+      "currentAmount": "Jumlah Semasa",
+      "deadline": "Tarikh Akhir",
+      "category": "Kategori",
+      "description": "Penerangan",
+      "descriptionPlaceholder": "Apakah tujuan matlamat ini?"
+    },
+    "categories": {
+      "savings": "Simpanan",
+      "investment": "Pelaburan",
+      "debt": "Bayaran Hutang",
+      "emergency": "Dana Kecemasan",
+      "purchase": "Pembelian Besar",
+      "education": "Pendidikan",
+      "retirement": "Persaraan",
+      "other": "Lain-lain"
+    },
+    "empty": {
+      "title": "Tiada matlamat lagi",
+      "description": "Mulakan dengan mencipta matlamat kewangan pertama anda"
+    }
+  },
+  "moneyTracking": {
+    "title": "Penjejakan Wang",
+    "subtitle": "Jejaki pendapatan dan perbelanjaan anda",
+    "addTransaction": "Tambah Transaksi",
+    "createTransaction": "Cipta Transaksi",
+    "editTransaction": "Edit Transaksi",
+    "types": {
+      "income": "Pendapatan",
+      "expense": "Perbelanjaan",
+      "transfer": "Pemindahan"
+    },
+    "categories": {
+      "salary": "Gaji",
+      "freelance": "Bebas",
+      "investment": "Pelaburan",
+      "food": "Makanan & Minum",
+      "transport": "Pengangkutan",
+      "utilities": "Utiliti",
+      "entertainment": "Hiburan",
+      "shopping": "Membeli-belah",
+      "health": "Kesihatan",
+      "education": "Pendidikan",
+      "other": "Lain-lain"
+    },
+    "form": {
+      "amount": "Jumlah",
+      "type": "Jenis",
+      "category": "Kategori",
+      "date": "Tarikh",
+      "description": "Penerangan",
+      "descriptionPlaceholder": "Untuk apa ini?"
+    },
+    "stats": {
+      "totalIncome": "Jumlah Pendapatan",
+      "totalExpenses": "Jumlah Perbelanjaan",
+      "balance": "Baki",
+      "thisMonth": "Bulan Ini"
+    }
+  },
+  "calendar": {
+    "title": "Kalendar & Acara",
+    "subtitle": "Jadualkan dan jejaki acara kewangan anda",
+    "addEvent": "Tambah Acara",
+    "createEvent": "Cipta Acara",
+    "editEvent": "Edit Acara",
+    "event": {
+      "title": "Tajuk",
+      "date": "Tarikh",
+      "time": "Masa",
+      "location": "Lokasi",
+      "description": "Penerangan",
+      "attendees": "Peserta",
+      "rsvp": "RSVP"
+    },
+    "rsvpStatus": {
+      "going": "Hadir",
+      "maybe": "Mungkin",
+      "cantGo": "Tidak Hadir"
+    }
+  },
+  "groups": {
+    "title": "Kumpulan",
+    "subtitle": "Urus kumpulan kewangan bersama",
+    "createGroup": "Cipta Kumpulan",
+    "createFirstGroup": "Cipta Kumpulan Pertama Anda",
+    "editGroup": "Edit Kumpulan",
+    "viewGroup": "Lihat Kumpulan",
+    "card": {
+      "members": "ahli",
+      "member": "ahli",
+      "nextEvent": "Acara Seterusnya",
+      "going": "hadir",
+      "maybe": "mungkin",
+      "viable": "boleh",
+      "createEvent": "Cipta Acara"
+    },
+    "form": {
+      "name": "Nama Kumpulan",
+      "namePlaceholder": "cth., Kelab Buku Bulanan",
+      "description": "Penerangan",
+      "descriptionPlaceholder": "Apakah tujuan kumpulan ini?",
+      "color": "Warna",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Aktif",
+      "archived": "Diarkibkan"
+    },
+    "actions": {
+      "invite": "Jemput Ahli",
+      "shareCalendar": "Kongsi Kalendar",
+      "delete": "Padam Kumpulan"
+    },
+    "empty": {
+      "title": "Tiada kumpulan lagi",
+      "description": "Cipta kumpulan untuk bekerjasama dengan rakan"
+    }
+  },
+  "friends": {
+    "title": "Rakan",
+    "subtitle": "Berhubung dengan rakan untuk kerjasama",
+    "addFriend": "Tambah Rakan",
+    "searchPlaceholder": "Cari pengguna mengikut e-mel atau nama",
+    "tabs": {
+      "requests": "Permintaan",
+      "friends": "Rakan",
+      "search": "Cari Rakan"
+    },
+    "requests": {
+      "received": "Diterima",
+      "sent": "Dihantar",
+      "accept": "Terima",
+      "decline": "Tolak",
+      "cancel": "Batal",
+      "noReceived": "Tiada permintaan tertunda",
+      "noSent": "Tiada permintaan dihantar"
+    },
+    "list": {
+      "sendMessage": "Hantar Mesej",
+      "removeFriend": "Buang Rakan",
+      "noFriends": "Tiada rakan lagi",
+      "startConnecting": "Mula berhubung dengan orang lain"
+    },
+    "actions": {
+      "sendRequest": "Hantar Permintaan",
+      "requestSent": "Permintaan Dihantar",
+      "friends": "Rakan"
+    }
+  },
+  "crypto": {
+    "title": "Mata Wang Kripto",
+    "subtitle": "Pantau pegangan kripto anda",
+    "livePrices": "Harga Kripto Langsung",
+    "holdings": "Pegangan",
+    "transactions": "Transaksi",
+    "portfolio": "Portfolio",
+    "marketCap": "Cap Pasaran",
+    "volume": "Volum 24j",
+    "change": "Perubahan 24j",
+    "price": "Harga"
+  },
+  "settings": {
+    "title": "Tetapan",
+    "subtitle": "Urus akaun dan keutamaan anda",
+    "sections": {
+      "account": "Akaun",
+      "preferences": "Keutamaan",
+      "notifications": "Pemberitahuan",
+      "privacy": "Privasi",
+      "security": "Keselamatan"
+    },
+    "account": {
+      "profile": "Maklumat Profil",
+      "email": "E-mel",
+      "language": "Bahasa",
+      "currency": "Mata Wang",
+      "timezone": "Zon Waktu"
+    },
+    "preferences": {
+      "theme": "Tema",
+      "dateFormat": "Format Tarikh",
+      "timeFormat": "Format Masa",
+      "numberFormat": "Format Nombor"
+    },
+    "notifications": {
+      "email": "Pemberitahuan E-mel",
+      "push": "Pemberitahuan Tolak",
+      "sms": "Pemberitahuan SMS",
+      "goals": "Peringatan Matlamat",
+      "events": "Peringatan Acara",
+      "transactions": "Makluman Transaksi"
+    }
+  },
+  "aiAssistant": {
+    "title": "Pembantu Kewangan AI",
+    "subtitle": "Dapatkan nasihat kewangan diperibadikan dan pandangan berkuasa AI",
+    "tagline": "Penasihat kewangan berkuasa AI canggih",
+    "usageTitle": "Penggunaan AI",
+    "unlimited": "Tanpa Had",
+    "quotaExceeded": "Anda telah mencapai had sembang AI. Naik taraf ke Premium untuk bantuan AI tanpa had!",
+    "runningLow": "Sembang AI anda hampir habis. Pertimbangkan naik taraf ke Premium untuk akses tanpa had.",
+    "upgradeRequired": "🚀 Naik Taraf Diperlukan",
+    "upgradeButton": "Naik Taraf ke Premium",
+    "chatPlaceholder": "Tanya saya apa sahaja tentang kewangan anda...",
+    "send": "Hantar",
+    "upgradeToChat": "Naik Taraf untuk Sembang",
+    "header": {
+      "title": "Pembantu Kewangan Pintar 🧠"
+    },
+    "stats": {
+      "chatUsage": "Penggunaan Sembang",
+      "chatConversations": "Perbualan AI",
+      "analysis": "Analisis",
+      "deepInsights": "Pandangan mendalam",
+      "insights": "Pandangan",
+      "generated": "Dijana",
+      "status": "Status",
+      "limitReached": "Had dicapai",
+      "active": "Aktif"
+    },
+    "usage": {
+      "subtitle": "Jejaki aktiviti pembantu AI anda bulan ini",
+      "aiChats": "Sembang AI",
+      "progress": "Kemajuan",
+      "remaining": "berbaki",
+      "deepAnalysis": "Analisis Mendalam",
+      "generatedThisMonth": "Dijana bulan ini",
+      "keepExploring": "Terus terokai!"
+    },
+    "limits": {
+      "chatLimitReached": "🚫 Had Sembang AI Dicapai!",
+      "allChatsUsed": "Anda telah menggunakan semua {limit} sembang AI untuk bulan ini",
+      "upgradeMessage": "Naik taraf ke Premium untuk bantuan AI tanpa had",
+      "upgradeNow": "Naik Taraf Sekarang",
+      "runningLow": "⚠️ Kuota AI Hampir Habis!",
+      "onlyRemaining": "Hanya {remaining} sembang AI berbaki. Naik taraf untuk akses tanpa had!",
+      "upgrade": "Naik Taraf"
+    },
+    "errors": {
+      "failedToSend": "Gagal menghantar mesej"
+    },
+    "quickActions": {
+      "title": "Tindakan AI Pantas",
+      "subtitle": "Dapatkan pandangan AI segera untuk keperluan kewangan anda",
+      "budgetAnalysis": {
+        "title": "Analisis Bajet Saya",
+        "description": "Dapatkan pandangan diperibadikan tentang corak perbelanjaan dan pengoptimuman bajet anda",
+        "category": "Analisis",
+        "prompt": "Analisis bajet semasa dan corak perbelanjaan saya. Berikan pandangan tentang di mana saya boleh mengoptimumkan dan menyimpan lebih banyak."
+      },
+      "savingsGoal": {
+        "title": "Strategi Simpanan",
+        "description": "Dapatkan cadangan untuk mencapai matlamat kewangan anda lebih cepat",
+        "category": "Perancangan",
+        "prompt": "Berdasarkan matlamat kewangan dan kadar simpanan semasa saya, cadangkan strategi untuk mencapai matlamat saya lebih cepat."
+      },
+      "expenseReview": {
+        "title": "Semakan Perbelanjaan",
+        "description": "Kenal pasti perbelanjaan tidak perlu dan potensi penjimatan",
+        "category": "Pengoptimuman",
+        "prompt": "Semak perbelanjaan terkini saya dan kenal pasti kawasan di mana saya mungkin berbelanja berlebihan atau di mana saya boleh mengurangkan kos."
+      },
+      "investmentAdvice": {
+        "title": "Panduan Pelaburan",
+        "description": "Dapatkan nasihat tentang peluang pelaburan dan peruntukan portfolio",
+        "category": "Pelaburan",
+        "prompt": "Berikan panduan tentang strategi pelaburan dan peruntukan portfolio berdasarkan situasi kewangan dan matlamat saya."
+      },
+      "debtStrategy": {
+        "title": "Pengurusan Hutang",
+        "description": "Cipta pelan untuk membayar hutang dengan cekap",
+        "category": "Hutang",
+        "prompt": "Bantu saya cipta strategi bayaran hutang. Analisis hutang semasa saya dan cadangkan pelan pembayaran balik yang paling cekap."
+      },
+      "cashFlow": {
+        "title": "Analisis Aliran Tunai",
+        "description": "Fahami aliran wang anda dan optimumkan masa",
+        "category": "Analisis",
+        "prompt": "Analisis corak aliran tunai saya dan cadangkan cara untuk mengoptimumkan masa pendapatan dan perbelanjaan."
+      }
+    }
+  },
+  "subscription": {
+    "title": "Pilih Pelan Anda",
+    "subtitle": "Buka pandangan AI tanpa had dan ciri premium",
+    "free": {
+      "title": "Percuma",
+      "price": "Percuma",
+      "features": [
+        "5 sembang AI sebulan",
+        "Penjejakan kewangan asas",
+        "Integrasi kalendar",
+        "Pembahagian perbelanjaan kumpulan"
+      ]
+    },
+    "premium": {
+      "title": "Premium",
+      "price": "$2.99",
+      "period": "/bulan",
+      "features": [
+        "Sembang AI tanpa had",
+        "Pandangan kewangan lanjutan",
+        "Sokongan keutamaan",
+        "Eksport data",
+        "Kategori tersuai"
+      ],
+      "popular": "Paling Popular"
+    },
+    "upgradeButton": "Naik Taraf Sekarang",
+    "currentPlan": "Pelan Semasa"
   },
   "referrals": {
-    "title": "Rujuk Kawan & Dapat Untung",
-    "description": "Jemput kawan ke Twealth dan kedua-dua anda mendapat kredit AI bonus!",
+    "title": "Rujuk Rakan & Dapat",
+    "description": "Jemput rakan ke Twealth dan berdua dapat kredit AI bonus!",
     "myCode": "Kod Rujukan Saya",
-    "myCodeDescription": "Kongsi kod ini dengan kawan untuk mendapat kredit AI bonus",
+    "myCodeDescription": "Kongsi kod ini dengan rakan untuk dapat kredit AI bonus",
     "useCode": "Guna Kod Rujukan",
-    "useCodeDescription": "Ada kod rujukan? Masukkan di sini untuk mendapat kredit bonus",
+    "useCodeDescription": "Ada kod rujukan? Masukkan di sini untuk dapat kredit bonus",
     "enterCode": "Masukkan kod rujukan",
-    "codePlaceholder": "FRIEND1234",
+    "codePlaceholder": "RAKAN1234",
     "useCodeButton": "Guna Kod",
     "processing": "Memproses...",
     "shareCode": "Kongsi Kod",
     "shareTitle": "Sertai Twealth dengan kod rujukan saya!",
-    "shareText": "Sertai saya di Twealth dan dapatkan kredit AI bonus! Guna kod saya: {code}",
+    "shareText": "Sertai saya di Twealth dan dapat kredit AI bonus! Guna kod saya: {code}",
     "copied": "Disalin!",
-    "copiedDescription": "Kod rujukan disalin ke clipboard",
+    "copiedDescription": "Kod rujukan disalin ke papan klip",
     "success": "Berjaya!",
     "error": "Ralat",
     "bonusCredits": "Kredit Bonus",
     "availableCredits": "Sembang AI tersedia",
-    "totalEarned": "Jumlah diperoleh",
+    "totalEarned": "Jumlah diperolehi",
     "uses": "Penggunaan",
     "active": "Aktif",
-    "inactive": "Tidak aktif",
+    "inactive": "Tidak Aktif",
     "history": "Sejarah Rujukan",
-    "historyDescription": "Jejaki rujukan berjaya dan kredit yang diperoleh",
+    "historyDescription": "Jejak rujukan berjaya dan kredit diperolehi anda",
     "noReferrals": "Tiada rujukan lagi",
-    "startSharing": "Mula kongsi kod anda untuk mendapat kredit bonus!",
-    "friend": "Kawan",
+    "startSharing": "Mula kongsi kod anda untuk dapat kredit bonus!",
+    "friend": "Rakan",
     "credits": "kredit",
     "creditsHistory": "Sejarah Kredit",
     "used": "Digunakan",
-    "bonusInfo": "Anda dan kawan anda akan menerima 10 sembang AI bonus apabila mereka menggunakan kod rujukan anda!"
+    "bonusInfo": "Anda dan rakan anda akan menerima 10 sembang AI bonus apabila mereka gunakan kod rujukan anda!"
+  },
+  "notFound": {
+    "title": "Oops! Halaman Tidak Dijumpai",
+    "description": "Halaman yang anda cari nampaknya telah mengambil laluan lain. Mari kita bawa anda kembali ke landasan!",
+    "goBack": "Kembali",
+    "backToDashboard": "Kembali ke Papan Pemuka",
+    "quickAccess": "Akses Pantas",
+    "quickActions": {
+      "dashboard": "Papan Pemuka",
+      "moneyTracking": "Penjejakan Wang",
+      "aiAssistant": "Pembantu AI",
+      "goals": "Matlamat Kewangan"
+    },
+    "proTip": {
+      "title": "Petua Pro",
+      "description": "Gunakan Pembantu AI kami untuk membantu navigasi dan cari dengan tepat apa yang anda cari!"
+    }
+  },
+  "invite": {
+    "title": "Anda Dijemput!",
+    "subtitle": "Anda telah dijemput untuk menyertai kumpulan",
+    "acceptInvite": "Terima Jemputan",
+    "declineInvite": "Tolak",
+    "accepting": "Menerima...",
+    "role": "Peranan",
+    "expires": "Luput",
+    "invalidInvite": "Jemputan Tidak Sah",
+    "invalidDescription": "Pautan jemputan ini tidak sah atau telah luput.",
+    "expiredInvite": "Jemputan Luput",
+    "expiredDescription": "Pautan jemputan ini telah luput. Sila minta jemputan baharu daripada pemilik kumpulan.",
+    "backToGroups": "Kembali ke Kumpulan"
   },
   "currency": {
     "usd": "USD ($)",
@@ -155,6 +583,21 @@
     "brl": "BRL (R$)",
     "mxn": "MXN ($)",
     "idr": "IDR (Rp)",
-    "myr": "MYR (RM)"
+    "vnd": "VND (₫)",
+    "php": "PHP (₱)",
+    "myr": "MYR (RM)",
+    "try": "TRY (₺)",
+    "cad": "CAD (C$)",
+    "aud": "AUD (A$)"
+  },
+  "dateFormats": {
+    "short": "DD/MM/YYYY",
+    "medium": "DD MMM YYYY",
+    "long": "DD MMMM YYYY",
+    "full": "dddd, DD MMMM YYYY"
+  },
+  "timeFormats": {
+    "12h": "12-jam",
+    "24h": "24-jam"
   }
 }

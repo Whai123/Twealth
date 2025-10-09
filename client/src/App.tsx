@@ -45,6 +45,7 @@ import ErrorBoundary from "./components/error-boundary";
 import { OnboardingRedirect } from "./components/onboarding-redirect";
 import { OfflineIndicator } from "./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from "./components/pwa/install-prompt";
+import { RTLProvider } from "./components/rtl-provider";
 
 function Router() {
   const [location] = useLocation();
@@ -136,14 +137,16 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <UserProvider>
         <ThemeProvider defaultTheme="system" storageKey="twealth-theme">
-          <TooltipProvider>
-            <Toaster />
-            <OfflineIndicator />
-            <PWAInstallPrompt />
-            <ErrorBoundary>
-              <Router />
-            </ErrorBoundary>
-          </TooltipProvider>
+          <RTLProvider>
+            <TooltipProvider>
+              <Toaster />
+              <OfflineIndicator />
+              <PWAInstallPrompt />
+              <ErrorBoundary>
+                <Router />
+              </ErrorBoundary>
+            </TooltipProvider>
+          </RTLProvider>
         </ThemeProvider>
       </UserProvider>
     </QueryClientProvider>

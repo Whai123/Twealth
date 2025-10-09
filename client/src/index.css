@@ -538,4 +538,38 @@
   /* Legacy Format Support */
   .currency-format { @apply text-tabular; }
   .time-format { @apply text-mono; }
+  
+  /* RTL (Right-to-Left) Language Support */
+  [dir="rtl"] {
+    direction: rtl;
+  }
+  
+  /* Flip layout for RTL */
+  [dir="rtl"] .flex-row {
+    flex-direction: row-reverse;
+  }
+  
+  [dir="rtl"] .space-x-reverse > * + * {
+    margin-right: var(--tw-space-x-reverse, 0);
+    margin-left: calc(var(--tw-space-x-reverse, 0) * -1);
+  }
+  
+  /* Mirror icons and arrows for RTL */
+  [dir="rtl"] .rtl-mirror {
+    transform: scaleX(-1);
+  }
+  
+  /* Adjust padding for RTL */
+  [dir="rtl"] .pl-4 { padding-left: 0; padding-right: var(--space-4); }
+  [dir="rtl"] .pr-4 { padding-right: 0; padding-left: var(--space-4); }
+  [dir="rtl"] .ml-auto { margin-left: 0; margin-right: auto; }
+  [dir="rtl"] .mr-auto { margin-right: 0; margin-left: auto; }
+  
+  /* RTL-specific text alignment */
+  [dir="rtl"] .text-left { text-align: right; }
+  [dir="rtl"] .text-right { text-align: left; }
+  
+  /* Border radius for RTL */
+  [dir="rtl"] .rounded-l { border-radius: 0 var(--radius) var(--radius) 0; }
+  [dir="rtl"] .rounded-r { border-radius: var(--radius) 0 0 var(--radius); }
 }

@@ -10,11 +10,16 @@ import {
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'th', name: 'ไทย', flag: '🇹🇭' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'th', name: 'ไทย', flag: '🇹🇭' },
   { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
   { code: 'pt', name: 'Português', flag: '🇧🇷' },
   { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
+  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'tl', name: 'Filipino', flag: '🇵🇭' },
+  { code: 'ms', name: 'Bahasa Melayu', flag: '🇲🇾' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
 ];
 
 export default function LanguageSwitcher() {

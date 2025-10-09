@@ -13,6 +13,7 @@ import vi from './locales/vi.json';
 import tl from './locales/tl.json';
 import ms from './locales/ms.json';
 import tr from './locales/tr.json';
+import ar from './locales/ar.json';
 
 const resources = {
   en: { translation: en },
@@ -24,7 +25,8 @@ const resources = {
   vi: { translation: vi },
   tl: { translation: tl },
   ms: { translation: ms },
-  tr: { translation: tr }
+  tr: { translation: tr },
+  ar: { translation: ar }
 };
 
 i18n

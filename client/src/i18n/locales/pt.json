@@ -1,59 +1,503 @@
 {
+  "common": {
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "retry": "Tentar Novamente",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "add": "Adicionar",
+    "remove": "Remover",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "close": "Fechar",
+    "done": "Concluído",
+    "submit": "Enviar",
+    "create": "Criar",
+    "update": "Atualizar",
+    "search": "Pesquisar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "view": "Visualizar",
+    "download": "Baixar",
+    "upload": "Carregar",
+    "share": "Compartilhar",
+    "copy": "Copiar",
+    "copied": "Copiado!",
+    "yes": "Sim",
+    "no": "Não"
+  },
   "navigation": {
     "dashboard": "Painel",
-    "calendar": "Calendário", 
-    "money": "Dinheiro",
+    "calendar": "Calendário",
+    "money": "Finanças",
     "goals": "Metas",
     "groups": "Grupos",
+    "planning": "Planejamento",
+    "crypto": "Cripto",
+    "friends": "Amigos",
     "aiAssistant": "Assistente IA",
-    "settings": "Configurações"
+    "referrals": "Indicações",
+    "premium": "Premium",
+    "settings": "Configurações",
+    "sections": {
+      "main": "Principal",
+      "finance": "Finanças",
+      "social": "Social",
+      "more": "Mais"
+    },
+    "descriptions": {
+      "dashboard": "Visualize seu panorama financeiro e insights",
+      "aiAssistant": "Converse com IA para gerenciar suas finanças",
+      "goals": "Defina e acompanhe metas de economia",
+      "money": "Acompanhe receitas e despesas",
+      "crypto": "Monitore suas criptomoedas",
+      "friends": "Conecte-se com amigos para colaboração",
+      "groups": "Gerencie grupos financeiros compartilhados",
+      "calendar": "Agende eventos e reuniões",
+      "planning": "Controle de tempo e produtividade",
+      "referrals": "Convide amigos e ganhe recompensas",
+      "premium": "Desbloqueie recursos avançados"
+    }
+  },
+  "theme": {
+    "switchToLight": "Mudar para modo claro",
+    "switchToDark": "Mudar para modo escuro",
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema"
+  },
+  "mobileNav": {
+    "quickActions": {
+      "newGoal": {
+        "title": "Nova Meta",
+        "description": "Definir objetivo financeiro"
+      },
+      "addTransaction": {
+        "title": "Adicionar Transação",
+        "description": "Registrar receita/despesa"
+      },
+      "scheduleEvent": {
+        "title": "Agendar Evento",
+        "description": "Planejar nova atividade"
+      }
+    },
+    "drawers": {
+      "quickActions": {
+        "title": "Ações Rápidas",
+        "description": "Crie metas, transações ou eventos instantaneamente"
+      },
+      "goal": {
+        "title": "Criar Nova Meta Financeira",
+        "description": "Configure uma nova meta de economia e acompanhe seu progresso"
+      },
+      "transaction": {
+        "title": "Adicionar Nova Transação",
+        "description": "Registre suas receitas, despesas ou transferências"
+      },
+      "event": {
+        "title": "Agendar Novo Evento",
+        "description": "Planeje seu tempo efetivamente e acompanhe atividades"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Planejamento Financeiro Simplificado",
+      "subtitle": "Acompanhe, orçamente e alcance suas metas financeiras com nossa plataforma alimentada por IA",
+      "cta": "Começar Gratuitamente",
+      "viewDashboard": "Ver Painel"
+    },
+    "features": {
+      "title": "Tudo que você precisa para gerenciar suas finanças",
+      "subtitle": "Recursos poderosos para ajudá-lo a alcançar a liberdade financeira",
+      "aiAssistant": {
+        "title": "Assistente Financeiro IA",
+        "description": "Receba consultoria financeira personalizada com IA avançada"
+      },
+      "smartTracking": {
+        "title": "Controle Inteligente de Gastos",
+        "description": "Categorize e acompanhe seus gastos automaticamente"
+      },
+      "goalSetting": {
+        "title": "Definição e Planejamento de Metas",
+        "description": "Defina metas financeiras e acompanhe seu progresso"
+      },
+      "groupManagement": {
+        "title": "Colaboração em Grupo",
+        "description": "Compartilhe despesas e planeje junto com amigos"
+      }
+    },
+    "pricing": {
+      "title": "Escolha Seu Plano",
+      "subtitle": "Comece grátis, faça upgrade quando estiver pronto",
+      "monthly": "Mensal",
+      "yearly": "Anual",
+      "save": "Economize 20%"
+    },
+    "cta": {
+      "title": "Pronto para assumir o controle de suas finanças?",
+      "subtitle": "Junte-se a milhares de usuários gerenciando seu dinheiro com inteligência",
+      "button": "Comece Sua Jornada"
+    }
+  },
+  "dashboard": {
+    "welcome": "Bem-vindo de volta,",
+    "overview": "Panorama Financeiro",
+    "stats": {
+      "totalBalance": "Saldo Total",
+      "income": "Receita",
+      "expenses": "Despesas",
+      "netSavings": "Economia Líquida",
+      "thisMonth": "Este mês",
+      "activeGroups": "Grupos Ativos",
+      "yourTeams": "Seus grupos",
+      "events": "Eventos",
+      "successRate": "Taxa de Sucesso",
+      "eventViability": "Viabilidade do evento",
+      "aiInsights": "Insights IA",
+      "thisWeek": "Esta semana"
+    },
+    "recentTransactions": "Transações Recentes",
+    "financialGoals": "Metas Financeiras",
+    "upcomingEvents": "Próximos Eventos",
+    "quickActions": "Ações Rápidas",
+    "smartInsights": {
+      "title": "Gestão Inteligente de Equipes",
+      "description": "A IA analisa a dinâmica do seu grupo e sugere estratégias de planejamento ideais para máximo sucesso."
+    },
+    "empty": {
+      "transactions": "Nenhuma transação ainda",
+      "goals": "Nenhuma meta definida",
+      "events": "Nenhum evento próximo",
+      "startAdding": "Comece a adicionar para ver sua jornada financeira"
+    }
+  },
+  "goals": {
+    "title": "Metas Financeiras",
+    "subtitle": "Defina e acompanhe seus objetivos de economia",
+    "addNew": "Adicionar Nova Meta",
+    "createGoal": "Criar Meta",
+    "editGoal": "Editar Meta",
+    "card": {
+      "target": "Meta",
+      "current": "Atual",
+      "progress": "Progresso",
+      "dueDate": "Data Limite",
+      "completed": "Concluída",
+      "onTrack": "No Caminho",
+      "behind": "Atrasada"
+    },
+    "form": {
+      "name": "Nome da Meta",
+      "namePlaceholder": "ex: Fundo de Emergência",
+      "targetAmount": "Valor Meta",
+      "currentAmount": "Valor Atual",
+      "deadline": "Prazo",
+      "category": "Categoria",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Para que serve esta meta?"
+    },
+    "categories": {
+      "savings": "Poupança",
+      "investment": "Investimento",
+      "debt": "Pagamento de Dívida",
+      "emergency": "Fundo de Emergência",
+      "purchase": "Grande Compra",
+      "education": "Educação",
+      "retirement": "Aposentadoria",
+      "other": "Outro"
+    },
+    "empty": {
+      "title": "Nenhuma meta ainda",
+      "description": "Comece criando sua primeira meta financeira"
+    }
+  },
+  "moneyTracking": {
+    "title": "Controle Financeiro",
+    "subtitle": "Acompanhe suas receitas e despesas",
+    "addTransaction": "Adicionar Transação",
+    "createTransaction": "Criar Transação",
+    "editTransaction": "Editar Transação",
+    "types": {
+      "income": "Receita",
+      "expense": "Despesa",
+      "transfer": "Transferência"
+    },
+    "categories": {
+      "salary": "Salário",
+      "freelance": "Freelance",
+      "investment": "Investimento",
+      "food": "Alimentação",
+      "transport": "Transporte",
+      "utilities": "Contas",
+      "entertainment": "Entretenimento",
+      "shopping": "Compras",
+      "health": "Saúde",
+      "education": "Educação",
+      "other": "Outro"
+    },
+    "form": {
+      "amount": "Valor",
+      "type": "Tipo",
+      "category": "Categoria",
+      "date": "Data",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Para que foi isso?"
+    },
+    "stats": {
+      "totalIncome": "Receita Total",
+      "totalExpenses": "Despesas Totais",
+      "balance": "Saldo",
+      "thisMonth": "Este Mês"
+    }
+  },
+  "calendar": {
+    "title": "Calendário e Eventos",
+    "subtitle": "Agende e acompanhe seus eventos financeiros",
+    "addEvent": "Adicionar Evento",
+    "createEvent": "Criar Evento",
+    "editEvent": "Editar Evento",
+    "event": {
+      "title": "Título",
+      "date": "Data",
+      "time": "Horário",
+      "location": "Local",
+      "description": "Descrição",
+      "attendees": "Participantes",
+      "rsvp": "RSVP"
+    },
+    "rsvpStatus": {
+      "going": "Vou",
+      "maybe": "Talvez",
+      "cantGo": "Não Vou"
+    }
+  },
+  "groups": {
+    "title": "Grupos",
+    "subtitle": "Gerencie grupos financeiros compartilhados",
+    "createGroup": "Criar Grupo",
+    "createFirstGroup": "Criar Seu Primeiro Grupo",
+    "editGroup": "Editar Grupo",
+    "viewGroup": "Ver Grupo",
+    "card": {
+      "members": "membros",
+      "member": "membro",
+      "nextEvent": "Próximo Evento",
+      "going": "confirmados",
+      "maybe": "talvez",
+      "viable": "viável",
+      "createEvent": "Criar Evento"
+    },
+    "form": {
+      "name": "Nome do Grupo",
+      "namePlaceholder": "ex: Clube do Livro Mensal",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Sobre o que é este grupo?",
+      "color": "Cor",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Ativo",
+      "archived": "Arquivado"
+    },
+    "actions": {
+      "invite": "Convidar Membros",
+      "shareCalendar": "Compartilhar Calendário",
+      "delete": "Excluir Grupo"
+    },
+    "empty": {
+      "title": "Nenhum grupo ainda",
+      "description": "Crie um grupo para colaborar com amigos"
+    }
+  },
+  "friends": {
+    "title": "Amigos",
+    "subtitle": "Conecte-se com amigos para colaboração",
+    "addFriend": "Adicionar Amigo",
+    "searchPlaceholder": "Buscar usuários por email ou nome",
+    "tabs": {
+      "requests": "Solicitações",
+      "friends": "Amigos",
+      "search": "Encontrar Amigos"
+    },
+    "requests": {
+      "received": "Recebidas",
+      "sent": "Enviadas",
+      "accept": "Aceitar",
+      "decline": "Recusar",
+      "cancel": "Cancelar",
+      "noReceived": "Nenhuma solicitação pendente",
+      "noSent": "Nenhuma solicitação enviada"
+    },
+    "list": {
+      "sendMessage": "Enviar Mensagem",
+      "removeFriend": "Remover Amigo",
+      "noFriends": "Nenhum amigo ainda",
+      "startConnecting": "Comece a se conectar com outros"
+    },
+    "actions": {
+      "sendRequest": "Enviar Solicitação",
+      "requestSent": "Solicitação Enviada",
+      "friends": "Amigos"
+    }
+  },
+  "crypto": {
+    "title": "Criptomoedas",
+    "subtitle": "Monitore suas criptomoedas",
+    "livePrices": "Preços de Cripto ao Vivo",
+    "holdings": "Carteira",
+    "transactions": "Transações",
+    "portfolio": "Portfólio",
+    "marketCap": "Cap. de Mercado",
+    "volume": "Volume 24h",
+    "change": "Variação 24h",
+    "price": "Preço"
+  },
+  "settings": {
+    "title": "Configurações",
+    "subtitle": "Gerencie sua conta e preferências",
+    "sections": {
+      "account": "Conta",
+      "preferences": "Preferências",
+      "notifications": "Notificações",
+      "privacy": "Privacidade",
+      "security": "Segurança"
+    },
+    "account": {
+      "profile": "Informações do Perfil",
+      "email": "Email",
+      "language": "Idioma",
+      "currency": "Moeda",
+      "timezone": "Fuso Horário"
+    },
+    "preferences": {
+      "theme": "Tema",
+      "dateFormat": "Formato de Data",
+      "timeFormat": "Formato de Hora",
+      "numberFormat": "Formato de Número"
+    },
+    "notifications": {
+      "email": "Notificações por Email",
+      "push": "Notificações Push",
+      "sms": "Notificações SMS",
+      "goals": "Lembretes de Metas",
+      "events": "Lembretes de Eventos",
+      "transactions": "Alertas de Transações"
+    }
   },
   "aiAssistant": {
     "title": "Assistente Financeiro IA",
-    "subtitle": "Obtenha conselhos financeiros personalizados e insights com IA",
+    "subtitle": "Receba consultoria financeira personalizada e insights com IA",
+    "tagline": "Consultor financeiro avançado com IA",
     "usageTitle": "Uso da IA",
     "unlimited": "Ilimitado",
     "quotaExceeded": "Você atingiu seu limite de chats com IA. Faça upgrade para Premium para assistência ilimitada!",
-    "runningLow": "Seus chats com IA estão acabando. Considere fazer upgrade para Premium para acesso ilimitado.",
+    "runningLow": "Você está ficando sem chats com IA. Considere fazer upgrade para Premium para acesso ilimitado.",
     "upgradeRequired": "🚀 Upgrade Necessário",
     "upgradeButton": "Fazer Upgrade para Premium",
-    "chatPlaceholder": "Pergunte qualquer coisa sobre suas finanças...",
+    "chatPlaceholder": "Pergunte-me qualquer coisa sobre suas finanças...",
     "send": "Enviar",
-    "upgradeToChat": "Upgrade para Conversar",
+    "upgradeToChat": "Fazer Upgrade para Conversar",
+    "header": {
+      "title": "Assistente Financeiro Inteligente 🧠"
+    },
+    "stats": {
+      "chatUsage": "Uso de Chat",
+      "chatConversations": "Conversas com IA",
+      "analysis": "Análise",
+      "deepInsights": "Insights profundos",
+      "insights": "Insights",
+      "generated": "Gerados",
+      "status": "Status",
+      "limitReached": "Limite atingido",
+      "active": "Ativo"
+    },
+    "usage": {
+      "subtitle": "Acompanhe sua atividade com o assistente IA este mês",
+      "aiChats": "Chats com IA",
+      "progress": "Progresso",
+      "remaining": "restantes",
+      "deepAnalysis": "Análise Profunda",
+      "generatedThisMonth": "Gerados este mês",
+      "keepExploring": "Continue explorando!"
+    },
+    "limits": {
+      "chatLimitReached": "🚫 Limite de Chat IA Atingido!",
+      "allChatsUsed": "Você usou todos os {limit} chats com IA deste mês",
+      "upgradeMessage": "Faça upgrade para Premium para assistência IA ilimitada",
+      "upgradeNow": "Fazer Upgrade Agora",
+      "runningLow": "⚠️ Poucos Chats IA Restantes!",
+      "onlyRemaining": "Apenas {remaining} chats com IA restantes. Faça upgrade para acesso ilimitado!",
+      "upgrade": "Fazer Upgrade"
+    },
+    "errors": {
+      "failedToSend": "Falha ao enviar mensagem"
+    },
     "quickActions": {
-      "title": "Ações Rápidas IA",
+      "title": "Ações Rápidas com IA",
       "subtitle": "Obtenha insights instantâneos de IA para suas necessidades financeiras",
       "budgetAnalysis": {
-        "title": "Análise de Orçamento",
-        "description": "Obtenha insights de IA sobre seus padrões de gastos e sugestões de otimização.",
-        "category": "Análise"
+        "title": "Analisar Meu Orçamento",
+        "description": "Receba insights personalizados sobre seus padrões de gastos e otimização de orçamento",
+        "category": "Análise",
+        "prompt": "Analise meu orçamento atual e padrões de gastos. Forneça insights sobre onde posso otimizar e economizar mais."
       },
-      "savingsStrategy": {
-        "title": "Estratégia de Poupança", 
-        "description": "Receba recomendações personalizadas de poupança baseadas em suas metas financeiras.",
-        "category": "Planejamento"
+      "savingsGoal": {
+        "title": "Estratégia de Economia",
+        "description": "Receba recomendações para alcançar suas metas financeiras mais rápido",
+        "category": "Planejamento",
+        "prompt": "Com base nas minhas metas financeiras e taxa de economia atual, sugira estratégias para alcançar minhas metas mais rápido."
+      },
+      "expenseReview": {
+        "title": "Revisão de Despesas",
+        "description": "Identifique gastos desnecessários e possíveis economias",
+        "category": "Otimização",
+        "prompt": "Revise minhas despesas recentes e identifique áreas onde posso estar gastando demais ou onde posso reduzir custos."
+      },
+      "investmentAdvice": {
+        "title": "Orientação de Investimento",
+        "description": "Receba conselhos sobre oportunidades de investimento e alocação de portfólio",
+        "category": "Investimento",
+        "prompt": "Forneça orientação sobre estratégias de investimento e alocação de portfólio com base na minha situação financeira e metas."
+      },
+      "debtStrategy": {
+        "title": "Gestão de Dívidas",
+        "description": "Crie um plano para pagar dívidas eficientemente",
+        "category": "Dívida",
+        "prompt": "Ajude-me a criar uma estratégia de pagamento de dívidas. Analise minhas dívidas atuais e sugira o plano de pagamento mais eficiente."
+      },
+      "cashFlow": {
+        "title": "Análise de Fluxo de Caixa",
+        "description": "Entenda seu fluxo de dinheiro e otimize o timing",
+        "category": "Análise",
+        "prompt": "Analise meus padrões de fluxo de caixa e sugira maneiras de otimizar o timing de receitas e despesas."
       }
     }
   },
   "subscription": {
     "title": "Escolha Seu Plano",
-    "subtitle": "Desbloqueie insights ilimitados de IA e recursos premium",
+    "subtitle": "Desbloqueie insights IA ilimitados e recursos premium",
     "free": {
       "title": "Grátis",
       "price": "Grátis",
       "features": [
-        "5 chats IA por mês",
-        "Rastreamento financeiro básico",
-        "Integração de calendário",
-        "Divisão de gastos em grupo"
+        "5 chats com IA por mês",
+        "Controle financeiro básico",
+        "Integração com calendário",
+        "Divisão de despesas em grupo"
       ]
     },
     "premium": {
       "title": "Premium",
-      "price": "R$ 14,99",
+      "price": "$2.99",
       "period": "/mês",
       "features": [
-        "Chats IA ilimitados",
+        "Chats ilimitados com IA",
         "Insights financeiros avançados",
         "Suporte prioritário",
         "Exportar dados",
@@ -64,12 +508,96 @@
     "upgradeButton": "Fazer Upgrade Agora",
     "currentPlan": "Plano Atual"
   },
-  "referral": {
-    "title": "Convide Amigos e Ganhe",
-    "subtitle": "Ganhe créditos IA bônus quando seus amigos entrarem no Twealth",
-    "yourCode": "Seu Código de Indicação",
-    "shareMessage": "Junte-se a mim no Twealth - a forma mais inteligente de gerenciar dinheiro e agenda! Use meu código {{code}} e nós dois ganhamos créditos IA bônus!",
-    "bonusCredits": "+10 Créditos IA",
-    "howItWorks": "Como funciona"
+  "referrals": {
+    "title": "Indique Amigos e Ganhe",
+    "description": "Convide amigos para o Twealth e ambos ganham créditos IA bônus!",
+    "myCode": "Meu Código de Indicação",
+    "myCodeDescription": "Compartilhe este código com amigos para ganhar créditos IA bônus",
+    "useCode": "Usar Código de Indicação",
+    "useCodeDescription": "Tem um código de indicação? Digite aqui para ganhar créditos bônus",
+    "enterCode": "Digite o código de indicação",
+    "codePlaceholder": "AMIGO1234",
+    "useCodeButton": "Usar Código",
+    "processing": "Processando...",
+    "shareCode": "Compartilhar Código",
+    "shareTitle": "Entre no Twealth com meu código de indicação!",
+    "shareText": "Entre comigo no Twealth e ganhe créditos IA bônus! Use meu código: {code}",
+    "copied": "Copiado!",
+    "copiedDescription": "Código de indicação copiado para a área de transferência",
+    "success": "Sucesso!",
+    "error": "Erro",
+    "bonusCredits": "Créditos Bônus",
+    "availableCredits": "Chats IA disponíveis",
+    "totalEarned": "Total ganho",
+    "uses": "Usos",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "history": "Histórico de Indicações",
+    "historyDescription": "Acompanhe suas indicações bem-sucedidas e créditos ganhos",
+    "noReferrals": "Nenhuma indicação ainda",
+    "startSharing": "Comece a compartilhar seu código para ganhar créditos bônus!",
+    "friend": "Amigo",
+    "credits": "créditos",
+    "creditsHistory": "Histórico de Créditos",
+    "used": "Usado",
+    "bonusInfo": "Você e seu amigo receberão 10 chats IA bônus quando ele usar seu código de indicação!"
+  },
+  "notFound": {
+    "title": "Ops! Página Não Encontrada",
+    "description": "A página que você está procurando parece ter feito um desvio. Vamos colocá-lo de volta nos trilhos!",
+    "goBack": "Voltar",
+    "backToDashboard": "Voltar ao Painel",
+    "quickAccess": "Acesso Rápido",
+    "quickActions": {
+      "dashboard": "Painel",
+      "moneyTracking": "Controle Financeiro",
+      "aiAssistant": "Assistente IA",
+      "goals": "Metas Financeiras"
+    },
+    "proTip": {
+      "title": "Dica Profissional",
+      "description": "Use nosso Assistente IA para ajudar a navegar e encontrar exatamente o que você procura!"
+    }
+  },
+  "invite": {
+    "title": "Você Foi Convidado!",
+    "subtitle": "Você foi convidado para participar de um grupo",
+    "acceptInvite": "Aceitar Convite",
+    "declineInvite": "Recusar",
+    "accepting": "Aceitando...",
+    "role": "Função",
+    "expires": "Expira",
+    "invalidInvite": "Convite Inválido",
+    "invalidDescription": "Este link de convite é inválido ou expirou.",
+    "expiredInvite": "Convite Expirado",
+    "expiredDescription": "Este link de convite expirou. Solicite um novo convite do proprietário do grupo.",
+    "backToGroups": "Voltar aos Grupos"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)",
+    "vnd": "VND (₫)",
+    "php": "PHP (₱)",
+    "myr": "MYR (RM)",
+    "try": "TRY (₺)",
+    "cad": "CAD (C$)",
+    "aud": "AUD (A$)"
+  },
+  "dateFormats": {
+    "short": "DD/MM/YYYY",
+    "medium": "DD MMM YYYY",
+    "long": "DD de MMMM de YYYY",
+    "full": "dddd, DD de MMMM de YYYY"
+  },
+  "timeFormats": {
+    "12h": "12 horas",
+    "24h": "24 horas"
   }
 }

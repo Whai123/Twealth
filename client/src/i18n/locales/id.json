@@ -1,43 +1,487 @@
 {
+  "common": {
+    "loading": "Memuat...",
+    "error": "Kesalahan",
+    "success": "Berhasil",
+    "retry": "Coba Lagi",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Ubah",
+    "add": "Tambah",
+    "remove": "Hapus",
+    "confirm": "Konfirmasi",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "previous": "Sebelumnya",
+    "close": "Tutup",
+    "done": "Selesai",
+    "submit": "Kirim",
+    "create": "Buat",
+    "update": "Perbarui",
+    "search": "Cari",
+    "filter": "Filter",
+    "sort": "Urutkan",
+    "view": "Lihat",
+    "download": "Unduh",
+    "upload": "Unggah",
+    "share": "Bagikan",
+    "copy": "Salin",
+    "copied": "Tersalin!",
+    "yes": "Ya",
+    "no": "Tidak"
+  },
   "navigation": {
     "dashboard": "Dasbor",
-    "calendar": "Kalender", 
+    "calendar": "Kalender",
     "money": "Uang",
     "goals": "Tujuan",
     "groups": "Grup",
+    "planning": "Perencanaan",
+    "crypto": "Kripto",
+    "friends": "Teman",
     "aiAssistant": "Asisten AI",
-    "settings": "Pengaturan"
+    "referrals": "Referral",
+    "premium": "Premium",
+    "settings": "Pengaturan",
+    "sections": {
+      "main": "Utama",
+      "finance": "Keuangan",
+      "social": "Sosial",
+      "more": "Lainnya"
+    },
+    "descriptions": {
+      "dashboard": "Lihat ringkasan keuangan dan wawasan Anda",
+      "aiAssistant": "Chat dengan AI untuk mengelola keuangan Anda",
+      "goals": "Tetapkan dan lacak tujuan tabungan",
+      "money": "Lacak pemasukan dan pengeluaran",
+      "crypto": "Pantau kepemilikan cryptocurrency",
+      "friends": "Terhubung dengan teman untuk berkolaborasi",
+      "groups": "Kelola grup keuangan bersama",
+      "calendar": "Jadwalkan acara dan pertemuan",
+      "planning": "Pelacakan waktu dan produktivitas",
+      "referrals": "Undang teman dan dapatkan hadiah",
+      "premium": "Buka fitur lanjutan"
+    }
+  },
+  "theme": {
+    "switchToLight": "Beralih ke mode terang",
+    "switchToDark": "Beralih ke mode gelap",
+    "light": "Terang",
+    "dark": "Gelap",
+    "system": "Sistem"
+  },
+  "mobileNav": {
+    "quickActions": {
+      "newGoal": {
+        "title": "Tujuan Baru",
+        "description": "Tetapkan target keuangan"
+      },
+      "addTransaction": {
+        "title": "Tambah Transaksi",
+        "description": "Catat pemasukan/pengeluaran"
+      },
+      "scheduleEvent": {
+        "title": "Jadwalkan Acara",
+        "description": "Rencanakan aktivitas baru"
+      }
+    },
+    "drawers": {
+      "quickActions": {
+        "title": "Aksi Cepat",
+        "description": "Buat tujuan, transaksi, atau acara secara instan"
+      },
+      "goal": {
+        "title": "Buat Tujuan Keuangan Baru",
+        "description": "Atur target tabungan baru dan lacak kemajuan Anda"
+      },
+      "transaction": {
+        "title": "Tambah Transaksi Baru",
+        "description": "Catat pemasukan, pengeluaran, atau transfer Anda"
+      },
+      "event": {
+        "title": "Jadwalkan Acara Baru",
+        "description": "Rencanakan waktu Anda secara efektif dan lacak aktivitas"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Perencanaan Keuangan yang Mudah",
+      "subtitle": "Lacak, anggarkan, dan capai tujuan keuangan Anda dengan platform bertenaga AI kami",
+      "cta": "Mulai Gratis",
+      "viewDashboard": "Lihat Dasbor"
+    },
+    "features": {
+      "title": "Semua yang Anda butuhkan untuk mengelola keuangan",
+      "subtitle": "Fitur canggih untuk membantu Anda mencapai kebebasan finansial",
+      "aiAssistant": {
+        "title": "Asisten Keuangan AI",
+        "description": "Dapatkan saran keuangan personal dengan AI canggih"
+      },
+      "smartTracking": {
+        "title": "Pelacakan Pengeluaran Cerdas",
+        "description": "Kategorikan dan lacak pengeluaran Anda secara otomatis"
+      },
+      "goalSetting": {
+        "title": "Penetapan Tujuan & Perencanaan",
+        "description": "Tetapkan tujuan keuangan dan lacak kemajuan Anda"
+      },
+      "groupManagement": {
+        "title": "Kolaborasi Grup",
+        "description": "Bagikan pengeluaran dan rencanakan bersama teman"
+      }
+    },
+    "pricing": {
+      "title": "Pilih Paket Anda",
+      "subtitle": "Mulai gratis, tingkatkan saat Anda siap",
+      "monthly": "Bulanan",
+      "yearly": "Tahunan",
+      "save": "Hemat 20%"
+    },
+    "cta": {
+      "title": "Siap mengambil kendali atas keuangan Anda?",
+      "subtitle": "Bergabunglah dengan ribuan pengguna yang mengelola uang mereka dengan lebih cerdas",
+      "button": "Mulai Perjalanan Anda"
+    }
+  },
+  "dashboard": {
+    "welcome": "Selamat datang kembali,",
+    "overview": "Ringkasan Keuangan",
+    "stats": {
+      "totalBalance": "Saldo Total",
+      "income": "Pemasukan",
+      "expenses": "Pengeluaran",
+      "netSavings": "Tabungan Bersih",
+      "thisMonth": "Bulan ini",
+      "activeGroups": "Grup Aktif",
+      "yourTeams": "Tim Anda",
+      "events": "Acara",
+      "successRate": "Tingkat Keberhasilan",
+      "eventViability": "Kelayakan acara",
+      "aiInsights": "Wawasan AI",
+      "thisWeek": "Minggu ini"
+    },
+    "recentTransactions": "Transaksi Terkini",
+    "financialGoals": "Tujuan Keuangan",
+    "upcomingEvents": "Acara Mendatang",
+    "quickActions": "Aksi Cepat",
+    "smartInsights": {
+      "title": "Manajemen Tim Cerdas",
+      "description": "AI menganalisis dinamika grup Anda dan menyarankan strategi perencanaan optimal untuk kesuksesan maksimal."
+    },
+    "empty": {
+      "transactions": "Belum ada transaksi",
+      "goals": "Belum ada tujuan yang ditetapkan",
+      "events": "Tidak ada acara mendatang",
+      "startAdding": "Mulai menambahkan untuk melihat perjalanan keuangan Anda"
+    }
+  },
+  "goals": {
+    "title": "Tujuan Keuangan",
+    "subtitle": "Tetapkan dan lacak target tabungan Anda",
+    "addNew": "Tambah Tujuan Baru",
+    "createGoal": "Buat Tujuan",
+    "editGoal": "Ubah Tujuan",
+    "card": {
+      "target": "Target",
+      "current": "Saat Ini",
+      "progress": "Kemajuan",
+      "dueDate": "Batas Waktu",
+      "completed": "Selesai",
+      "onTrack": "Sesuai Jalur",
+      "behind": "Tertinggal"
+    },
+    "form": {
+      "name": "Nama Tujuan",
+      "namePlaceholder": "mis., Dana Darurat",
+      "targetAmount": "Jumlah Target",
+      "currentAmount": "Jumlah Saat Ini",
+      "deadline": "Batas Waktu",
+      "category": "Kategori",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Untuk apa tujuan ini?"
+    },
+    "categories": {
+      "savings": "Tabungan",
+      "investment": "Investasi",
+      "debt": "Pembayaran Utang",
+      "emergency": "Dana Darurat",
+      "purchase": "Pembelian Besar",
+      "education": "Pendidikan",
+      "retirement": "Pensiun",
+      "other": "Lainnya"
+    },
+    "empty": {
+      "title": "Belum ada tujuan",
+      "description": "Mulai dengan membuat tujuan keuangan pertama Anda"
+    }
+  },
+  "moneyTracking": {
+    "title": "Pelacakan Uang",
+    "subtitle": "Lacak pemasukan dan pengeluaran Anda",
+    "addTransaction": "Tambah Transaksi",
+    "createTransaction": "Buat Transaksi",
+    "editTransaction": "Ubah Transaksi",
+    "types": {
+      "income": "Pemasukan",
+      "expense": "Pengeluaran",
+      "transfer": "Transfer"
+    },
+    "categories": {
+      "salary": "Gaji",
+      "freelance": "Freelance",
+      "investment": "Investasi",
+      "food": "Makanan & Minum",
+      "transport": "Transportasi",
+      "utilities": "Utilitas",
+      "entertainment": "Hiburan",
+      "shopping": "Belanja",
+      "health": "Kesehatan",
+      "education": "Pendidikan",
+      "other": "Lainnya"
+    },
+    "form": {
+      "amount": "Jumlah",
+      "type": "Jenis",
+      "category": "Kategori",
+      "date": "Tanggal",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Untuk apa ini?"
+    },
+    "stats": {
+      "totalIncome": "Total Pemasukan",
+      "totalExpenses": "Total Pengeluaran",
+      "balance": "Saldo",
+      "thisMonth": "Bulan Ini"
+    }
+  },
+  "calendar": {
+    "title": "Kalender & Acara",
+    "subtitle": "Jadwalkan dan lacak acara keuangan Anda",
+    "addEvent": "Tambah Acara",
+    "createEvent": "Buat Acara",
+    "editEvent": "Ubah Acara",
+    "event": {
+      "title": "Judul",
+      "date": "Tanggal",
+      "time": "Waktu",
+      "location": "Lokasi",
+      "description": "Deskripsi",
+      "attendees": "Peserta",
+      "rsvp": "Konfirmasi Kehadiran"
+    },
+    "rsvpStatus": {
+      "going": "Hadir",
+      "maybe": "Mungkin",
+      "cantGo": "Tidak Bisa Hadir"
+    }
+  },
+  "groups": {
+    "title": "Grup",
+    "subtitle": "Kelola grup keuangan bersama",
+    "createGroup": "Buat Grup",
+    "createFirstGroup": "Buat Grup Pertama Anda",
+    "editGroup": "Ubah Grup",
+    "viewGroup": "Lihat Grup",
+    "card": {
+      "members": "anggota",
+      "member": "anggota",
+      "nextEvent": "Acara Berikutnya",
+      "going": "hadir",
+      "maybe": "mungkin",
+      "viable": "layak",
+      "createEvent": "Buat Acara"
+    },
+    "form": {
+      "name": "Nama Grup",
+      "namePlaceholder": "mis., Klub Buku Bulanan",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Tentang apa grup ini?",
+      "color": "Warna",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Aktif",
+      "archived": "Diarsipkan"
+    },
+    "actions": {
+      "invite": "Undang Anggota",
+      "shareCalendar": "Bagikan Kalender",
+      "delete": "Hapus Grup"
+    },
+    "empty": {
+      "title": "Belum ada grup",
+      "description": "Buat grup untuk berkolaborasi dengan teman"
+    }
+  },
+  "friends": {
+    "title": "Teman",
+    "subtitle": "Terhubung dengan teman untuk berkolaborasi",
+    "addFriend": "Tambah Teman",
+    "searchPlaceholder": "Cari pengguna berdasarkan email atau nama",
+    "tabs": {
+      "requests": "Permintaan",
+      "friends": "Teman",
+      "search": "Cari Teman"
+    },
+    "requests": {
+      "received": "Diterima",
+      "sent": "Terkirim",
+      "accept": "Terima",
+      "decline": "Tolak",
+      "cancel": "Batal",
+      "noReceived": "Tidak ada permintaan tertunda",
+      "noSent": "Tidak ada permintaan terkirim"
+    },
+    "list": {
+      "sendMessage": "Kirim Pesan",
+      "removeFriend": "Hapus Teman",
+      "noFriends": "Belum ada teman",
+      "startConnecting": "Mulai terhubung dengan yang lain"
+    },
+    "actions": {
+      "sendRequest": "Kirim Permintaan",
+      "requestSent": "Permintaan Terkirim",
+      "friends": "Teman"
+    }
+  },
+  "crypto": {
+    "title": "Cryptocurrency",
+    "subtitle": "Pantau kepemilikan kripto Anda",
+    "livePrices": "Harga Kripto Live",
+    "holdings": "Kepemilikan",
+    "transactions": "Transaksi",
+    "portfolio": "Portofolio",
+    "marketCap": "Kapitalisasi Pasar",
+    "volume": "Volume 24j",
+    "change": "Perubahan 24j",
+    "price": "Harga"
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "subtitle": "Kelola akun dan preferensi Anda",
+    "sections": {
+      "account": "Akun",
+      "preferences": "Preferensi",
+      "notifications": "Notifikasi",
+      "privacy": "Privasi",
+      "security": "Keamanan"
+    },
+    "account": {
+      "profile": "Informasi Profil",
+      "email": "Email",
+      "language": "Bahasa",
+      "currency": "Mata Uang",
+      "timezone": "Zona Waktu"
+    },
+    "preferences": {
+      "theme": "Tema",
+      "dateFormat": "Format Tanggal",
+      "timeFormat": "Format Waktu",
+      "numberFormat": "Format Angka"
+    },
+    "notifications": {
+      "email": "Notifikasi Email",
+      "push": "Notifikasi Push",
+      "sms": "Notifikasi SMS",
+      "goals": "Pengingat Tujuan",
+      "events": "Pengingat Acara",
+      "transactions": "Notifikasi Transaksi"
+    }
   },
   "aiAssistant": {
     "title": "Asisten Keuangan AI",
     "subtitle": "Dapatkan saran keuangan personal dan wawasan bertenaga AI",
+    "tagline": "Penasihat keuangan canggih bertenaga AI",
     "usageTitle": "Penggunaan AI",
     "unlimited": "Tidak Terbatas",
-    "quotaExceeded": "Anda telah mencapai batas chat AI. Upgrade ke Premium untuk bantuan AI unlimited!",
-    "runningLow": "Chat AI Anda hampir habis. Pertimbangkan upgrade ke Premium untuk akses unlimited.",
-    "upgradeRequired": "🚀 Upgrade Diperlukan",
-    "upgradeButton": "Upgrade ke Premium",
+    "quotaExceeded": "Anda telah mencapai batas chat AI. Tingkatkan ke Premium untuk bantuan AI tanpa batas!",
+    "runningLow": "Chat AI Anda hampir habis. Pertimbangkan untuk meningkatkan ke Premium untuk akses tanpa batas.",
+    "upgradeRequired": "🚀 Peningkatan Diperlukan",
+    "upgradeButton": "Tingkatkan ke Premium",
     "chatPlaceholder": "Tanyakan apa saja tentang keuangan Anda...",
     "send": "Kirim",
-    "upgradeToChat": "Upgrade untuk Chat",
+    "upgradeToChat": "Tingkatkan untuk Chat",
+    "header": {
+      "title": "Asisten Keuangan Cerdas 🧠"
+    },
+    "stats": {
+      "chatUsage": "Penggunaan Chat",
+      "chatConversations": "Percakapan AI",
+      "analysis": "Analisis",
+      "deepInsights": "Wawasan mendalam",
+      "insights": "Wawasan",
+      "generated": "Dibuat",
+      "status": "Status",
+      "limitReached": "Batas tercapai",
+      "active": "Aktif"
+    },
+    "usage": {
+      "subtitle": "Lacak aktivitas asisten AI Anda bulan ini",
+      "aiChats": "Chat AI",
+      "progress": "Kemajuan",
+      "remaining": "tersisa",
+      "deepAnalysis": "Analisis Mendalam",
+      "generatedThisMonth": "Dibuat bulan ini",
+      "keepExploring": "Terus jelajahi!"
+    },
+    "limits": {
+      "chatLimitReached": "🚫 Batas Chat AI Tercapai!",
+      "allChatsUsed": "Anda telah menggunakan semua {limit} chat AI untuk bulan ini",
+      "upgradeMessage": "Tingkatkan ke Premium untuk bantuan AI tanpa batas",
+      "upgradeNow": "Tingkatkan Sekarang",
+      "runningLow": "⚠️ Kuota AI Hampir Habis!",
+      "onlyRemaining": "Hanya {remaining} chat AI tersisa. Tingkatkan untuk akses tanpa batas!",
+      "upgrade": "Tingkatkan"
+    },
+    "errors": {
+      "failedToSend": "Gagal mengirim pesan"
+    },
     "quickActions": {
       "title": "Aksi Cepat AI",
       "subtitle": "Dapatkan wawasan AI instan untuk kebutuhan keuangan Anda",
       "budgetAnalysis": {
-        "title": "Analisis Anggaran",
-        "description": "Dapatkan wawasan AI tentang pola pengeluaran dan saran optimasi anggaran.",
-        "category": "Analisis"
+        "title": "Analisis Anggaran Saya",
+        "description": "Dapatkan wawasan personal tentang pola pengeluaran dan optimisasi anggaran Anda",
+        "category": "Analisis",
+        "prompt": "Analisis anggaran dan pola pengeluaran saya saat ini. Berikan wawasan tentang di mana saya bisa mengoptimalkan dan menabung lebih banyak."
       },
-      "savingsStrategy": {
-        "title": "Strategi Menabung", 
-        "description": "Terima rekomendasi menabung personal berdasarkan tujuan keuangan Anda.",
-        "category": "Perencanaan"
+      "savingsGoal": {
+        "title": "Strategi Menabung",
+        "description": "Dapatkan rekomendasi untuk mencapai tujuan keuangan Anda lebih cepat",
+        "category": "Perencanaan",
+        "prompt": "Berdasarkan tujuan keuangan dan tingkat tabungan saya saat ini, sarankan strategi untuk mencapai tujuan saya lebih cepat."
+      },
+      "expenseReview": {
+        "title": "Tinjauan Pengeluaran",
+        "description": "Identifikasi pengeluaran yang tidak perlu dan potensi penghematan",
+        "category": "Optimisasi",
+        "prompt": "Tinjau pengeluaran terkini saya dan identifikasi area di mana saya mungkin berlebihan atau di mana saya bisa memotong biaya."
+      },
+      "investmentAdvice": {
+        "title": "Panduan Investasi",
+        "description": "Dapatkan saran tentang peluang investasi dan alokasi portofolio",
+        "category": "Investasi",
+        "prompt": "Berikan panduan tentang strategi investasi dan alokasi portofolio berdasarkan situasi keuangan dan tujuan saya."
+      },
+      "debtStrategy": {
+        "title": "Manajemen Utang",
+        "description": "Buat rencana untuk melunasi utang secara efisien",
+        "category": "Utang",
+        "prompt": "Bantu saya membuat strategi pelunasan utang. Analisis utang saya saat ini dan sarankan rencana pembayaran yang paling efisien."
+      },
+      "cashFlow": {
+        "title": "Analisis Arus Kas",
+        "description": "Pahami aliran uang Anda dan optimalkan waktu",
+        "category": "Analisis",
+        "prompt": "Analisis pola arus kas saya dan sarankan cara untuk mengoptimalkan waktu pemasukan dan pengeluaran."
       }
     }
   },
   "subscription": {
     "title": "Pilih Paket Anda",
-    "subtitle": "Buka wawasan AI unlimited dan fitur premium",
+    "subtitle": "Buka wawasan AI tanpa batas dan fitur premium",
     "free": {
       "title": "Gratis",
       "price": "Gratis",
@@ -50,10 +494,10 @@
     },
     "premium": {
       "title": "Premium",
-      "price": "Rp 29.000",
+      "price": "$2.99",
       "period": "/bulan",
       "features": [
-        "Chat AI unlimited",
+        "Chat AI tanpa batas",
         "Wawasan keuangan lanjutan",
         "Dukungan prioritas",
         "Ekspor data",
@@ -61,15 +505,99 @@
       ],
       "popular": "Paling Populer"
     },
-    "upgradeButton": "Upgrade Sekarang",
+    "upgradeButton": "Tingkatkan Sekarang",
     "currentPlan": "Paket Saat Ini"
   },
-  "referral": {
-    "title": "Ajak Teman & Dapatkan Bonus",
-    "subtitle": "Dapatkan kredit AI bonus ketika teman bergabung dengan Twealth",
-    "yourCode": "Kode Referral Anda",
-    "shareMessage": "Bergabunglah dengan saya di Twealth - cara paling cerdas mengelola uang dan jadwal! Gunakan kode saya {{code}} dan kita berdua dapat kredit AI bonus!",
-    "bonusCredits": "+10 Kredit AI",
-    "howItWorks": "Cara kerja"
+  "referrals": {
+    "title": "Rujuk Teman & Dapatkan Hadiah",
+    "description": "Undang teman ke Twealth dan kalian berdua mendapat kredit AI bonus!",
+    "myCode": "Kode Referral Saya",
+    "myCodeDescription": "Bagikan kode ini dengan teman untuk mendapatkan kredit AI bonus",
+    "useCode": "Gunakan Kode Referral",
+    "useCodeDescription": "Punya kode referral? Masukkan di sini untuk mendapatkan kredit bonus",
+    "enterCode": "Masukkan kode referral",
+    "codePlaceholder": "TEMAN1234",
+    "useCodeButton": "Gunakan Kode",
+    "processing": "Memproses...",
+    "shareCode": "Bagikan Kode",
+    "shareTitle": "Bergabunglah dengan Twealth dengan kode referral saya!",
+    "shareText": "Bergabunglah dengan saya di Twealth dan dapatkan kredit AI bonus! Gunakan kode saya: {code}",
+    "copied": "Tersalin!",
+    "copiedDescription": "Kode referral tersalin ke clipboard",
+    "success": "Berhasil!",
+    "error": "Kesalahan",
+    "bonusCredits": "Kredit Bonus",
+    "availableCredits": "Chat AI tersedia",
+    "totalEarned": "Total diperoleh",
+    "uses": "Penggunaan",
+    "active": "Aktif",
+    "inactive": "Tidak Aktif",
+    "history": "Riwayat Referral",
+    "historyDescription": "Lacak referral sukses dan kredit yang diperoleh",
+    "noReferrals": "Belum ada referral",
+    "startSharing": "Mulai bagikan kode Anda untuk mendapatkan kredit bonus!",
+    "friend": "Teman",
+    "credits": "kredit",
+    "creditsHistory": "Riwayat Kredit",
+    "used": "Digunakan",
+    "bonusInfo": "Anda dan teman Anda akan menerima 10 chat AI bonus ketika mereka menggunakan kode referral Anda!"
+  },
+  "notFound": {
+    "title": "Ups! Halaman Tidak Ditemukan",
+    "description": "Halaman yang Anda cari sepertinya mengambil jalan memutar. Mari kita kembali ke jalur yang benar!",
+    "goBack": "Kembali",
+    "backToDashboard": "Kembali ke Dasbor",
+    "quickAccess": "Akses Cepat",
+    "quickActions": {
+      "dashboard": "Dasbor",
+      "moneyTracking": "Pelacakan Uang",
+      "aiAssistant": "Asisten AI",
+      "goals": "Tujuan Keuangan"
+    },
+    "proTip": {
+      "title": "Tips Pro",
+      "description": "Gunakan Asisten AI kami untuk membantu navigasi dan menemukan apa yang Anda cari!"
+    }
+  },
+  "invite": {
+    "title": "Anda Diundang!",
+    "subtitle": "Anda telah diundang untuk bergabung dengan grup",
+    "acceptInvite": "Terima Undangan",
+    "declineInvite": "Tolak",
+    "accepting": "Menerima...",
+    "role": "Peran",
+    "expires": "Kedaluwarsa",
+    "invalidInvite": "Undangan Tidak Valid",
+    "invalidDescription": "Link undangan ini tidak valid atau telah kedaluwarsa.",
+    "expiredInvite": "Undangan Kedaluwarsa",
+    "expiredDescription": "Link undangan ini telah kedaluwarsa. Silakan minta undangan baru dari pemilik grup.",
+    "backToGroups": "Kembali ke Grup"
+  },
+  "currency": {
+    "usd": "USD ($)",
+    "thb": "THB (฿)",
+    "eur": "EUR (€)",
+    "gbp": "GBP (£)",
+    "jpy": "JPY (¥)",
+    "inr": "INR (₹)",
+    "brl": "BRL (R$)",
+    "mxn": "MXN ($)",
+    "idr": "IDR (Rp)",
+    "vnd": "VND (₫)",
+    "php": "PHP (₱)",
+    "myr": "MYR (RM)",
+    "try": "TRY (₺)",
+    "cad": "CAD (C$)",
+    "aud": "AUD (A$)"
+  },
+  "dateFormats": {
+    "short": "DD/MM/YYYY",
+    "medium": "DD MMM YYYY",
+    "long": "DD MMMM YYYY",
+    "full": "dddd, DD MMMM YYYY"
+  },
+  "timeFormats": {
+    "12h": "12 jam",
+    "24h": "24 jam"
   }
 }

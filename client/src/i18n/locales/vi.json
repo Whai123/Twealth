@@ -1,64 +1,487 @@
 {
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "retry": "Thử lại",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "add": "Thêm",
+    "remove": "Xóa",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "close": "Đóng",
+    "done": "Hoàn thành",
+    "submit": "Gửi",
+    "create": "Tạo",
+    "update": "Cập nhật",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "view": "Xem",
+    "download": "Tải xuống",
+    "upload": "Tải lên",
+    "share": "Chia sẻ",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép!",
+    "yes": "Có",
+    "no": "Không"
+  },
   "navigation": {
     "dashboard": "Bảng điều khiển",
-    "calendar": "Lịch", 
+    "calendar": "Lịch",
     "money": "Tiền",
     "goals": "Mục tiêu",
     "groups": "Nhóm",
+    "planning": "Kế hoạch",
+    "crypto": "Tiền mã hóa",
+    "friends": "Bạn bè",
     "aiAssistant": "Trợ lý AI",
     "referrals": "Giới thiệu",
-    "settings": "Cài đặt"
+    "premium": "Premium",
+    "settings": "Cài đặt",
+    "sections": {
+      "main": "Chính",
+      "finance": "Tài chính",
+      "social": "Xã hội",
+      "more": "Thêm"
+    },
+    "descriptions": {
+      "dashboard": "Xem tổng quan tài chính và thông tin chi tiết",
+      "aiAssistant": "Trò chuyện với AI để quản lý tài chính",
+      "goals": "Đặt và theo dõi mục tiêu tiết kiệm",
+      "money": "Theo dõi thu nhập và chi tiêu",
+      "crypto": "Giám sát tài sản tiền mã hóa",
+      "friends": "Kết nối với bạn bè để hợp tác",
+      "groups": "Quản lý nhóm tài chính chung",
+      "calendar": "Lên lịch sự kiện và cuộc họp",
+      "planning": "Theo dõi thời gian và năng suất",
+      "referrals": "Mời bạn bè và nhận phần thưởng",
+      "premium": "Mở khóa tính năng nâng cao"
+    }
+  },
+  "theme": {
+    "switchToLight": "Chuyển sang chế độ sáng",
+    "switchToDark": "Chuyển sang chế độ tối",
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Hệ thống"
+  },
+  "mobileNav": {
+    "quickActions": {
+      "newGoal": {
+        "title": "Mục tiêu mới",
+        "description": "Đặt mục tiêu tài chính"
+      },
+      "addTransaction": {
+        "title": "Thêm giao dịch",
+        "description": "Ghi lại thu nhập/chi tiêu"
+      },
+      "scheduleEvent": {
+        "title": "Lên lịch sự kiện",
+        "description": "Lập kế hoạch hoạt động mới"
+      }
+    },
+    "drawers": {
+      "quickActions": {
+        "title": "Hành động nhanh",
+        "description": "Tạo mục tiêu, giao dịch hoặc sự kiện ngay lập tức"
+      },
+      "goal": {
+        "title": "Tạo mục tiêu tài chính mới",
+        "description": "Thiết lập mục tiêu tiết kiệm mới và theo dõi tiến độ"
+      },
+      "transaction": {
+        "title": "Thêm giao dịch mới",
+        "description": "Ghi lại thu nhập, chi tiêu hoặc chuyển khoản"
+      },
+      "event": {
+        "title": "Lên lịch sự kiện mới",
+        "description": "Lập kế hoạch thời gian hiệu quả và theo dõi hoạt động"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Lập kế hoạch tài chính đơn giản",
+      "subtitle": "Theo dõi, lập ngân sách và đạt được mục tiêu tài chính với nền tảng hỗ trợ AI",
+      "cta": "Bắt đầu miễn phí",
+      "viewDashboard": "Xem bảng điều khiển"
+    },
+    "features": {
+      "title": "Mọi thứ bạn cần để quản lý tài chính",
+      "subtitle": "Tính năng mạnh mẽ giúp bạn đạt được tự do tài chính",
+      "aiAssistant": {
+        "title": "Trợ lý tài chính AI",
+        "description": "Nhận lời khuyên tài chính cá nhân hóa với AI tiên tiến"
+      },
+      "smartTracking": {
+        "title": "Theo dõi chi tiêu thông minh",
+        "description": "Tự động phân loại và theo dõi chi tiêu"
+      },
+      "goalSetting": {
+        "title": "Đặt mục tiêu & Lập kế hoạch",
+        "description": "Đặt mục tiêu tài chính và theo dõi tiến độ"
+      },
+      "groupManagement": {
+        "title": "Hợp tác nhóm",
+        "description": "Chia sẻ chi phí và lập kế hoạch cùng bạn bè"
+      }
+    },
+    "pricing": {
+      "title": "Chọn gói của bạn",
+      "subtitle": "Bắt đầu miễn phí, nâng cấp khi bạn sẵn sàng",
+      "monthly": "Hàng tháng",
+      "yearly": "Hàng năm",
+      "save": "Tiết kiệm 20%"
+    },
+    "cta": {
+      "title": "Sẵn sàng kiểm soát tài chính của bạn?",
+      "subtitle": "Tham gia hàng nghìn người dùng quản lý tiền thông minh hơn",
+      "button": "Bắt đầu hành trình"
+    }
+  },
+  "dashboard": {
+    "welcome": "Chào mừng trở lại,",
+    "overview": "Tổng quan tài chính",
+    "stats": {
+      "totalBalance": "Tổng số dư",
+      "income": "Thu nhập",
+      "expenses": "Chi tiêu",
+      "netSavings": "Tiết kiệm ròng",
+      "thisMonth": "Tháng này",
+      "activeGroups": "Nhóm hoạt động",
+      "yourTeams": "Nhóm của bạn",
+      "events": "Sự kiện",
+      "successRate": "Tỷ lệ thành công",
+      "eventViability": "Khả thi sự kiện",
+      "aiInsights": "Thông tin chi tiết AI",
+      "thisWeek": "Tuần này"
+    },
+    "recentTransactions": "Giao dịch gần đây",
+    "financialGoals": "Mục tiêu tài chính",
+    "upcomingEvents": "Sự kiện sắp tới",
+    "quickActions": "Hành động nhanh",
+    "smartInsights": {
+      "title": "Quản lý nhóm thông minh",
+      "description": "AI phân tích động lực nhóm và đề xuất chiến lược lập kế hoạch tối ưu để đạt thành công tối đa."
+    },
+    "empty": {
+      "transactions": "Chưa có giao dịch nào",
+      "goals": "Chưa đặt mục tiêu",
+      "events": "Không có sự kiện sắp tới",
+      "startAdding": "Bắt đầu thêm để xem hành trình tài chính"
+    }
+  },
+  "goals": {
+    "title": "Mục tiêu tài chính",
+    "subtitle": "Đặt và theo dõi mục tiêu tiết kiệm",
+    "addNew": "Thêm mục tiêu mới",
+    "createGoal": "Tạo mục tiêu",
+    "editGoal": "Chỉnh sửa mục tiêu",
+    "card": {
+      "target": "Mục tiêu",
+      "current": "Hiện tại",
+      "progress": "Tiến độ",
+      "dueDate": "Hạn chót",
+      "completed": "Hoàn thành",
+      "onTrack": "Đúng tiến độ",
+      "behind": "Chậm tiến độ"
+    },
+    "form": {
+      "name": "Tên mục tiêu",
+      "namePlaceholder": "vd: Quỹ khẩn cấp",
+      "targetAmount": "Số tiền mục tiêu",
+      "currentAmount": "Số tiền hiện tại",
+      "deadline": "Thời hạn",
+      "category": "Danh mục",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Mục tiêu này dùng để làm gì?"
+    },
+    "categories": {
+      "savings": "Tiết kiệm",
+      "investment": "Đầu tư",
+      "debt": "Trả nợ",
+      "emergency": "Quỹ khẩn cấp",
+      "purchase": "Mua sắm lớn",
+      "education": "Giáo dục",
+      "retirement": "Hưu trí",
+      "other": "Khác"
+    },
+    "empty": {
+      "title": "Chưa có mục tiêu",
+      "description": "Bắt đầu bằng cách tạo mục tiêu tài chính đầu tiên"
+    }
+  },
+  "moneyTracking": {
+    "title": "Theo dõi tiền",
+    "subtitle": "Theo dõi thu nhập và chi tiêu",
+    "addTransaction": "Thêm giao dịch",
+    "createTransaction": "Tạo giao dịch",
+    "editTransaction": "Chỉnh sửa giao dịch",
+    "types": {
+      "income": "Thu nhập",
+      "expense": "Chi tiêu",
+      "transfer": "Chuyển khoản"
+    },
+    "categories": {
+      "salary": "Lương",
+      "freelance": "Tự do",
+      "investment": "Đầu tư",
+      "food": "Ăn uống",
+      "transport": "Di chuyển",
+      "utilities": "Tiện ích",
+      "entertainment": "Giải trí",
+      "shopping": "Mua sắm",
+      "health": "Y tế",
+      "education": "Giáo dục",
+      "other": "Khác"
+    },
+    "form": {
+      "amount": "Số tiền",
+      "type": "Loại",
+      "category": "Danh mục",
+      "date": "Ngày",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Dùng để làm gì?"
+    },
+    "stats": {
+      "totalIncome": "Tổng thu nhập",
+      "totalExpenses": "Tổng chi tiêu",
+      "balance": "Số dư",
+      "thisMonth": "Tháng này"
+    }
+  },
+  "calendar": {
+    "title": "Lịch & Sự kiện",
+    "subtitle": "Lên lịch và theo dõi sự kiện tài chính",
+    "addEvent": "Thêm sự kiện",
+    "createEvent": "Tạo sự kiện",
+    "editEvent": "Chỉnh sửa sự kiện",
+    "event": {
+      "title": "Tiêu đề",
+      "date": "Ngày",
+      "time": "Thời gian",
+      "location": "Địa điểm",
+      "description": "Mô tả",
+      "attendees": "Người tham dự",
+      "rsvp": "RSVP"
+    },
+    "rsvpStatus": {
+      "going": "Tham gia",
+      "maybe": "Có thể",
+      "cantGo": "Không thể"
+    }
+  },
+  "groups": {
+    "title": "Nhóm",
+    "subtitle": "Quản lý nhóm tài chính chung",
+    "createGroup": "Tạo nhóm",
+    "createFirstGroup": "Tạo nhóm đầu tiên",
+    "editGroup": "Chỉnh sửa nhóm",
+    "viewGroup": "Xem nhóm",
+    "card": {
+      "members": "thành viên",
+      "member": "thành viên",
+      "nextEvent": "Sự kiện tiếp theo",
+      "going": "tham gia",
+      "maybe": "có thể",
+      "viable": "khả thi",
+      "createEvent": "Tạo sự kiện"
+    },
+    "form": {
+      "name": "Tên nhóm",
+      "namePlaceholder": "vd: Câu lạc bộ sách hàng tháng",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Nhóm này về gì?",
+      "color": "Màu",
+      "status": "Trạng thái"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "archived": "Lưu trữ"
+    },
+    "actions": {
+      "invite": "Mời thành viên",
+      "shareCalendar": "Chia sẻ lịch",
+      "delete": "Xóa nhóm"
+    },
+    "empty": {
+      "title": "Chưa có nhóm",
+      "description": "Tạo nhóm để hợp tác với bạn bè"
+    }
+  },
+  "friends": {
+    "title": "Bạn bè",
+    "subtitle": "Kết nối với bạn bè để hợp tác",
+    "addFriend": "Thêm bạn",
+    "searchPlaceholder": "Tìm người dùng theo email hoặc tên",
+    "tabs": {
+      "requests": "Yêu cầu",
+      "friends": "Bạn bè",
+      "search": "Tìm bạn"
+    },
+    "requests": {
+      "received": "Đã nhận",
+      "sent": "Đã gửi",
+      "accept": "Chấp nhận",
+      "decline": "Từ chối",
+      "cancel": "Hủy",
+      "noReceived": "Không có yêu cầu chờ xử lý",
+      "noSent": "Không có yêu cầu đã gửi"
+    },
+    "list": {
+      "sendMessage": "Gửi tin nhắn",
+      "removeFriend": "Xóa bạn",
+      "noFriends": "Chưa có bạn bè",
+      "startConnecting": "Bắt đầu kết nối với người khác"
+    },
+    "actions": {
+      "sendRequest": "Gửi yêu cầu",
+      "requestSent": "Đã gửi yêu cầu",
+      "friends": "Bạn bè"
+    }
+  },
+  "crypto": {
+    "title": "Tiền mã hóa",
+    "subtitle": "Giám sát tài sản tiền mã hóa",
+    "livePrices": "Giá tiền mã hóa trực tiếp",
+    "holdings": "Tài sản",
+    "transactions": "Giao dịch",
+    "portfolio": "Danh mục đầu tư",
+    "marketCap": "Vốn hóa thị trường",
+    "volume": "Khối lượng 24h",
+    "change": "Thay đổi 24h",
+    "price": "Giá"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "subtitle": "Quản lý tài khoản và tùy chọn",
+    "sections": {
+      "account": "Tài khoản",
+      "preferences": "Tùy chọn",
+      "notifications": "Thông báo",
+      "privacy": "Quyền riêng tư",
+      "security": "Bảo mật"
+    },
+    "account": {
+      "profile": "Thông tin hồ sơ",
+      "email": "Email",
+      "language": "Ngôn ngữ",
+      "currency": "Tiền tệ",
+      "timezone": "múi giờ"
+    },
+    "preferences": {
+      "theme": "Giao diện",
+      "dateFormat": "Định dạng ngày",
+      "timeFormat": "Định dạng giờ",
+      "numberFormat": "Định dạng số"
+    },
+    "notifications": {
+      "email": "Thông báo email",
+      "push": "Thông báo đẩy",
+      "sms": "Thông báo SMS",
+      "goals": "Nhắc nhở mục tiêu",
+      "events": "Nhắc nhở sự kiện",
+      "transactions": "Cảnh báo giao dịch"
+    }
   },
   "aiAssistant": {
-    "title": "Trợ lý Tài chính AI",
-    "subtitle": "Nhận lời khuyên tài chính cá nhân hóa và thông tin chi tiết được hỗ trợ bởi AI",
+    "title": "Trợ lý tài chính AI",
+    "subtitle": "Nhận lời khuyên tài chính cá nhân hóa và thông tin chi tiết từ AI",
+    "tagline": "Cố vấn tài chính AI tiên tiến",
     "usageTitle": "Sử dụng AI",
     "unlimited": "Không giới hạn",
-    "quotaExceeded": "Bạn đã đạt đến giới hạn trò chuyện AI. Nâng cấp lên Premium để được hỗ trợ AI không giới hạn!",
+    "quotaExceeded": "Bạn đã đạt giới hạn trò chuyện AI. Nâng cấp lên Premium để được hỗ trợ AI không giới hạn!",
     "runningLow": "Bạn sắp hết lượt trò chuyện AI. Hãy xem xét nâng cấp lên Premium để truy cập không giới hạn.",
     "upgradeRequired": "🚀 Cần nâng cấp",
     "upgradeButton": "Nâng cấp lên Premium",
     "chatPlaceholder": "Hỏi tôi bất cứ điều gì về tài chính của bạn...",
     "send": "Gửi",
     "upgradeToChat": "Nâng cấp để trò chuyện",
+    "header": {
+      "title": "Trợ lý tài chính thông minh 🧠"
+    },
+    "stats": {
+      "chatUsage": "Sử dụng trò chuyện",
+      "chatConversations": "Cuộc trò chuyện AI",
+      "analysis": "Phân tích",
+      "deepInsights": "Thông tin chi tiết sâu",
+      "insights": "Thông tin chi tiết",
+      "generated": "Đã tạo",
+      "status": "Trạng thái",
+      "limitReached": "Đã đạt giới hạn",
+      "active": "Hoạt động"
+    },
+    "usage": {
+      "subtitle": "Theo dõi hoạt động trợ lý AI trong tháng này",
+      "aiChats": "Trò chuyện AI",
+      "progress": "Tiến độ",
+      "remaining": "còn lại",
+      "deepAnalysis": "Phân tích sâu",
+      "generatedThisMonth": "Đã tạo trong tháng này",
+      "keepExploring": "Tiếp tục khám phá!"
+    },
+    "limits": {
+      "chatLimitReached": "🚫 Đã đạt giới hạn trò chuyện AI!",
+      "allChatsUsed": "Bạn đã sử dụng tất cả {limit} cuộc trò chuyện AI trong tháng này",
+      "upgradeMessage": "Nâng cấp lên Premium để được hỗ trợ AI không giới hạn",
+      "upgradeNow": "Nâng cấp ngay",
+      "runningLow": "⚠️ Sắp hết hạn mức AI!",
+      "onlyRemaining": "Chỉ còn {remaining} cuộc trò chuyện AI. Nâng cấp để truy cập không giới hạn!",
+      "upgrade": "Nâng cấp"
+    },
+    "errors": {
+      "failedToSend": "Gửi tin nhắn thất bại"
+    },
     "quickActions": {
       "title": "Hành động AI nhanh",
-      "subtitle": "Nhận thông tin chi tiết AI ngay lập tức cho nhu cầu tài chính của bạn",
+      "subtitle": "Nhận thông tin chi tiết AI ngay lập tức cho nhu cầu tài chính",
       "budgetAnalysis": {
         "title": "Phân tích ngân sách",
-        "description": "Nhận thông tin chi tiết AI về các mô hình chi tiêu và đề xuất tối ưu hóa ngân sách.",
-        "category": "Phân tích"
+        "description": "Nhận thông tin chi tiết cá nhân hóa về mô hình chi tiêu và tối ưu hóa ngân sách",
+        "category": "Phân tích",
+        "prompt": "Phân tích ngân sách hiện tại và mô hình chi tiêu của tôi. Cung cấp thông tin chi tiết về nơi tôi có thể tối ưu hóa và tiết kiệm nhiều hơn."
       },
-      "savingsStrategy": {
-        "title": "Chiến lược tiết kiệm", 
-        "description": "Nhận các khuyến nghị tiết kiệm cá nhân hóa dựa trên mục tiêu tài chính của bạn.",
-        "category": "Lập kế hoạch"
+      "savingsGoal": {
+        "title": "Chiến lược tiết kiệm",
+        "description": "Nhận đề xuất để đạt được mục tiêu tài chính nhanh hơn",
+        "category": "Lập kế hoạch",
+        "prompt": "Dựa trên mục tiêu tài chính và tỷ lệ tiết kiệm hiện tại của tôi, đề xuất các chiến lược để đạt được mục tiêu nhanh hơn."
       },
-      "expenseOptimization": {
-        "title": "Tối ưu hóa chi phí",
-        "description": "Khám phá các cách để giảm chi phí không cần thiết và cải thiện hiệu quả tài chính.",
-        "category": "Tối ưu hóa"
+      "expenseReview": {
+        "title": "Đánh giá chi tiêu",
+        "description": "Xác định chi phí không cần thiết và tiết kiệm tiềm năng",
+        "category": "Tối ưu hóa",
+        "prompt": "Đánh giá chi tiêu gần đây của tôi và xác định các khu vực tôi có thể chi tiêu quá mức hoặc có thể cắt giảm chi phí."
       },
-      "goalPlanning": {
-        "title": "Lập kế hoạch mục tiêu",
-        "description": "Tạo các kế hoạch khả thi để đạt được mục tiêu tài chính ngắn hạn và dài hạn.",
-        "category": "Mục tiêu"
-      },
-      "investmentGuidance": {
+      "investmentAdvice": {
         "title": "Hướng dẫn đầu tư",
-        "description": "Nhận các nguyên tắc đầu tư cơ bản và lời khuyên đa dạng hóa danh mục đầu tư.",
-        "category": "Đầu tư"
+        "description": "Nhận lời khuyên về cơ hội đầu tư và phân bổ danh mục đầu tư",
+        "category": "Đầu tư",
+        "prompt": "Cung cấp hướng dẫn về chiến lược đầu tư và phân bổ danh mục đầu tư dựa trên tình hình tài chính và mục tiêu của tôi."
       },
-      "debtManagement": {
+      "debtStrategy": {
         "title": "Quản lý nợ",
-        "description": "Chiến lược trả nợ hiệu quả và cải thiện sức khỏe tín dụng.",
-        "category": "Nợ"
+        "description": "Tạo kế hoạch trả nợ hiệu quả",
+        "category": "Nợ",
+        "prompt": "Giúp tôi tạo chiến lược trả nợ. Phân tích các khoản nợ hiện tại và đề xuất kế hoạch trả nợ hiệu quả nhất."
+      },
+      "cashFlow": {
+        "title": "Phân tích dòng tiền",
+        "description": "Hiểu dòng tiền và tối ưu hóa thời gian",
+        "category": "Phân tích",
+        "prompt": "Phân tích mô hình dòng tiền của tôi và đề xuất cách tối ưu hóa thời gian thu nhập và chi tiêu."
       }
     }
   },
   "subscription": {
     "title": "Chọn gói của bạn",
-    "subtitle": "Mở khóa thông tin chi tiết AI không giới hạn và các tính năng cao cấp",
+    "subtitle": "Mở khóa thông tin chi tiết AI không giới hạn và tính năng premium",
     "free": {
       "title": "Miễn phí",
       "price": "Miễn phí",
@@ -71,7 +494,7 @@
     },
     "premium": {
       "title": "Premium",
-      "price": "60.000₫",
+      "price": "$2.99",
       "period": "/tháng",
       "features": [
         "Trò chuyện AI không giới hạn",
@@ -85,35 +508,9 @@
     "upgradeButton": "Nâng cấp ngay",
     "currentPlan": "Gói hiện tại"
   },
-  "dashboard": {
-    "welcome": "Chào mừng trở lại!",
-    "totalSavings": "Tổng tiết kiệm",
-    "activeGoals": "Mục tiêu đang hoạt động", 
-    "monthlyProgress": "Tiến độ hàng tháng",
-    "recentTransactions": "Giao dịch gần đây",
-    "upcomingEvents": "Sự kiện sắp tới",
-    "quickActions": "Hành động nhanh"
-  },
-  "common": {
-    "loading": "Đang tải...",
-    "error": "Đã có lỗi xảy ra",
-    "retry": "Thử lại",
-    "save": "Lưu",
-    "cancel": "Hủy",
-    "delete": "Xóa",
-    "edit": "Chỉnh sửa",
-    "add": "Thêm",
-    "remove": "Xóa",
-    "confirm": "Xác nhận",
-    "back": "Quay lại",
-    "next": "Tiếp theo",
-    "previous": "Trước đó",
-    "close": "Đóng",
-    "done": "Hoàn thành"
-  },
   "referrals": {
-    "title": "Giới thiệu bạn bè & Kiếm tiền",
-    "description": "Mời bạn bè đến Twealth và cả hai bạn đều nhận được tín dụng AI thưởng!",
+    "title": "Giới thiệu bạn bè & Kiếm thưởng",
+    "description": "Mời bạn bè đến Twealth và cả hai đều nhận tín dụng AI thưởng!",
     "myCode": "Mã giới thiệu của tôi",
     "myCodeDescription": "Chia sẻ mã này với bạn bè để kiếm tín dụng AI thưởng",
     "useCode": "Sử dụng mã giới thiệu",
@@ -133,17 +530,48 @@
     "availableCredits": "Cuộc trò chuyện AI có sẵn",
     "totalEarned": "Tổng kiếm được",
     "uses": "Lượt sử dụng",
-    "active": "Đang hoạt động",
+    "active": "Hoạt động",
     "inactive": "Không hoạt động",
     "history": "Lịch sử giới thiệu",
-    "historyDescription": "Theo dõi các giới thiệu thành công và tín dụng đã kiếm được",
-    "noReferrals": "Chưa có giới thiệu nào",
-    "startSharing": "Bắt đầu chia sẻ mã của bạn để kiếm tín dụng thưởng!",
+    "historyDescription": "Theo dõi giới thiệu thành công và tín dụng đã kiếm",
+    "noReferrals": "Chưa có giới thiệu",
+    "startSharing": "Bắt đầu chia sẻ mã để kiếm tín dụng thưởng!",
     "friend": "Bạn bè",
     "credits": "tín dụng",
     "creditsHistory": "Lịch sử tín dụng",
     "used": "Đã sử dụng",
     "bonusInfo": "Cả bạn và bạn bè sẽ nhận được 10 cuộc trò chuyện AI thưởng khi họ sử dụng mã giới thiệu của bạn!"
+  },
+  "notFound": {
+    "title": "Ối! Không tìm thấy trang",
+    "description": "Trang bạn đang tìm kiếm dường như đã đi lạc đường. Hãy đưa bạn quay lại đúng hướng!",
+    "goBack": "Quay lại",
+    "backToDashboard": "Về bảng điều khiển",
+    "quickAccess": "Truy cập nhanh",
+    "quickActions": {
+      "dashboard": "Bảng điều khiển",
+      "moneyTracking": "Theo dõi tiền",
+      "aiAssistant": "Trợ lý AI",
+      "goals": "Mục tiêu tài chính"
+    },
+    "proTip": {
+      "title": "Mẹo chuyên nghiệp",
+      "description": "Sử dụng Trợ lý AI để điều hướng và tìm chính xác những gì bạn đang tìm kiếm!"
+    }
+  },
+  "invite": {
+    "title": "Bạn được mời!",
+    "subtitle": "Bạn đã được mời tham gia nhóm",
+    "acceptInvite": "Chấp nhận lời mời",
+    "declineInvite": "Từ chối",
+    "accepting": "Đang chấp nhận...",
+    "role": "Vai trò",
+    "expires": "Hết hạn",
+    "invalidInvite": "Lời mời không hợp lệ",
+    "invalidDescription": "Liên kết mời này không hợp lệ hoặc đã hết hạn.",
+    "expiredInvite": "Lời mời đã hết hạn",
+    "expiredDescription": "Liên kết mời này đã hết hạn. Vui lòng yêu cầu lời mời mới từ chủ nhóm.",
+    "backToGroups": "Quay lại nhóm"
   },
   "currency": {
     "usd": "USD ($)",
@@ -155,6 +583,21 @@
     "brl": "BRL (R$)",
     "mxn": "MXN ($)",
     "idr": "IDR (Rp)",
-    "vnd": "VND (₫)"
+    "vnd": "VND (₫)",
+    "php": "PHP (₱)",
+    "myr": "MYR (RM)",
+    "try": "TRY (₺)",
+    "cad": "CAD (C$)",
+    "aud": "AUD (A$)"
+  },
+  "dateFormats": {
+    "short": "DD/MM/YYYY",
+    "medium": "DD MMM YYYY",
+    "long": "DD MMMM YYYY",
+    "full": "dddd, DD MMMM YYYY"
+  },
+  "timeFormats": {
+    "12h": "12 giờ",
+    "24h": "24 giờ"
   }
 }

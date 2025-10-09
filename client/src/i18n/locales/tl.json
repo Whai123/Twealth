@@ -1,67 +1,490 @@
 {
+  "common": {
+    "loading": "Naglo-load...",
+    "error": "May mali",
+    "success": "Tagumpay",
+    "retry": "Subukan muli",
+    "save": "I-save",
+    "cancel": "Kanselahin",
+    "delete": "Tanggalin",
+    "edit": "I-edit",
+    "add": "Idagdag",
+    "remove": "Alisin",
+    "confirm": "Kumpirmahin",
+    "back": "Bumalik",
+    "next": "Susunod",
+    "previous": "Nakaraan",
+    "close": "Isara",
+    "done": "Tapos na",
+    "submit": "Isumite",
+    "create": "Gumawa",
+    "update": "I-update",
+    "search": "Maghanap",
+    "filter": "I-filter",
+    "sort": "Ayusin",
+    "view": "Tingnan",
+    "download": "I-download",
+    "upload": "I-upload",
+    "share": "Ibahagi",
+    "copy": "Kopyahin",
+    "copied": "Nakopya na!",
+    "yes": "Oo",
+    "no": "Hindi"
+  },
   "navigation": {
     "dashboard": "Dashboard",
-    "calendar": "Kalendaryo", 
+    "calendar": "Kalendaryo",
     "money": "Pera",
-    "goals": "Mga layunin",
-    "groups": "Mga grupo",
+    "goals": "Mga Layunin",
+    "groups": "Mga Grupo",
+    "planning": "Pagpaplano",
+    "crypto": "Crypto",
+    "friends": "Mga Kaibigan",
     "aiAssistant": "AI Assistant",
-    "referrals": "Mga referral",
-    "settings": "Mga setting"
+    "referrals": "Mga Referral",
+    "premium": "Premium",
+    "settings": "Mga Setting",
+    "sections": {
+      "main": "Pangunahin",
+      "finance": "Pananalapi",
+      "social": "Panlipunan",
+      "more": "Iba pa"
+    },
+    "descriptions": {
+      "dashboard": "Tingnan ang iyong pinansiyal na overview at insights",
+      "aiAssistant": "Makipag-chat sa AI upang pamahalaan ang iyong pananalapi",
+      "goals": "Magtakda at subaybayan ang mga layuning pag-iimpok",
+      "money": "Subaybayan ang kita at gastos",
+      "crypto": "Subaybayan ang cryptocurrency holdings",
+      "friends": "Kumonekta sa mga kaibigan para sa pakikipagtulungan",
+      "groups": "Pamahalaan ang mga pinansiyal na grupo",
+      "calendar": "Mag-iskedyul ng mga event at meeting",
+      "planning": "Pagsubaybay sa oras at produktibidad",
+      "referrals": "Mag-imbita ng mga kaibigan at kumita ng rewards",
+      "premium": "I-unlock ang mga advanced na feature"
+    }
+  },
+  "theme": {
+    "switchToLight": "Lumipat sa light mode",
+    "switchToDark": "Lumipat sa dark mode",
+    "light": "Maliwanag",
+    "dark": "Madilim",
+    "system": "System"
+  },
+  "mobileNav": {
+    "quickActions": {
+      "newGoal": {
+        "title": "Bagong Layunin",
+        "description": "Magtakda ng pinansiyal na target"
+      },
+      "addTransaction": {
+        "title": "Magdagdag ng Transaksyon",
+        "description": "I-record ang kita/gastos"
+      },
+      "scheduleEvent": {
+        "title": "Mag-iskedyul ng Event",
+        "description": "Magplano ng bagong aktibidad"
+      }
+    },
+    "drawers": {
+      "quickActions": {
+        "title": "Mabilis na Aksyon",
+        "description": "Gumawa ng mga layunin, transaksyon, o event nang mabilis"
+      },
+      "goal": {
+        "title": "Gumawa ng Bagong Pinansiyal na Layunin",
+        "description": "Magtakda ng bagong target sa pag-iimpok at subaybayan ang progreso"
+      },
+      "transaction": {
+        "title": "Magdagdag ng Bagong Transaksyon",
+        "description": "I-record ang iyong kita, gastos, o paglilipat"
+      },
+      "event": {
+        "title": "Mag-iskedyul ng Bagong Event",
+        "description": "Planuhin ang iyong oras nang epektibo at subaybayan ang mga aktibidad"
+      }
+    }
+  },
+  "landing": {
+    "hero": {
+      "title": "Pinansiyal na Pagpaplano na Ginawang Simple",
+      "subtitle": "Subaybayan, mag-budget, at makamit ang iyong mga pinansiyal na layunin gamit ang aming AI-powered na platform",
+      "cta": "Magsimula nang Libre",
+      "viewDashboard": "Tingnan ang Dashboard"
+    },
+    "features": {
+      "title": "Lahat ng kailangan mo upang pamahalaan ang iyong pananalapi",
+      "subtitle": "Malakas na features upang tulungan kang makamit ang kalayaan sa pananalapi",
+      "aiAssistant": {
+        "title": "AI Financial Assistant",
+        "description": "Makatanggap ng personalized na pinansiyal na payo na powered ng advanced AI"
+      },
+      "smartTracking": {
+        "title": "Smart Expense Tracking",
+        "description": "Awtomatikong i-categorize at subaybayan ang iyong gastos"
+      },
+      "goalSetting": {
+        "title": "Pagtakda ng Layunin at Pagpaplano",
+        "description": "Magtakda ng pinansiyal na layunin at subaybayan ang progreso"
+      },
+      "groupManagement": {
+        "title": "Pakikipagtulungan sa Grupo",
+        "description": "Ibahagi ang gastos at magplano kasama ang mga kaibigan"
+      }
+    },
+    "pricing": {
+      "title": "Pumili ng Iyong Plan",
+      "subtitle": "Magsimula nang libre, mag-upgrade kapag handa ka na",
+      "monthly": "Buwanan",
+      "yearly": "Taunan",
+      "save": "Makatipid ng 20%"
+    },
+    "cta": {
+      "title": "Handa ka na bang kontrolin ang iyong pananalapi?",
+      "subtitle": "Sumali sa libu-libong users na namamahala ng kanilang pera nang mas matalino",
+      "button": "Simulan ang Iyong Paglalakbay"
+    }
+  },
+  "dashboard": {
+    "welcome": "Maligayang pagbabalik,",
+    "overview": "Pinansiyal na Overview",
+    "stats": {
+      "totalBalance": "Kabuuang Balanse",
+      "income": "Kita",
+      "expenses": "Gastos",
+      "netSavings": "Net Savings",
+      "thisMonth": "Ngayong buwan",
+      "activeGroups": "Mga Aktibong Grupo",
+      "yourTeams": "Iyong mga grupo",
+      "events": "Mga Event",
+      "successRate": "Success Rate",
+      "eventViability": "Viability ng event",
+      "aiInsights": "AI Insights",
+      "thisWeek": "Ngayong linggo"
+    },
+    "recentTransactions": "Kamakailang Transaksyon",
+    "financialGoals": "Pinansiyal na Layunin",
+    "upcomingEvents": "Paparating na Mga Event",
+    "quickActions": "Mabilis na Aksyon",
+    "smartInsights": {
+      "title": "Smart Team Management",
+      "description": "Sinusuri ng AI ang dynamics ng iyong grupo at nagmumungkahi ng optimal na mga estratehiya sa pagpaplano para sa maximum na tagumpay."
+    },
+    "empty": {
+      "transactions": "Walang transaksyon pa",
+      "goals": "Walang naitakdang layunin",
+      "events": "Walang paparating na event",
+      "startAdding": "Magsimulang magdagdag upang makita ang iyong pinansiyal na paglalakbay"
+    }
+  },
+  "goals": {
+    "title": "Pinansiyal na Layunin",
+    "subtitle": "Magtakda at subaybayan ang iyong mga target sa pag-iimpok",
+    "addNew": "Magdagdag ng Bagong Layunin",
+    "createGoal": "Gumawa ng Layunin",
+    "editGoal": "I-edit ang Layunin",
+    "card": {
+      "target": "Target",
+      "current": "Kasalukuyan",
+      "progress": "Progreso",
+      "dueDate": "Takdang Petsa",
+      "completed": "Tapos na",
+      "onTrack": "Sa Tamang Landas",
+      "behind": "Huli"
+    },
+    "form": {
+      "name": "Pangalan ng Layunin",
+      "namePlaceholder": "hal., Emergency Fund",
+      "targetAmount": "Target na Halaga",
+      "currentAmount": "Kasalukuyang Halaga",
+      "deadline": "Deadline",
+      "category": "Kategorya",
+      "description": "Deskripsyon",
+      "descriptionPlaceholder": "Para saan ang layuning ito?"
+    },
+    "categories": {
+      "savings": "Ipon",
+      "investment": "Pamumuhunan",
+      "debt": "Pagbabayad ng Utang",
+      "emergency": "Emergency Fund",
+      "purchase": "Malaking Pagbili",
+      "education": "Edukasyon",
+      "retirement": "Retirement",
+      "other": "Iba pa"
+    },
+    "empty": {
+      "title": "Walang layunin pa",
+      "description": "Magsimula sa pamamagitan ng paggawa ng iyong unang pinansiyal na layunin"
+    }
+  },
+  "moneyTracking": {
+    "title": "Pagsubaybay sa Pera",
+    "subtitle": "Subaybayan ang iyong kita at gastos",
+    "addTransaction": "Magdagdag ng Transaksyon",
+    "createTransaction": "Gumawa ng Transaksyon",
+    "editTransaction": "I-edit ang Transaksyon",
+    "types": {
+      "income": "Kita",
+      "expense": "Gastos",
+      "transfer": "Paglilipat"
+    },
+    "categories": {
+      "salary": "Sahod",
+      "freelance": "Freelance",
+      "investment": "Pamumuhunan",
+      "food": "Pagkain",
+      "transport": "Transportasyon",
+      "utilities": "Utilities",
+      "entertainment": "Entertainment",
+      "shopping": "Pamimili",
+      "health": "Kalusugan",
+      "education": "Edukasyon",
+      "other": "Iba pa"
+    },
+    "form": {
+      "amount": "Halaga",
+      "type": "Uri",
+      "category": "Kategorya",
+      "date": "Petsa",
+      "description": "Deskripsyon",
+      "descriptionPlaceholder": "Para saan ito?"
+    },
+    "stats": {
+      "totalIncome": "Kabuuang Kita",
+      "totalExpenses": "Kabuuang Gastos",
+      "balance": "Balanse",
+      "thisMonth": "Ngayong Buwan"
+    }
+  },
+  "calendar": {
+    "title": "Kalendaryo at Mga Event",
+    "subtitle": "Mag-iskedyul at subaybayan ang iyong mga pinansiyal na event",
+    "addEvent": "Magdagdag ng Event",
+    "createEvent": "Gumawa ng Event",
+    "editEvent": "I-edit ang Event",
+    "event": {
+      "title": "Pamagat",
+      "date": "Petsa",
+      "time": "Oras",
+      "location": "Lokasyon",
+      "description": "Deskripsyon",
+      "attendees": "Mga Dadalo",
+      "rsvp": "RSVP"
+    },
+    "rsvpStatus": {
+      "going": "Dadalo",
+      "maybe": "Baka",
+      "cantGo": "Hindi Makakadalo"
+    }
+  },
+  "groups": {
+    "title": "Mga Grupo",
+    "subtitle": "Pamahalaan ang mga pinansiyal na grupo",
+    "createGroup": "Gumawa ng Grupo",
+    "createFirstGroup": "Gumawa ng Iyong Unang Grupo",
+    "editGroup": "I-edit ang Grupo",
+    "viewGroup": "Tingnan ang Grupo",
+    "card": {
+      "members": "mga miyembro",
+      "member": "miyembro",
+      "nextEvent": "Susunod na Event",
+      "going": "dadalo",
+      "maybe": "baka",
+      "viable": "viable",
+      "createEvent": "Gumawa ng Event"
+    },
+    "form": {
+      "name": "Pangalan ng Grupo",
+      "namePlaceholder": "hal., Monthly Book Club",
+      "description": "Deskripsyon",
+      "descriptionPlaceholder": "Tungkol saan ang grupong ito?",
+      "color": "Kulay",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Aktibo",
+      "archived": "Naka-archive"
+    },
+    "actions": {
+      "invite": "Mag-imbita ng Mga Miyembro",
+      "shareCalendar": "Ibahagi ang Kalendaryo",
+      "delete": "Tanggalin ang Grupo"
+    },
+    "empty": {
+      "title": "Walang grupo pa",
+      "description": "Gumawa ng grupo upang makipagtulungan sa mga kaibigan"
+    }
+  },
+  "friends": {
+    "title": "Mga Kaibigan",
+    "subtitle": "Kumonekta sa mga kaibigan para sa pakikipagtulungan",
+    "addFriend": "Magdagdag ng Kaibigan",
+    "searchPlaceholder": "Maghanap ng users gamit ang email o pangalan",
+    "tabs": {
+      "requests": "Mga Kahilingan",
+      "friends": "Mga Kaibigan",
+      "search": "Maghanap ng Kaibigan"
+    },
+    "requests": {
+      "received": "Natanggap",
+      "sent": "Ipinadala",
+      "accept": "Tanggapin",
+      "decline": "Tanggihan",
+      "cancel": "Kanselahin",
+      "noReceived": "Walang pending na kahilingan",
+      "noSent": "Walang ipinadala na kahilingan"
+    },
+    "list": {
+      "sendMessage": "Magpadala ng Mensahe",
+      "removeFriend": "Alisin ang Kaibigan",
+      "noFriends": "Walang kaibigan pa",
+      "startConnecting": "Magsimulang kumonekta sa iba"
+    },
+    "actions": {
+      "sendRequest": "Magpadala ng Kahilingan",
+      "requestSent": "Ipinadala ang Kahilingan",
+      "friends": "Mga Kaibigan"
+    }
+  },
+  "crypto": {
+    "title": "Cryptocurrency",
+    "subtitle": "Subaybayan ang iyong crypto holdings",
+    "livePrices": "Live na Presyo ng Crypto",
+    "holdings": "Holdings",
+    "transactions": "Mga Transaksyon",
+    "portfolio": "Portfolio",
+    "marketCap": "Market Cap",
+    "volume": "24h Volume",
+    "change": "24h na Pagbabago",
+    "price": "Presyo"
+  },
+  "settings": {
+    "title": "Mga Setting",
+    "subtitle": "Pamahalaan ang iyong account at mga preference",
+    "sections": {
+      "account": "Account",
+      "preferences": "Mga Preference",
+      "notifications": "Mga Notipikasyon",
+      "privacy": "Privacy",
+      "security": "Seguridad"
+    },
+    "account": {
+      "profile": "Impormasyon ng Profile",
+      "email": "Email",
+      "language": "Wika",
+      "currency": "Pera",
+      "timezone": "Timezone"
+    },
+    "preferences": {
+      "theme": "Theme",
+      "dateFormat": "Format ng Petsa",
+      "timeFormat": "Format ng Oras",
+      "numberFormat": "Format ng Numero"
+    },
+    "notifications": {
+      "email": "Email Notifications",
+      "push": "Push Notifications",
+      "sms": "SMS Notifications",
+      "goals": "Paalala sa Layunin",
+      "events": "Paalala sa Event",
+      "transactions": "Alerto sa Transaksyon"
+    }
   },
   "aiAssistant": {
     "title": "AI Financial Assistant",
-    "subtitle": "Makakuha ng personalized na financial advice at insights na powered ng AI",
-    "usageTitle": "AI Usage",
+    "subtitle": "Makatanggap ng personalized na pinansiyal na payo at insights na powered ng AI",
+    "tagline": "Advanced na AI-powered na pinansiyal na tagapayo",
+    "usageTitle": "Paggamit ng AI",
     "unlimited": "Walang limitasyon",
     "quotaExceeded": "Naabot mo na ang iyong AI chat limit. Mag-upgrade sa Premium para sa unlimited AI assistance!",
-    "runningLow": "Konti na lang ang AI chats mo. Isaalang-alang ang pag-upgrade sa Premium para sa unlimited access.",
+    "runningLow": "Konti na lang ang iyong AI chats. Isaalang-alang ang pag-upgrade sa Premium para sa unlimited access.",
     "upgradeRequired": "🚀 Kailangan ng Upgrade",
     "upgradeButton": "Mag-upgrade sa Premium",
-    "chatPlaceholder": "Tanungin mo ako tungkol sa inyong finances...",
+    "chatPlaceholder": "Tanungin mo ako tungkol sa iyong pananalapi...",
     "send": "Ipadala",
-    "upgradeToChat": "Mag-upgrade para makakuha",
+    "upgradeToChat": "Mag-upgrade para Makipag-chat",
+    "header": {
+      "title": "Intelligent Financial Assistant 🧠"
+    },
+    "stats": {
+      "chatUsage": "Paggamit ng Chat",
+      "chatConversations": "AI conversations",
+      "analysis": "Pagsusuri",
+      "deepInsights": "Malalim na insights",
+      "insights": "Mga Insight",
+      "generated": "Nabuo",
+      "status": "Status",
+      "limitReached": "Naabot ang limit",
+      "active": "Aktibo"
+    },
+    "usage": {
+      "subtitle": "Subaybayan ang iyong AI assistant activity ngayong buwan",
+      "aiChats": "AI Chats",
+      "progress": "Progreso",
+      "remaining": "natitira",
+      "deepAnalysis": "Malalim na Pagsusuri",
+      "generatedThisMonth": "Nabuo ngayong buwan",
+      "keepExploring": "Magpatuloy sa paggalugad!"
+    },
+    "limits": {
+      "chatLimitReached": "🚫 Naabot na ang AI Chat Limit!",
+      "allChatsUsed": "Nagamit mo na lahat ng {limit} AI chats para sa buwang ito",
+      "upgradeMessage": "Mag-upgrade sa Premium para sa unlimited AI assistance",
+      "upgradeNow": "Mag-upgrade Ngayon",
+      "runningLow": "⚠️ Nauubos na ang AI Quota!",
+      "onlyRemaining": "{remaining} AI chats na lang ang natitira. Mag-upgrade para sa unlimited access!",
+      "upgrade": "Mag-upgrade"
+    },
+    "errors": {
+      "failedToSend": "Hindi naipadala ang mensahe"
+    },
     "quickActions": {
-      "title": "Mga Mabilis na AI Actions",
-      "subtitle": "Makakuha ng instant AI insights para sa inyong financial needs",
+      "title": "Mabilis na AI Actions",
+      "subtitle": "Makatanggap ng instant AI insights para sa iyong mga pangangailangan sa pananalapi",
       "budgetAnalysis": {
-        "title": "Budget Analysis",
-        "description": "Makakuha ng AI insights sa inyong spending patterns at budget optimization suggestions.",
-        "category": "Analysis"
+        "title": "Suriin ang Aking Budget",
+        "description": "Makatanggap ng personalized insights sa iyong spending patterns at budget optimization",
+        "category": "Pagsusuri",
+        "prompt": "Suriin ang aking kasalukuyang budget at spending patterns. Magbigay ng insights kung saan ako pwedeng mag-optimize at makatipid."
       },
-      "savingsStrategy": {
-        "title": "Savings Strategy", 
-        "description": "Makatanggap ng personalized savings recommendations based sa inyong financial goals.",
-        "category": "Planning"
+      "savingsGoal": {
+        "title": "Estratehiya sa Pag-iimpok",
+        "description": "Makatanggap ng mga rekomendasyon upang makamit ang iyong pinansiyal na layunin nang mas mabilis",
+        "category": "Pagpaplano",
+        "prompt": "Batay sa aking mga pinansiyal na layunin at kasalukuyang savings rate, mag-suggest ng mga estratehiya upang makamit ang aking mga layunin nang mas mabilis."
       },
-      "expenseOptimization": {
-        "title": "Expense Optimization",
-        "description": "Tuklasin ang mga paraan para mabawasan ang unnecessary expenses at mapahusay ang financial efficiency.",
-        "category": "Optimization"
+      "expenseReview": {
+        "title": "Pagsusuri ng Gastos",
+        "description": "Tukuyin ang hindi kinakailangang gastos at posibleng tipid",
+        "category": "Pag-optimize",
+        "prompt": "Suriin ang aking kamakailang gastos at tukuyin ang mga lugar kung saan baka ako sobrang gumagastos o kung saan pwede kong bawasan ang gastos."
       },
-      "goalPlanning": {
-        "title": "Goal Planning",
-        "description": "Gumawa ng actionable plans para maabot ang inyong short at long-term financial goals.",
-        "category": "Goals"
+      "investmentAdvice": {
+        "title": "Gabay sa Pamumuhunan",
+        "description": "Makatanggap ng payo tungkol sa mga oportunidad sa pamumuhunan at portfolio allocation",
+        "category": "Pamumuhunan",
+        "prompt": "Magbigay ng gabay sa mga estratehiya sa pamumuhunan at portfolio allocation batay sa aking pinansiyal na kalagayan at mga layunin."
       },
-      "investmentGuidance": {
-        "title": "Investment Guidance",
-        "description": "Makakuha ng basic investment principles at portfolio diversification advice.",
-        "category": "Investment"
+      "debtStrategy": {
+        "title": "Pamamahala ng Utang",
+        "description": "Gumawa ng plano upang mabayaran ang mga utang nang epektibo",
+        "category": "Utang",
+        "prompt": "Tulungan mo akong gumawa ng debt payoff strategy. Suriin ang aking kasalukuyang mga utang at mag-suggest ng pinaka-epektibong repayment plan."
       },
-      "debtManagement": {
-        "title": "Debt Management",
-        "description": "Mga estratehiya para sa efficient na pagbabayad ng mga utang at pagpapahusay ng credit health.",
-        "category": "Debt"
+      "cashFlow": {
+        "title": "Pagsusuri ng Cash Flow",
+        "description": "Intindihin ang iyong daloy ng pera at i-optimize ang timing",
+        "category": "Pagsusuri",
+        "prompt": "Suriin ang aking cash flow patterns at mag-suggest ng mga paraan upang i-optimize ang timing ng kita at gastos."
       }
     }
   },
   "subscription": {
-    "title": "Piliin ang inyong Plan",
+    "title": "Pumili ng Iyong Plan",
     "subtitle": "I-unlock ang unlimited AI insights at premium features",
     "free": {
-      "title": "Free",
-      "price": "Free",
+      "title": "Libre",
+      "price": "Libre",
       "features": [
         "5 AI chats bawat buwan",
         "Basic financial tracking",
@@ -71,7 +494,7 @@
     },
     "premium": {
       "title": "Premium",
-      "price": "₱149",
+      "price": "$2.99",
       "period": "/buwan",
       "features": [
         "Unlimited AI chats",
@@ -85,65 +508,70 @@
     "upgradeButton": "Mag-upgrade Ngayon",
     "currentPlan": "Kasalukuyang Plan"
   },
-  "dashboard": {
-    "welcome": "Welcome back!",
-    "totalSavings": "Kabuuang Savings",
-    "activeGoals": "Active Goals", 
-    "monthlyProgress": "Monthly Progress",
-    "recentTransactions": "Mga Kamakailang Transaksyon",
-    "upcomingEvents": "Mga Paparating na Events",
-    "quickActions": "Mga Mabilis na Actions"
-  },
-  "common": {
-    "loading": "Naglo-load...",
-    "error": "May nangyaring mali",
-    "retry": "Subukan Ulit",
-    "save": "I-save",
-    "cancel": "Cancel",
-    "delete": "Tanggalin",
-    "edit": "I-edit",
-    "add": "Idagdag",
-    "remove": "Alisin",
-    "confirm": "Kumpirmahin",
-    "back": "Bumalik",
-    "next": "Susunod",
-    "previous": "Nakaraan",
-    "close": "Isara",
-    "done": "Tapos"
-  },
   "referrals": {
-    "title": "Mag-refer ng mga Kaibigan at Kumita",
-    "description": "Imbitahan ang mga kaibigan sa Twealth at pareho kayong makakakuha ng bonus AI credits!",
+    "title": "Mag-refer ng Mga Kaibigan at Kumita",
+    "description": "Imbitahan ang mga kaibigan sa Twealth at pareho kayong makakatanggap ng bonus AI credits!",
     "myCode": "Aking Referral Code",
-    "myCodeDescription": "I-share ang code na ito sa mga kaibigan para kumita ng bonus AI credits",
+    "myCodeDescription": "Ibahagi ang code na ito sa mga kaibigan upang kumita ng bonus AI credits",
     "useCode": "Gamitin ang Referral Code",
-    "useCodeDescription": "May referral code ka? I-enter mo dito para kumita ng bonus credits",
+    "useCodeDescription": "May referral code ka? I-enter dito upang kumita ng bonus credits",
     "enterCode": "I-enter ang referral code",
     "codePlaceholder": "FRIEND1234",
     "useCodeButton": "Gamitin ang Code",
-    "processing": "Ginagawa...",
-    "shareCode": "I-share ang Code",
+    "processing": "Pinoproseso...",
+    "shareCode": "Ibahagi ang Code",
     "shareTitle": "Sumali sa Twealth gamit ang aking referral code!",
-    "shareText": "Sumali sa akin sa Twealth at makakuha ng bonus AI credits! Gamitin ang aking code: {code}",
-    "copied": "Na-copy na!",
-    "copiedDescription": "Na-copy na ang referral code sa clipboard",
-    "success": "Success!",
-    "error": "Error",
+    "shareText": "Sumali sa akin sa Twealth at makatanggap ng bonus AI credits! Gamitin ang aking code: {code}",
+    "copied": "Nakopya na!",
+    "copiedDescription": "Nakopya na ang referral code sa clipboard",
+    "success": "Tagumpay!",
+    "error": "May Mali",
     "bonusCredits": "Bonus Credits",
     "availableCredits": "Available AI chats",
-    "totalEarned": "Kabuuang nakita",
+    "totalEarned": "Kabuuang kinita",
     "uses": "Mga gamit",
-    "active": "Active",
-    "inactive": "Inactive",
+    "active": "Aktibo",
+    "inactive": "Hindi aktibo",
     "history": "Referral History",
-    "historyDescription": "I-track ang inyong successful referrals at earned credits",
+    "historyDescription": "Subaybayan ang iyong successful referrals at earned credits",
     "noReferrals": "Walang referrals pa",
-    "startSharing": "Simulang i-share ang inyong code para kumita ng bonus credits!",
+    "startSharing": "Simulang ibahagi ang iyong code upang kumita ng bonus credits!",
     "friend": "Kaibigan",
     "credits": "credits",
     "creditsHistory": "Credits History",
-    "used": "Nagamit",
-    "bonusInfo": "Kayo at ang inyong kaibigan ay makatanggap ng 10 bonus AI chats kapag ginamit nila ang inyong referral code!"
+    "used": "Ginamit",
+    "bonusInfo": "Ikaw at ang iyong kaibigan ay makakatanggap ng 10 bonus AI chats kapag ginamit nila ang iyong referral code!"
+  },
+  "notFound": {
+    "title": "Naku! Hindi Nahanap ang Page",
+    "description": "Ang page na hinahanap mo ay parang nawala sa daan. Ibabalik ka namin sa tamang landas!",
+    "goBack": "Bumalik",
+    "backToDashboard": "Bumalik sa Dashboard",
+    "quickAccess": "Mabilis na Access",
+    "quickActions": {
+      "dashboard": "Dashboard",
+      "moneyTracking": "Pagsubaybay sa Pera",
+      "aiAssistant": "AI Assistant",
+      "goals": "Pinansiyal na Layunin"
+    },
+    "proTip": {
+      "title": "Pro Tip",
+      "description": "Gamitin ang aming AI Assistant upang tumulong sa pag-navigate at hanapin kung ano ang hinahanap mo!"
+    }
+  },
+  "invite": {
+    "title": "Naimbitahan Ka!",
+    "subtitle": "Naimbitahan ka na sumali sa isang grupo",
+    "acceptInvite": "Tanggapin ang Imbitasyon",
+    "declineInvite": "Tanggihan",
+    "accepting": "Tinatanggap...",
+    "role": "Tungkulin",
+    "expires": "Mag-eexpire",
+    "invalidInvite": "Invalid na Imbitasyon",
+    "invalidDescription": "Ang invite link na ito ay invalid o nag-expire na.",
+    "expiredInvite": "Nag-expire na ang Imbitasyon",
+    "expiredDescription": "Ang invite link na ito ay nag-expire na. Mangyaring humiling ng bagong invite mula sa may-ari ng grupo.",
+    "backToGroups": "Bumalik sa Mga Grupo"
   },
   "currency": {
     "usd": "USD ($)",
@@ -155,6 +583,21 @@
     "brl": "BRL (R$)",
     "mxn": "MXN ($)",
     "idr": "IDR (Rp)",
-    "php": "PHP (₱)"
+    "vnd": "VND (₫)",
+    "php": "PHP (₱)",
+    "myr": "MYR (RM)",
+    "try": "TRY (₺)",
+    "cad": "CAD (C$)",
+    "aud": "AUD (A$)"
+  },
+  "dateFormats": {
+    "short": "MM/DD/YYYY",
+    "medium": "MMM DD, YYYY",
+    "long": "MMMM DD, YYYY",
+    "full": "dddd, MMMM DD, YYYY"
+  },
+  "timeFormats": {
+    "12h": "12-oras",
+    "24h": "24-oras"
   }
 }
