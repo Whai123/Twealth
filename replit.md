@@ -42,18 +42,25 @@ The application features a modern UI with a redesigned landing page, enhanced ac
 
 ## Internationalization (i18n)
 
-The application is fully internationalized with comprehensive support for 11 languages and RTL layouts:
+The application is fully internationalized with comprehensive support for 11 languages and RTL layouts, making it ready for global deployment:
 
 - **Supported Languages**: English (en), Spanish (es), Indonesian (id), Thai (th), Brazilian Portuguese (pt), Hindi (hi), Vietnamese (vi), Filipino/Tagalog (tl), Malay (ms), Turkish (tr), Arabic (ar)
-- **Translation Coverage**: 426+ translation keys covering all UI text, navigation, forms, error messages, and notifications
+- **Translation Coverage**: 650+ translation keys covering ALL UI text including:
+  - Navigation, forms, buttons, error messages, and notifications
+  - Dashboard, goals, events, transactions, groups, friends, settings
+  - Onboarding flow with dynamic step indicators
+  - AI assistant interface and responses
+  - All user-facing content across 15+ pages/components
 - **Locale-Aware Formatting**:
   - Date/time formatting using date-fns with language-specific patterns (MM/DD/YYYY for US, DD/MM/YYYY for EU, etc.)
   - Currency formatting with Intl.NumberFormat respecting locale conventions (symbol positioning, decimal separators)
   - Number formatting with locale-specific thousand separators and decimal points
+  - Variable interpolation with i18next ({{variable}} syntax)
 - **RTL Support**: Full right-to-left layout support for Arabic with automatic text direction switching and mirrored UI components
 - **Language Switcher**: Easy language selection with 11 languages available in sidebar and settings
 - **Custom Hooks**: useLocale hook provides convenient access to locale-aware formatting functions
 - **Implementation**: i18next with react-i18next, browser language detection, localStorage persistence
+- **Testing**: Comprehensive e2e testing verified proper translations, interpolation, and RTL layout across all supported languages
 
 # External Dependencies
 
