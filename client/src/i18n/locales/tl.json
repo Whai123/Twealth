@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12-oras",
     "24h": "24-oras"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Maligayang Pagdating sa Twealth",
+      "description": "Ang iyong AI-powered na kasosyo sa pananalapi para sa pagkamit ng mga layunin sa buhay"
+    },
+    "aiAssistant": {
+      "title": "Makilala ang Iyong AI Assistant",
+      "description": "Makatanggap ng instant na pinansiyal na payo, pag-optimize ng budget, at mga estratehiya sa layunin",
+      "cardTitle": "🤖 AI Assistant",
+      "cardDescription": "Makipag-chat sa AI para sa instant na pinansiyal na payo"
+    },
+    "trackMoney": {
+      "title": "Subaybayan ang Iyong Pananalapi",
+      "description": "Magdagdag ng mga transaksyon at awtomatikong makita ang matalinong insights sa paggastos"
+    },
+    "setGoals": {
+      "title": "Magtakda ng Pinansiyal na Layunin",
+      "description": "Gumawa ng mga layunin at hayaang imungkahi ng AI ang pinakamahusay na landas para makamit ang mga ito",
+      "cardTitle": "🎯 Matalinong Layunin",
+      "cardDescription": "Pagsubaybay sa layunin at mga estratehiya na powered ng AI"
+    },
+    "groupPlanning": {
+      "title": "Magplano kasama ang Mga Grupo",
+      "description": "Makipagtulungan sa mga pinansiyal na layuning pinagsasaluhan kasama ang mga kaibigan at pamilya",
+      "cardTitle": "👥 Pagpaplano sa Grupo",
+      "cardDescription": "Makipagtulungan sa mga pinansiyal na layuning pinagsasaluhan"
+    },
+    "proTips": {
+      "title": "Pro Tips & Mga Shortcut",
+      "description": "Matutunan ang mga keyboard shortcut at mga feature ng produktibidad"
+    },
+    "actions": {
+      "getStarted": "Magsimula",
+      "tryAiChat": "Subukan ang AI Chat",
+      "addFirstTransaction": "Magdagdag ng Unang Transaksyon",
+      "createFirstGoal": "Gumawa ng Unang Layunin",
+      "createGroup": "Gumawa ng Grupo",
+      "finish": "Tapusin at Simulan ang Pagsubaybay",
+      "skip": "Laktawan ang Tour"
+    },
+    "aiProTip": {
+      "title": "Pro Tip ng AI Assistant",
+      "description": "Hindi naaalala kung paano gumawa ng isang bagay? Itanong lang sa AI! Maaari nitong gawin ang mga layunin, magdagdag ng mga transaksyon, mag-iskedyul ng mga event, at higit pa sa pamamagitan ng natural na pag-uusap."
+    },
+    "stepIndicator": "Hakbang {current} ng {total}"
   }
 }

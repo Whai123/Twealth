@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12 giờ",
     "24h": "24 giờ"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Chào mừng đến với Twealth",
+      "description": "Người bạn đồng hành tài chính được hỗ trợ bởi AI để đạt được mục tiêu cuộc sống của bạn"
+    },
+    "aiAssistant": {
+      "title": "Gặp gỡ Trợ lý AI của bạn",
+      "description": "Nhận tư vấn tài chính tức thì, tối ưu hóa ngân sách và chiến lược mục tiêu",
+      "cardTitle": "🤖 Trợ lý AI",
+      "cardDescription": "Trò chuyện với AI để nhận tư vấn tài chính tức thì"
+    },
+    "trackMoney": {
+      "title": "Theo dõi Tài chính",
+      "description": "Thêm giao dịch và tự động xem thông tin chi tiêu thông minh"
+    },
+    "setGoals": {
+      "title": "Đặt Mục tiêu Tài chính",
+      "description": "Tạo mục tiêu và để AI đề xuất con đường tốt nhất để đạt được chúng",
+      "cardTitle": "🎯 Mục tiêu Thông minh",
+      "cardDescription": "Theo dõi mục tiêu và chiến lược được hỗ trợ bởi AI"
+    },
+    "groupPlanning": {
+      "title": "Lập kế hoạch với Nhóm",
+      "description": "Cộng tác về các mục tiêu tài chính chung với bạn bè và gia đình",
+      "cardTitle": "👥 Lập kế hoạch Nhóm",
+      "cardDescription": "Cộng tác về các mục tiêu tài chính chung"
+    },
+    "proTips": {
+      "title": "Mẹo Chuyên nghiệp & Phím tắt",
+      "description": "Học các phím tắt và tính năng năng suất"
+    },
+    "actions": {
+      "getStarted": "Bắt đầu",
+      "tryAiChat": "Thử Chat AI",
+      "addFirstTransaction": "Thêm Giao dịch Đầu tiên",
+      "createFirstGoal": "Tạo Mục tiêu Đầu tiên",
+      "createGroup": "Tạo Nhóm",
+      "finish": "Hoàn tất & Bắt đầu Theo dõi",
+      "skip": "Bỏ qua Hướng dẫn"
+    },
+    "aiProTip": {
+      "title": "Mẹo Chuyên nghiệp Trợ lý AI",
+      "description": "Không nhớ cách làm điều gì đó? Chỉ cần hỏi AI! Nó có thể tạo mục tiêu, thêm giao dịch, lên lịch sự kiện và nhiều hơn nữa thông qua cuộc trò chuyện tự nhiên."
+    },
+    "stepIndicator": "Bước {current} trong {total}"
   }
 }

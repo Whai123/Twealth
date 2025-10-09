@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12-hour",
     "24h": "24-hour"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Twealth",
+      "description": "Your AI-powered financial companion for achieving life goals"
+    },
+    "aiAssistant": {
+      "title": "Meet Your AI Assistant",
+      "description": "Get instant financial advice, budget optimization, and goal strategies",
+      "cardTitle": "🤖 AI Assistant",
+      "cardDescription": "Chat with AI for instant financial advice"
+    },
+    "trackMoney": {
+      "title": "Track Your Finances",
+      "description": "Add transactions and see smart spending insights automatically"
+    },
+    "setGoals": {
+      "title": "Set Financial Goals",
+      "description": "Create goals and let AI suggest the best path to achieve them",
+      "cardTitle": "🎯 Smart Goals",
+      "cardDescription": "AI-powered goal tracking and strategies"
+    },
+    "groupPlanning": {
+      "title": "Plan with Groups",
+      "description": "Collaborate on shared financial goals with friends and family",
+      "cardTitle": "👥 Group Planning",
+      "cardDescription": "Collaborate on shared financial goals"
+    },
+    "proTips": {
+      "title": "Pro Tips & Shortcuts",
+      "description": "Learn keyboard shortcuts and productivity features"
+    },
+    "actions": {
+      "getStarted": "Get Started",
+      "tryAiChat": "Try AI Chat",
+      "addFirstTransaction": "Add First Transaction",
+      "createFirstGoal": "Create First Goal",
+      "createGroup": "Create Group",
+      "finish": "Finish & Start Tracking",
+      "skip": "Skip Tour"
+    },
+    "aiProTip": {
+      "title": "AI Assistant Pro Tip",
+      "description": "Don't remember how to do something? Just ask the AI! It can create goals, add transactions, schedule events, and more through natural conversation."
+    },
+    "stepIndicator": "Step {current} of {total}"
   }
 }

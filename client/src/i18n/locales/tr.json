@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12-saat",
     "24h": "24-saat"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Twealth'e Hoş Geldiniz",
+      "description": "Hayat hedeflerinize ulaşmak için AI destekli mali yardımcınız"
+    },
+    "aiAssistant": {
+      "title": "AI Asistanınızla Tanışın",
+      "description": "Anında mali tavsiye, bütçe optimizasyonu ve hedef stratejileri alın",
+      "cardTitle": "🤖 AI Asistanı",
+      "cardDescription": "Anında mali tavsiye için AI ile sohbet edin"
+    },
+    "trackMoney": {
+      "title": "Finanslarınızı Takip Edin",
+      "description": "İşlem ekleyin ve otomatik olarak akıllı harcama içgörüleri görün"
+    },
+    "setGoals": {
+      "title": "Mali Hedefler Belirleyin",
+      "description": "Hedefler oluşturun ve AI'ın bunlara ulaşmak için en iyi yolu önermesine izin verin",
+      "cardTitle": "🎯 Akıllı Hedefler",
+      "cardDescription": "AI destekli hedef takibi ve stratejiler"
+    },
+    "groupPlanning": {
+      "title": "Gruplarla Planlayın",
+      "description": "Arkadaşlar ve aileyle ortak mali hedefler üzerinde işbirliği yapın",
+      "cardTitle": "👥 Grup Planlaması",
+      "cardDescription": "Ortak mali hedefler üzerinde işbirliği yapın"
+    },
+    "proTips": {
+      "title": "Profesyonel İpuçları ve Kısayollar",
+      "description": "Klavye kısayolları ve verimlilik özelliklerini öğrenin"
+    },
+    "actions": {
+      "getStarted": "Başlayın",
+      "tryAiChat": "AI Sohbeti Deneyin",
+      "addFirstTransaction": "İlk İşlemi Ekle",
+      "createFirstGoal": "İlk Hedefi Oluştur",
+      "createGroup": "Grup Oluştur",
+      "finish": "Bitir ve Takibe Başla",
+      "skip": "Turu Atla"
+    },
+    "aiProTip": {
+      "title": "AI Asistanı Profesyonel İpucu",
+      "description": "Bir şeyi nasıl yapacağınızı hatırlamıyor musunuz? AI'a sorun! Doğal konuşma yoluyla hedefler oluşturabilir, işlem ekleyebilir, etkinlik planlayabilir ve daha fazlasını yapabilir."
+    },
+    "stepIndicator": "Adım {current} / {total}"
   }
 }

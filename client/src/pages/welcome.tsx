@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { 
   Crown, 
   Sparkles, 
@@ -30,6 +31,7 @@ interface OnboardingStep {
 }
 
 export default function WelcomePage() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [, setLocation] = useLocation();
   
@@ -103,49 +105,49 @@ export default function WelcomePage() {
   const onboardingSteps: OnboardingStep[] = [
     {
       id: "welcome",
-      title: "Welcome to Twealth",
-      description: "Your AI-powered financial companion for achieving life goals",
+      title: t('onboarding.welcome.title'),
+      description: t('onboarding.welcome.description'),
       icon: <Sparkles className="w-8 h-8 text-yellow-500" />,
-      action: "Get Started"
+      action: t('onboarding.actions.getStarted')
     },
     {
       id: "ai-assistant", 
-      title: "Meet Your AI Assistant",
-      description: "Get instant financial advice, budget optimization, and goal strategies",
+      title: t('onboarding.aiAssistant.title'),
+      description: t('onboarding.aiAssistant.description'),
       icon: <MessageCircle className="w-8 h-8 text-blue-500" />,
-      action: "Try AI Chat",
+      action: t('onboarding.actions.tryAiChat'),
       route: "/ai-assistant"
     },
     {
       id: "track-money",
-      title: "Track Your Finances",
-      description: "Add transactions and see smart spending insights automatically",
+      title: t('onboarding.trackMoney.title'),
+      description: t('onboarding.trackMoney.description'),
       icon: <DollarSign className="w-8 h-8 text-green-500" />,
-      action: "Add First Transaction",
+      action: t('onboarding.actions.addFirstTransaction'),
       route: "/money-tracking?add=1"
     },
     {
       id: "set-goals",
-      title: "Set Financial Goals",
-      description: "Define your dreams and get AI-powered strategies to achieve them",
+      title: t('onboarding.setGoals.title'),
+      description: t('onboarding.setGoals.description'),
       icon: <Target className="w-8 h-8 text-purple-500" />,
-      action: "Create First Goal",
+      action: t('onboarding.actions.createFirstGoal'),
       route: "/financial-goals?create=1"
     },
     {
       id: "plan-together",
-      title: "Plan with Others",
-      description: "Create groups for family budgets, trips, and shared financial goals",
+      title: t('onboarding.groupPlanning.title'),
+      description: t('onboarding.groupPlanning.description'),
       icon: <Users className="w-8 h-8 text-orange-500" />,
-      action: "Create Group",
+      action: t('onboarding.actions.createGroup'),
       route: "/groups?create=1"
     },
     {
       id: "pro-tips",
-      title: "⚡ Pro Tips for Power Users",
-      description: "Master Twealth with keyboard shortcuts and helpful tooltips",
+      title: t('onboarding.proTips.title'),
+      description: t('onboarding.proTips.description'),
       icon: <Zap className="w-8 h-8 text-yellow-500" />,
-      action: "Start Using Twealth"
+      action: t('onboarding.actions.finish')
     }
   ];
 
@@ -201,7 +203,7 @@ export default function WelcomePage() {
             className="hover:bg-white/50 dark:hover:bg-gray-800/50 backdrop-blur-sm transition-all duration-300"
             data-testid="button-skip-onboarding"
           >
-            {completeOnboardingMutation.isPending ? "⏳ Loading..." : "⚡ Skip Tour"}
+            {completeOnboardingMutation.isPending ? `⏳ ${t('common.loading')}` : `⚡ ${t('onboarding.actions.skip')}`}
           </Button>
         </div>
 
@@ -230,7 +232,7 @@ export default function WelcomePage() {
             </div>
             <div className="text-center mt-2">
               <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                Step {currentStep + 1} of {onboardingSteps.length}
+                {t('onboarding.stepIndicator', { current: currentStep + 1, total: onboardingSteps.length })}
               </span>
             </div>
           </div>
@@ -266,24 +268,24 @@ export default function WelcomePage() {
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                       <MessageCircle className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">🤖 AI Assistant</h3>
-                    <p className="text-sm text-muted-foreground">Chat with AI for instant financial advice</p>
+                    <h3 className="font-semibold text-lg mb-2">{t('onboarding.aiAssistant.cardTitle')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('onboarding.aiAssistant.cardDescription')}</p>
                   </div>
                   
                   <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:shadow-lg transition-all duration-300">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                       <Target className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">🎯 Smart Goals</h3>
-                    <p className="text-sm text-muted-foreground">AI-powered goal tracking and strategies</p>
+                    <h3 className="font-semibold text-lg mb-2">{t('onboarding.setGoals.cardTitle')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('onboarding.setGoals.cardDescription')}</p>
                   </div>
                   
                   <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:shadow-lg transition-all duration-300">
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                       <Users className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">👥 Group Planning</h3>
-                    <p className="text-sm text-muted-foreground">Collaborate on shared financial goals</p>
+                    <h3 className="font-semibold text-lg mb-2">{t('onboarding.groupPlanning.cardTitle')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('onboarding.groupPlanning.cardDescription')}</p>
                   </div>
                 </div>
               </div>
@@ -404,11 +406,11 @@ export default function WelcomePage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <span className="text-2xl">🤖</span>
-                      AI Assistant Pro Tip
+                      {t('onboarding.aiProTip.title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <p className="text-sm">Don't remember how to do something? Just ask the AI! It can create goals, add transactions, schedule events, and more through natural conversation.</p>
+                    <p className="text-sm">{t('onboarding.aiProTip.description')}</p>
                     <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
                       <p className="text-sm italic">"Create a goal to save $5,000 for vacation by December"</p>
                     </div>

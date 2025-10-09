@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12 horas",
     "24h": "24 horas"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bienvenido a Twealth",
+      "description": "Tu compañero financiero impulsado por IA para alcanzar tus metas de vida"
+    },
+    "aiAssistant": {
+      "title": "Conoce a tu Asistente IA",
+      "description": "Obtén consejos financieros instantáneos, optimización de presupuesto y estrategias para objetivos",
+      "cardTitle": "🤖 Asistente IA",
+      "cardDescription": "Chatea con IA para obtener consejos financieros instantáneos"
+    },
+    "trackMoney": {
+      "title": "Rastrea tus Finanzas",
+      "description": "Añade transacciones y observa automáticamente análisis inteligentes de gastos"
+    },
+    "setGoals": {
+      "title": "Establece Objetivos Financieros",
+      "description": "Crea objetivos y deja que la IA sugiera el mejor camino para alcanzarlos",
+      "cardTitle": "🎯 Objetivos Inteligentes",
+      "cardDescription": "Seguimiento de objetivos y estrategias impulsadas por IA"
+    },
+    "groupPlanning": {
+      "title": "Planifica con Grupos",
+      "description": "Colabora en objetivos financieros compartidos con amigos y familia",
+      "cardTitle": "👥 Planificación Grupal",
+      "cardDescription": "Colabora en objetivos financieros compartidos"
+    },
+    "proTips": {
+      "title": "Consejos Pro y Atajos",
+      "description": "Aprende atajos de teclado y funciones de productividad"
+    },
+    "actions": {
+      "getStarted": "Comenzar",
+      "tryAiChat": "Probar Chat IA",
+      "addFirstTransaction": "Añadir Primera Transacción",
+      "createFirstGoal": "Crear Primer Objetivo",
+      "createGroup": "Crear Grupo",
+      "finish": "Finalizar y Comenzar a Rastrear",
+      "skip": "Saltar Tour"
+    },
+    "aiProTip": {
+      "title": "Consejo Pro del Asistente IA",
+      "description": "¿No recuerdas cómo hacer algo? ¡Solo pregúntale a la IA! Puede crear objetivos, añadir transacciones, programar eventos y más a través de conversación natural."
+    },
+    "stepIndicator": "Paso {current} de {total}"
   }
 }

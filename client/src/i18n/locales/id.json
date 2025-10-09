@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12 jam",
     "24h": "24 jam"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Selamat Datang di Twealth",
+      "description": "Teman keuangan bertenaga AI Anda untuk mencapai tujuan hidup"
+    },
+    "aiAssistant": {
+      "title": "Temui Asisten AI Anda",
+      "description": "Dapatkan saran keuangan instan, optimisasi anggaran, dan strategi tujuan",
+      "cardTitle": "🤖 Asisten AI",
+      "cardDescription": "Chat dengan AI untuk saran keuangan instan"
+    },
+    "trackMoney": {
+      "title": "Lacak Keuangan Anda",
+      "description": "Tambahkan transaksi dan lihat wawasan pengeluaran cerdas secara otomatis"
+    },
+    "setGoals": {
+      "title": "Tetapkan Tujuan Keuangan",
+      "description": "Buat tujuan dan biarkan AI menyarankan jalur terbaik untuk mencapainya",
+      "cardTitle": "🎯 Tujuan Cerdas",
+      "cardDescription": "Pelacakan tujuan dan strategi bertenaga AI"
+    },
+    "groupPlanning": {
+      "title": "Rencanakan dengan Grup",
+      "description": "Berkolaborasi pada tujuan keuangan bersama dengan teman dan keluarga",
+      "cardTitle": "👥 Perencanaan Grup",
+      "cardDescription": "Berkolaborasi pada tujuan keuangan bersama"
+    },
+    "proTips": {
+      "title": "Tips Pro & Pintasan",
+      "description": "Pelajari pintasan keyboard dan fitur produktivitas"
+    },
+    "actions": {
+      "getStarted": "Mulai",
+      "tryAiChat": "Coba Chat AI",
+      "addFirstTransaction": "Tambah Transaksi Pertama",
+      "createFirstGoal": "Buat Tujuan Pertama",
+      "createGroup": "Buat Grup",
+      "finish": "Selesai & Mulai Melacak",
+      "skip": "Lewati Tur"
+    },
+    "aiProTip": {
+      "title": "Tip Pro Asisten AI",
+      "description": "Tidak ingat cara melakukan sesuatu? Tanyakan saja pada AI! Ia dapat membuat tujuan, menambahkan transaksi, menjadwalkan acara, dan lainnya melalui percakapan alami."
+    },
+    "stepIndicator": "Langkah {current} dari {total}"
   }
 }

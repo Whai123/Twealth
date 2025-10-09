@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12 horas",
     "24h": "24 horas"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bem-vindo ao Twealth",
+      "description": "Seu companheiro financeiro com IA para alcançar suas metas de vida"
+    },
+    "aiAssistant": {
+      "title": "Conheça seu Assistente IA",
+      "description": "Receba conselhos financeiros instantâneos, otimização de orçamento e estratégias de metas",
+      "cardTitle": "🤖 Assistente IA",
+      "cardDescription": "Converse com IA para obter conselhos financeiros instantâneos"
+    },
+    "trackMoney": {
+      "title": "Acompanhe suas Finanças",
+      "description": "Adicione transações e veja insights inteligentes de gastos automaticamente"
+    },
+    "setGoals": {
+      "title": "Defina Metas Financeiras",
+      "description": "Crie metas e deixe a IA sugerir o melhor caminho para alcançá-las",
+      "cardTitle": "🎯 Metas Inteligentes",
+      "cardDescription": "Acompanhamento de metas e estratégias com IA"
+    },
+    "groupPlanning": {
+      "title": "Planeje com Grupos",
+      "description": "Colabore em metas financeiras compartilhadas com amigos e família",
+      "cardTitle": "👥 Planejamento em Grupo",
+      "cardDescription": "Colabore em metas financeiras compartilhadas"
+    },
+    "proTips": {
+      "title": "Dicas Profissionais e Atalhos",
+      "description": "Aprenda atalhos de teclado e recursos de produtividade"
+    },
+    "actions": {
+      "getStarted": "Começar",
+      "tryAiChat": "Experimentar Chat IA",
+      "addFirstTransaction": "Adicionar Primeira Transação",
+      "createFirstGoal": "Criar Primeira Meta",
+      "createGroup": "Criar Grupo",
+      "finish": "Concluir e Começar a Acompanhar",
+      "skip": "Pular Tour"
+    },
+    "aiProTip": {
+      "title": "Dica Profissional do Assistente IA",
+      "description": "Não se lembra de como fazer algo? Apenas pergunte à IA! Ela pode criar metas, adicionar transações, agendar eventos e muito mais através de conversa natural."
+    },
+    "stepIndicator": "Passo {current} de {total}"
   }
 }

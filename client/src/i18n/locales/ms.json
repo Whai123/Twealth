@@ -599,5 +599,51 @@
   "timeFormats": {
     "12h": "12-jam",
     "24h": "24-jam"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Selamat Datang ke Twealth",
+      "description": "Rakan kewangan berkuasa AI anda untuk mencapai matlamat hidup"
+    },
+    "aiAssistant": {
+      "title": "Temui Pembantu AI Anda",
+      "description": "Dapatkan nasihat kewangan segera, pengoptimuman belanjawan dan strategi matlamat",
+      "cardTitle": "🤖 Pembantu AI",
+      "cardDescription": "Sembang dengan AI untuk nasihat kewangan segera"
+    },
+    "trackMoney": {
+      "title": "Jejaki Kewangan Anda",
+      "description": "Tambah transaksi dan lihat pandangan perbelanjaan pintar secara automatik"
+    },
+    "setGoals": {
+      "title": "Tetapkan Matlamat Kewangan",
+      "description": "Cipta matlamat dan biarkan AI mencadangkan jalan terbaik untuk mencapainya",
+      "cardTitle": "🎯 Matlamat Pintar",
+      "cardDescription": "Penjejakan matlamat dan strategi berkuasa AI"
+    },
+    "groupPlanning": {
+      "title": "Rancang dengan Kumpulan",
+      "description": "Bekerjasama pada matlamat kewangan bersama dengan rakan dan keluarga",
+      "cardTitle": "👥 Perancangan Kumpulan",
+      "cardDescription": "Bekerjasama pada matlamat kewangan bersama"
+    },
+    "proTips": {
+      "title": "Petua Pro & Pintasan",
+      "description": "Pelajari pintasan papan kekunci dan ciri produktiviti"
+    },
+    "actions": {
+      "getStarted": "Mulakan",
+      "tryAiChat": "Cuba AI Chat",
+      "addFirstTransaction": "Tambah Transaksi Pertama",
+      "createFirstGoal": "Cipta Matlamat Pertama",
+      "createGroup": "Cipta Kumpulan",
+      "finish": "Selesai & Mula Jejak",
+      "skip": "Langkau Lawatan"
+    },
+    "aiProTip": {
+      "title": "Petua Pro Pembantu AI",
+      "description": "Tidak ingat cara membuat sesuatu? Tanya AI sahaja! Ia boleh mencipta matlamat, menambah transaksi, menjadualkan acara dan banyak lagi melalui perbualan semula jadi."
+    },
+    "stepIndicator": "Langkah {current} daripada {total}"
   }
 }
