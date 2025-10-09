@@ -644,6 +644,6 @@
       "title": "Dica Profissional do Assistente IA",
       "description": "Não se lembra de como fazer algo? Apenas pergunte à IA! Ela pode criar metas, adicionar transações, agendar eventos e muito mais através de conversa natural."
     },
-    "stepIndicator": "Passo {current} de {total}"
+    "stepIndicator": "Passo {{current}} de {{total}}"
   }
 }

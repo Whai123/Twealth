@@ -644,6 +644,6 @@
       "title": "Tip Pro Asisten AI",
       "description": "Tidak ingat cara melakukan sesuatu? Tanyakan saja pada AI! Ia dapat membuat tujuan, menambahkan transaksi, menjadwalkan acara, dan lainnya melalui percakapan alami."
     },
-    "stepIndicator": "Langkah {current} dari {total}"
+    "stepIndicator": "Langkah {{current}} dari {{total}}"
   }
 }

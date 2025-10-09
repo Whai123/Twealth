@@ -644,6 +644,6 @@
       "title": "Petua Pro Pembantu AI",
       "description": "Tidak ingat cara membuat sesuatu? Tanya AI sahaja! Ia boleh mencipta matlamat, menambah transaksi, menjadualkan acara dan banyak lagi melalui perbualan semula jadi."
     },
-    "stepIndicator": "Langkah {current} daripada {total}"
+    "stepIndicator": "Langkah {{current}} daripada {{total}}"
   }
 }

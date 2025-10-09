@@ -644,6 +644,6 @@
       "title": "Pro Tip ng AI Assistant",
       "description": "Hindi naaalala kung paano gumawa ng isang bagay? Itanong lang sa AI! Maaari nitong gawin ang mga layunin, magdagdag ng mga transaksyon, mag-iskedyul ng mga event, at higit pa sa pamamagitan ng natural na pag-uusap."
     },
-    "stepIndicator": "Hakbang {current} ng {total}"
+    "stepIndicator": "Hakbang {{current}} ng {{total}}"
   }
 }

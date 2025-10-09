@@ -644,6 +644,6 @@
       "title": "AI Asistanı Profesyonel İpucu",
       "description": "Bir şeyi nasıl yapacağınızı hatırlamıyor musunuz? AI'a sorun! Doğal konuşma yoluyla hedefler oluşturabilir, işlem ekleyebilir, etkinlik planlayabilir ve daha fazlasını yapabilir."
     },
-    "stepIndicator": "Adım {current} / {total}"
+    "stepIndicator": "Adım {{current}} / {{total}}"
   }
 }

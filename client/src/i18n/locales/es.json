@@ -644,6 +644,6 @@
       "title": "Consejo Pro del Asistente IA",
       "description": "¿No recuerdas cómo hacer algo? ¡Solo pregúntale a la IA! Puede crear objetivos, añadir transacciones, programar eventos y más a través de conversación natural."
     },
-    "stepIndicator": "Paso {current} de {total}"
+    "stepIndicator": "Paso {{current}} de {{total}}"
   }
 }

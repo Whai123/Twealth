@@ -644,6 +644,6 @@
       "title": "Mẹo Chuyên nghiệp Trợ lý AI",
       "description": "Không nhớ cách làm điều gì đó? Chỉ cần hỏi AI! Nó có thể tạo mục tiêu, thêm giao dịch, lên lịch sự kiện và nhiều hơn nữa thông qua cuộc trò chuyện tự nhiên."
     },
-    "stepIndicator": "Bước {current} trong {total}"
+    "stepIndicator": "Bước {{current}} trong {{total}}"
   }
 }
