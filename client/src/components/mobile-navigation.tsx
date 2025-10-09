@@ -27,11 +27,11 @@ import TransactionForm from "./forms/transaction-form";
 import EventForm from "./forms/event-form";
 
 const getNavigation = (t: (key: string) => string) => [
-  { name: t('navigation.dashboard'), href: "/", icon: Home, label: "Home" },
-  { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain, label: "AI" },
-  { name: "Crypto", href: "/crypto", icon: Bitcoin, label: "Crypto" },
-  { name: t('navigation.calendar'), href: "/calendar", icon: Calendar, label: "Calendar" },
-  { name: "Premium", href: "/subscription", icon: Crown, label: "Premium" },
+  { name: t('navigation.dashboard'), href: "/", icon: Home, label: t('navigation.labels.home') },
+  { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
+  { name: t('navigation.crypto'), href: "/crypto", icon: Bitcoin, label: t('navigation.labels.crypto') },
+  { name: t('navigation.calendar'), href: "/calendar", icon: Calendar, label: t('navigation.labels.calendar') },
+  { name: t('navigation.premium'), href: "/subscription", icon: Crown, label: t('navigation.labels.premium') },
 ];
 
 export default function MobileNavigation() {
@@ -45,8 +45,8 @@ export default function MobileNavigation() {
   const quickActions = [
     {
       id: "add-goal",
-      title: "New Goal",
-      description: "Set financial target",
+      title: t('quickActions.newGoal'),
+      description: t('quickActions.newGoalDesc'),
       icon: Target,
       color: "text-primary",
       bgColor: "bg-primary/10",
@@ -54,8 +54,8 @@ export default function MobileNavigation() {
     },
     {
       id: "add-transaction",
-      title: "Add Transaction",
-      description: "Record income/expense",
+      title: t('quickActions.addTransaction'),
+      description: t('quickActions.addTransactionDesc'),
       icon: DollarSign,
       color: "text-success",
       bgColor: "bg-success/10",
@@ -63,8 +63,8 @@ export default function MobileNavigation() {
     },
     {
       id: "schedule-event",
-      title: "Schedule Event",
-      description: "Plan new activity",
+      title: t('quickActions.scheduleEvent'),
+      description: t('quickActions.scheduleEventDesc'),
       icon: Calendar,
       color: "text-warning",
       bgColor: "bg-warning/10",
@@ -84,7 +84,7 @@ export default function MobileNavigation() {
             boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.3), 0 10px 10px -5px hsl(var(--primary) / 0.1)',
             background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.95), hsl(var(--primary) / 0.9))'
           }}
-          aria-label="Add new item"
+          aria-label={t('quickActions.addNew')}
           data-testid="fab-add"
         >
           <Plus size={24} className="drop-shadow-sm" />
@@ -95,9 +95,9 @@ export default function MobileNavigation() {
       <Drawer open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
         <DrawerContent className="max-h-[50vh]">
           <div className="p-4 pb-6">
-            <DrawerTitle className="text-xl font-semibold mb-2">Quick Actions</DrawerTitle>
+            <DrawerTitle className="text-xl font-semibold mb-2">{t('quickActions.title')}</DrawerTitle>
             <DrawerDescription className="text-muted-foreground mb-4">
-              Create goals, transactions, or events instantly
+              {t('quickActions.description')}
             </DrawerDescription>
             <div className="grid grid-cols-3 gap-3">
               {quickActions.map((action) => (
@@ -127,10 +127,10 @@ export default function MobileNavigation() {
           <div className="p-4 pb-6">
             <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              Create New Financial Goal
+              {t('goals.createNew')}
             </DrawerTitle>
             <DrawerDescription className="text-muted-foreground mb-4">
-              Set up a new savings target and track your progress
+              {t('goals.createNewDesc')}
             </DrawerDescription>
             <GoalForm onSuccess={() => setActiveAction(null)} />
           </div>
@@ -143,10 +143,10 @@ export default function MobileNavigation() {
           <div className="p-4 pb-6">
             <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-success" />
-              Add New Transaction
+              {t('moneyTracking.addNew')}
             </DrawerTitle>
             <DrawerDescription className="text-muted-foreground mb-4">
-              Record your income, expenses, or transfers
+              {t('moneyTracking.addNewDesc')}
             </DrawerDescription>
             <TransactionForm onSuccess={() => setActiveAction(null)} />
           </div>
@@ -159,10 +159,10 @@ export default function MobileNavigation() {
           <div className="p-4 pb-6">
             <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-warning" />
-              Schedule New Event
+              {t('calendar.scheduleNew')}
             </DrawerTitle>
             <DrawerDescription className="text-muted-foreground mb-4">
-              Plan your time effectively and track activities
+              {t('calendar.scheduleNewDesc')}
             </DrawerDescription>
             <EventForm onSuccess={() => setActiveAction(null)} />
           </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function CryptoPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,8 +59,8 @@ export default function CryptoPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/portfolio"] });
       toast({
-        title: "Success",
-        description: "Crypto holding added successfully",
+        title: {t('common.success')},
+        description: {t('common.success')},
       });
       setIsAddDialogOpen(false);
       setSelectedCoin(null);
@@ -69,7 +71,7 @@ export default function CryptoPage() {
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add crypto holding",
+        description: error.message || {t('common.error')},
         variant: "destructive",
       });
     },
@@ -84,8 +86,8 @@ export default function CryptoPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/portfolio"] });
       toast({
-        title: "Success",
-        description: "Crypto holding deleted successfully",
+        title: {t('common.success')},
+        description: {t('common.success')},
       });
     },
   });
@@ -94,7 +96,7 @@ export default function CryptoPage() {
     if (!selectedCoin || !amount) {
       toast({
         title: "Error",
-        description: "Please select a cryptocurrency and enter amount",
+        description: {t('common.error')},
         variant: "destructive",
       });
       return;

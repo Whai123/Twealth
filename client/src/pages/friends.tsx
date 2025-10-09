@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, UserPlus, Users, Check, X, Loader2, UserMinus, Mail, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { User } from "@shared/schema";
 
 export default function Friends() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [friendRequestMessage, setFriendRequestMessage] = useState("");
@@ -67,14 +69,14 @@ export default function Friends() {
       setSelectedUser(null);
       setFriendRequestMessage("");
       toast({
-        title: "Friend request sent!",
-        description: "Your friend request has been sent successfully.",
+        title: {t('common.success')},
+        description: {t('common.success')},
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to send friend request",
+        description: error.message || {t('common.error')},
         variant: "destructive",
       });
     },
@@ -90,7 +92,7 @@ export default function Friends() {
       queryClient.invalidateQueries({ queryKey: ["/api/friend-requests/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
       toast({
-        title: variables.status === 'accepted' ? "Friend request accepted" : "Friend request declined",
+        title: variables.status === 'accepted' ? {t('common.success')} : {t('common.success')},
         description: variables.status === 'accepted' 
           ? "You are now friends!" 
           : "Friend request declined.",

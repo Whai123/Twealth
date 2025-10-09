@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -101,6 +102,7 @@ function RecentContributions({ goalId }: { goalId: string }) {
 }
 
 export default function FinancialGoals() {
+  const { t } = useTranslation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFirstGoalDialogOpen, setIsFirstGoalDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');

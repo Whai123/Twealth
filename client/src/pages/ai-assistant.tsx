@@ -108,51 +108,51 @@ export default function AIAssistantPage() {
   const quickActions: QuickAction[] = [
     {
       id: "budget-analysis",
-      title: "Analyze My Budget",
-      description: "Get personalized insights on your spending patterns and budget optimization",
+      title: t('aiAssistant.quickActions.budgetAnalysis.title'),
+      description: t('aiAssistant.quickActions.budgetAnalysis.description'),
       icon: <BarChart3 className="w-5 h-5 text-blue-500" />,
-      prompt: "Please analyze my current budget and spending patterns. What areas should I focus on to improve my financial health?",
-      category: "Budget"
+      prompt: t('aiAssistant.quickActions.budgetAnalysis.prompt'),
+      category: t('aiAssistant.quickActions.budgetAnalysis.category')
     },
     {
       id: "savings-goal",
-      title: "Savings Strategy",
-      description: "Get recommendations for achieving your financial goals faster",
+      title: t('aiAssistant.quickActions.savingsGoal.title'),
+      description: t('aiAssistant.quickActions.savingsGoal.description'),
       icon: <Target className="w-5 h-5 text-green-500" />,
-      prompt: "Based on my financial situation, what's the best strategy to reach my savings goals? How much should I save each month?",
-      category: "Goals"
+      prompt: t('aiAssistant.quickActions.savingsGoal.prompt'),
+      category: t('aiAssistant.quickActions.savingsGoal.category')
     },
     {
       id: "expense-review",
-      title: "Expense Review",
-      description: "Identify unnecessary expenses and potential savings",
+      title: t('aiAssistant.quickActions.expenseReview.title'),
+      description: t('aiAssistant.quickActions.expenseReview.description'),
       icon: <DollarSign className="w-5 h-5 text-yellow-500" />,
-      prompt: "Review my recent expenses and identify areas where I could cut costs or save money. What subscriptions or expenses should I reconsider?",
-      category: "Expenses"
+      prompt: t('aiAssistant.quickActions.expenseReview.prompt'),
+      category: t('aiAssistant.quickActions.expenseReview.category')
     },
     {
       id: "investment-advice",
-      title: "Investment Guidance",
-      description: "Get advice on investment opportunities and portfolio allocation",
+      title: t('aiAssistant.quickActions.investmentAdvice.title'),
+      description: t('aiAssistant.quickActions.investmentAdvice.description'),
       icon: <TrendingUp className="w-5 h-5 text-purple-500" />,
-      prompt: "Given my current financial situation and goals, what investment strategies would you recommend? How should I allocate my portfolio?",
-      category: "Investment"
+      prompt: t('aiAssistant.quickActions.investmentAdvice.prompt'),
+      category: t('aiAssistant.quickActions.investmentAdvice.category')
     },
     {
       id: "debt-strategy",
-      title: "Debt Management",
-      description: "Create a plan to pay off debts efficiently",
+      title: t('aiAssistant.quickActions.debtStrategy.title'),
+      description: t('aiAssistant.quickActions.debtStrategy.description'),
       icon: <AlertTriangle className="w-5 h-5 text-red-500" />,
-      prompt: "Help me create an efficient debt payoff strategy. What's the best approach to minimize interest and pay off my debts quickly?",
-      category: "Debt"
+      prompt: t('aiAssistant.quickActions.debtStrategy.prompt'),
+      category: t('aiAssistant.quickActions.debtStrategy.category')
     },
     {
       id: "cash-flow",
-      title: "Cash Flow Analysis",
-      description: "Understand your money flow and optimize timing",
+      title: t('aiAssistant.quickActions.cashFlow.title'),
+      description: t('aiAssistant.quickActions.cashFlow.description'),
       icon: <Clock className="w-5 h-5 text-indigo-500" />,
-      prompt: "Analyze my cash flow patterns. When do I typically have surplus or shortfall, and how can I optimize my financial timing?",
-      category: "Planning",
+      prompt: t('aiAssistant.quickActions.cashFlow.prompt'),
+      category: t('aiAssistant.quickActions.cashFlow.category'),
       requiresAnalysis: true
     }
   ];
@@ -172,7 +172,7 @@ export default function AIAssistantPage() {
       // Create new conversation if none exists
       if (!conversationId) {
         const response = await apiRequest("POST", "/api/chat/conversations", { 
-          title: "AI Assistant Chat" 
+          title: t('aiAssistant.title') 
         });
         const conversation = await response.json();
         conversationId = conversation.id;
@@ -186,7 +186,7 @@ export default function AIAssistantPage() {
       // Handle quota exceeded error
       if (messageResponse.status === 429) {
         const errorData = await messageResponse.json();
-        throw new Error(errorData.message || "Usage limit exceeded");
+        throw new Error(errorData.message || t('aiAssistant.quotaExceeded'));
       }
       
       return await messageResponse.json();
@@ -217,8 +217,8 @@ export default function AIAssistantPage() {
         });
       } else {
         toast({
-          title: "Error",
-          description: error.message || "Failed to send message",
+          title: t('common.error'),
+          description: error.message || t('aiAssistant.errors.failedToSend'),
           variant: "destructive"
         });
       }
@@ -349,7 +349,7 @@ export default function AIAssistantPage() {
                   <div className="text-2xl font-bold text-green-600">
                     {isLimitExceeded ? "⚠️" : "✅"}
                   </div>
-                  <div className="text-xs text-muted-foreground">{isLimitExceeded ? "Limit reached" : "Active"}</div>
+                  <div className="text-xs text-muted-foreground">{isLimitExceeded ? t('aiAssistant.stats.limitReached') : t('aiAssistant.stats.active')}</div>
                 </div>
               </div>
             )}

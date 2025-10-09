@@ -39,88 +39,88 @@ interface NavSection {
 
 const getNavigationSections = (t: (key: string) => string): NavSection[] => [
   {
-    title: "Main",
+    title: t('navigation.sections.main'),
     items: [
       { 
         name: t('navigation.dashboard'), 
         href: "/", 
         icon: Home,
-        description: "View your financial overview and insights"
+        description: t('navigation.descriptions.dashboard')
       },
       { 
         name: t('navigation.aiAssistant'), 
         href: "/ai-assistant", 
         icon: Brain,
-        description: "Chat with AI to manage your finances"
+        description: t('navigation.descriptions.aiAssistant')
       },
     ]
   },
   {
-    title: "Finance",
+    title: t('navigation.sections.finance'),
     items: [
       { 
         name: t('navigation.goals'), 
         href: "/financial-goals", 
         icon: Target,
-        description: "Set and track savings goals"
+        description: t('navigation.descriptions.goals')
       },
       { 
         name: t('navigation.money'), 
         href: "/money-tracking", 
         icon: TrendingUp,
-        description: "Track income and expenses"
+        description: t('navigation.descriptions.money')
       },
       { 
-        name: "Crypto", 
+        name: t('navigation.crypto'), 
         href: "/crypto", 
         icon: Bitcoin,
-        description: "Monitor cryptocurrency holdings"
+        description: t('navigation.descriptions.crypto')
       },
     ]
   },
   {
-    title: "Social",
+    title: t('navigation.sections.social'),
     items: [
       { 
-        name: "Friends", 
+        name: t('navigation.friends'), 
         href: "/friends", 
         icon: UserPlus,
-        description: "Connect with friends for collaboration"
+        description: t('navigation.descriptions.friends')
       },
       { 
         name: t('navigation.groups'), 
         href: "/groups", 
         icon: Users,
-        description: "Manage shared financial groups"
+        description: t('navigation.descriptions.groups')
       },
       { 
         name: t('navigation.calendar'), 
         href: "/calendar", 
         icon: Calendar,
-        description: "Schedule events and meetings"
+        description: t('navigation.descriptions.calendar')
       },
     ]
   },
   {
-    title: "More",
+    title: t('navigation.sections.more'),
     items: [
       { 
-        name: "Planning", 
+        name: t('navigation.planning'), 
         href: "/planning", 
         icon: Lightbulb,
-        description: "Time tracking and productivity"
+        description: t('navigation.descriptions.planning')
       },
       { 
         name: t('navigation.referrals'), 
         href: "/referrals", 
         icon: Gift,
-        description: "Invite friends and earn rewards"
+        description: t('navigation.descriptions.referrals')
       },
       { 
-        name: "Premium", 
+        name: t('navigation.premium'), 
         href: "/subscription", 
         icon: Crown,
-        description: "Unlock advanced features"
+        description: t('navigation.descriptions.premium')
       },
     ]
   }
@@ -227,7 +227,7 @@ export default function Sidebar() {
                     onClick={toggleTheme}
                     className="h-8 w-8 p-0"
                     data-testid="button-theme-toggle"
-                    aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                    aria-label={theme === "dark" ? t('theme.switchToLight') : t('theme.switchToDark')}
                   >
                     {theme === "dark" ? (
                       <Sun size={16} className="text-muted-foreground hover:text-foreground" aria-hidden="true" />
@@ -237,7 +237,7 @@ export default function Sidebar() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-xs">{theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}</p>
+                  <p className="text-xs">{theme === "dark" ? t('theme.switchToLight') : t('theme.switchToDark')}</p>
                 </TooltipContent>
               </Tooltip>
             </div>

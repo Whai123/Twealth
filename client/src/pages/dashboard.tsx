@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Plus, Clock, DollarSign, Brain, MessageCircle, Zap, TrendingUp, Star, Award, Target, Sparkles, Crown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -28,6 +29,7 @@ import AIInsightsCard from "@/components/dashboard/ai-insights-card";
 import CryptoPortfolioWidget from "@/components/dashboard/crypto-portfolio-widget";
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
@@ -92,9 +94,9 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    💎 Twealth Dashboard
+                    {t('dashboard.title')}
                   </h1>
-                  <p className="text-xl text-muted-foreground">Transform time into wealth with smart financial management</p>
+                  <p className="text-xl text-muted-foreground">{t('dashboard.subtitle')}</p>
                 </div>
               </div>
               
@@ -110,12 +112,12 @@ export default function Dashboard() {
                   <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-growth">
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingUp className={`w-5 h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
-                      <span className="text-sm font-medium">Growth</span>
+                      <span className="text-sm font-medium">{t('dashboard.stats.growth')}</span>
                     </div>
                     <div className={`text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
                       {growthPercent >= 0 ? '+' : ''}{growthPercent}%
                     </div>
-                    <div className="text-xs text-muted-foreground">This period</div>
+                    <div className="text-xs text-muted-foreground">{t('dashboard.stats.thisPeriod')}</div>
                   </div>
                 )}
                 
@@ -129,12 +131,12 @@ export default function Dashboard() {
                   <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-goals">
                     <div className="flex items-center gap-2 mb-2">
                       <Target className="w-5 h-5 text-blue-500" aria-hidden="true" />
-                      <span className="text-sm font-medium">Goals</span>
+                      <span className="text-sm font-medium">{t('dashboard.stats.goals')}</span>
                     </div>
                     <div className="text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
                       {goalsOnTrack}/{activeGoalsCount}
                     </div>
-                    <div className="text-xs text-muted-foreground">On track</div>
+                    <div className="text-xs text-muted-foreground">{t('dashboard.stats.onTrack')}</div>
                   </div>
                 )}
                 
@@ -148,13 +150,13 @@ export default function Dashboard() {
                   <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-score">
                     <div className="flex items-center gap-2 mb-2">
                       <Award className="w-5 h-5 text-orange-500" aria-hidden="true" />
-                      <span className="text-sm font-medium">Score</span>
+                      <span className="text-sm font-medium">{t('dashboard.stats.score')}</span>
                     </div>
                     <div className="text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
                       {financialScore}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {financialScore >= 800 ? 'Excellent' : financialScore >= 600 ? 'Good' : financialScore >= 400 ? 'Fair' : 'Building'}
+                      {financialScore >= 800 ? t('dashboard.stats.excellent') : financialScore >= 600 ? t('dashboard.stats.good') : financialScore >= 400 ? t('dashboard.stats.fair') : t('dashboard.stats.building')}
                     </div>
                   </div>
                 )}
@@ -162,12 +164,12 @@ export default function Dashboard() {
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-streak">
                   <div className="flex items-center gap-2 mb-2">
                     <Crown className="w-5 h-5 text-purple-500" aria-hidden="true" />
-                    <span className="text-sm font-medium">Streak</span>
+                    <span className="text-sm font-medium">{t('dashboard.stats.streak')}</span>
                   </div>
                   <div className="text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
                     {streak}
                   </div>
-                  <div className="text-xs text-muted-foreground">Days active</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.stats.daysActive')}</div>
                 </div>
               </div>
             </div>
@@ -181,15 +183,15 @@ export default function Dashboard() {
                     data-testid="button-new-goal"
                   >
                     <Plus size={18} className="mr-2" />
-                    <span className="hidden sm:inline">🎯 New Goal</span>
+                    <span className="hidden sm:inline">{t('dashboard.newGoal')}</span>
                     <span className="sm:hidden">+</span>
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="max-h-[90vh]">
                   <div className="p-4 pb-6">
-                    <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
+                    <DrawerTitle className="text-xl font-semibold mb-2">{t('goals.createNew')}</DrawerTitle>
                     <DrawerDescription className="text-muted-foreground mb-4">
-                      Set up a new financial goal to track your savings progress
+                      {t('goals.createNewDesc')}
                     </DrawerDescription>
                     <GoalForm onSuccess={() => setIsCreateGoalOpen(false)} />
                   </div>
@@ -204,8 +206,8 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6 text-indigo-500 animate-pulse" aria-hidden="true" />
               <div>
-                <h2 className="text-lg font-semibold text-indigo-800 dark:text-indigo-200">Welcome back! 👋</h2>
-                <p className="text-indigo-600 dark:text-indigo-300">You're making excellent progress on your financial journey. Here's what's happening today.</p>
+                <h2 className="text-lg font-semibold text-indigo-800 dark:text-indigo-200">{t('dashboard.welcome')}</h2>
+                <p className="text-indigo-600 dark:text-indigo-300">{t('dashboard.welcomeMessage')}</p>
               </div>
             </div>
           </div>
@@ -243,8 +245,8 @@ export default function Dashboard() {
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Meet Your AI Financial Assistant</h3>
-                  <p className="text-muted-foreground text-sm">Get personalized budget analysis, savings strategies, and investment guidance</p>
+                  <h3 className="font-semibold text-lg">{t('dashboard.aiAssistant.title')}</h3>
+                  <p className="text-muted-foreground text-sm">{t('dashboard.aiAssistant.description')}</p>
                 </div>
               </div>
               <div className="flex space-x-2">
@@ -254,12 +256,12 @@ export default function Dashboard() {
                   data-testid="button-try-ai-chat"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Try AI Chat
+                  {t('dashboard.aiAssistant.tryChat')}
                 </Button>
                 <Link href="/ai-assistant">
                   <Button data-testid="button-explore-ai">
                     <Zap className="w-4 h-4 mr-2" />
-                    Explore AI Features
+                    {t('dashboard.aiAssistant.exploreFeatures')}
                   </Button>
                 </Link>
               </div>

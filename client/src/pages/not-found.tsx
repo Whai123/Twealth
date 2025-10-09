@@ -2,18 +2,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home, Search, Compass, Sparkles, TrendingUp } from "lucide-react";
 import { useLocation } from "wouter";
+import { useTranslation } from 'react-i18next';
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   const handleGoHome = () => setLocation("/");
   const handleGoBack = () => window.history.back();
 
   const quickActions = [
-    { icon: Home, label: "Dashboard", path: "/", color: "from-blue-500 to-purple-600" },
-    { icon: TrendingUp, label: "Money Tracking", path: "/money-tracking", color: "from-green-500 to-blue-500" },
-    { icon: Sparkles, label: "AI Assistant", path: "/ai-assistant", color: "from-purple-500 to-pink-500" },
-    { icon: Compass, label: "Financial Goals", path: "/financial-goals", color: "from-orange-500 to-red-500" }
+    { icon: Home, label: t('navigation.dashboard'), path: "/", color: "from-blue-500 to-purple-600" },
+    { icon: TrendingUp, label: t('navigation.money'), path: "/money-tracking", color: "from-green-500 to-blue-500" },
+    { icon: Sparkles, label: t('navigation.aiAssistant'), path: "/ai-assistant", color: "from-purple-500 to-pink-500" },
+    { icon: Compass, label: t('navigation.goals'), path: "/financial-goals", color: "from-orange-500 to-red-500" }
   ];
 
   return (
@@ -32,10 +34,10 @@ export default function NotFound() {
         {/* Modern messaging */}
         <div className="space-y-4">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-            Oops! Page Not Found
+            {t('notFound.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            The page you're looking for seems to have taken a detour. Let's get you back on track!
+            {t('notFound.message')}
           </p>
         </div>
 
@@ -49,7 +51,7 @@ export default function NotFound() {
             data-testid="button-go-back"
           >
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Go Back
+            {t('notFound.goBack')}
           </Button>
           
           <Button 
@@ -59,13 +61,13 @@ export default function NotFound() {
             data-testid="button-go-home"
           >
             <Home className="w-5 h-5 mr-2" />
-            Back to Dashboard
+            {t('notFound.backToDashboard')}
           </Button>
         </div>
 
         {/* Quick navigation */}
         <Card className="bg-card/95 backdrop-blur-sm border border-border/50 p-6">
-          <h3 className="text-xl font-semibold mb-4 text-foreground">Quick Access</h3>
+          <h3 className="text-xl font-semibold mb-4 text-foreground">{t('notFound.quickAccess')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {quickActions.map((action, index) => (
               <Button
@@ -88,10 +90,10 @@ export default function NotFound() {
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/50">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            <span className="font-medium text-blue-900 dark:text-blue-100">Pro Tip</span>
+            <span className="font-medium text-blue-900 dark:text-blue-100">{t('notFound.proTip')}</span>
           </div>
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            Use our AI Assistant to help navigate and find exactly what you're looking for!
+            {t('notFound.proTipMessage')}
           </p>
         </div>
       </div>

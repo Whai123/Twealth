@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 import { Plus, Calendar, Users, Clock, CheckCircle, XCircle, TrendingUp, Brain, Sparkles, MoreHorizontal, Settings, UserPlus, Trash2, Copy, Share, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserId } from "@/lib/userContext";
 
 export default function Groups() {
+  const { t } = useTranslation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   // Check for create query parameter and open dialog automatically
@@ -59,13 +61,13 @@ export default function Groups() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
-        title: "Group deleted",
-        description: "The group has been successfully deleted.",
+        title: t('groups.actions.delete'),
+        description: t('groups.empty.description'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -85,13 +87,13 @@ export default function Groups() {
     onSuccess: (data) => {
       setGeneratedInvite(data);
       toast({
-        title: "Invite created",
-        description: "Invite link has been generated successfully.",
+        title: t('groups.actions.invite'),
+        description: t('groups.empty.description'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -113,14 +115,14 @@ export default function Groups() {
       const shareUrl = `${window.location.origin}/shared/calendar/${data.share.token}`;
       navigator.clipboard.writeText(shareUrl);
       toast({
-        title: "Calendar shared successfully!",
-        description: "The calendar share link has been copied to your clipboard.",
+        title: {t('common.success')},
+        description: {t('referrals.copiedDescription')},
       });
       setCalendarShareDialogOpen(false);
     },
     onError: (error: any) => {
       toast({
-        title: "Error creating calendar share",
+        title: {t('common.error')},
         description: error.message,
         variant: "destructive",
       });
@@ -133,8 +135,8 @@ export default function Groups() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
-        title: "RSVP updated",
-        description: "Your RSVP has been recorded successfully.",
+        title: {t('calendar.rsvpStatus.going')},
+        description: {t('common.success')},
       });
     },
     onError: (error: any) => {
@@ -147,7 +149,7 @@ export default function Groups() {
   });
 
   const handleDeleteGroup = (groupId: string) => {
-    if (confirm("Are you sure you want to delete this group?")) {
+    if (confirm({t('common.confirm')})) {
       deleteGroupMutation.mutate(groupId);
     }
   };
@@ -202,13 +204,13 @@ export default function Groups() {
       const inviteUrl = `${window.location.origin}/invite/${generatedInvite.invite.token}`;
       navigator.clipboard.writeText(inviteUrl);
       toast({
-        title: "Link copied",
-        description: "Invite link has been copied to clipboard.",
+        title: {t('common.copied')},
+        description: {t('referrals.copiedDescription')},
       });
     } else {
       toast({
         title: "Error",
-        description: "No invite link available to copy.",
+        description: {t('common.error')},
         variant: "destructive",
       });
     }
@@ -244,8 +246,8 @@ export default function Groups() {
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold">Groups</h1>
-            <p className="text-muted-foreground">Manage your group memberships and create new groups</p>
+            <h1 className="text-2xl font-bold">{t('groups.title')}</h1>
+            <p className="text-muted-foreground">{t('groups.subtitle')}</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -283,9 +285,9 @@ export default function Groups() {
                 </div>
                 <div>
                   <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    🚀 Team Collaboration
+                    🚀 {t('groups.title')}
                   </h1>
-                  <p className="text-xl text-muted-foreground">Plan together, achieve together - AI-powered group management</p>
+                  <p className="text-xl text-muted-foreground">{t('groups.subtitle')}</p>
                 </div>
               </div>
               
@@ -294,10 +296,10 @@ export default function Groups() {
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="w-5 h-5 text-emerald-500" />
-                    <span className="text-sm font-medium">Active Groups</span>
+                    <span className="text-sm font-medium">{t('dashboard.stats.activeGroups')}</span>
                   </div>
                   <div className="text-2xl font-bold text-emerald-600">{userGroups.length}</div>
-                  <div className="text-xs text-muted-foreground">Your teams</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.stats.yourTeams')}</div>
                 </div>
                 
                 <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
@@ -339,7 +341,7 @@ export default function Groups() {
                     data-testid="button-create-group"
                   >
                     <Sparkles size={18} className="mr-2" />
-                    🎯 Create Group
+                    🎯 {t('groups.createGroup')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -454,7 +456,7 @@ export default function Groups() {
               };
             } else {
               eventData = {
-                nextEvent: "No upcoming events",
+                nextEvent: {t('dashboard.empty.events')},
                 eventDate: null,
                 eventId: null,
                 userRSVPStatus: null,
