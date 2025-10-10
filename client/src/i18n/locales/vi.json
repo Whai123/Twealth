@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Bảng điều khiển Twealth",
+    "subtitle": "Trung tâm chỉ huy tài chính hỗ trợ bởi AI",
     "welcome": "Chào mừng trở lại,",
+    "welcomeMessage": "Chuyển đổi tương lai tài chính của bạn với công nghệ thông minh",
+    "newGoal": "Mục tiêu mới",
     "overview": "Tổng quan tài chính",
     "stats": {
       "totalBalance": "Tổng số dư",
@@ -160,7 +164,18 @@
       "successRate": "Tỷ lệ thành công",
       "eventViability": "Khả thi sự kiện",
       "aiInsights": "Thông tin chi tiết AI",
-      "thisWeek": "Tuần này"
+      "thisWeek": "Tuần này",
+      "growth": "Tăng trưởng",
+      "thisPeriod": "Kỳ này",
+      "goals": "Mục tiêu",
+      "onTrack": "Đúng tiến độ",
+      "score": "Điểm số",
+      "excellent": "Xuất sắc",
+      "good": "Tốt",
+      "fair": "Khá",
+      "building": "Đang xây dựng",
+      "streak": "Chuỗi",
+      "daysActive": "Ngày hoạt động"
     },
     "recentTransactions": "Giao dịch gần đây",
     "financialGoals": "Mục tiêu tài chính",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Quản lý nhóm thông minh",
       "description": "AI phân tích động lực nhóm và đề xuất chiến lược lập kế hoạch tối ưu để đạt thành công tối đa."
+    },
+    "aiAssistant": {
+      "title": "Trợ lý tài chính hỗ trợ bởi AI",
+      "description": "Nhận thông tin chi tiết và đề xuất được cá nhân hóa bằng AI tiên tiến",
+      "tryChat": "Thử trò chuyện AI",
+      "exploreFeatures": "Khám phá tính năng"
     },
     "empty": {
       "transactions": "Chưa có giao dịch nào",

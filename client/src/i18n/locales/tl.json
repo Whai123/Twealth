@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Twealth Dashboard",
+    "subtitle": "Ang Iyong AI-Powered Financial Command Center",
     "welcome": "Maligayang pagbabalik,",
+    "welcomeMessage": "Baguhin ang iyong kinabukasang pinansyal gamit ang matalinong teknolohiya",
+    "newGoal": "Bagong Layunin",
     "overview": "Pinansiyal na Overview",
     "stats": {
       "totalBalance": "Kabuuang Balanse",
@@ -160,7 +164,18 @@
       "successRate": "Success Rate",
       "eventViability": "Viability ng event",
       "aiInsights": "AI Insights",
-      "thisWeek": "Ngayong linggo"
+      "thisWeek": "Ngayong linggo",
+      "growth": "Paglaki",
+      "thisPeriod": "Panahong Ito",
+      "goals": "Mga Layunin",
+      "onTrack": "Sa Tamang Landas",
+      "score": "Puntos",
+      "excellent": "Napakahusay",
+      "good": "Mabuti",
+      "fair": "Patas",
+      "building": "Bumubuo",
+      "streak": "Sunod-sunod",
+      "daysActive": "Araw na Aktibo"
     },
     "recentTransactions": "Kamakailang Transaksyon",
     "financialGoals": "Pinansiyal na Layunin",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Smart Team Management",
       "description": "Sinusuri ng AI ang dynamics ng iyong grupo at nagmumungkahi ng optimal na mga estratehiya sa pagpaplano para sa maximum na tagumpay."
+    },
+    "aiAssistant": {
+      "title": "AI-Powered Financial Assistant",
+      "description": "Makatanggap ng personalized na insights at mga rekomendasyon powered ng advanced AI",
+      "tryChat": "Subukan ang AI Chat",
+      "exploreFeatures": "Tuklasin ang Mga Feature"
     },
     "empty": {
       "transactions": "Walang transaksyon pa",

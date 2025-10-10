@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Painel Twealth",
+    "subtitle": "Seu Centro de Comando Financeiro com IA",
     "welcome": "Bem-vindo de volta,",
+    "welcomeMessage": "Transforme seu futuro financeiro com tecnologia inteligente",
+    "newGoal": "Nova Meta",
     "overview": "Panorama Financeiro",
     "stats": {
       "totalBalance": "Saldo Total",
@@ -160,7 +164,18 @@
       "successRate": "Taxa de Sucesso",
       "eventViability": "Viabilidade do evento",
       "aiInsights": "Insights IA",
-      "thisWeek": "Esta semana"
+      "thisWeek": "Esta semana",
+      "growth": "Crescimento",
+      "thisPeriod": "Este Período",
+      "goals": "Metas",
+      "onTrack": "No Caminho",
+      "score": "Pontuação",
+      "excellent": "Excelente",
+      "good": "Bom",
+      "fair": "Razoável",
+      "building": "Construindo",
+      "streak": "Sequência",
+      "daysActive": "Dias Ativos"
     },
     "recentTransactions": "Transações Recentes",
     "financialGoals": "Metas Financeiras",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Gestão Inteligente de Equipes",
       "description": "A IA analisa a dinâmica do seu grupo e sugere estratégias de planejamento ideais para máximo sucesso."
+    },
+    "aiAssistant": {
+      "title": "Assistente Financeiro com IA",
+      "description": "Obtenha insights personalizados e recomendações potencializadas por IA avançada",
+      "tryChat": "Experimentar Chat IA",
+      "exploreFeatures": "Explorar Recursos"
     },
     "empty": {
       "transactions": "Nenhuma transação ainda",

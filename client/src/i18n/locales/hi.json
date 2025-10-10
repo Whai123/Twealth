@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Twealth डैशबोर्ड",
+    "subtitle": "आपका AI-संचालित वित्तीय कमांड सेंटर",
     "welcome": "वापस स्वागत है,",
+    "welcomeMessage": "स्मार्ट तकनीक के साथ अपने वित्तीय भविष्य को बदलें",
+    "newGoal": "नया लक्ष्य",
     "overview": "वित्तीय सारांश",
     "stats": {
       "totalBalance": "कुल शेष राशि",
@@ -160,7 +164,18 @@
       "successRate": "सफलता दर",
       "eventViability": "इवेंट व्यवहार्यता",
       "aiInsights": "AI जानकारी",
-      "thisWeek": "इस सप्ताह"
+      "thisWeek": "इस सप्ताह",
+      "growth": "वृद्धि",
+      "thisPeriod": "यह अवधि",
+      "goals": "लक्ष्य",
+      "onTrack": "ट्रैक पर",
+      "score": "स्कोर",
+      "excellent": "उत्कृष्ट",
+      "good": "अच्छा",
+      "fair": "ठीक",
+      "building": "निर्माण",
+      "streak": "लगातार",
+      "daysActive": "सक्रिय दिन"
     },
     "recentTransactions": "हाल के लेनदेन",
     "financialGoals": "वित्तीय लक्ष्य",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "स्मार्ट टीम प्रबंधन",
       "description": "AI आपके ग्रुप की गतिशीलता का विश्लेषण करता है और अधिकतम सफलता के लिए इष्टतम योजना रणनीतियों का सुझाव देता है।"
+    },
+    "aiAssistant": {
+      "title": "AI-संचालित वित्तीय सहायक",
+      "description": "उन्नत AI द्वारा संचालित व्यक्तिगत अंतर्दृष्टि और सिफारिशें प्राप्त करें",
+      "tryChat": "AI चैट आज़माएं",
+      "exploreFeatures": "सुविधाएं देखें"
     },
     "empty": {
       "transactions": "अभी तक कोई लेनदेन नहीं",

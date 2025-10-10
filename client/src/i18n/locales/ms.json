@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Papan Pemuka Twealth",
+    "subtitle": "Pusat Kawalan Kewangan Berkuasa AI Anda",
     "welcome": "Selamat kembali,",
+    "welcomeMessage": "Transformasikan masa depan kewangan anda dengan teknologi pintar",
+    "newGoal": "Matlamat Baharu",
     "overview": "Gambaran Kewangan",
     "stats": {
       "totalBalance": "Baki Keseluruhan",
@@ -160,7 +164,18 @@
       "successRate": "Kadar Kejayaan",
       "eventViability": "Daya maju acara",
       "aiInsights": "Pandangan AI",
-      "thisWeek": "Minggu ini"
+      "thisWeek": "Minggu ini",
+      "growth": "Pertumbuhan",
+      "thisPeriod": "Tempoh Ini",
+      "goals": "Matlamat",
+      "onTrack": "Mengikut Jadual",
+      "score": "Skor",
+      "excellent": "Cemerlang",
+      "good": "Baik",
+      "fair": "Sederhana",
+      "building": "Membina",
+      "streak": "Berturut-turut",
+      "daysActive": "Hari Aktif"
     },
     "recentTransactions": "Transaksi Terkini",
     "financialGoals": "Matlamat Kewangan",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Pengurusan Pasukan Pintar",
       "description": "AI menganalisis dinamik kumpulan anda dan mencadangkan strategi perancangan optimum untuk kejayaan maksimum."
+    },
+    "aiAssistant": {
+      "title": "Pembantu Kewangan Berkuasa AI",
+      "description": "Dapatkan pandangan dan cadangan diperibadikan berkuasa AI canggih",
+      "tryChat": "Cuba Sembang AI",
+      "exploreFeatures": "Terokai Ciri-ciri"
     },
     "empty": {
       "transactions": "Tiada transaksi lagi",

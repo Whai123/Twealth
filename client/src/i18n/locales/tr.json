@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Twealth Kontrol Paneli",
+    "subtitle": "AI Destekli Mali Komuta Merkeziniz",
     "welcome": "Tekrar hoş geldiniz,",
+    "welcomeMessage": "Mali geleceğinizi akıllı teknoloji ile dönüştürün",
+    "newGoal": "Yeni Hedef",
     "overview": "Mali Genel Bakış",
     "stats": {
       "totalBalance": "Toplam Bakiye",
@@ -160,7 +164,18 @@
       "successRate": "Başarı Oranı",
       "eventViability": "Etkinlik uygunluğu",
       "aiInsights": "AI İçgörüleri",
-      "thisWeek": "Bu hafta"
+      "thisWeek": "Bu hafta",
+      "growth": "Büyüme",
+      "thisPeriod": "Bu Dönem",
+      "goals": "Hedefler",
+      "onTrack": "Yolunda",
+      "score": "Puan",
+      "excellent": "Mükemmel",
+      "good": "İyi",
+      "fair": "Orta",
+      "building": "Gelişiyor",
+      "streak": "Seri",
+      "daysActive": "Aktif Günler"
     },
     "recentTransactions": "Son İşlemler",
     "financialGoals": "Mali Hedefler",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Akıllı Takım Yönetimi",
       "description": "AI grup dinamiklerinizi analiz eder ve maksimum başarı için optimal planlama stratejileri önerir."
+    },
+    "aiAssistant": {
+      "title": "AI Destekli Mali Asistan",
+      "description": "Gelişmiş AI tarafından desteklenen kişiselleştirilmiş içgörüler ve öneriler alın",
+      "tryChat": "AI Sohbetini Deneyin",
+      "exploreFeatures": "Özellikleri Keşfedin"
     },
     "empty": {
       "transactions": "Henüz işlem yok",

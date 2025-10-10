@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Dasbor Twealth",
+    "subtitle": "Pusat Komando Keuangan Berbasis AI Anda",
     "welcome": "Selamat datang kembali,",
+    "welcomeMessage": "Transformasikan masa depan keuangan Anda dengan teknologi cerdas",
+    "newGoal": "Tujuan Baru",
     "overview": "Ringkasan Keuangan",
     "stats": {
       "totalBalance": "Saldo Total",
@@ -160,7 +164,18 @@
       "successRate": "Tingkat Keberhasilan",
       "eventViability": "Kelayakan acara",
       "aiInsights": "Wawasan AI",
-      "thisWeek": "Minggu ini"
+      "thisWeek": "Minggu ini",
+      "growth": "Pertumbuhan",
+      "thisPeriod": "Periode Ini",
+      "goals": "Tujuan",
+      "onTrack": "Sesuai Jalur",
+      "score": "Skor",
+      "excellent": "Sangat Baik",
+      "good": "Baik",
+      "fair": "Cukup",
+      "building": "Membangun",
+      "streak": "Beruntun",
+      "daysActive": "Hari Aktif"
     },
     "recentTransactions": "Transaksi Terkini",
     "financialGoals": "Tujuan Keuangan",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Manajemen Tim Cerdas",
       "description": "AI menganalisis dinamika grup Anda dan menyarankan strategi perencanaan optimal untuk kesuksesan maksimal."
+    },
+    "aiAssistant": {
+      "title": "Asisten Keuangan Berbasis AI",
+      "description": "Dapatkan wawasan dan rekomendasi personal yang didukung oleh AI canggih",
+      "tryChat": "Coba Chat AI",
+      "exploreFeatures": "Jelajahi Fitur"
     },
     "empty": {
       "transactions": "Belum ada transaksi",
