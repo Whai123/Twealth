@@ -146,7 +146,11 @@
     }
   },
   "dashboard": {
+    "title": "Twealth Dashboard",
+    "subtitle": "Your AI-Powered Financial Command Center",
     "welcome": "Welcome back,",
+    "welcomeMessage": "Transform your financial future with smart technology",
+    "newGoal": "New Goal",
     "overview": "Financial Overview",
     "stats": {
       "totalBalance": "Total Balance",
@@ -160,7 +164,18 @@
       "successRate": "Success Rate",
       "eventViability": "Event viability",
       "aiInsights": "AI Insights",
-      "thisWeek": "This week"
+      "thisWeek": "This week",
+      "growth": "Growth",
+      "thisPeriod": "This Period",
+      "goals": "Goals",
+      "onTrack": "On Track",
+      "score": "Score",
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "building": "Building",
+      "streak": "Streak",
+      "daysActive": "Days Active"
     },
     "recentTransactions": "Recent Transactions",
     "financialGoals": "Financial Goals",
@@ -169,6 +184,12 @@
     "smartInsights": {
       "title": "Smart Team Management",
       "description": "AI analyzes your group dynamics and suggests optimal planning strategies for maximum success."
+    },
+    "aiAssistant": {
+      "title": "AI-Powered Financial Assistant",
+      "description": "Get personalized insights and recommendations powered by advanced AI",
+      "tryChat": "Try AI Chat",
+      "exploreFeatures": "Explore Features"
     },
     "empty": {
       "transactions": "No transactions yet",
