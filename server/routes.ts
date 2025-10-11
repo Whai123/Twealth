@@ -1576,6 +1576,148 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   type: 'crypto_added',
                   data: holding
                 });
+              } else if (toolCall.name === 'analyze_portfolio_allocation') {
+                // Calculate portfolio allocation based on age and risk tolerance
+                const { age, riskTolerance, investmentAmount } = toolCall.arguments;
+                const stockAllocation = Math.max(10, Math.min(90, 110 - age));
+                const bondAllocation = 100 - stockAllocation;
+                
+                // Adjust for risk tolerance
+                let adjustedStocks = stockAllocation;
+                if (riskTolerance === 'aggressive') adjustedStocks = Math.min(90, stockAllocation + 15);
+                if (riskTolerance === 'conservative') adjustedStocks = Math.max(10, stockAllocation - 15);
+                const adjustedBonds = Math.max(5, 100 - adjustedStocks - 5); // 5% alternatives
+                
+                const stockAmount = (investmentAmount * adjustedStocks / 100);
+                const bondAmount = (investmentAmount * adjustedBonds / 100);
+                const altAmount = investmentAmount - stockAmount - bondAmount;
+                
+                actionsPerformed.push({
+                  type: 'portfolio_analyzed',
+                  data: {
+                    age,
+                    riskTolerance,
+                    investmentAmount,
+                    allocation: {
+                      stocks: { percentage: adjustedStocks, amount: stockAmount },
+                      bonds: { percentage: adjustedBonds, amount: bondAmount },
+                      alternatives: { percentage: Math.round((altAmount / investmentAmount) * 100), amount: altAmount }
+                    }
+                  }
+                });
+              } else if (toolCall.name === 'calculate_debt_payoff') {
+                // Compare avalanche vs snowball debt payoff strategies
+                const { debts, extraPayment } = toolCall.arguments;
+                
+                // Simple debt payoff calculator
+                const calculatePayoff = (debtOrder: any[]) => {
+                  let totalMonths = 0;
+                  let totalInterest = 0;
+                  let remainingDebts = debtOrder.map(d => ({ ...d }));
+                  
+                  while (remainingDebts.length > 0) {
+                    totalMonths++;
+                    // Pay minimum on all debts
+                    remainingDebts.forEach(d => {
+                      const monthlyInterest = (d.balance * d.interestRate / 100) / 12;
+                      totalInterest += monthlyInterest;
+                      d.balance += monthlyInterest - d.minPayment;
+                    });
+                    
+                    // Apply extra payment to first debt
+                    if (remainingDebts.length > 0) {
+                      remainingDebts[0].balance -= extraPayment;
+                    }
+                    
+                    // Remove paid off debts
+                    remainingDebts = remainingDebts.filter(d => d.balance > 0);
+                    
+                    if (totalMonths > 600) break; // Safety limit
+                  }
+                  
+                  return { months: totalMonths, interest: Math.round(totalInterest) };
+                };
+                
+                // Avalanche: Sort by interest rate (highest first)
+                const avalancheOrder = [...debts].sort((a, b) => b.interestRate - a.interestRate);
+                const avalancheResult = calculatePayoff(avalancheOrder);
+                
+                // Snowball: Sort by balance (lowest first)
+                const snowballOrder = [...debts].sort((a, b) => a.balance - b.balance);
+                const snowballResult = calculatePayoff(snowballOrder);
+                
+                actionsPerformed.push({
+                  type: 'debt_analyzed',
+                  data: {
+                    avalanche: {
+                      order: avalancheOrder.map(d => d.name),
+                      months: avalancheResult.months,
+                      totalInterest: avalancheResult.interest
+                    },
+                    snowball: {
+                      order: snowballOrder.map(d => d.name),
+                      months: snowballResult.months,
+                      totalInterest: snowballResult.interest
+                    },
+                    savings: snowballResult.interest - avalancheResult.interest
+                  }
+                });
+              } else if (toolCall.name === 'project_future_value') {
+                // Calculate future value with compound growth and inflation adjustment
+                const { principal, monthlyContribution, annualReturn, years, inflationRate } = toolCall.arguments;
+                const months = years * 12;
+                const monthlyRate = annualReturn / 100 / 12;
+                
+                // Future value formula: FV = PV(1+r)^n + PMT * [((1+r)^n - 1) / r]
+                const principalGrowth = principal * Math.pow(1 + monthlyRate, months);
+                const contributionGrowth = monthlyContribution * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+                const futureValue = principalGrowth + contributionGrowth;
+                
+                // Inflation-adjusted value
+                const inflation = (inflationRate || 3) / 100;
+                const realValue = futureValue / Math.pow(1 + inflation, years);
+                
+                const totalInvested = principal + (monthlyContribution * months);
+                const totalGrowth = futureValue - totalInvested;
+                
+                actionsPerformed.push({
+                  type: 'future_value_calculated',
+                  data: {
+                    futureValue: Math.round(futureValue),
+                    realValue: Math.round(realValue),
+                    totalInvested: Math.round(totalInvested),
+                    totalGrowth: Math.round(totalGrowth),
+                    returnPercentage: Math.round((totalGrowth / totalInvested) * 100)
+                  }
+                });
+              } else if (toolCall.name === 'calculate_retirement_needs') {
+                // Calculate retirement needs using 4% rule
+                const { currentAge, retirementAge, annualExpenses, currentSavings } = toolCall.arguments;
+                const yearsToRetirement = retirementAge - currentAge;
+                const targetAmount = annualExpenses * 25; // 4% rule
+                const needed = targetAmount - currentSavings;
+                
+                // Calculate required monthly savings (assuming 8% annual return)
+                const monthlyRate = 0.08 / 12;
+                const months = yearsToRetirement * 12;
+                const futureValueOfCurrent = currentSavings * Math.pow(1 + monthlyRate, months);
+                const stillNeeded = targetAmount - futureValueOfCurrent;
+                
+                // PMT formula: PMT = FV * r / ((1+r)^n - 1)
+                const requiredMonthly = stillNeeded > 0 
+                  ? stillNeeded * monthlyRate / (Math.pow(1 + monthlyRate, months) - 1)
+                  : 0;
+                
+                actionsPerformed.push({
+                  type: 'retirement_calculated',
+                  data: {
+                    targetAmount: Math.round(targetAmount),
+                    currentSavings: currentSavings,
+                    yearsToRetirement,
+                    requiredMonthly: Math.round(requiredMonthly),
+                    onTrack: requiredMonthly <= (annualExpenses / 12) * 0.15 // 15% of monthly expenses
+                  }
+                });
               }
             } catch (toolError) {
               console.error(`Tool execution error (${toolCall.name}):`, toolError);

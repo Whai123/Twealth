@@ -261,6 +261,124 @@ const TOOLS = [
         required: ["symbol", "amount", "purchasePrice"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "analyze_portfolio_allocation",
+      description: "Provide expert portfolio allocation recommendations based on user's age, risk tolerance, and financial goals. Use when user asks about investment allocation, diversification, or how to split their investments.",
+      parameters: {
+        type: "object",
+        properties: {
+          age: {
+            type: "number",
+            description: "User's age for age-based allocation"
+          },
+          riskTolerance: {
+            type: "string",
+            enum: ["conservative", "moderate", "aggressive"],
+            description: "Risk tolerance level"
+          },
+          investmentAmount: {
+            type: "number",
+            description: "Amount to allocate"
+          }
+        },
+        required: ["age", "riskTolerance", "investmentAmount"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_debt_payoff",
+      description: "Calculate and compare debt payoff strategies (avalanche vs snowball method). Use when user wants to optimize debt payment or asks which debts to pay first.",
+      parameters: {
+        type: "object",
+        properties: {
+          debts: {
+            type: "array",
+            description: "Array of debts with balance and interest rate",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                balance: { type: "number" },
+                interestRate: { type: "number" },
+                minPayment: { type: "number" }
+              }
+            }
+          },
+          extraPayment: {
+            type: "number",
+            description: "Extra monthly payment amount available"
+          }
+        },
+        required: ["debts", "extraPayment"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "project_future_value",
+      description: "Calculate inflation-adjusted future value with compound growth. Use for retirement planning, long-term goal projections, or showing the power of compound interest.",
+      parameters: {
+        type: "object",
+        properties: {
+          principal: {
+            type: "number",
+            description: "Starting amount"
+          },
+          monthlyContribution: {
+            type: "number",
+            description: "Monthly contribution amount"
+          },
+          annualReturn: {
+            type: "number",
+            description: "Expected annual return percentage (e.g., 8 for 8%)"
+          },
+          years: {
+            type: "number",
+            description: "Number of years to project"
+          },
+          inflationRate: {
+            type: "number",
+            description: "Annual inflation rate percentage (e.g., 3 for 3%)"
+          }
+        },
+        required: ["principal", "monthlyContribution", "annualReturn", "years"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_retirement_needs",
+      description: "Calculate retirement savings needed using the 4% rule and other retirement planning formulas. Use when user asks about retirement planning or how much they need to retire.",
+      parameters: {
+        type: "object",
+        properties: {
+          currentAge: {
+            type: "number",
+            description: "Current age"
+          },
+          retirementAge: {
+            type: "number",
+            description: "Desired retirement age"
+          },
+          annualExpenses: {
+            type: "number",
+            description: "Expected annual expenses in retirement"
+          },
+          currentSavings: {
+            type: "number",
+            description: "Current retirement savings"
+          }
+        },
+        required: ["currentAge", "retirementAge", "annualExpenses", "currentSavings"]
+      }
+    }
   }
 ];
 
@@ -361,6 +479,60 @@ export class TwealthAIService {
    User: "I bought 0.5 Bitcoin at $50000"
    → Add with amount: 0.5, purchasePrice: 50000 (NUMBERS!)
    → Respond: "₿ Tracked: 0.5 BTC at $50,000 ($25k total). Current value: $X. Gain/Loss: X%"
+
+6️⃣ PORTFOLIO ALLOCATION ANALYSIS (analyze_portfolio_allocation):
+   User: "I'm 35 with $50k to invest, moderate risk tolerance. How should I allocate?"
+   → Call with age: 35, riskTolerance: "moderate", investmentAmount: 50000
+   → Respond: "📊 Portfolio Strategy for Age 35 (Moderate Risk):
+     • 70% Stocks ($35k): VTI or VOO (total market/S&P 500)
+     • 25% Bonds ($12.5k): BND or AGG (stability/income)
+     • 5% Alternatives ($2.5k): REITs or commodities (diversification)
+     
+     Why: 110-35=75% stock rule, adjusted for moderate risk. Rebalance annually!"
+
+7️⃣ DEBT PAYOFF STRATEGY (calculate_debt_payoff):
+   User: "I have credit card $5k@18%, car loan $15k@6%, student loan $20k@4%. $500 extra/month. What to pay?"
+   → Calculate both methods, show comparison
+   → Respond: "💳 Debt Payoff Analysis:
+     
+     AVALANCHE (Math Winner): Pay Credit Card first (18% highest rate)
+     • Saves $X in interest
+     • Debt-free in Y months
+     
+     SNOWBALL (Psychological): Pay smallest balance first
+     • Quick wins boost motivation
+     • Debt-free in Z months (+ $X more interest)
+     
+     Recommendation: Avalanche saves most $, but if you need motivation wins, Snowball works too!"
+
+8️⃣ FUTURE VALUE PROJECTION (project_future_value):
+   User: "If I save $500/month for 30 years at 8% return, how much will I have?"
+   → Calculate with inflation adjustment
+   → Respond: "📈 Compound Growth Power:
+     Starting: $0 | Monthly: $500 | Return: 8% | Time: 30 years
+     
+     • Future Value: $745,180 (nominal)
+     • Inflation-Adjusted (3%): $305,980 (today's dollars)
+     • Total Invested: $180,000
+     • Growth: $565,180 (313% return!)
+     
+     💡 Key: Start early! At 20 → $1.5M by 50. At 30 → $745k by 60. At 40 → $293k by 70."
+
+9️⃣ RETIREMENT PLANNING (calculate_retirement_needs):
+   User: "I'm 30, want to retire at 60, need $60k/year. Have $50k saved. Enough?"
+   → Calculate using 4% rule and compound growth
+   → Respond: "🏖️ Retirement Readiness Check:
+     
+     TARGET: $60k/year × 25 = $1.5M needed (4% withdrawal rule)
+     TIMELINE: 30 years to grow $50k → $1.5M
+     REQUIRED: Monthly savings of $X at 8% return
+     
+     STATUS: [On Track / Need $X more monthly / Aggressive but possible]
+     
+     PRO TIPS:
+     • Max 401(k) employer match (free money!)
+     • Consider Roth IRA for tax-free growth
+     • Delay Social Security to 70 for 32% boost"
 
 ⚡ EXPERT RESPONSE PROTOCOL:
 1. ALWAYS provide educational value - explain WHY, not just WHAT
