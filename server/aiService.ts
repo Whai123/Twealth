@@ -133,10 +133,14 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal ONLY after user explicitly confirms. NEVER auto-call when user mentions a goal - first explain the strategy with calculations, THEN ask 'Want me to add this as a trackable goal?'. Only call when user responds with confirmation words like 'yes', 'add it', 'create it', 'please do', 'sure'.",
+      description: "Create a financial goal ONLY after user explicitly confirms. CRITICAL: userConfirmed parameter MUST be true, which is ONLY possible after user responds with 'yes', 'add it', 'create it', 'sure', etc. WORKFLOW: (1) User mentions goal → (2) You explain strategy & calculations WITHOUT calling this tool → (3) You ask 'Want me to add this as a trackable goal?' → (4) User confirms → (5) THEN call this tool with userConfirmed=true. NEVER call this on first mention!",
       parameters: {
         type: "object",
         properties: {
+          userConfirmed: {
+            type: "boolean",
+            description: "REQUIRED: Must be true. Can ONLY be true when user explicitly confirmed with words like 'yes', 'add it', 'create it', 'sure'. If user just mentioned wanting something without confirming, this MUST be false (which means DON'T call this tool yet)."
+          },
           name: {
             type: "string",
             description: "The name of the goal (e.g., 'Buy Lamborghini')"
@@ -154,7 +158,7 @@ const TOOLS = [
             description: "A brief description of the goal and plan to achieve it"
           }
         },
-        required: ["name", "targetAmount", "targetDate"]
+        required: ["userConfirmed", "name", "targetAmount", "targetDate"]
       }
     }
   },
@@ -162,10 +166,14 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_calendar_event",
-      description: "Create a calendar event ONLY after user explicitly asks for a reminder/event. NEVER auto-call when user mentions a date - first explain WHY tracking this is important, THEN offer 'Want me to set a reminder for this?'. Only call when user confirms. IMPORTANT: Calculate dates properly - 'next week' = 7 days from now, 'next month' = 30 days from now, 'tomorrow' = 1 day from now.",
+      description: "Create a calendar event ONLY after user explicitly confirms. CRITICAL: userConfirmed parameter MUST be true. WORKFLOW: (1) User mentions date/reminder → (2) You explain WHY tracking is important WITHOUT calling this tool → (3) You ask 'Want me to set a reminder for this?' → (4) User confirms → (5) THEN call with userConfirmed=true. Calculate dates properly: 'next week' = 7 days from now, 'next month' = 30 days from now.",
       parameters: {
         type: "object",
         properties: {
+          userConfirmed: {
+            type: "boolean",
+            description: "REQUIRED: Must be true. Can ONLY be true when user explicitly confirmed with words like 'yes', 'set it', 'create it', 'sure'. If user just mentioned a date without confirming, DON'T call this tool."
+          },
           title: {
             type: "string",
             description: "The event title (e.g., 'Review Portfolio', 'Pay Rent', 'Check Budget')"
@@ -179,7 +187,7 @@ const TOOLS = [
             description: "Event description or notes with financial context"
           }
         },
-        required: ["title", "date"]
+        required: ["userConfirmed", "title", "date"]
       }
     }
   },
@@ -221,10 +229,14 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_group",
-      description: "Create a group ONLY after user explicitly confirms. NEVER auto-call when user mentions collaborative planning - first explain the benefits of group tracking, THEN ask 'Want me to create this group for you?'. Only call when user confirms with 'yes', 'create it', etc.",
+      description: "Create a group ONLY after user explicitly confirms. CRITICAL: userConfirmed parameter MUST be true. WORKFLOW: (1) User mentions group/collaboration → (2) You explain benefits WITHOUT calling this tool → (3) You ask 'Want me to create this group for you?' → (4) User confirms → (5) THEN call with userConfirmed=true.",
       parameters: {
         type: "object",
         properties: {
+          userConfirmed: {
+            type: "boolean",
+            description: "REQUIRED: Must be true. Can ONLY be true when user explicitly confirmed with words like 'yes', 'create it', 'make it', 'sure'. If user just mentioned a group idea without confirming, DON'T call this tool."
+          },
           name: {
             type: "string",
             description: "The group name (e.g., 'Family Budget', 'Roommates Expenses')"
@@ -234,7 +246,7 @@ const TOOLS = [
             description: "What this group is for"
           }
         },
-        required: ["name"]
+        required: ["userConfirmed", "name"]
       }
     }
   },
@@ -840,32 +852,39 @@ CRITICAL RULES:
       // Add current user message
       messages.push({ role: "user", content: userMessage });
 
-      // Check if message indicates need for action
-      const needsAction = userMessage.toLowerCase().includes('want to') || 
-                         userMessage.toLowerCase().includes('save for') ||
-                         userMessage.toLowerCase().includes('buy') ||
-                         userMessage.toLowerCase().includes('purchase') ||
-                         userMessage.toLowerCase().includes('spend') ||
-                         userMessage.toLowerCase().includes('spent') ||
+      // Detect confirmation keywords in user message
+      const confirmationWords = ['yes', 'add it', 'create it', 'sure', 'do it', 'make it', 'set it', 'please', 'go ahead', 'ok'];
+      const isConfirmation = confirmationWords.some(word => userMessage.toLowerCase().includes(word));
+      
+      // Check if last assistant message was asking for confirmation
+      const lastAssistantMsg = conversationHistory.slice().reverse().find(m => m.role === 'assistant')?.content || '';
+      const wasAskingForConfirmation = lastAssistantMsg.includes('Want me to') || 
+                                       lastAssistantMsg.includes('Should I') || 
+                                       lastAssistantMsg.includes('add this as a') ||
+                                       lastAssistantMsg.includes('create') && lastAssistantMsg.includes('?');
+      
+      // Only enable creation tools if user is confirming after being asked
+      const canCreate = isConfirmation && wasAskingForConfirmation;
+      
+      // Filter tools based on context
+      const availableTools = canCreate 
+        ? TOOLS  // All tools available if confirming
+        : TOOLS.filter(t => !['create_financial_goal', 'create_calendar_event', 'create_group'].includes(t.function.name));
+      
+      console.log(`🛡️  Tool filtering: isConfirmation=${isConfirmation}, wasAsking=${wasAskingForConfirmation}, canCreate=${canCreate}, toolCount=${availableTools.length}/${TOOLS.length}`);
+      
+      // Check if message indicates need for transaction/crypto tracking (immediate actions)
+      const needsImmediateAction = userMessage.toLowerCase().includes('spent') ||
                          userMessage.toLowerCase().includes('paid') ||
                          userMessage.toLowerCase().includes('received') ||
                          userMessage.toLowerCase().includes('earned') ||
-                         userMessage.toLowerCase().includes('bought') ||
-                         userMessage.toLowerCase().includes('remind me') ||
-                         userMessage.toLowerCase().includes('schedule') ||
-                         userMessage.toLowerCase().includes('create') ||
-                         userMessage.toLowerCase().includes('add') ||
-                         userMessage.toLowerCase().includes('track') ||
-                         userMessage.toLowerCase().includes('group') ||
-                         userMessage.toLowerCase().includes('crypto') ||
-                         userMessage.toLowerCase().includes('bitcoin') ||
-                         userMessage.toLowerCase().includes('ethereum');
+                         userMessage.toLowerCase().includes('bought') && (userMessage.toLowerCase().includes('btc') || userMessage.toLowerCase().includes('crypto'));
 
       const response = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
         messages: messages,
-        tools: TOOLS,
-        tool_choice: needsAction ? "required" : "auto",
+        tools: availableTools,
+        tool_choice: needsImmediateAction ? "required" : "auto",
         temperature: 0.5,
         max_tokens: 500
       });

@@ -1503,6 +1503,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           for (const toolCall of aiResult.toolCalls) {
             try {
               if (toolCall.name === 'create_financial_goal') {
+                // CRITICAL: Validate user confirmation before creating goal
+                if (toolCall.arguments.userConfirmed !== true) {
+                  console.log('⚠️  Blocked create_financial_goal: userConfirmed not true');
+                  actionsPerformed.push({
+                    type: 'action_blocked',
+                    data: { reason: 'User confirmation required', action: 'create_financial_goal' }
+                  });
+                  continue;
+                }
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
                   title: toolCall.arguments.name,
@@ -1517,6 +1526,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   data: goal
                 });
               } else if (toolCall.name === 'create_calendar_event') {
+                // CRITICAL: Validate user confirmation before creating event
+                if (toolCall.arguments.userConfirmed !== true) {
+                  console.log('⚠️  Blocked create_calendar_event: userConfirmed not true');
+                  actionsPerformed.push({
+                    type: 'action_blocked',
+                    data: { reason: 'User confirmation required', action: 'create_calendar_event' }
+                  });
+                  continue;
+                }
                 const event = await storage.createEvent({
                   createdBy: userId,
                   title: toolCall.arguments.title,
@@ -1542,6 +1560,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   data: transaction
                 });
               } else if (toolCall.name === 'create_group') {
+                // CRITICAL: Validate user confirmation before creating group
+                if (toolCall.arguments.userConfirmed !== true) {
+                  console.log('⚠️  Blocked create_group: userConfirmed not true');
+                  actionsPerformed.push({
+                    type: 'action_blocked',
+                    data: { reason: 'User confirmation required', action: 'create_group' }
+                  });
+                  continue;
+                }
                 const group = await storage.createGroup({
                   name: toolCall.arguments.name,
                   description: toolCall.arguments.description || null,
