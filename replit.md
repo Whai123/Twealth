@@ -41,6 +41,7 @@ The application features a modern UI with a redesigned landing page, enhanced ac
   - **Real Estate Intelligence**: Mortgage amortization, 1% rule for rentals, cap rate calculations, rent vs buy decision framework
   - **Advanced Analysis Tools**: Portfolio allocation calculator, debt payoff strategy optimizer, inflation-adjusted future value projections, retirement needs assessment
   - **Advice-First Approach**: AI explains financial strategies with macroeconomic context FIRST, then offers to create goals/events (never auto-creates without permission)
+  - **Context-Based Tool Filtering**: Advanced permission system prevents auto-creation of goals/events/groups. Creation tools are only available after AI asks permission AND user confirms with keywords like "yes", "add it", "create it". This two-step verification ensures user consent for all automated actions.
   - **Multi-language Support**: Responds in user's selected language (11 languages: en, es, id, th, pt, hi, vi, tl, ms, tr, ar) with culturally appropriate financial terminology
   - **Empathetic Personality**: Celebrates wins (🎉 milestone recognition), encourages during setbacks (💙 supportive coaching), culturally sensitive responses, motivational coaching style
   - **Proactive Insights**: Intelligent pattern detection system analyzing spending trends, budget optimization (50/30/20 rule), emergency fund progress tracking, unusual spending alerts, category-based recommendations
