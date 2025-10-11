@@ -48,8 +48,15 @@ export function getSession() {
   });
 }
 
+interface UserSession {
+  claims?: Record<string, any>;
+  access_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+}
+
 function updateUserSession(
-  user: any,
+  user: UserSession,
   tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers
 ) {
   user.claims = tokens.claims();
@@ -59,7 +66,7 @@ function updateUserSession(
 }
 
 async function upsertUser(
-  claims: any,
+  claims: Record<string, any>,
 ) {
   await storage.upsertUser({
     id: claims["sub"],
@@ -83,9 +90,12 @@ export async function setupAuth(app: Express) {
     verified: passport.AuthenticateCallback
   ) => {
     try {
-      const user = {};
+      const user: UserSession = {};
       updateUserSession(user, tokens);
-      await upsertUser(tokens.claims());
+      const claims = tokens.claims();
+      if (claims) {
+        await upsertUser(claims);
+      }
       verified(null, user);
     } catch (error) {
       console.error("Auth verification error:", error);
