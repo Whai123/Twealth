@@ -1765,6 +1765,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate response content - use AI response or create confirmation if empty
         let responseContent = aiResult.response;
         
+        // Sanitize response: remove any leaked function call syntax
+        if (responseContent) {
+          // Remove <function=...>...</function> syntax
+          responseContent = responseContent.replace(/<function=[^>]+>.*?<\/function>/gi, '').trim();
+          // Remove standalone function call patterns
+          responseContent = responseContent.replace(/\{[^}]*"?\w+"?\s*:\s*[^}]+\}/g, (match) => {
+            // Only remove if it looks like a function call (has common function params)
+            if (match.includes('targetAmount') || match.includes('userConfirmed') || 
+                match.includes('category') && match.includes('description')) {
+              return '';
+            }
+            return match;
+          }).trim();
+        }
+        
         // If AI used tools but didn't provide a text response, generate confirmation
         if ((!responseContent || responseContent.trim() === '') && actionsPerformed.length > 0) {
           const confirmations = actionsPerformed.map(action => {
