@@ -4,6 +4,12 @@ Twealth is a full-stack web application designed for comprehensive schedule mana
 
 # Recent Changes (October 2025)
 
+## AI Chat System Improvements
+- **Fixed Raw Function Syntax Display**: AI responses no longer show leaked function call syntax like `<function=create_financial_goal>...` - added explicit prompt instructions and response sanitization
+- **Fixed Transaction Auto-Creation**: AI now correctly distinguishes between past transactions ("I spent/paid") vs future goals ("I want to buy") - prevents incorrect auto-tracking of future intentions
+- **Fixed Subscription Initialization**: Chat endpoint now initializes free subscription before checking usage limits, preventing 0 quota for new users
+- **Validated Confirmation Flow**: AI properly asks for user permission before creating goals/events (explain strategy first, then ask confirmation, create only after user confirms)
+
 ## Performance & Scalability
 - Added pagination to all major API endpoints (/api/transactions, /api/notifications, /api/events, /api/chat/messages) with offset/limit support
 - Improved CoinGecko rate limiting: increased cache duration to 5 minutes, added request throttling with 2-second intervals, and graceful fallback to cached data
