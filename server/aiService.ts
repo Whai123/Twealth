@@ -133,7 +133,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a new financial goal for the user. Use this when the user expresses a desire to save for something specific (e.g., 'I want to buy a Lamborghini in 2 years')",
+      description: "Create a financial goal ONLY after user explicitly confirms. NEVER auto-call when user mentions a goal - first explain the strategy with calculations, THEN ask 'Want me to add this as a trackable goal?'. Only call when user responds with confirmation words like 'yes', 'add it', 'create it', 'please do', 'sure'.",
       parameters: {
         type: "object",
         properties: {
@@ -162,7 +162,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_calendar_event",
-      description: "Create a calendar event for the user. Use this when the user mentions a financial appointment or important date (e.g., 'Remind me to review my portfolio next month'). IMPORTANT: Calculate dates properly - 'next week' = 7 days from now, 'next month' = 30 days from now, 'tomorrow' = 1 day from now.",
+      description: "Create a calendar event ONLY after user explicitly asks for a reminder/event. NEVER auto-call when user mentions a date - first explain WHY tracking this is important, THEN offer 'Want me to set a reminder for this?'. Only call when user confirms. IMPORTANT: Calculate dates properly - 'next week' = 7 days from now, 'next month' = 30 days from now, 'tomorrow' = 1 day from now.",
       parameters: {
         type: "object",
         properties: {
@@ -187,7 +187,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "add_transaction",
-      description: "Record a financial transaction. Use this when the user mentions spending or receiving money (e.g., 'I spent $50 on groceries today')",
+      description: "Record a transaction when user explicitly states they spent/received money with specific amount. Call immediately to track the transaction, but ALWAYS provide spending insights and budget context in your response. Use when user says 'I spent $X on Y' or 'I earned $X from Y'.",
       parameters: {
         type: "object",
         properties: {
@@ -221,7 +221,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_group",
-      description: "Create a new group for collaborative financial planning. Use when user wants to create a family budget, team expense tracking, etc.",
+      description: "Create a group ONLY after user explicitly confirms. NEVER auto-call when user mentions collaborative planning - first explain the benefits of group tracking, THEN ask 'Want me to create this group for you?'. Only call when user confirms with 'yes', 'create it', etc.",
       parameters: {
         type: "object",
         properties: {
@@ -242,7 +242,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "add_crypto_holding",
-      description: "Track a cryptocurrency holding. Use when user mentions buying or owning crypto.",
+      description: "Track crypto holding when user explicitly states they bought/own crypto with specific amount and price. Call immediately to track, but ALWAYS provide investment analysis, current value, and risk assessment in your response. Use when user says 'I bought X BTC at $Y' or 'I own X ETH purchased at $Y'.",
       parameters: {
         type: "object",
         properties: {
@@ -267,7 +267,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "analyze_portfolio_allocation",
-      description: "Provide expert portfolio allocation recommendations based on user's age, risk tolerance, and financial goals. Use when user asks about investment allocation, diversification, or how to split their investments.",
+      description: "Calculate and provide expert portfolio allocation recommendations. Use ONLY when user explicitly asks about investment allocation, diversification, or portfolio strategy. Call this to show detailed breakdown in your response. Example triggers: 'How should I invest $10k?', 'What's a good portfolio allocation for my age?'",
       parameters: {
         type: "object",
         properties: {
@@ -293,7 +293,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "calculate_debt_payoff",
-      description: "Calculate and compare debt payoff strategies (avalanche vs snowball method). Use when user wants to optimize debt payment or asks which debts to pay first.",
+      description: "Calculate debt payoff strategies (avalanche vs snowball). Use ONLY when user explicitly asks about debt payment optimization or which debts to pay first. Call this to show comparison analysis in your response. Example triggers: 'How should I pay off my debts?', 'Should I use avalanche or snowball method?'",
       parameters: {
         type: "object",
         properties: {
@@ -323,7 +323,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "project_future_value",
-      description: "Calculate inflation-adjusted future value with compound growth. Use for retirement planning, long-term goal projections, or showing the power of compound interest.",
+      description: "Calculate inflation-adjusted future value with compound growth. Use ONLY when user explicitly asks about long-term projections or compound interest calculations. Call this to show detailed math in your response. Example triggers: 'If I save $500/month for 30 years, how much will I have?', 'Show me compound growth projection'",
       parameters: {
         type: "object",
         properties: {
@@ -356,7 +356,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "calculate_retirement_needs",
-      description: "Calculate retirement savings needed using the 4% rule and other retirement planning formulas. Use when user asks about retirement planning or how much they need to retire.",
+      description: "Calculate retirement needs using 4% rule and retirement formulas. Use ONLY when user explicitly asks about retirement planning or savings requirements. Call this to show detailed retirement analysis in your response. Example triggers: 'How much do I need to retire?', 'Can I retire at 60 with $500k saved?'",
       parameters: {
         type: "object",
         properties: {
