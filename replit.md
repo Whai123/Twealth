@@ -2,6 +2,24 @@
 
 Twealth is a full-stack web application designed for comprehensive schedule management, financial tracking, and goal setting. It enables users to manage groups, schedule events, monitor financial progress, and track money flows. The application aims to provide a unified platform for personal and collaborative financial organization.
 
+# Recent Changes (October 2025)
+
+## Performance & Scalability
+- Added pagination to all major API endpoints (/api/transactions, /api/notifications, /api/events, /api/chat/messages) with offset/limit support
+- Improved CoinGecko rate limiting: increased cache duration to 5 minutes, added request throttling with 2-second intervals, and graceful fallback to cached data
+- Enhanced error handling across all API routes with consistent, user-friendly messages
+
+## Code Quality  
+- Added TypeScript interfaces to replace `any` types (OutlookConnectionSettings, UserSession, crypto data structures)
+- Cleaned up production logging: removed debug console.logs, kept only critical error logging
+- Improved type safety across authentication and external service integrations
+
+## UI/UX Enhancements
+- Created reusable EmptyState component for consistent empty states across all views
+- Enhanced existing modern UI with refined color palette and smooth transitions
+- Improved skeleton loaders for better loading states
+- Added modern card shadows, borders, and hover effects using CSS custom properties
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.

@@ -68,7 +68,6 @@ export class CryptoService {
       }
       // If we have all symbols cached, return them
       if (Object.keys(cachedResult).length === symbols.length) {
-        console.log(`[CryptoService] Returning cached prices for ${symbols.join(', ')}`);
         return cachedResult;
       }
     }
@@ -92,14 +91,12 @@ export class CryptoService {
         await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
       }
 
-      console.log(`[CryptoService] Fetching prices from CoinGecko for: ${symbols.join(', ')}`);
       lastRequestTime = Date.now();
       const response = await fetch(url);
       
       if (response.status === 429) {
         // Rate limited - return cached data if available, otherwise throw
         if (priceCache && priceCache.prices) {
-          console.log('[CryptoService] Rate limited, returning cached data');
           const cachedResult: CryptoPriceData = {};
           for (const symbol of symbols) {
             if (priceCache.prices[symbol]) {
@@ -110,6 +107,7 @@ export class CryptoService {
             return cachedResult;
           }
         }
+        console.error('[CryptoService] Rate limit exceeded and no cache available');
         throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
       }
       
@@ -147,7 +145,6 @@ export class CryptoService {
           }
         }
         if (Object.keys(cachedResult).length > 0) {
-          console.log('[CryptoService] Returning stale cache due to error');
           return cachedResult;
         }
       }
@@ -237,10 +234,12 @@ export class CryptoService {
     const url = `${COINGECKO_API}/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
     
     try {
-      console.log(`[CryptoService] Fetching price for coin ID: ${coinId}`);
       const response = await fetch(url);
       
       if (!response.ok) {
+        if (response.status !== 429) {
+          console.error(`[CryptoService] API error ${response.status} for ${coinId}`);
+        }
         throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
       }
 
