@@ -115,14 +115,14 @@ export default function Groups() {
       const shareUrl = `${window.location.origin}/shared/calendar/${data.share.token}`;
       navigator.clipboard.writeText(shareUrl);
       toast({
-        title: {t('common.success')},
-        description: {t('referrals.copiedDescription')},
+        title: t('common.success'),
+        description: t('referrals.copiedDescription'),
       });
       setCalendarShareDialogOpen(false);
     },
     onError: (error: any) => {
       toast({
-        title: {t('common.error')},
+        title: t('common.error'),
         description: error.message,
         variant: "destructive",
       });
@@ -135,8 +135,8 @@ export default function Groups() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
-        title: {t('calendar.rsvpStatus.going')},
-        description: {t('common.success')},
+        title: t('calendar.rsvpStatus.going'),
+        description: t('common.success'),
       });
     },
     onError: (error: any) => {
@@ -149,7 +149,7 @@ export default function Groups() {
   });
 
   const handleDeleteGroup = (groupId: string) => {
-    if (confirm({t('common.confirm')})) {
+    if (confirm(t('common.confirm'))) {
       deleteGroupMutation.mutate(groupId);
     }
   };
@@ -204,13 +204,13 @@ export default function Groups() {
       const inviteUrl = `${window.location.origin}/invite/${generatedInvite.invite.token}`;
       navigator.clipboard.writeText(inviteUrl);
       toast({
-        title: {t('common.copied')},
-        description: {t('referrals.copiedDescription')},
+        title: t('common.copied'),
+        description: t('referrals.copiedDescription'),
       });
     } else {
       toast({
         title: "Error",
-        description: {t('common.error')},
+        description: t('common.error'),
         variant: "destructive",
       });
     }
@@ -456,7 +456,7 @@ export default function Groups() {
               };
             } else {
               eventData = {
-                nextEvent: {t('dashboard.empty.events')},
+                nextEvent: t('dashboard.empty.events'),
                 eventDate: null,
                 eventId: null,
                 userRSVPStatus: null,

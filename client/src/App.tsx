@@ -94,13 +94,15 @@ function Router() {
   return (
     <OnboardingRedirect>
       <div className="flex min-h-screen bg-background">
-        {/* Desktop Sidebar - hidden on mobile */}
-        <div className="hidden md:block">
-          <Sidebar />
-        </div>
+        {/* Desktop Sidebar - hidden on mobile and welcome page */}
+        {location !== "/welcome" && (
+          <div className="hidden md:block">
+            <Sidebar />
+          </div>
+        )}
         
         {/* Main Content Area */}
-        <main className="flex-1 overflow-auto pb-20 md:pb-0">
+        <main className={`flex-1 overflow-auto ${location !== "/welcome" ? "pb-20 md:pb-0" : ""}`}>
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <Switch>
@@ -125,8 +127,8 @@ function Router() {
           </ErrorBoundary>
         </main>
         
-        {/* Mobile Navigation - shown only on mobile */}
-        <MobileNavigation />
+        {/* Mobile Navigation - shown only on mobile and not on welcome page */}
+        {location !== "/welcome" && <MobileNavigation />}
       </div>
     </OnboardingRedirect>
   );
