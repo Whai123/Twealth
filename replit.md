@@ -39,6 +39,8 @@ The application features a modern UI with a redesigned landing page, enhanced ac
   - **Debt Management**: Avalanche vs snowball comparison with interest calculations, refinancing analysis, good debt vs bad debt assessment
   - **Real Estate Intelligence**: Mortgage amortization, 1% rule for rentals, cap rate calculations, rent vs buy decision framework
   - **Advanced Analysis Tools**: Portfolio allocation calculator, debt payoff strategy optimizer, inflation-adjusted future value projections, retirement needs assessment
+  - **Multi-language Support**: Responds in user's selected language (11 languages supported) with culturally appropriate financial terminology
+  - **Empathetic Personality**: Celebrates wins, encourages during setbacks, culturally sensitive responses, motivational coaching style
   - **AI Actions**: Creates goals, schedules events, tracks transactions, manages groups, monitors crypto holdings through natural language commands
 - **Live Currency Rates**: Fetches and caches live exchange rates from an external API.
 - **Cryptocurrency Tracking**: Displays live crypto prices with 24h change indicators.
