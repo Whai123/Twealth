@@ -59,8 +59,8 @@ export default function CryptoPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/portfolio"] });
       toast({
-        title: {t('common.success')},
-        description: {t('common.success')},
+        title: t('common.success'),
+        description: t('common.success'),
       });
       setIsAddDialogOpen(false);
       setSelectedCoin(null);
@@ -71,7 +71,7 @@ export default function CryptoPage() {
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || {t('common.error')},
+        description: error.message || t('common.error'),
         variant: "destructive",
       });
     },
@@ -86,8 +86,8 @@ export default function CryptoPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/crypto/portfolio"] });
       toast({
-        title: {t('common.success')},
-        description: {t('common.success')},
+        title: t('common.success'),
+        description: t('common.success'),
       });
     },
   });
@@ -96,7 +96,7 @@ export default function CryptoPage() {
     if (!selectedCoin || !amount) {
       toast({
         title: "Error",
-        description: {t('common.error')},
+        description: t('common.error'),
         variant: "destructive",
       });
       return;
