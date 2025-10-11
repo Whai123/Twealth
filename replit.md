@@ -33,17 +33,19 @@ The development environment uses Vite with an Express backend proxy, enabling fu
 The application features a modern UI with a redesigned landing page, enhanced accessibility (ARIA labels, keyboard navigation, screen reader support), and improved error handling. The dashboard provides dynamic data displays, loading states, and animations. Core features include:
 - **Friend Request System**: Users can send, accept, and decline friend requests, manage friendships, and search for other users.
 - **AI Financial Advisor**: Expert-level financial advisor powered by Groq AI (Llama 3.3) with comprehensive knowledge base:
+  - **Macroeconomics Education**: Explains inflation, interest rates, Federal Reserve policy, economic cycles, monetary policy (QE), currency dynamics, and unemployment - helping users understand the bigger picture of how money and the economy work
   - **Investment Strategies**: Index fund recommendations (VTI, VOO, BND), asset allocation by age/risk tolerance, dollar-cost averaging, portfolio rebalancing, tax-loss harvesting
   - **Tax Optimization**: 401(k)/Roth IRA strategies, HSA triple tax advantage, Roth conversions, tax-efficient asset location, capital gains management
   - **Retirement Planning**: 4% withdrawal rule, FIRE calculations (25x expenses), compound growth projections, Social Security optimization
   - **Debt Management**: Avalanche vs snowball comparison with interest calculations, refinancing analysis, good debt vs bad debt assessment
   - **Real Estate Intelligence**: Mortgage amortization, 1% rule for rentals, cap rate calculations, rent vs buy decision framework
   - **Advanced Analysis Tools**: Portfolio allocation calculator, debt payoff strategy optimizer, inflation-adjusted future value projections, retirement needs assessment
+  - **Advice-First Approach**: AI explains financial strategies with macroeconomic context FIRST, then offers to create goals/events (never auto-creates without permission)
   - **Multi-language Support**: Responds in user's selected language (11 languages: en, es, id, th, pt, hi, vi, tl, ms, tr, ar) with culturally appropriate financial terminology
   - **Empathetic Personality**: Celebrates wins (🎉 milestone recognition), encourages during setbacks (💙 supportive coaching), culturally sensitive responses, motivational coaching style
   - **Proactive Insights**: Intelligent pattern detection system analyzing spending trends, budget optimization (50/30/20 rule), emergency fund progress tracking, unusual spending alerts, category-based recommendations
   - **Smart Alerts**: Critical financial health warnings, emergency fund milestones, investment readiness notifications, goal achievement tracking
-  - **AI Actions**: Creates goals, schedules events, tracks transactions, manages groups, monitors crypto holdings through natural language commands
+  - **AI Actions**: Creates goals, schedules events, tracks transactions, manages groups, monitors crypto holdings through natural language commands (only after explaining strategy and asking permission)
 - **Live Currency Rates**: Fetches and caches live exchange rates from an external API.
 - **Cryptocurrency Tracking**: Displays live crypto prices with 24h change indicators.
 - **Enhanced Onboarding**: Comprehensive 6-step onboarding flow including Welcome, AI Assistant introduction, Finance tracking, Goal setting, Group planning, and Pro Tips. The final step teaches keyboard shortcuts and navigation patterns.
