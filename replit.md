@@ -32,7 +32,14 @@ The development environment uses Vite with an Express backend proxy, enabling fu
 
 The application features a modern UI with a redesigned landing page, enhanced accessibility (ARIA labels, keyboard navigation, screen reader support), and improved error handling. The dashboard provides dynamic data displays, loading states, and animations. Core features include:
 - **Friend Request System**: Users can send, accept, and decline friend requests, manage friendships, and search for other users.
-- **AI Financial Advisor**: Integrated with Groq AI (Llama 3.3), the AI can control major app features like creating goals, events, transactions, groups, and tracking crypto holdings through natural language.
+- **AI Financial Advisor**: Expert-level financial advisor powered by Groq AI (Llama 3.3) with comprehensive knowledge base:
+  - **Investment Strategies**: Index fund recommendations (VTI, VOO, BND), asset allocation by age/risk tolerance, dollar-cost averaging, portfolio rebalancing, tax-loss harvesting
+  - **Tax Optimization**: 401(k)/Roth IRA strategies, HSA triple tax advantage, Roth conversions, tax-efficient asset location, capital gains management
+  - **Retirement Planning**: 4% withdrawal rule, FIRE calculations (25x expenses), compound growth projections, Social Security optimization
+  - **Debt Management**: Avalanche vs snowball comparison with interest calculations, refinancing analysis, good debt vs bad debt assessment
+  - **Real Estate Intelligence**: Mortgage amortization, 1% rule for rentals, cap rate calculations, rent vs buy decision framework
+  - **Advanced Analysis Tools**: Portfolio allocation calculator, debt payoff strategy optimizer, inflation-adjusted future value projections, retirement needs assessment
+  - **AI Actions**: Creates goals, schedules events, tracks transactions, manages groups, monitors crypto holdings through natural language commands
 - **Live Currency Rates**: Fetches and caches live exchange rates from an external API.
 - **Cryptocurrency Tracking**: Displays live crypto prices with 24h change indicators.
 - **Enhanced Onboarding**: Comprehensive 6-step onboarding flow including Welcome, AI Assistant introduction, Finance tracking, Goal setting, Group planning, and Pro Tips. The final step teaches keyboard shortcuts and navigation patterns.
