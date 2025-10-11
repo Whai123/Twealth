@@ -69,14 +69,14 @@ export default function Friends() {
       setSelectedUser(null);
       setFriendRequestMessage("");
       toast({
-        title: {t('common.success')},
-        description: {t('common.success')},
+        title: t('common.success'),
+        description: t('common.success'),
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || {t('common.error')},
+        description: error.message || t('common.error'),
         variant: "destructive",
       });
     },
@@ -92,7 +92,7 @@ export default function Friends() {
       queryClient.invalidateQueries({ queryKey: ["/api/friend-requests/pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
       toast({
-        title: variables.status === 'accepted' ? {t('common.success')} : {t('common.success')},
+        title: variables.status === 'accepted' ? t('common.success') : t('common.success'),
         description: variables.status === 'accepted' 
           ? "You are now friends!" 
           : "Friend request declined.",
