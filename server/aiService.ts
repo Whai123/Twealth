@@ -774,19 +774,72 @@ CRITICAL RULES:
     }
 
     const savingsRate = ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome) * 100;
+    const emergencyFundTarget = context.monthlyExpenses * 6;
+    const emergencyFundProgress = (context.totalSavings / emergencyFundTarget) * 100;
     
-    // Rule-based insights for common scenarios
-    if (savingsRate < 5) {
-      return `Your savings rate is ${savingsRate.toFixed(1)}% - try to save at least 10% by reducing one major expense category.`;
+    // PATTERN DETECTION: Analyze spending trends
+    const recentExpenses = context.recentTransactions
+      ?.filter(t => t.amount < 0)
+      .map(t => Math.abs(t.amount)) || [];
+    const avgExpense = recentExpenses.length > 0 
+      ? recentExpenses.reduce((a, b) => a + b, 0) / recentExpenses.length 
+      : 0;
+    
+    // Detect unusual spending patterns
+    const highSpending = recentExpenses.filter(e => e > avgExpense * 2);
+    const hasUnusualSpending = highSpending.length >= 2;
+    
+    // Category analysis
+    const categorySpending = new Map<string, number>();
+    context.recentTransactions?.forEach(t => {
+      if (t.amount < 0) {
+        const current = categorySpending.get(t.category) || 0;
+        categorySpending.set(t.category, current + Math.abs(t.amount));
+      }
+    });
+    const topCategory = Array.from(categorySpending.entries())
+      .sort((a, b) => b[1] - a[1])[0];
+    
+    // PRIORITY 1: Critical Financial Health Issues
+    if (savingsRate < 0) {
+      return `🚨 Alert: You're spending more than you earn! Emergency action needed: Cut ${Math.abs(savingsRate).toFixed(0)}% of expenses or increase income immediately.`;
     }
-    if (savingsRate > 30) {
-      return `Excellent ${savingsRate.toFixed(1)}% savings rate! Consider investing some of your excess savings for long-term growth.`;
+    
+    if (context.totalSavings === 0 && savingsRate < 10) {
+      return `💪 Start strong: Save $${Math.ceil(context.monthlyIncome * 0.1)} monthly (10%) to build your safety net. Start with just $50 this week!`;
     }
-    if (context.totalSavings < context.monthlyExpenses * 3) {
-      return `Build your emergency fund to $${(context.monthlyExpenses * 3).toLocaleString()} (3 months of expenses) before other investments.`;
+    
+    // PRIORITY 2: Emergency Fund Building
+    if (emergencyFundProgress < 50) {
+      const monthsNeeded = Math.ceil((emergencyFundTarget - context.totalSavings) / (context.monthlyIncome * savingsRate / 100));
+      return `🛡️ Emergency Fund: ${emergencyFundProgress.toFixed(0)}% complete. Save $${Math.ceil((emergencyFundTarget - context.totalSavings) / 6)} monthly to finish in ${monthsNeeded} months.`;
     }
-    if (context.activeGoals === 0) {
-      return `Set 2-3 specific financial goals this month to stay motivated and track your progress effectively.`;
+    
+    // PRIORITY 3: Spending Pattern Alerts
+    if (hasUnusualSpending && avgExpense > 100) {
+      return `📊 Spending Alert: Detected ${highSpending.length} large expenses ($${Math.round(avgExpense * 2)}+) recently. Review your budget to avoid overspending.`;
+    }
+    
+    if (topCategory && topCategory[1] > context.monthlyIncome * 0.3) {
+      return `💡 Budget Tip: ${topCategory[0]} is ${((topCategory[1] / context.monthlyIncome) * 100).toFixed(0)}% of income. Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings.`;
+    }
+    
+    // PRIORITY 4: Growth & Optimization
+    if (savingsRate > 30 && context.totalSavings > emergencyFundTarget) {
+      return `🚀 Investment Ready! ${savingsRate.toFixed(0)}% savings rate + full emergency fund = time to invest. Consider VTI/VOO index funds for long-term growth.`;
+    }
+    
+    if (savingsRate >= 20 && savingsRate <= 30) {
+      return `⭐ Great job! ${savingsRate.toFixed(0)}% savings rate is excellent. Next level: Max out tax-advantaged accounts (401k/Roth IRA) for compound growth.`;
+    }
+    
+    // PRIORITY 5: Goal Motivation
+    if (context.activeGoals === 0 && context.totalSavings > 0) {
+      return `🎯 Set Your Vision: You have $${context.totalSavings.toLocaleString()} saved with no goals! Create 1-2 specific goals to turn savings into achievements.`;
+    }
+    
+    if (context.activeGoals >= 3) {
+      return `🏆 Goal Achiever! ${context.activeGoals} active goals shows commitment. Focus on one at a time for faster results - snowball effect works!`;
     }
 
     // Use AI for complex insights
