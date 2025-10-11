@@ -1405,6 +1405,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
       
+      // Ensure user has a subscription before checking limits
+      let subscription = await storage.getUserSubscription(userId);
+      if (!subscription) {
+        await storage.initializeDefaultSubscription(userId);
+      }
+      
       // Check usage limit before processing - strict enforcement
       const usageCheck = await storage.checkUsageLimit(userId, 'aiChatsUsed');
       if (!usageCheck.allowed) {

@@ -628,10 +628,13 @@ FOR GOALS/EVENTS/GROUPS:
 ⛔ THEN ask: "Want me to add this as a trackable goal?" or "Should I create a reminder?"
 ⛔ ONLY call tools AFTER user confirms with words like: "yes", "add it", "create it", "please do", "sure"
 
-FOR TRANSACTIONS/CRYPTO:
-✅ Call add_transaction or add_crypto_holding immediately when user states specific amounts
-✅ But ALWAYS provide insights, analysis, and context in your response
+FOR TRANSACTIONS/CRYPTO (PAST TENSE ONLY):
+✅ Call add_transaction ONLY for completed, past transactions (spent, paid, received, earned)
 ✅ Example: "I spent $50 on groceries" → Track it + give budget insights
+✅ Call add_crypto_holding for crypto purchases that already happened
+⛔ DO NOT track future intentions as transactions: "I want to buy" = GOAL, not transaction
+⛔ "I want to buy a car for $100k" = Future goal (ask first, don't track as expense)
+✅ Always provide insights, analysis, and context in your response
 
 FOR ANALYSIS TOOLS:
 ✅ Call analyze_portfolio_allocation, calculate_debt_payoff, project_future_value, calculate_retirement_needs
@@ -877,11 +880,18 @@ CRITICAL RULES:
       console.log(`🛡️  Tool filtering: isConfirmation=${isConfirmation}, wasAsking=${wasAskingForConfirmation}, canCreate=${canCreate}, toolCount=${availableTools.length}/${TOOLS.length}`);
       
       // Check if message indicates need for transaction/crypto tracking (immediate actions)
-      const needsImmediateAction = userMessage.toLowerCase().includes('spent') ||
-                         userMessage.toLowerCase().includes('paid') ||
-                         userMessage.toLowerCase().includes('received') ||
-                         userMessage.toLowerCase().includes('earned') ||
-                         userMessage.toLowerCase().includes('bought') && (userMessage.toLowerCase().includes('btc') || userMessage.toLowerCase().includes('crypto'));
+      // Only trigger for PAST tense actions, NOT future intentions
+      const lowerMsg = userMessage.toLowerCase();
+      const needsImmediateAction = (
+        (lowerMsg.includes('spent') || lowerMsg.includes('paid') || 
+         lowerMsg.includes('received') || lowerMsg.includes('earned')) &&
+        !lowerMsg.includes('want to') && !lowerMsg.includes('going to') && 
+        !lowerMsg.includes('plan to') && !lowerMsg.includes('will')
+      ) || (
+        lowerMsg.includes('bought') && 
+        (lowerMsg.includes('btc') || lowerMsg.includes('crypto') || lowerMsg.includes('bitcoin') || lowerMsg.includes('ethereum')) &&
+        !lowerMsg.includes('want to') && !lowerMsg.includes('going to')
+      );
 
       const response = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",
