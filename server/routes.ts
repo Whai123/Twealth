@@ -1452,11 +1452,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Build user context for AI
-      const [stats, goals, recentTransactions, upcomingEvents] = await Promise.all([
+      const [stats, goals, recentTransactions, upcomingEvents, userPreferences] = await Promise.all([
         storage.getUserStats(userId),
         storage.getFinancialGoalsByUserId(userId),
         storage.getTransactionsByUserId(userId, 10),
-        storage.getUpcomingEvents(userId, 5)
+        storage.getUpcomingEvents(userId, 5),
+        storage.getUserPreferences(userId)
       ]);
 
       const userContext: UserContext = {
@@ -1464,6 +1465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         monthlyIncome: stats.monthlyIncome,
         monthlyExpenses: stats.monthlyIncome - stats.totalSavings, // Simplified
         activeGoals: stats.activeGoals,
+        language: userPreferences?.language || 'en', // User's preferred language for AI responses
         recentTransactions: recentTransactions.slice(0, 5).map(t => ({
           amount: parseFloat(t.amount),
           category: t.category,

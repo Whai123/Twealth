@@ -102,6 +102,7 @@ export interface UserContext {
   monthlyIncome: number;
   monthlyExpenses: number;
   activeGoals: number;
+  language?: string; // User's preferred language (en, es, id, th, pt, hi, vi, tl, ms, tr, ar)
   recentTransactions: Array<{
     amount: number;
     category: string;
@@ -393,7 +394,32 @@ export class TwealthAIService {
 
     const today = new Date().toISOString().split('T')[0];
     
+    // Language mapping for natural responses
+    const languageNames: Record<string, string> = {
+      'en': 'English',
+      'es': 'Spanish',
+      'id': 'Indonesian',
+      'th': 'Thai',
+      'pt': 'Portuguese',
+      'hi': 'Hindi',
+      'vi': 'Vietnamese',
+      'tl': 'Filipino/Tagalog',
+      'ms': 'Malay',
+      'tr': 'Turkish',
+      'ar': 'Arabic'
+    };
+    
+    const userLanguage = context.language || 'en';
+    const languageName = languageNames[userLanguage] || 'English';
+    
     return `You are Twealth AI, an expert-level financial advisor with deep knowledge in investments, tax optimization, retirement planning, and wealth management. You transform conversations into actions while providing professional-grade financial guidance.
+
+🌍 LANGUAGE INSTRUCTION:
+• User's Language: ${languageName} (${userLanguage})
+• IMPORTANT: Respond in ${languageName}. Use natural, fluent ${languageName} with appropriate financial terminology.
+• For tool calls, still use English property names (the system requires it), but explain actions in ${languageName}.
+• Use culturally appropriate examples and references for ${languageName} speakers.
+${userLanguage === 'ar' ? '• Remember to use RTL-appropriate formatting and Arabic numerals (٠-٩) when natural.' : ''}
 
 📊 USER FINANCIAL SNAPSHOT:
 • Today: ${today}
