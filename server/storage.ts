@@ -147,7 +147,7 @@ export interface IStorage {
   getEvent(id: string): Promise<Event | undefined>;
   getEventsByUserId(userId: string): Promise<Event[]>;
   getEventsByGroupId(groupId: string): Promise<Event[]>;
-  getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]>;
+  getUserAccessibleEventsWithGroups(userId: string, limit?: number, offset?: number): Promise<EventWithGroup[]>;
   getUpcomingEvents(userId: string, limit?: number): Promise<Event[]>;
   getUpcomingEventsWithAttendees(userId: string, limit?: number): Promise<EventWithAttendees[]>;
   createEvent(event: InsertEvent): Promise<Event>;
@@ -270,7 +270,7 @@ export interface IStorage {
 
   // Notification methods
   getNotification(id: string): Promise<Notification | undefined>;
-  getNotificationsByUserId(userId: string, limit?: number, includeRead?: boolean): Promise<Notification[]>;
+  getNotificationsByUserId(userId: string, limit?: number, offset?: number, includeRead?: boolean): Promise<Notification[]>;
   getUnreadNotificationCount(userId: string): Promise<number>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(id: string): Promise<Notification>;
@@ -312,7 +312,7 @@ export interface IStorage {
   updateChatConversation(id: string, updates: Partial<ChatConversation>): Promise<ChatConversation>;
   deleteChatConversation(id: string): Promise<void>;
   
-  getChatMessages(conversationId: string, limit?: number): Promise<ChatMessage[]>;
+  getChatMessages(conversationId: string, limit?: number, offset?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessagesByUserId(userId: string, limit?: number): Promise<ChatMessage[]>;
 
@@ -567,7 +567,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(events).where(eq(events.groupId, groupId));
   }
 
-  async getUserAccessibleEventsWithGroups(userId: string): Promise<EventWithGroup[]> {
+  async getUserAccessibleEventsWithGroups(userId: string, limit = 100, offset = 0): Promise<EventWithGroup[]> {
     // Get personal events (events created by the user with no group)
     const personalEvents = await db
       .select({
@@ -576,7 +576,10 @@ export class DatabaseStorage implements IStorage {
         groupColor: sql<string | null>`NULL`,
       })
       .from(events)
-      .where(and(eq(events.createdBy, userId), sql`group_id IS NULL`));
+      .where(and(eq(events.createdBy, userId), sql`group_id IS NULL`))
+      .orderBy(desc(events.startTime))
+      .limit(limit)
+      .offset(offset);
 
     // Get group events (events from groups the user belongs to)
     const groupEvents = await db
@@ -588,7 +591,10 @@ export class DatabaseStorage implements IStorage {
       .from(events)
       .innerJoin(groups, eq(events.groupId, groups.id))
       .innerJoin(groupMembers, eq(groups.id, groupMembers.groupId))
-      .where(eq(groupMembers.userId, userId));
+      .where(eq(groupMembers.userId, userId))
+      .orderBy(desc(events.startTime))
+      .limit(limit)
+      .offset(offset);
 
     // Combine and format the results
     const combinedEvents: EventWithGroup[] = [
@@ -1669,14 +1675,15 @@ export class DatabaseStorage implements IStorage {
     return notification || undefined;
   }
 
-  async getNotificationsByUserId(userId: string, limit: number = 50, includeRead: boolean = true): Promise<Notification[]> {
+  async getNotificationsByUserId(userId: string, limit: number = 50, offset: number = 0, includeRead: boolean = true): Promise<Notification[]> {
     if (!includeRead) {
       return await db
         .select()
         .from(notifications)
         .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)))
         .orderBy(desc(notifications.createdAt))
-        .limit(limit);
+        .limit(limit)
+        .offset(offset);
     }
 
     return await db
@@ -1684,7 +1691,8 @@ export class DatabaseStorage implements IStorage {
       .from(notifications)
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
   }
 
   async getUnreadNotificationCount(userId: string): Promise<number> {
@@ -2125,12 +2133,13 @@ export class DatabaseStorage implements IStorage {
     await db.delete(chatConversations).where(eq(chatConversations.id, id));
   }
 
-  async getChatMessages(conversationId: string, limit = 50): Promise<ChatMessage[]> {
+  async getChatMessages(conversationId: string, limit = 50, offset = 0): Promise<ChatMessage[]> {
     return db.select()
       .from(chatMessages)
       .where(eq(chatMessages.conversationId, conversationId))
       .orderBy(desc(chatMessages.createdAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

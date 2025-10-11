@@ -46,8 +46,10 @@ const SYMBOL_TO_ID_MAP: { [symbol: string]: string } = {
 };
 
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
-const CACHE_DURATION = 60 * 1000; // 60 seconds
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes - increased to reduce rate limiting
 let priceCache: CachedPriceData | null = null;
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 2000; // 2 seconds between requests
 
 export class CryptoService {
   /**
@@ -84,8 +86,32 @@ export class CryptoService {
     const url = `${COINGECKO_API}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
 
     try {
+      // Rate limiting: ensure minimum interval between requests
+      const timeSinceLastRequest = Date.now() - lastRequestTime;
+      if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+        await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+      }
+
       console.log(`[CryptoService] Fetching prices from CoinGecko for: ${symbols.join(', ')}`);
+      lastRequestTime = Date.now();
       const response = await fetch(url);
+      
+      if (response.status === 429) {
+        // Rate limited - return cached data if available, otherwise throw
+        if (priceCache && priceCache.prices) {
+          console.log('[CryptoService] Rate limited, returning cached data');
+          const cachedResult: CryptoPriceData = {};
+          for (const symbol of symbols) {
+            if (priceCache.prices[symbol]) {
+              cachedResult[symbol] = priceCache.prices[symbol];
+            }
+          }
+          if (Object.keys(cachedResult).length > 0) {
+            return cachedResult;
+          }
+        }
+        throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
+      }
       
       if (!response.ok) {
         throw new Error(`CoinGecko API error: ${response.status} ${response.statusText}`);
@@ -111,6 +137,21 @@ export class CryptoService {
       return result;
     } catch (error) {
       console.error('[CryptoService] Error fetching prices:', error);
+      
+      // Return cached data on error if available
+      if (priceCache && priceCache.prices) {
+        const cachedResult: CryptoPriceData = {};
+        for (const symbol of symbols) {
+          if (priceCache.prices[symbol]) {
+            cachedResult[symbol] = priceCache.prices[symbol];
+          }
+        }
+        if (Object.keys(cachedResult).length > 0) {
+          console.log('[CryptoService] Returning stale cache due to error');
+          return cachedResult;
+        }
+      }
+      
       throw error;
     }
   }

@@ -351,6 +351,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events", isAuthenticated, async (req: any, res) => {
     try {
       const groupId = req.query.groupId as string;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const offset = parseInt(req.query.offset as string) || 0;
       
       let events;
       if (groupId) {
@@ -358,7 +360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Use authenticated user from session
         const userId = getUserIdFromRequest(req);
-        events = await storage.getEventsByUserId(userId);
+        events = await storage.getUserAccessibleEventsWithGroups(userId, limit, offset);
       }
       
       res.json(events);
@@ -1263,9 +1265,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
       const includeRead = req.query.includeRead === 'true';
       
-      const notifications = await storage.getNotificationsByUserId(userId, limit, includeRead);
+      const notifications = await storage.getNotificationsByUserId(userId, limit, offset, includeRead);
       res.json(notifications);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
