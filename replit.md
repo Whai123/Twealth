@@ -48,7 +48,7 @@ The application features a modern UI with a redesigned landing page, enhanced ac
 - **Organized Sidebar**: Logical navigation with visual dividers and tooltips.
 - **Keyboard Shortcuts**: Quick access to common actions (G for Goal, T for Transaction, E for Event).
 - **Premium AI Personalization**: Offers CFO-level advice with detailed, user-specific financial data integration for premium subscribers.
-- **Premium Pricing Model**: Free plan (10 AI chats/month), Pro Plan ($25/month for 200 chats), Unlimited Plan ($45/month for unlimited chats and premium features).
+- **Premium Pricing Model**: Free plan (10 lifetime trial chats), Pro Plan ($25/month for 500 monthly chats), Enterprise (custom pricing for power users). Free tier uses lifetime limits to encourage trial-to-conversion.
 
 ## Internationalization (i18n)
 
