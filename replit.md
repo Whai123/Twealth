@@ -34,6 +34,9 @@ The application features a modern UI with a redesigned landing page, enhanced ac
 - **Friend Request System**: Manage friendships and user searches.
 - **AI Financial Advisor**: An expert-level financial advisor powered by Groq AI (Llama 3.3) offering:
     - **Personalized Advice**: Uses user's financial data (income, expenses, net worth) in every response with mandatory calculation examples.
+    - **Conversational Data Collection**: Proactively detects missing financial data and asks users targeted questions one at a time, automatically extracting and saving income, expenses, and savings from natural conversation using regex parsing.
+    - **Resilient Data Capture**: Proactive parsing extracts financial estimates from user messages BEFORE AI processing, ensuring data is preserved even if AI fails due to rate limits or errors. Uses pattern matching for income ($X earn/make/salary), expenses ($X spend/cost), and savings ($X saved/have).
+    - **Smart Financial Estimates**: Stores monthly income/expense estimates and current savings in user preferences, serving as fallback data when actual transaction history is unavailable. AI uses estimates seamlessly in calculations and advice.
     - **Comprehensive Knowledge**: Macroeconomics, investment strategies, tax optimization, retirement planning, debt management, real estate intelligence.
     - **Advanced Analysis Tools**: Portfolio allocation, debt payoff, future value projections, retirement calculators, with detailed explanations.
     - **Advice-First Approach**: Explains strategies and asks for user confirmation before creating goals/events.
