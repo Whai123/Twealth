@@ -61,7 +61,7 @@ export default function WelcomePage() {
   // Get user's currency and localized value propositions
   const userCurrency = userPreferences?.currency || 'USD';
   const currencyData = CURRENCIES[userCurrency] || CURRENCIES.USD;
-  const localizedPrice = getLocalizedPrice(2.99, userCurrency); // Base $2.99 USD price
+  const localizedPrice = getLocalizedPrice(25, userCurrency); // Base $25 USD Pro plan price
   
   // Localized value propositions by region
   const getValueProposition = () => {
@@ -71,31 +71,31 @@ export default function WelcomePage() {
     if (isEmergingMarket) {
       const discount = Math.round((1 - localizedPrice.amount / localizedPrice.originalAmount!) * 100);
       return {
-        title: `Financial Success Made Affordable`,
-        subtitle: `AI-powered financial planning designed for ${currencyData.name}`,
+        title: `CFO-Level Financial Advice Made Affordable`,
+        subtitle: `Try 10 free AI chats, then upgrade for unlimited access`,
         price: `${localizedPrice.currency.symbol}${Math.round(localizedPrice.amount)}/month`,
         originalPrice: localizedPrice.originalAmount ? `${localizedPrice.currency.symbol}${Math.round(localizedPrice.originalAmount)}` : null,
         discount: localizedPrice.isDiscounted ? `${discount}% OFF` : null,
         benefits: [
-          "25x more affordable than traditional financial advisors",
-          "Designed for mobile-first users",
-          "AI insights in your local currency",
-          "Build wealth with small, smart steps"
+          "Start free: 10 lifetime trial AI chats",
+          "Expert financial advice in your currency",
+          "Pro: 500 monthly AI chats + all features",
+          "Build wealth with personalized insights"
         ]
       };
     }
     
     return {
-      title: "AI-Powered Financial Intelligence",
-      subtitle: "Transform your financial future with smart technology",
+      title: "CFO-Level AI Financial Intelligence",
+      subtitle: "Try 10 free AI chats, then unlock premium features",
       price: `${localizedPrice.currency.symbol}${localizedPrice.amount}/month`,
       originalPrice: null,
       discount: null,
       benefits: [
-        "Advanced AI financial assistant",
-        "Comprehensive goal tracking",
-        "Group financial planning",
-        "Professional-grade insights"
+        "Free trial: 10 lifetime AI chats",
+        "Pro plan: 500 monthly AI chats",
+        "Professional financial tracking",
+        "Advanced analytics & insights"
       ]
     };
   };
