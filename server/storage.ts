@@ -2231,6 +2231,7 @@ export class DatabaseStorage implements IStorage {
         aiChatLimit: subscriptionPlans.aiChatLimit,
         aiDeepAnalysisLimit: subscriptionPlans.aiDeepAnalysisLimit,
         aiInsightsFrequency: subscriptionPlans.aiInsightsFrequency,
+        isLifetimeLimit: subscriptionPlans.isLifetimeLimit,
         features: subscriptionPlans.features,
         isActive: subscriptionPlans.isActive,
         sortOrder: subscriptionPlans.sortOrder,
@@ -2275,6 +2276,19 @@ export class DatabaseStorage implements IStorage {
 
   // Usage Tracking methods
   async getUserUsage(userId: string): Promise<UsageTracking | undefined> {
+    const subscription = await this.getUserSubscription(userId);
+    
+    // For lifetime limit plans (Free), get ALL TIME usage, not just this month
+    if (subscription?.plan?.isLifetimeLimit) {
+      const [usage] = await db.select()
+        .from(usageTracking)
+        .where(eq(usageTracking.userId, userId))
+        .orderBy(desc(usageTracking.createdAt))
+        .limit(1);
+      return usage;
+    }
+    
+    // For monthly limit plans (Pro), get current month usage
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -2307,20 +2321,24 @@ export class DatabaseStorage implements IStorage {
 
   async incrementUsage(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed' | 'aiInsightsGenerated', amount = 1): Promise<UsageTracking> {
     let usage = await this.getUserUsage(userId);
+    const subscription = await this.getUserSubscription(userId);
+    const isLifetime = subscription?.plan?.isLifetimeLimit || false;
     
     if (!usage) {
-      // Create new usage record for this month
+      // Create new usage record
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       
-      const subscription = await this.getUserSubscription(userId);
+      // For lifetime plans, use account creation date as start, far future as end
+      const periodStart = isLifetime ? now : startOfMonth;
+      const periodEnd = isLifetime ? new Date('2099-12-31') : endOfMonth;
       
       usage = await this.createUsageRecord({
         userId,
         subscriptionId: subscription?.id || null,
-        periodStart: startOfMonth,
-        periodEnd: endOfMonth,
+        periodStart,
+        periodEnd,
         aiChatsUsed: type === 'aiChatsUsed' ? amount : 0,
         aiDeepAnalysisUsed: type === 'aiDeepAnalysisUsed' ? amount : 0,
         aiInsightsGenerated: type === 'aiInsightsGenerated' ? amount : 0,
@@ -2371,29 +2389,33 @@ export class DatabaseStorage implements IStorage {
         .values({
           name: 'Free',
           displayName: 'Twealth Free',
-          description: 'Get started with AI-powered financial tracking',
+          description: 'Try AI financial advisor - 10 chats total',
           priceThb: '0.00',
           priceUsd: '0.00',
           currency: 'USD',
-          billingInterval: 'monthly',
+          billingInterval: 'lifetime',
           aiChatLimit: 10,
           aiDeepAnalysisLimit: 0,
-          aiInsightsFrequency: 'weekly',
-          features: ['basic_tracking', 'ai_chat', 'simple_goals', 'expense_tracking'],
+          aiInsightsFrequency: 'never',
+          isLifetimeLimit: true,
+          features: ['basic_tracking', 'ai_chat_trial', 'expense_tracking'],
           sortOrder: 0,
         })
         .returning();
       freePlan = [newFreePlan];
-    } else if (freePlan[0].aiChatLimit !== 10) {
-      // Update existing free plan to new limit
+    } else if (freePlan[0].aiChatLimit !== 10 || !freePlan[0].isLifetimeLimit) {
+      // Update existing free plan to new limit and lifetime settings
       await db.update(subscriptionPlans)
         .set({ 
           aiChatLimit: 10,
-          description: 'Get started with AI-powered financial tracking',
-          features: ['basic_tracking', 'ai_chat', 'simple_goals', 'expense_tracking']
+          isLifetimeLimit: true,
+          billingInterval: 'lifetime',
+          description: 'Try AI financial advisor - 10 chats total',
+          features: ['basic_tracking', 'ai_chat_trial', 'expense_tracking']
         })
         .where(eq(subscriptionPlans.id, freePlan[0].id));
       freePlan[0].aiChatLimit = 10;
+      freePlan[0].isLifetimeLimit = true;
     }
 
     const now = new Date();

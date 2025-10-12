@@ -753,17 +753,18 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
 // Subscription Management Tables
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(), // "Free", "Standard", "Pro"
-  displayName: text("display_name").notNull(), // "Twealth Standard", "Twealth Pro"
+  name: text("name").notNull(), // "Free", "Pro", "Enterprise"
+  displayName: text("display_name").notNull(), // "Twealth Free", "Twealth Pro"
   description: text("description"),
   priceThb: decimal("price_thb", { precision: 10, scale: 2 }).notNull(), // Price in THB
   priceUsd: decimal("price_usd", { precision: 10, scale: 2 }).notNull(), // Price in USD
-  currency: text("currency").default("THB"),
-  billingInterval: text("billing_interval").notNull(), // "monthly", "yearly"
+  currency: text("currency").default("USD"),
+  billingInterval: text("billing_interval").notNull(), // "monthly", "yearly", "lifetime"
   // AI Usage Limits
-  aiChatLimit: integer("ai_chat_limit").default(0), // Messages per month
-  aiDeepAnalysisLimit: integer("ai_deep_analysis_limit").default(0), // Complex queries per month
+  aiChatLimit: integer("ai_chat_limit").default(0), // Messages per period (monthly or lifetime)
+  aiDeepAnalysisLimit: integer("ai_deep_analysis_limit").default(0), // Complex queries per period
   aiInsightsFrequency: text("ai_insights_frequency").default("never"), // "never", "weekly", "daily"
+  isLifetimeLimit: boolean("is_lifetime_limit").default(false), // true = no reset (Free), false = monthly reset (Pro)
   // Feature Access
   features: jsonb("features").default([]), // Array of feature names
   isActive: boolean("is_active").default(true),

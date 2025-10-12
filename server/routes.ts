@@ -2025,33 +2025,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createSubscriptionPlan({
           name: 'Pro',
           displayName: 'Twealth Pro',
-          description: 'Advanced AI financial advisor with expert-level insights',
+          description: 'CFO-level AI advisor - 500 chats/month + all features',
           priceThb: '875.00', // ~$25 USD
           priceUsd: '25.00',
           currency: 'USD',
           billingInterval: 'monthly',
-          aiChatLimit: 200,
-          aiDeepAnalysisLimit: 50,
+          aiChatLimit: 500,
+          aiDeepAnalysisLimit: 500,
           aiInsightsFrequency: 'daily',
-          features: ['basic_tracking', 'ai_chat', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_insights'],
+          isLifetimeLimit: false,
+          features: ['full_tracking', 'ai_chat_unlimited', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_insights', 'all_features'],
           sortOrder: 1,
-        });
-      }
-      
-      if (!planNames.includes('Unlimited')) {
-        await storage.createSubscriptionPlan({
-          name: 'Unlimited',
-          displayName: 'Twealth Unlimited',
-          description: 'Unlimited AI chats + premium features for power users',
-          priceThb: '1575.00', // ~$45 USD
-          priceUsd: '45.00',
-          currency: 'USD',
-          billingInterval: 'monthly',
-          aiChatLimit: 999999,
-          aiDeepAnalysisLimit: 999999,
-          aiInsightsFrequency: 'daily',
-          features: ['basic_tracking', 'ai_chat', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_support', 'api_access', 'unlimited_insights'],
-          sortOrder: 2,
         });
       }
       
