@@ -1475,6 +1475,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         monthlyExpenses: stats.monthlyIncome - stats.totalSavings, // Simplified
         activeGoals: stats.activeGoals,
         language: userPreferences?.language || 'en', // User's preferred language for AI responses
+        cryptoEnabled: userPreferences?.cryptoEnabled || false, // Whether user has enabled crypto features
+        experienceLevel: (userPreferences?.experienceLevel as 'beginner' | 'intermediate' | 'advanced') || 'beginner', // User's financial experience level
         recentTransactions: recentTransactions.slice(0, 5).map(t => ({
           amount: parseFloat(t.amount),
           category: t.category,

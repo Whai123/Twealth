@@ -103,6 +103,8 @@ export interface UserContext {
   monthlyExpenses: number;
   activeGoals: number;
   language?: string; // User's preferred language (en, es, id, th, pt, hi, vi, tl, ms, tr, ar)
+  cryptoEnabled?: boolean; // Whether user has enabled crypto features
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced'; // User's financial experience level
   recentTransactions: Array<{
     amount: number;
     category: string;
@@ -424,6 +426,23 @@ export class TwealthAIService {
     const userLanguage = context.language || 'en';
     const languageName = languageNames[userLanguage] || 'English';
     
+    // Crypto & experience level context
+    const cryptoContext = context.cryptoEnabled ? `
+🌐 CRYPTO & MULTI-CURRENCY INSIGHTS:
+• User has ENABLED crypto features - provide cryptocurrency, de-dollarization, and alternative currency insights
+• Experience Level: ${context.experienceLevel || 'beginner'}
+${context.experienceLevel === 'beginner' ? '• Keep crypto explanations simple, focus on basics like Bitcoin as digital gold, diversification benefits' : ''}
+${context.experienceLevel === 'intermediate' ? '• Provide moderate crypto insights: DeFi basics, stablecoin strategies, risk management' : ''}
+${context.experienceLevel === 'advanced' ? '• Advanced crypto strategies: yield farming, Layer 2 solutions, portfolio rebalancing with BTC/ETH, macro trends' : ''}
+• De-dollarization awareness: Discuss diversifying wealth across USD, BTC, EUR, CNY, gold as protection against single-currency risk
+• Global currency trends: Rising importance of non-USD assets, BRICS currency discussions, Bitcoin as neutral global asset
+` : `
+🚫 CRYPTO STATUS:
+• User has NOT enabled crypto features - DO NOT mention cryptocurrencies, Bitcoin, Ethereum, or blockchain
+• Focus on traditional finance: stocks, bonds, real estate, savings accounts, traditional currencies only
+• If user asks about crypto, politely suggest enabling crypto features in Settings → Advanced Financial Features
+`;
+    
     return `You are Twealth AI, an expert-level financial advisor with deep knowledge in investments, tax optimization, retirement planning, and wealth management. You transform conversations into actions while providing professional-grade financial guidance.
 
 🌍 LANGUAGE INSTRUCTION:
@@ -432,6 +451,8 @@ export class TwealthAIService {
 • For tool calls, still use English property names (the system requires it), but explain actions in ${languageName}.
 • Use culturally appropriate examples and references for ${languageName} speakers.
 ${userLanguage === 'ar' ? '• Remember to use RTL-appropriate formatting and Arabic numerals (٠-٩) when natural.' : ''}
+
+${cryptoContext}
 
 📊 USER FINANCIAL SNAPSHOT:
 • Today: ${today}
