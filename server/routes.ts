@@ -1788,7 +1788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }).trim();
         }
         
-        // If AI used tools but didn't provide a text response, generate confirmation
+        // If AI used tools but didn't provide a text response, generate detailed explanation
         if ((!responseContent || responseContent.trim() === '') && actionsPerformed.length > 0) {
           const confirmations = actionsPerformed.map(action => {
             if (action.type === 'goal_created') {
@@ -1806,11 +1806,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else if (action.type === 'crypto_added') {
               const crypto = action.data;
               return `₿ Tracked: ${crypto.amount} ${crypto.symbol} at $${parseFloat(crypto.averageBuyPrice).toLocaleString()}/coin. Total investment: $${(parseFloat(crypto.amount) * parseFloat(crypto.averageBuyPrice)).toLocaleString()}`;
+            } else if (action.type === 'portfolio_analyzed') {
+              const data = action.data;
+              return `📊 **Portfolio Allocation Strategy**\n\n` +
+                `For a ${data.riskTolerance} risk profile investing $${data.investmentAmount.toLocaleString()}:\n\n` +
+                `• **${data.stocksPercent}% Stocks** ($${Math.round(data.investmentAmount * data.stocksPercent / 100).toLocaleString()}): Index funds like VTI or VOO for growth\n` +
+                `• **${data.bondsPercent}% Bonds** ($${Math.round(data.investmentAmount * data.bondsPercent / 100).toLocaleString()}): BND or AGG for stability\n` +
+                `• **${data.alternativesPercent}% Alternatives** ($${Math.round(data.investmentAmount * data.alternativesPercent / 100).toLocaleString()}): REITs or commodities for diversification\n\n` +
+                `💡 **Why this works**: Age-based allocation (${100 - data.age}% stocks for growth) balanced with risk tolerance. Rebalance annually to maintain ratios!`;
+            } else if (action.type === 'debt_calculated') {
+              const data = action.data;
+              return `💳 **Debt Payoff Strategy Analysis**\n\n` +
+                `**AVALANCHE Method** (Save Most Money):\n` +
+                `• Total Interest: $${data.avalanche.totalInterest.toLocaleString()}\n` +
+                `• Payoff Time: ${data.avalanche.monthsToPay} months\n` +
+                `• Strategy: Pay highest interest rate first\n\n` +
+                `**SNOWBALL Method** (Quick Wins):\n` +
+                `• Total Interest: $${data.snowball.totalInterest.toLocaleString()}\n` +
+                `• Payoff Time: ${data.snowball.monthsToPay} months\n` +
+                `• Strategy: Pay smallest balance first for motivation\n\n` +
+                `💡 **Recommendation**: Avalanche saves $${Math.abs(data.snowball.totalInterest - data.avalanche.totalInterest).toLocaleString()} more. Choose Snowball only if you need psychological wins!`;
+            } else if (action.type === 'future_value_calculated') {
+              const data = action.data;
+              return `📈 **Compound Growth Projection**\n\n` +
+                `• **Future Value**: $${data.futureValue.toLocaleString()} (nominal)\n` +
+                `• **Real Value**: $${data.realValue.toLocaleString()} (inflation-adjusted)\n` +
+                `• **Total Invested**: $${data.totalInvested.toLocaleString()}\n` +
+                `• **Growth**: $${data.totalGrowth.toLocaleString()} (${data.returnPercentage}% return)\n\n` +
+                `💡 **The power of compounding**: Start early! Every year you delay costs you thousands in lost growth.`;
+            } else if (action.type === 'retirement_calculated') {
+              const data = action.data;
+              const status = data.onTrack ? '✅ On track!' : '⚠️ Need to save more';
+              return `🏖️ **Retirement Planning Analysis**\n\n` +
+                `• **Target Amount Needed**: $${data.targetAmount.toLocaleString()} (4% rule)\n` +
+                `• **Current Savings**: $${data.currentSavings.toLocaleString()}\n` +
+                `• **Years to Retirement**: ${data.yearsToRetirement}\n` +
+                `• **Required Monthly Savings**: $${data.requiredMonthly.toLocaleString()}\n` +
+                `• **Status**: ${status}\n\n` +
+                `💡 **Pro tips**: Max 401(k) match (free money!), consider Roth IRA for tax-free growth, delay Social Security to 70 for 32% boost!`;
             }
             return '';
-          }).filter(Boolean).join(' ');
+          }).filter(Boolean).join('\n\n');
           
-          responseContent = confirmations || 'Action completed successfully!';
+          responseContent = confirmations || 'Analysis completed! Let me know if you need clarification on any aspect.';
         }
         
         // Save AI response
