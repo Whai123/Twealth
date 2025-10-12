@@ -15,6 +15,9 @@ Twealth is a full-stack web application designed for comprehensive schedule mana
 - **Settings Toggle**: Enable/disable crypto features in Settings → Preferences tab
 
 ## AI Chat System Improvements
+- **Fixed "Action Completed" Empty Responses**: AI now ALWAYS provides detailed explanations after using analysis tools (portfolio, debt, retirement, future value). Added fallback response generators that automatically create comprehensive explanations with specific numbers, calculations, and recommendations when AI doesn't provide text response
+- **Enhanced Tool Descriptions**: All analysis tools now mandate detailed explanations in their descriptions - portfolio shows stocks/bonds/alternatives percentages + dollar amounts + fund tickers (VTI/VOO/BND), debt shows avalanche vs snowball comparison with interest saved, retirement shows 4% rule + required savings + pro tips
+- **Impressive Financial Responses**: Every response now includes expert-level knowledge with specific numbers, calculations, WHY explanations, and actionable recommendations - no more generic chatbot responses
 - **Fixed Raw Function Syntax Display**: AI responses no longer show leaked function call syntax like `<function=create_financial_goal>...` - added explicit prompt instructions and response sanitization
 - **Fixed Transaction Auto-Creation**: AI now correctly distinguishes between past transactions ("I spent/paid") vs future goals ("I want to buy") - prevents incorrect auto-tracking of future intentions
 - **Fixed Subscription Initialization**: Chat endpoint now initializes free subscription before checking usage limits, preventing 0 quota for new users
