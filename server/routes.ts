@@ -1463,6 +1463,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cost: '0.0000'
       });
 
+      // Proactively parse and save financial data from user message
+      // This ensures we capture data even if AI fails later
+      const messageLower = userMessage.toLowerCase();
+      const estimates: any = {};
+      
+      // Extract income-related numbers
+      const incomeMatch = messageLower.match(/(?:earn|make|income|salary).*?(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
+      if (incomeMatch) {
+        const amount = parseFloat(incomeMatch[1].replace(/[$,]/g, ''));
+        if (amount > 0 && amount < 1000000) { // Sanity check
+          estimates.monthlyIncomeEstimate = amount.toString();
+        }
+      }
+      
+      // Extract expense-related numbers
+      const expenseMatch = messageLower.match(/(?:spend|expense|cost).*?(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
+      if (expenseMatch) {
+        const amount = parseFloat(expenseMatch[1].replace(/[$,]/g, ''));
+        if (amount > 0 && amount < 1000000) {
+          estimates.monthlyExpensesEstimate = amount.toString();
+        }
+      }
+      
+      // Extract savings-related numbers  
+      const savingsMatch = messageLower.match(/(?:have|saved|savings|save).*?(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
+      if (savingsMatch) {
+        const amount = parseFloat(savingsMatch[1].replace(/[$,]/g, ''));
+        if (amount > 0 && amount < 10000000) { // Higher limit for total savings
+          estimates.currentSavingsEstimate = amount.toString();
+        }
+      }
+      
+      // Save estimates if we found any
+      if (Object.keys(estimates).length > 0) {
+        await storage.updateUserPreferences(userId, estimates);
+        console.log('📊 Proactively saved financial estimates:', estimates);
+      }
+
       // Build user context for AI
       const [stats, goals, recentTransactions, upcomingEvents, userPreferences] = await Promise.all([
         storage.getUserStats(userId),
