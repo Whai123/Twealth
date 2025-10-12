@@ -27,6 +27,8 @@ import EnhancedFinancialTrends from "@/components/dashboard/enhanced-financial-t
 import AIChatButton from "@/components/chat/ai-chat-button";
 import AIInsightsCard from "@/components/dashboard/ai-insights-card";
 import CryptoPortfolioWidget from "@/components/dashboard/crypto-portfolio-widget";
+import MultiCurrencyCalculator from "@/components/wealth/multi-currency-calculator";
+import { UserPreferences } from "@shared/schema";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -48,6 +50,10 @@ export default function Dashboard() {
   
   const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["/api/financial-goals"],
+  });
+
+  const { data: preferences } = useQuery<UserPreferences>({
+    queryKey: ['/api/user-preferences'],
   });
   
   const activeGoalsCount = Array.isArray(goals) ? goals.filter((g: any) => g.status === "active").length : 0;
@@ -235,6 +241,11 @@ export default function Dashboard() {
 
         {/* Smart Financial Insights */}
         <SmartInsights />
+
+        {/* Multi-Currency Calculator - Only show when crypto features are enabled */}
+        {preferences?.cryptoEnabled && (
+          <MultiCurrencyCalculator />
+        )}
 
         {/* AI Assistant CTA Banner */}
         <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20 border-blue-200 dark:border-blue-800">
