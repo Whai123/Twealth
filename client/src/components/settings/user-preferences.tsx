@@ -356,6 +356,73 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
         </CardContent>
       </Card>
 
+      {/* Crypto & Advanced Features */}
+      <Card className="p-6 border-2 border-primary/20">
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="flex items-center">
+            <Zap className="mr-2 text-yellow-600" size={20} />
+            Advanced Financial Features
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            Enable cryptocurrency tracking and multi-currency wealth analysis for the future of finance
+          </p>
+        </CardHeader>
+        <CardContent className="px-0 space-y-6">
+          {/* Crypto Toggle */}
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg border border-yellow-500/20">
+            <div className="flex items-center">
+              <div className="bg-yellow-500/20 p-2 rounded-lg mr-3">
+                <Zap className="text-yellow-600" size={20} />
+              </div>
+              <div>
+                <p className="font-medium">Enable Crypto Features</p>
+                <p className="text-sm text-muted-foreground">
+                  Track Bitcoin, gold, and alternative currencies for de-dollarization
+                </p>
+              </div>
+            </div>
+            <Switch 
+              data-testid="switch-crypto-enabled"
+              checked={preferences.cryptoEnabled ?? false}
+              onCheckedChange={(checked) => updatePreferencesMutation.mutate({ cryptoEnabled: checked })}
+              disabled={updatePreferencesMutation.isPending}
+            />
+          </div>
+
+          {/* Experience Level - Only show when crypto is enabled */}
+          {preferences.cryptoEnabled && (
+            <div className="space-y-3">
+              <label className="text-sm font-medium block">Experience Level</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[
+                  { value: "beginner", label: "Beginner", description: "Simple interface, basic features", icon: Eye },
+                  { value: "intermediate", label: "Intermediate", description: "Standard crypto tracking", icon: Layout },
+                  { value: "advanced", label: "Advanced", description: "Full analytics & insights", icon: Zap }
+                ].map((level) => (
+                  <button
+                    key={level.value}
+                    data-testid={`experience-${level.value}`}
+                    onClick={() => updatePreferencesMutation.mutate({ experienceLevel: level.value as "beginner" | "intermediate" | "advanced" })}
+                    disabled={updatePreferencesMutation.isPending}
+                    className={`p-4 rounded-lg border transition-all ${
+                      preferences.experienceLevel === level.value 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary/50'
+                    } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex items-center justify-center mb-2">
+                      <level.icon className={`${preferences.experienceLevel === level.value ? 'text-primary' : 'text-muted-foreground'}`} size={20} />
+                    </div>
+                    <h4 className="font-medium text-sm">{level.label}</h4>
+                    <p className="text-xs text-muted-foreground">{level.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Save Button */}
       <Card className="p-6">
         <div className="flex items-center justify-between">
