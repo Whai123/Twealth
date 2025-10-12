@@ -2,6 +2,9 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
+import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated, getUserIdFromRequest } from "./replitAuth";
 import { 
   insertUserSchema,
@@ -2017,16 +2020,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/subscription/plans", async (req, res) => {
     try {
       let plans = await storage.getSubscriptionPlans();
+      const planMap = new Map(plans.map(p => [p.name, p]));
       
-      // Initialize Pro and Unlimited plans if they don't exist
-      const planNames = plans.map(p => p.name);
-      
-      if (!planNames.includes('Pro')) {
+      // Update or create Pro plan
+      if (planMap.has('Pro')) {
+        const proPlan = planMap.get('Pro')!;
+        if (proPlan.aiChatLimit !== 500 || proPlan.priceUsd !== '25.00') {
+          await db.update(subscriptionPlans)
+            .set({
+              aiChatLimit: 500,
+              aiDeepAnalysisLimit: 500,
+              priceUsd: '25.00',
+              priceThb: '875.00',
+              isLifetimeLimit: false,
+              billingInterval: 'monthly',
+              description: 'CFO-level AI advisor - 500 chats/month + all features',
+              features: ['full_tracking', 'ai_chat_unlimited', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_insights', 'all_features']
+            })
+            .where(eq(subscriptionPlans.id, proPlan.id));
+        }
+      } else {
         await storage.createSubscriptionPlan({
           name: 'Pro',
           displayName: 'Twealth Pro',
           description: 'CFO-level AI advisor - 500 chats/month + all features',
-          priceThb: '875.00', // ~$25 USD
+          priceThb: '875.00',
           priceUsd: '25.00',
           currency: 'USD',
           billingInterval: 'monthly',
@@ -2039,9 +2057,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Refresh plans list
+      // Deactivate old plans (Standard, Unlimited, Premium)
+      const oldPlanNames = ['Standard', 'Unlimited', 'Premium'];
+      for (const oldName of oldPlanNames) {
+        if (planMap.has(oldName)) {
+          await db.update(subscriptionPlans)
+            .set({ isActive: false })
+            .where(eq(subscriptionPlans.name, oldName));
+        }
+      }
+      
+      // Refresh and filter active plans
       plans = await storage.getSubscriptionPlans();
-      res.json(plans);
+      const activePlans = plans.filter(p => p.isActive);
+      res.json(activePlans);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
