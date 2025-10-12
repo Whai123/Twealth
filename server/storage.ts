@@ -2371,19 +2371,29 @@ export class DatabaseStorage implements IStorage {
         .values({
           name: 'Free',
           displayName: 'Twealth Free',
-          description: 'Basic financial tracking with limited AI features',
+          description: 'Get started with AI-powered financial tracking',
           priceThb: '0.00',
           priceUsd: '0.00',
-          currency: 'THB',
+          currency: 'USD',
           billingInterval: 'monthly',
-          aiChatLimit: 5,
+          aiChatLimit: 10,
           aiDeepAnalysisLimit: 0,
           aiInsightsFrequency: 'weekly',
-          features: ['basic_tracking', 'manual_transactions', 'simple_goals'],
+          features: ['basic_tracking', 'ai_chat', 'simple_goals', 'expense_tracking'],
           sortOrder: 0,
         })
         .returning();
       freePlan = [newFreePlan];
+    } else if (freePlan[0].aiChatLimit !== 10) {
+      // Update existing free plan to new limit
+      await db.update(subscriptionPlans)
+        .set({ 
+          aiChatLimit: 10,
+          description: 'Get started with AI-powered financial tracking',
+          features: ['basic_tracking', 'ai_chat', 'simple_goals', 'expense_tracking']
+        })
+        .where(eq(subscriptionPlans.id, freePlan[0].id));
+      freePlan[0].aiChatLimit = 10;
     }
 
     const now = new Date();

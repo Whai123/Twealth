@@ -2016,7 +2016,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Subscription Management API routes
   app.get("/api/subscription/plans", async (req, res) => {
     try {
-      const plans = await storage.getSubscriptionPlans();
+      let plans = await storage.getSubscriptionPlans();
+      
+      // Initialize Pro and Unlimited plans if they don't exist
+      const planNames = plans.map(p => p.name);
+      
+      if (!planNames.includes('Pro')) {
+        await storage.createSubscriptionPlan({
+          name: 'Pro',
+          displayName: 'Twealth Pro',
+          description: 'Advanced AI financial advisor with expert-level insights',
+          priceThb: '875.00', // ~$25 USD
+          priceUsd: '25.00',
+          currency: 'USD',
+          billingInterval: 'monthly',
+          aiChatLimit: 200,
+          aiDeepAnalysisLimit: 50,
+          aiInsightsFrequency: 'daily',
+          features: ['basic_tracking', 'ai_chat', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_insights'],
+          sortOrder: 1,
+        });
+      }
+      
+      if (!planNames.includes('Unlimited')) {
+        await storage.createSubscriptionPlan({
+          name: 'Unlimited',
+          displayName: 'Twealth Unlimited',
+          description: 'Unlimited AI chats + premium features for power users',
+          priceThb: '1575.00', // ~$45 USD
+          priceUsd: '45.00',
+          currency: 'USD',
+          billingInterval: 'monthly',
+          aiChatLimit: 999999,
+          aiDeepAnalysisLimit: 999999,
+          aiInsightsFrequency: 'daily',
+          features: ['basic_tracking', 'ai_chat', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_support', 'api_access', 'unlimited_insights'],
+          sortOrder: 2,
+        });
+      }
+      
+      // Refresh plans list
+      plans = await storage.getSubscriptionPlans();
       res.json(plans);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
