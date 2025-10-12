@@ -122,8 +122,8 @@ export default function UpgradePage() {
   const getPlanIcon = (planName: string) => {
     switch (planName) {
       case 'Free': return <CheckCircle className="w-6 h-6 text-green-500" />;
-      case 'Standard': return <Zap className="w-6 h-6 text-blue-500" />;
       case 'Pro': return <Crown className="w-6 h-6 text-purple-500" />;
+      case 'Enterprise': return <Zap className="w-6 h-6 text-blue-500" />;
       default: return <CheckCircle className="w-6 h-6 text-gray-500" />;
     }
   };
@@ -251,9 +251,9 @@ export default function UpgradePage() {
                   <span className="text-sm font-medium">AI-Powered</span>
                 </div>
                 <div className="text-2xl font-bold text-green-600">
-                  Unlimited
+                  500/mo
                 </div>
-                <div className="text-xs text-muted-foreground">Analysis & insights</div>
+                <div className="text-xs text-muted-foreground">Pro AI chats</div>
               </div>
               
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
@@ -321,12 +321,12 @@ export default function UpgradePage() {
               <Card
                 key={plan.id}
                 className={`relative bg-white/80 dark:bg-gray-800/80 backdrop-blur border-0 shadow-xl hover:shadow-2xl transition-all duration-300 ${
-                  plan.name === 'Standard' ? 'ring-2 ring-blue-500 scale-105' : ''
+                  plan.name === 'Pro' ? 'ring-2 ring-purple-500 scale-105' : ''
                 } ${isCurrentPlan(plan.id) ? 'ring-2 ring-green-500' : ''}`}
                 data-testid={`card-plan-${plan.name.toLowerCase()}`}
               >
-                {plan.name === 'Standard' && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1">
+                {plan.name === 'Pro' && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white px-4 py-1">
                     Most Popular
                   </Badge>
                 )}
@@ -387,7 +387,7 @@ export default function UpgradePage() {
 
                   <Button
                     className="w-full mt-6"
-                    variant={plan.name === 'Standard' ? 'default' : 'outline'}
+                    variant={plan.name === 'Pro' ? 'default' : 'outline'}
                     onClick={() => handleUpgrade(plan.id)}
                     disabled={isCurrentPlan(plan.id) || upgradeMutation.isPending || paymentMutation.isPending}
                     data-testid={`button-upgrade-${plan.name.toLowerCase()}`}
