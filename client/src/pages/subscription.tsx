@@ -67,16 +67,6 @@ interface UsageInfo {
   estimatedCost: string;
 }
 
-const getFeatureIcon = (feature: string) => {
-  switch (feature) {
-    case 'ai_chat': return <Sparkles className="h-4 w-4" />;
-    case 'advanced_goals': return <TrendingUp className="h-4 w-4" />;
-    case 'priority_support': return <Crown className="h-4 w-4" />;
-    case 'advanced_analytics': return <TrendingUp className="h-4 w-4" />;
-    default: return <Check className="h-4 w-4" />;
-  }
-};
-
 const formatFeatureName = (feature: string) => {
   const map: Record<string, string> = {
     'basic_tracking': 'Basic expense tracking',
@@ -476,10 +466,7 @@ export default function SubscriptionPage() {
                     </h4>
                     <div className="space-y-3">
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-blue-500" />
-                          <span className="font-medium">AI Chats</span>
-                        </div>
+                        <span className="font-medium">AI Chats</span>
                         <div className="text-right">
                           <span className="font-bold text-lg text-primary block" data-testid={`text-${plan.name.toLowerCase()}-chat-limit`}>
                             {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
@@ -490,19 +477,13 @@ export default function SubscriptionPage() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-green-500" />
-                          <span className="font-medium">Deep Analysis</span>
-                        </div>
+                        <span className="font-medium">Deep Analysis</span>
                         <span className="font-bold text-lg text-primary">
                           {plan.aiDeepAnalysisLimit === 999999 ? 'Unlimited' : plan.aiDeepAnalysisLimit}
                         </span>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-yellow-500" />
-                          <span className="font-medium">AI Insights</span>
-                        </div>
+                        <span className="font-medium">AI Insights</span>
                         <span className="font-bold text-lg text-primary capitalize">
                           {plan.aiInsightsFrequency}
                         </span>
@@ -520,7 +501,6 @@ export default function SubscriptionPage() {
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-center gap-3 text-sm">
                           <div className="p-1 bg-gradient-to-br from-green-500 to-blue-500 rounded-full">
-                            {getFeatureIcon(feature)}
                             <Check className="w-3 h-3 text-white" />
                           </div>
                           <span className="font-medium">{formatFeatureName(feature)}</span>
