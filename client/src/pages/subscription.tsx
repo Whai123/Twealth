@@ -22,6 +22,7 @@ interface SubscriptionPlan {
   aiChatLimit: number;
   aiDeepAnalysisLimit: number;
   aiInsightsFrequency: string;
+  isLifetimeLimit: boolean;
   features: string[];
   isActive: boolean;
   sortOrder: number;
@@ -364,11 +365,11 @@ export default function SubscriptionPage() {
             </div>
           </div>
         </div>
-        <div className="grid gap-8 md:grid-cols-3">
-          {plans?.map((plan, index) => {
+        <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+          {plans?.filter(p => p.name === 'Free' || p.name === 'Pro').map((plan, index) => {
             const isCurrentPlan = currentPlan?.id === plan.id;
-            const isPremium = plan.name !== 'Free';
-            const isMostPopular = plan.name === 'Premium';
+            const isPremium = plan.name === 'Pro';
+            const isMostPopular = plan.name === 'Pro';
             
             return (
               <Card 
@@ -479,9 +480,14 @@ export default function SubscriptionPage() {
                           <Sparkles className="w-4 h-4 text-blue-500" />
                           <span className="font-medium">AI Chats</span>
                         </div>
-                        <span className="font-bold text-lg text-primary">
-                          {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
-                        </span>
+                        <div className="text-right">
+                          <span className="font-bold text-lg text-primary block" data-testid={`text-${plan.name.toLowerCase()}-chat-limit`}>
+                            {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {plan.isLifetimeLimit ? 'lifetime total' : 'per month'}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg">
                         <div className="flex items-center gap-2">
@@ -573,6 +579,44 @@ export default function SubscriptionPage() {
             );
           })}
         </div>
+        
+        {/* Enterprise Card */}
+        <Card className="relative overflow-hidden border-2 border-dashed border-primary/50 bg-gradient-to-br from-primary/5 to-purple-500/5 max-w-5xl mx-auto mt-8">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              Need More? Enterprise Solution
+            </CardTitle>
+            <CardDescription className="text-base">
+              Custom pricing for institutions, heavy users, and API access
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-8 text-sm">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Unlimited everything</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>API access</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Priority support</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span>Data export</span>
+              </div>
+            </div>
+            <Button 
+              className="bg-gradient-to-r from-primary to-purple-600 text-white hover:opacity-90"
+              onClick={() => window.location.href = 'mailto:enterprise@twealth.com?subject=Enterprise Plan Inquiry'}
+            >
+              Contact Sales Team
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Enhanced Value Proposition */}
