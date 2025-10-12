@@ -1,0 +1,73 @@
+🧠 Twealth Business Strategy (for AI Agent)
+Mission:
+Twealth = AI Assistant ที่ช่วยจัดการ "เวลา + การเงิน" ให้ผู้ใช้ได้ฉลาดและมีประสิทธิภาพมากที่สุดในโลก
+โดยให้เข้าถึงง่าย มีคุณภาพระดับสูง และสร้างกำไรยั่งยืน
+💸 PLAN OPTION 1 (Recommended)
+Free Tier (Trial)
+Price: $0
+AI Chats: 10 lifetime
+Features: Basic tracking only
+Cost: $0.05 → Margin: -$0.05 (loss leader for user growth)
+Pro Tier (Main Product)
+Price: $25/month
+AI Chats: 500/month (≈16/day)
+Features: Full tracking, crypto tools, groups, advanced goals, analytics
+Cost: ~$2.40/month (500 × $0.0048/chat)
+Profit: ~$22.60/month → 90% margin
+Enterprise (Custom)
+Price: $100+/month
+AI Chats: Custom limit
+Features: All Pro + API access + data export + support
+Target: Heavy or institutional users
+🌍 GLOBAL GOAL
+Target valuation: $1 Billion USD
+Target users: 200,000 paid users
+ARPU: $25/month
+Revenue/year: $60 Million
+Profit margin: 90%
+Net profit: $54 Million/year
+Valuation multiple: ×20 = $1.08B
+⚙️ TECH & AI ARCHITECTURE
+AI Stack:
+Tier 1 (Main Chat): Groq + Llama 3.2 or Gemini 1.5 Flash → low-cost, fast
+Tier 2 (Advanced): GPT-4o mini or Claude 3 Haiku → complex financial reasoning
+Hybrid AI routing: choose cheaper model for general chat, premium for finance
+Infrastructure:
+Backend: Firebase / Supabase
+Hosting: Replit → Vercel Edge Functions (for global scale)
+Database: PostgreSQL / Firestore
+Payments: Stripe / Lemon Squeezy / Paddle
+Growth tools: referral AI, gamification, affiliate
+📈 BUSINESS STRATEGY
+Keep margin ≥ 85%
+Hybrid AI routing — reduce cost by 40–60%
+Localization: multilingual (English, Thai, Japanese, Spanish)
+Simple pricing = easier sell
+Expand ecosystem:
+B2C → B2B Teams → API Platform
+Offer SDK for developers (Twealth API)
+Upsell power users (custom enterprise plan > $100/month)
+Community & Marketplace: AI goal templates, premium plug-ins
+Optional phase: tokenized assets (Twealth Credits)
+🧮 CORE UNIT ECONOMICS
+Metric	Value	Goal
+Cost per chat	$0.0048	≤ $0.005
+Chats per user	500	scalable
+Monthly cost/user	$2.40	≤ $3
+Monthly revenue/user	$25	target ARPU
+Monthly profit/user	$22.60	maintain ≥90% margin
+Churn target	<5%	
+CAC target	<$10	
+🧭 AI Agent’s Role in Replit
+Optimize API calls → minimize token use
+Route prompts intelligently (cheap → expensive AI)
+Track user usage + enforce chat limits (500/month for Pro)
+Manage subscription tiers & payment verification
+Collect anonymized data for product improvement
+Support multi-language chat
+Handle referral & affiliate logic
+Generate reports for Twealth’s growth dashboard
+💬 Brand Positioning
+Twealth = “Your AI for Time & Wealth Mastery.”
+Fast. Smart. Global. Affordable.
+Empowers users to manage money + time with AI-driven clarity.
