@@ -170,6 +170,10 @@ export const userPreferences = pgTable("user_preferences", {
   weeklyReports: boolean("weekly_reports").default(true),
   goalReminders: boolean("goal_reminders").default(true),
   expenseAlerts: boolean("expense_alerts").default(true),
+  // Crypto & Multi-currency features
+  cryptoEnabled: boolean("crypto_enabled").default(false),
+  experienceLevel: text("experience_level", { enum: ["beginner", "intermediate", "advanced"] }).default("beginner"),
+  preferredCurrencies: text("preferred_currencies").array().default(sql`ARRAY['USD']::text[]`), // e.g., ['USD', 'BTC', 'EUR', 'CNY']
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
