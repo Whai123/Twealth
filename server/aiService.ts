@@ -281,7 +281,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "analyze_portfolio_allocation",
-      description: "Calculate and provide expert portfolio allocation recommendations. Use ONLY when user explicitly asks about investment allocation, diversification, or portfolio strategy. Call this to show detailed breakdown in your response. Example triggers: 'How should I invest $10k?', 'What's a good portfolio allocation for my age?'",
+      description: "Calculate portfolio allocation ONLY when user asks about investment strategy. CRITICAL: After calling this tool, you MUST explain the allocation breakdown with specific dollar amounts, fund recommendations (VTI/VOO/BND), and WHY this allocation works for their age/risk. NEVER just say 'Action completed' - always provide detailed investment advice explaining stocks/bonds/alternatives percentages.",
       parameters: {
         type: "object",
         properties: {
@@ -307,7 +307,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "calculate_debt_payoff",
-      description: "Calculate debt payoff strategies (avalanche vs snowball). Use ONLY when user explicitly asks about debt payment optimization or which debts to pay first. Call this to show comparison analysis in your response. Example triggers: 'How should I pay off my debts?', 'Should I use avalanche or snowball method?'",
+      description: "Calculate debt payoff strategies ONLY when user asks about paying off debts. CRITICAL: After calling this tool, you MUST explain BOTH avalanche (highest interest first) and snowball (smallest balance first) methods with total interest saved, payoff timeline, and clear recommendation. NEVER just say 'Action completed' - provide detailed comparison and advice.",
       parameters: {
         type: "object",
         properties: {
@@ -337,7 +337,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "project_future_value",
-      description: "Calculate inflation-adjusted future value with compound growth. Use ONLY when user explicitly asks about long-term projections or compound interest calculations. Call this to show detailed math in your response. Example triggers: 'If I save $500/month for 30 years, how much will I have?', 'Show me compound growth projection'",
+      description: "Calculate future value with compound interest ONLY when user asks about long-term growth projections. CRITICAL: After calling this tool, you MUST explain the power of compounding with specific numbers - show future value (nominal), inflation-adjusted real value, total invested, and total growth percentage. Demonstrate why starting early matters. NEVER just say 'Action completed'.",
       parameters: {
         type: "object",
         properties: {
@@ -370,7 +370,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "calculate_retirement_needs",
-      description: "Calculate retirement needs using 4% rule and retirement formulas. Use ONLY when user explicitly asks about retirement planning or savings requirements. Call this to show detailed retirement analysis in your response. Example triggers: 'How much do I need to retire?', 'Can I retire at 60 with $500k saved?'",
+      description: "Calculate retirement needs ONLY when user asks about retirement planning. CRITICAL: After calling this tool, you MUST explain the 4% rule, target amount needed (annual expenses × 25), required monthly savings, years to retirement, and whether they're on track. Include pro tips like 401(k) matching, Roth IRA benefits, and Social Security optimization. NEVER just say 'Action completed'.",
       parameters: {
         type: "object",
         properties: {
