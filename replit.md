@@ -4,11 +4,22 @@ Twealth is a full-stack web application designed for comprehensive schedule mana
 
 # Recent Changes (October 2025)
 
+## Cryptocurrency & De-Dollarization Features
+- **Tiered Crypto Experience**: Added opt-in cryptocurrency features with experience levels (beginner/intermediate/advanced) to prevent overwhelming users unfamiliar with crypto
+- **Multi-Currency Wealth Calculator**: Convert between USD, BTC, EUR, CNY, GBP, JPY, and Gold (oz) - only visible when crypto features enabled
+- **Adaptive AI Financial Advice**: AI assistant adapts responses based on crypto preferences:
+  - Crypto disabled → Traditional finance only (stocks, bonds, real estate)
+  - Crypto enabled (beginner) → Simple Bitcoin/gold explanations, basic diversification
+  - Crypto enabled (intermediate) → DeFi basics, stablecoin strategies, risk management
+  - Crypto enabled (advanced) → Yield farming, Layer 2 solutions, macro de-dollarization trends
+- **Settings Toggle**: Enable/disable crypto features in Settings → Preferences tab
+
 ## AI Chat System Improvements
 - **Fixed Raw Function Syntax Display**: AI responses no longer show leaked function call syntax like `<function=create_financial_goal>...` - added explicit prompt instructions and response sanitization
 - **Fixed Transaction Auto-Creation**: AI now correctly distinguishes between past transactions ("I spent/paid") vs future goals ("I want to buy") - prevents incorrect auto-tracking of future intentions
 - **Fixed Subscription Initialization**: Chat endpoint now initializes free subscription before checking usage limits, preventing 0 quota for new users
 - **Validated Confirmation Flow**: AI properly asks for user permission before creating goals/events (explain strategy first, then ask confirmation, create only after user confirms)
+- **Fixed add_crypto_holding Tool**: Prevented inappropriate tool calls for informational crypto queries - tool only triggers for actual past transactions
 
 ## Performance & Scalability
 - Added pagination to all major API endpoints (/api/transactions, /api/notifications, /api/events, /api/chat/messages) with offset/limit support

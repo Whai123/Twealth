@@ -256,7 +256,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "add_crypto_holding",
-      description: "Track crypto holding when user explicitly states they bought/own crypto with specific amount and price. Call immediately to track, but ALWAYS provide investment analysis, current value, and risk assessment in your response. Use when user says 'I bought X BTC at $Y' or 'I own X ETH purchased at $Y'.",
+      description: "Track crypto holding ONLY when user explicitly states a PAST purchase with specific amounts. CRITICAL: Use ONLY for completed transactions like 'I bought 0.5 BTC at $50000' or 'I own 2 ETH purchased at $3000'. DO NOT use for: questions about crypto, future plans, hypothetical scenarios, or educational discussions. For informational queries, just explain in text without calling this tool.",
       parameters: {
         type: "object",
         properties: {
