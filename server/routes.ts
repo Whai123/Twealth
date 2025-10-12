@@ -1691,12 +1691,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   data: {
                     avalanche: {
                       order: avalancheOrder.map(d => d.name),
-                      months: avalancheResult.months,
+                      monthsToPay: avalancheResult.months,
                       totalInterest: avalancheResult.interest
                     },
                     snowball: {
                       order: snowballOrder.map(d => d.name),
-                      months: snowballResult.months,
+                      monthsToPay: snowballResult.months,
                       totalInterest: snowballResult.interest
                     },
                     savings: snowballResult.interest - avalancheResult.interest
@@ -1808,13 +1808,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return `₿ Tracked: ${crypto.amount} ${crypto.symbol} at $${parseFloat(crypto.averageBuyPrice).toLocaleString()}/coin. Total investment: $${(parseFloat(crypto.amount) * parseFloat(crypto.averageBuyPrice)).toLocaleString()}`;
             } else if (action.type === 'portfolio_analyzed') {
               const data = action.data;
-              return `📊 **Portfolio Allocation Strategy**\n\n` +
-                `For a ${data.riskTolerance} risk profile investing $${data.investmentAmount.toLocaleString()}:\n\n` +
-                `• **${data.stocksPercent}% Stocks** ($${Math.round(data.investmentAmount * data.stocksPercent / 100).toLocaleString()}): Index funds like VTI or VOO for growth\n` +
-                `• **${data.bondsPercent}% Bonds** ($${Math.round(data.investmentAmount * data.bondsPercent / 100).toLocaleString()}): BND or AGG for stability\n` +
-                `• **${data.alternativesPercent}% Alternatives** ($${Math.round(data.investmentAmount * data.alternativesPercent / 100).toLocaleString()}): REITs or commodities for diversification\n\n` +
-                `💡 **Why this works**: Age-based allocation (${100 - data.age}% stocks for growth) balanced with risk tolerance. Rebalance annually to maintain ratios!`;
-            } else if (action.type === 'debt_calculated') {
+              const stocks = data.allocation.stocks;
+              const bonds = data.allocation.bonds;
+              const alts = data.allocation.alternatives;
+              return `📊 **Expert Portfolio Allocation Analysis**\n\n` +
+                `For age ${data.age}, ${data.riskTolerance} risk, investing $${data.investmentAmount.toLocaleString()}:\n\n` +
+                `🔵 **${stocks.percentage}% Stocks** → $${Math.round(stocks.amount).toLocaleString()}\n` +
+                `   • VTI (Vanguard Total Market) or VOO (S&P 500)\n` +
+                `   • Target: Long-term capital growth\n` +
+                `   • Expected return: 8-10% annually\n\n` +
+                `🟢 **${bonds.percentage}% Bonds** → $${Math.round(bonds.amount).toLocaleString()}\n` +
+                `   • BND (Total Bond) or AGG (Aggregate Bond)\n` +
+                `   • Target: Stability and income\n` +
+                `   • Expected return: 3-5% annually\n\n` +
+                `🟡 **${alts.percentage}% Alternatives** → $${Math.round(alts.amount).toLocaleString()}\n` +
+                `   • VNQ (Real Estate) or GLD (Gold)\n` +
+                `   • Target: Diversification hedge\n\n` +
+                `💡 **Why this works**: Classic ${110 - data.age}% stocks rule (110 - age = ${stocks.percentage}%) adjusted for ${data.riskTolerance} risk. Rebalance quarterly when drift >5%!`;
+            } else if (action.type === 'debt_analyzed') {
               const data = action.data;
               return `💳 **Debt Payoff Strategy Analysis**\n\n` +
                 `**AVALANCHE Method** (Save Most Money):\n` +
