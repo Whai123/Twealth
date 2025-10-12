@@ -855,10 +855,24 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
+    // Get user preferences to check for financial estimates
+    const [prefs] = await db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId))
+      .limit(1);
+
+    // Use actual transaction data if available, otherwise fall back to user estimates
+    const actualIncome = parseFloat(incomeData?.monthlyIncome?.toString() || "0");
+    const actualSavings = parseFloat(userGoals?.totalSavings?.toString() || "0");
+    
+    const monthlyIncome = actualIncome > 0 ? actualIncome : parseFloat(prefs?.monthlyIncomeEstimate?.toString() || "0");
+    const totalSavings = actualSavings > 0 ? actualSavings : parseFloat(prefs?.currentSavingsEstimate?.toString() || "0");
+
     return {
-      totalSavings: parseFloat(userGoals?.totalSavings?.toString() || "0"),
+      totalSavings,
       activeGoals: userGoals?.activeGoals || 0,
-      monthlyIncome: parseFloat(incomeData?.monthlyIncome?.toString() || "0"),
+      monthlyIncome,
       upcomingEvents: eventData?.upcomingEvents || 0,
     };
   }

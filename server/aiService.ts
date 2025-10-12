@@ -394,6 +394,30 @@ const TOOLS = [
         required: ["currentAge", "retirementAge", "annualExpenses", "currentSavings"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "save_financial_estimates",
+      description: "Save user's financial estimates when they provide monthly income, monthly expenses, or current savings. Use this IMMEDIATELY when user mentions these numbers to populate their financial profile. Examples: 'I make $5000/month', 'I spend about $3000 monthly', 'I have $10000 saved'. This helps provide better personalized advice.",
+      parameters: {
+        type: "object",
+        properties: {
+          monthlyIncome: {
+            type: "number",
+            description: "Estimated monthly income in dollars. Only include if user provided this information."
+          },
+          monthlyExpenses: {
+            type: "number",
+            description: "Estimated monthly expenses in dollars. Only include if user provided this information."
+          },
+          currentSavings: {
+            type: "number",
+            description: "Current total savings/net worth in dollars. Only include if user provided this information."
+          }
+        }
+      }
+    }
   }
 ];
 
@@ -456,11 +480,30 @@ ${cryptoContext}
 
 📊 USER'S ACTUAL FINANCIAL DATA (USE THESE IN EVERY RESPONSE!):
 • Today: ${today}
-• Monthly Income: $${context.monthlyIncome.toLocaleString()} | Monthly Expenses: $${context.monthlyExpenses.toLocaleString()}
-• Net Worth: $${netWorth.toLocaleString()} | Savings Rate: ${savingsRate.toFixed(1)}% | Active Goals: ${goals}
+• Monthly Income: $${context.monthlyIncome.toLocaleString()} ${context.monthlyIncome === 0 ? '❓ MISSING - ASK USER!' : ''}
+• Monthly Expenses: $${context.monthlyExpenses.toLocaleString()} ${context.monthlyExpenses === 0 ? '❓ MISSING - ASK USER!' : ''}
+• Net Worth: $${netWorth.toLocaleString()} ${netWorth === 0 ? '❓ MISSING - ASK USER!' : ''}
+• Savings Rate: ${!isNaN(savingsRate) && isFinite(savingsRate) ? savingsRate.toFixed(1) : 0}% | Active Goals: ${goals}
 • Emergency Fund: Has $${netWorth.toLocaleString()} vs Target $${emergencyFund.toLocaleString()} (${netWorth >= emergencyFund ? 'COMPLETE ✅' : 'needs $' + (emergencyFund - netWorth).toLocaleString()})
 • Recommended Allocation: ${stockAllocation}% stocks / ${100-stockAllocation}% bonds (age-based)
 ${context.recentTransactions.length > 0 ? `• Recent spending: ${context.recentTransactions.slice(0, 3).map(t => `$${t.amount} on ${t.category}`).join(', ')}` : ''}
+
+🔍 DATA COMPLETENESS CHECK:
+${context.monthlyIncome === 0 || context.monthlyExpenses === 0 || netWorth === 0 ? `
+⚠️ CRITICAL: User is missing key financial data! Before providing detailed advice:
+1. Greet them warmly and explain you need a few basics to give personalized advice
+2. Ask ONE friendly question to get missing info (income, expenses, or savings)
+3. When they provide numbers, IMMEDIATELY call save_financial_estimates tool
+4. Confirm: "Got it! I've saved that information."
+5. THEN provide expert advice with their actual numbers
+
+MISSING DATA:
+${context.monthlyIncome === 0 ? '❌ Monthly Income - Ask: "To give you personalized advice, what\'s your approximate monthly income?"' : ''}
+${context.monthlyExpenses === 0 ? '❌ Monthly Expenses - Ask: "What do you typically spend each month?"' : ''}
+${netWorth === 0 ? '❌ Current Savings - Ask: "How much do you currently have saved?"' : ''}
+
+For beginners (experience: ${context.experienceLevel || 'beginner'}): Keep questions simple and encouraging!
+` : '✅ Complete financial profile! Use their actual data in every response.'}
 
 ⚡ MANDATORY PERSONALIZATION RULES:
 1. ALWAYS calculate with their EXACT numbers above - never generic examples

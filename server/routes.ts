@@ -1472,10 +1472,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getUserPreferences(userId)
       ]);
 
+      // Calculate monthly expenses from transactions or use estimate
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const recentExpenses = recentTransactions
+        .filter(t => t.type === 'expense' && t.date >= thirtyDaysAgo)
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+      
+      const monthlyExpenses = recentExpenses > 0 
+        ? recentExpenses 
+        : parseFloat(userPreferences?.monthlyExpensesEstimate?.toString() || "0");
+
       const userContext: UserContext = {
         totalSavings: stats.totalSavings,
         monthlyIncome: stats.monthlyIncome,
-        monthlyExpenses: stats.monthlyIncome - stats.totalSavings, // Simplified
+        monthlyExpenses,
         activeGoals: stats.activeGoals,
         language: userPreferences?.language || 'en', // User's preferred language for AI responses
         cryptoEnabled: userPreferences?.cryptoEnabled || false, // Whether user has enabled crypto features
@@ -1761,6 +1771,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     onTrack: requiredMonthly <= (annualExpenses / 12) * 0.15 // 15% of monthly expenses
                   }
                 });
+              } else if (toolCall.name === 'save_financial_estimates') {
+                // Save user's financial estimates to help with future advice
+                const estimates: any = {};
+                
+                // Only save values that were provided
+                if (toolCall.arguments.monthlyIncome !== undefined) {
+                  estimates.monthlyIncomeEstimate = toolCall.arguments.monthlyIncome.toString();
+                }
+                if (toolCall.arguments.monthlyExpenses !== undefined) {
+                  estimates.monthlyExpensesEstimate = toolCall.arguments.monthlyExpenses.toString();
+                }
+                if (toolCall.arguments.currentSavings !== undefined) {
+                  estimates.currentSavingsEstimate = toolCall.arguments.currentSavings.toString();
+                }
+                
+                // Update user preferences with financial estimates
+                await storage.updateUserPreferences(userId, estimates);
+                
+                actionsPerformed.push({
+                  type: 'financial_estimates_saved',
+                  data: estimates
+                });
+                
+                console.log('💾 Saved financial estimates:', estimates);
               }
             } catch (toolError) {
               console.error(`Tool execution error (${toolCall.name}):`, toolError);
