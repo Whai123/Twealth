@@ -260,14 +260,14 @@ export default function AdvancedFilters({
                 </CardHeader>
                 <CardContent className="pt-0">
                   <Select 
-                    value={filters.groupId || ''} 
-                    onValueChange={(value) => updateFilter('groupId', value || null)}
+                    value={filters.groupId || 'all'} 
+                    onValueChange={(value) => updateFilter('groupId', value === 'all' ? null : value)}
                   >
                     <SelectTrigger data-testid="select-group-filter">
                       <SelectValue placeholder="All groups" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All groups</SelectItem>
+                      <SelectItem value="all">All groups</SelectItem>
                       {availableGroups.map((group) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.name}
