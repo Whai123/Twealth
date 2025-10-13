@@ -971,7 +971,7 @@ CRITICAL RULES:
       );
 
       const response = await groq.chat.completions.create({
-        model: "llama-4-scout-17b-128k",
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: messages,
         tools: availableTools,
         tool_choice: needsImmediateAction ? "required" : "auto",
@@ -1095,7 +1095,7 @@ CRITICAL RULES:
 
     try {
       const response = await groq.chat.completions.create({
-        model: "llama-4-scout-17b-128k",
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
           { role: "system", content: "You are a financial advisor. Give concise, actionable advice." },
           { role: "user", content: insightPrompt }
