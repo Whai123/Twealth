@@ -34,9 +34,16 @@ interface UsageInfo {
 }
 
 export default function AIInsightsCard({ onOpenChat }: AIInsightsCardProps) {
-  const { data: insights, isLoading, refetch, isRefetching } = useQuery<AIInsights>({
+  const { data: insights, isLoading, refetch, isRefetching, error } = useQuery<AIInsights>({
     queryKey: ["/api/ai/insights"],
-    refetchInterval: 5 * 60 * 1000 // Refetch every 5 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 429 rate limit errors
+      if (error?.message?.includes('429') || error?.message?.includes('rate limit')) {
+        return false;
+      }
+      return failureCount < 2;
+    }
   });
 
   const { data: usage } = useQuery<UsageInfo>({
@@ -70,6 +77,19 @@ export default function AIInsightsCard({ onOpenChat }: AIInsightsCardProps) {
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
+          </div>
+        ) : error ? (
+          <div className="space-y-3">
+            <div className="text-sm text-muted-foreground leading-relaxed">
+              <p data-testid="text-ai-insight">
+                💡 Track your daily expenses to identify spending patterns and savings opportunities.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {(error as any)?.message?.includes('429') || (error as any)?.message?.includes('rate limit') 
+                  ? '⚡ AI insights temporarily unavailable due to high demand. Try again in a few minutes.' 
+                  : '* Showing fallback insight'}
+              </p>
+            </div>
           </div>
         ) : (
           <>
