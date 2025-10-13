@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users, Share2, Check, X } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -122,6 +122,9 @@ export default function ShareGoalDialog({ goalId, goalTitle, open, onOpenChange,
             <Share2 className="w-5 h-5" />
             Share Goal: {goalTitle}
           </DialogTitle>
+          <DialogDescription>
+            Share this financial goal with friends. Choose whether they can view only or contribute to the goal.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
