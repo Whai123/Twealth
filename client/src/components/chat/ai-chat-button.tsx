@@ -130,10 +130,10 @@ export default function AIChatButton() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 group">
+      <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 group">
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-16 w-16 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-95 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 text-white border-0 ring-2 ring-blue-400/30 ring-offset-2 ring-offset-background"
+          className="h-14 w-14 md:h-16 md:w-16 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-95 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 text-white border-0 ring-2 ring-blue-400/30 ring-offset-2 ring-offset-background"
           style={{ 
             boxShadow: '0 10px 25px -5px rgb(59 130 246 / 0.4), 0 10px 10px -5px rgb(59 130 246 / 0.1)',
             background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #3b82f6)'
@@ -141,13 +141,13 @@ export default function AIChatButton() {
           data-testid="button-open-chat"
         >
           <div className="relative">
-            <MessageCircle className="h-7 w-7 transition-transform group-hover:scale-110" />
+            <MessageCircle className="h-6 w-6 md:h-7 md:w-7 transition-transform group-hover:scale-110" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
           </div>
         </Button>
         
-        {/* Enhanced Tooltip */}
-        <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        {/* Enhanced Tooltip - desktop only */}
+        <div className="hidden md:block absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
           <div className="bg-gray-900 text-white text-sm rounded-lg px-4 py-2 whitespace-nowrap">
             💬 Chat with AI Assistant
             <div className="absolute top-full right-4 border-4 border-transparent border-t-gray-900"></div>
@@ -158,11 +158,11 @@ export default function AIChatButton() {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[500px] shadow-xl z-50 flex flex-col">
-      <CardHeader className="pb-2">
+    <Card className="fixed inset-4 md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[500px] shadow-xl z-50 flex flex-col max-h-[90vh] md:max-h-[500px]">
+      <CardHeader className="pb-2 shrink-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base md:text-lg flex items-center gap-2">
+            <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-primary" />
             Twealth AI Assistant
           </CardTitle>
           <Button
@@ -187,19 +187,19 @@ export default function AIChatButton() {
             New Chat
           </Button>
           {conversations.length > 0 && (
-            <Badge variant="secondary">{conversations.length} conversations</Badge>
+            <Badge variant="secondary" className="text-xs">{conversations.length} conversations</Badge>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0">
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
         {/* Messages area */}
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className="flex-1 p-3 md:p-4">
           {!currentConversationId ? (
-            <div className="text-center text-muted-foreground py-8" data-testid="text-welcome">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <div className="text-center text-muted-foreground py-4 md:py-8" data-testid="text-welcome">
+              <MessageCircle className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 md:mb-4 text-muted-foreground/50" />
               <p className="text-sm font-medium mb-2">Welcome to Twealth AI Assistant!</p>
-              <p className="text-xs mb-4">Get personalized financial advice and insights</p>
+              <p className="text-xs mb-3 md:mb-4">Get personalized financial advice and insights</p>
               <div className="space-y-2 text-xs">
                 <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-2">
                   <p className="font-medium text-blue-700 dark:text-blue-300">Try asking:</p>
@@ -212,7 +212,7 @@ export default function AIChatButton() {
               <p className="text-xs mt-2">I can help with budgeting, savings goals, and time management.</p>
             </div>
           ) : currentConversation?.messages ? (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {currentConversation.messages.map((message) => (
                 <div
                   key={message.id}
@@ -220,14 +220,14 @@ export default function AIChatButton() {
                   data-testid={`message-${message.role}-${message.id}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
+                    className={`max-w-[85%] md:max-w-[80%] rounded-lg p-2.5 md:p-3 ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
+                    <p className="text-xs md:text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                    <p className="text-[10px] md:text-xs opacity-70 mt-1">
                       {formatMessageTime(message.createdAt)}
                     </p>
                   </div>
@@ -251,22 +251,23 @@ export default function AIChatButton() {
         </ScrollArea>
 
         {/* Message input */}
-        <div className="border-t p-4">
+        <div className="border-t p-3 md:p-4 shrink-0">
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <Input
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
-              placeholder="Ask about your finances or time management..."
+              placeholder="Ask about your finances..."
               disabled={sendMessageMutation.isPending}
-              className="flex-1"
+              className="flex-1 text-sm md:text-base"
               data-testid="input-chat-message"
             />
             <Button
               type="submit"
               disabled={!currentMessage.trim() || sendMessageMutation.isPending}
+              className="shrink-0 h-9 w-9 md:h-10 md:w-10"
               data-testid="button-send-message"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </Button>
           </form>
         </div>
