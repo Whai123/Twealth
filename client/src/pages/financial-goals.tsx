@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings } from "lucide-react";
+import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +17,7 @@ import AdvancedProgressVisualization from "@/components/goals/advanced-progress-
 import SmartGoalInsights from "@/components/goals/smart-goal-insights";
 import AutomatedSavingsSuggestions from "@/components/goals/automated-savings-suggestions";
 import AchievementMilestones from "@/components/goals/achievement-milestones";
+import ShareGoalDialog from "@/components/sharing/share-goal-dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -119,6 +120,7 @@ export default function FinancialGoals() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
   const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -167,6 +169,11 @@ export default function FinancialGoals() {
   const handleViewDetails = (goal: any) => {
     setSelectedGoal(goal);
     setIsViewDetailsDialogOpen(true);
+  };
+
+  const handleShareGoal = (goal: any) => {
+    setSelectedGoal(goal);
+    setIsShareDialogOpen(true);
   };
 
   const handleInsightAction = (action: string, goalId?: string) => {
@@ -530,6 +537,10 @@ export default function FinancialGoals() {
                             <Edit size={16} className="mr-2" />
                             Edit Goal
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShareGoal(goal)}>
+                            <Share2 size={16} className="mr-2" />
+                            Share with Friends
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-destructive"
                             onClick={() => handleDeleteGoal(goal.id)}
@@ -668,6 +679,16 @@ export default function FinancialGoals() {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Share Goal Dialog */}
+      {selectedGoal && (
+        <ShareGoalDialog
+          goalId={selectedGoal.id}
+          goalTitle={selectedGoal.title}
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+        />
+      )}
       
       {/* View Details Dialog */}
       <Dialog open={isViewDetailsDialogOpen} onOpenChange={setIsViewDetailsDialogOpen}>
