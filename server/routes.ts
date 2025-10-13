@@ -32,7 +32,11 @@ import {
   insertBonusCreditSchema,
   insertCryptoHoldingSchema,
   insertCryptoPriceAlertSchema,
-  insertCryptoTransactionSchema
+  insertCryptoTransactionSchema,
+  insertSharedBudgetSchema,
+  insertSharedBudgetExpenseSchema,
+  sharedBudgetExpenses,
+  friendGroupInvitations
 } from "@shared/schema";
 import { aiService, type UserContext } from "./aiService";
 import { cryptoService } from "./cryptoService";
@@ -514,6 +518,475 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/financial-goals/:id", async (req, res) => {
     try {
       await storage.deleteFinancialGoal(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Shared Goals routes
+  app.post("/api/goals/:goalId/share", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { sharedWithUserId, permission } = req.body;
+      
+      // Verify goal ownership
+      const goal = await storage.getFinancialGoal(req.params.goalId);
+      if (!goal || goal.userId !== userId) {
+        return res.status(403).json({ message: "You can only share your own goals" });
+      }
+      
+      // Check if they are friends
+      const areFriends = await storage.areFriends(userId, sharedWithUserId);
+      if (!areFriends) {
+        return res.status(400).json({ message: "You can only share goals with friends" });
+      }
+      
+      const share = await storage.shareGoal({
+        goalId: req.params.goalId,
+        ownerId: userId,
+        sharedWithUserId,
+        permission: permission || 'view',
+        status: 'active'
+      });
+      
+      res.status(201).json(share);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/goals/shared", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const sharedGoals = await storage.getSharedGoals(userId);
+      res.json(sharedGoals);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/goals/:goalId/shares", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Verify goal ownership
+      const goal = await storage.getFinancialGoal(req.params.goalId);
+      if (!goal || goal.userId !== userId) {
+        return res.status(403).json({ message: "You can only view shares for your own goals" });
+      }
+      
+      const shares = await storage.getGoalShares(req.params.goalId);
+      res.json(shares);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/goals/:goalId/share/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const ownerId = getUserIdFromRequest(req);
+      
+      // Verify goal ownership
+      const goal = await storage.getFinancialGoal(req.params.goalId);
+      if (!goal || goal.userId !== ownerId) {
+        return res.status(403).json({ message: "You can only unshare your own goals" });
+      }
+      
+      await storage.removeGoalShare(req.params.goalId, req.params.userId);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/goals/:goalId/share/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const ownerId = getUserIdFromRequest(req);
+      const { permission } = req.body;
+      
+      // Verify goal ownership
+      const goal = await storage.getFinancialGoal(req.params.goalId);
+      if (!goal || goal.userId !== ownerId) {
+        return res.status(403).json({ message: "You can only update shares for your own goals" });
+      }
+      
+      const share = await storage.updateGoalSharePermission(req.params.goalId, req.params.userId, permission);
+      res.json(share);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Shared Budgets routes
+  app.post("/api/shared-budgets", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const validatedData = insertSharedBudgetSchema.parse({
+        ...req.body,
+        createdBy: userId,
+        status: 'active'
+      });
+      
+      const budget = await storage.createSharedBudget(validatedData);
+      res.status(201).json(budget);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/shared-budgets", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budgets = await storage.getSharedBudgetsByUserId(userId);
+      res.json(budgets);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/shared-budgets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budget = await storage.getSharedBudget(req.params.id);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      // Check if user is a member
+      const members = await storage.getSharedBudgetMembers(req.params.id);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: "You don't have access to this budget" });
+      }
+      
+      res.json(budget);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/shared-budgets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budget = await storage.getSharedBudget(req.params.id);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      // Only owner can update budget
+      if (budget.createdBy !== userId) {
+        return res.status(403).json({ message: "Only the owner can update this budget" });
+      }
+      
+      const updateData = insertSharedBudgetSchema.partial().parse(req.body);
+      const updatedBudget = await storage.updateSharedBudget(req.params.id, updateData);
+      res.json(updatedBudget);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/shared-budgets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budget = await storage.getSharedBudget(req.params.id);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      // Only owner can delete budget
+      if (budget.createdBy !== userId) {
+        return res.status(403).json({ message: "Only the owner can delete this budget" });
+      }
+      
+      await storage.deleteSharedBudget(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Shared Budget Members routes
+  app.post("/api/shared-budgets/:budgetId/members", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { userId: newMemberId, role } = req.body;
+      
+      const budget = await storage.getSharedBudget(req.params.budgetId);
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      // Only owner can add members
+      if (budget.createdBy !== userId) {
+        return res.status(403).json({ message: "Only the owner can add members" });
+      }
+      
+      // Check if they are friends
+      const areFriends = await storage.areFriends(userId, newMemberId);
+      if (!areFriends) {
+        return res.status(400).json({ message: "You can only add friends to shared budgets" });
+      }
+      
+      const member = await storage.addSharedBudgetMember({
+        budgetId: req.params.budgetId,
+        userId: newMemberId,
+        role: role || 'member'
+      });
+      
+      res.status(201).json(member);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/shared-budgets/:budgetId/members", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Check if user is a member
+      const members = await storage.getSharedBudgetMembers(req.params.budgetId);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: "You don't have access to this budget" });
+      }
+      
+      res.json(members);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/shared-budgets/:budgetId/members/:userId", isAuthenticated, async (req: any, res) => {
+    try {
+      const currentUserId = getUserIdFromRequest(req);
+      const budget = await storage.getSharedBudget(req.params.budgetId);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      // Owner can remove anyone, or user can remove themselves
+      const isOwner = budget.createdBy === currentUserId;
+      const isSelf = currentUserId === req.params.userId;
+      
+      if (!isOwner && !isSelf) {
+        return res.status(403).json({ message: "You can only remove yourself or be the owner" });
+      }
+      
+      await storage.removeSharedBudgetMember(req.params.budgetId, req.params.userId);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Shared Budget Expenses routes
+  app.post("/api/shared-budgets/:budgetId/expenses", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Check if user is a member
+      const members = await storage.getSharedBudgetMembers(req.params.budgetId);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: "You must be a member to add expenses" });
+      }
+      
+      const validatedData = insertSharedBudgetExpenseSchema.parse({
+        ...req.body,
+        budgetId: req.params.budgetId,
+        userId,
+        date: new Date(req.body.date || Date.now())
+      });
+      
+      const expense = await storage.createSharedBudgetExpense(validatedData);
+      res.status(201).json(expense);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/shared-budgets/:budgetId/expenses", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Check if user is a member
+      const members = await storage.getSharedBudgetMembers(req.params.budgetId);
+      const isMember = members.some(m => m.userId === userId);
+      
+      if (!isMember) {
+        return res.status(403).json({ message: "You don't have access to this budget" });
+      }
+      
+      const expenses = await storage.getSharedBudgetExpenses(req.params.budgetId);
+      res.json(expenses);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/shared-budgets/:budgetId/expenses/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const [expense] = await db
+        .select()
+        .from(sharedBudgetExpenses)
+        .where(eq(sharedBudgetExpenses.id, req.params.id));
+      
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      // Only the creator can update
+      if (expense.userId !== userId) {
+        return res.status(403).json({ message: "You can only update your own expenses" });
+      }
+      
+      const updateData = insertSharedBudgetExpenseSchema.partial().parse(req.body);
+      const updatedExpense = await storage.updateSharedBudgetExpense(req.params.id, updateData);
+      res.json(updatedExpense);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/shared-budgets/:budgetId/expenses/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budget = await storage.getSharedBudget(req.params.budgetId);
+      
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      const [expense] = await db
+        .select()
+        .from(sharedBudgetExpenses)
+        .where(eq(sharedBudgetExpenses.id, req.params.id));
+      
+      if (!expense) {
+        return res.status(404).json({ message: "Expense not found" });
+      }
+      
+      // Owner or expense creator can delete
+      const isOwner = budget.createdBy === userId;
+      const isCreator = expense.userId === userId;
+      
+      if (!isOwner && !isCreator) {
+        return res.status(403).json({ message: "You can only delete your own expenses or be the owner" });
+      }
+      
+      await storage.deleteSharedBudgetExpense(req.params.id);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Friend Group Invitations routes
+  app.post("/api/groups/:groupId/invite", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { invitedUserId, role, message } = req.body;
+      
+      // Verify user is admin of the group
+      const members = await storage.getGroupMembers(req.params.groupId);
+      const member = members.find(m => m.userId === userId);
+      if (!member || member.role !== 'admin') {
+        return res.status(403).json({ message: "Only group admins can invite friends" });
+      }
+      
+      // Check if they are friends
+      const areFriends = await storage.areFriends(userId, invitedUserId);
+      if (!areFriends) {
+        return res.status(400).json({ message: "You can only invite friends to groups" });
+      }
+      
+      // Check if already a member
+      const existingMember = members.find(m => m.userId === invitedUserId);
+      if (existingMember) {
+        return res.status(400).json({ message: "User is already a member of this group" });
+      }
+      
+      const invitation = await storage.createFriendGroupInvitation({
+        groupId: req.params.groupId,
+        invitedBy: userId,
+        invitedUserId,
+        role: role || 'member',
+        status: 'pending',
+        message: message || null
+      });
+      
+      res.status(201).json(invitation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/group-invitations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const invitations = await storage.getFriendGroupInvitations(userId);
+      res.json(invitations);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/group-invitations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { status } = req.body;
+      
+      // Get invitation to verify it belongs to user
+      const [invitation] = await db
+        .select()
+        .from(friendGroupInvitations)
+        .where(eq(friendGroupInvitations.id, req.params.id));
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      if (invitation.invitedUserId !== userId) {
+        return res.status(403).json({ message: "This invitation is not for you" });
+      }
+      
+      const updatedInvitation = await storage.updateFriendGroupInvitationStatus(req.params.id, status);
+      res.json(updatedInvitation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/group-invitations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Get invitation to verify user can delete it
+      const [invitation] = await db
+        .select()
+        .from(friendGroupInvitations)
+        .where(eq(friendGroupInvitations.id, req.params.id));
+      
+      if (!invitation) {
+        return res.status(404).json({ message: "Invitation not found" });
+      }
+      
+      // Can delete if you sent it or received it
+      if (invitation.invitedBy !== userId && invitation.invitedUserId !== userId) {
+        return res.status(403).json({ message: "You don't have permission to delete this invitation" });
+      }
+      
+      await storage.deleteFriendGroupInvitation(req.params.id);
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
