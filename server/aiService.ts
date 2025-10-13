@@ -265,12 +265,12 @@ const TOOLS = [
             description: "Crypto symbol in uppercase (e.g., 'BTC', 'ETH', 'BNB')"
           },
           amount: {
-            type: "number",
-            description: "Amount of cryptocurrency owned. MUST be a number, not a string."
+            type: "string",
+            description: "Amount of cryptocurrency owned (e.g., '0.5', '2', '1.25'). Accepts decimal values."
           },
           purchasePrice: {
-            type: "number",
-            description: "Purchase price per unit in USD. MUST be a number, not a string."
+            type: "string",
+            description: "Purchase price per unit in USD (e.g., '50000', '$3000', '1500.50'). Can include dollar signs."
           }
         },
         required: ["symbol", "amount", "purchasePrice"]
