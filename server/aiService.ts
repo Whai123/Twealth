@@ -148,8 +148,8 @@ const TOOLS = [
             description: "The name of the goal (e.g., 'Buy Lamborghini')"
           },
           targetAmount: {
-            type: "number",
-            description: "The target amount in dollars. MUST be a number, not a string."
+            type: "string",
+            description: "The target amount in dollars (e.g., '5000', '$10000', '2500.00'). Can include dollar signs and decimals."
           },
           targetDate: {
             type: "string",
