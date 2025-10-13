@@ -22,7 +22,7 @@ The application utilizes PostgreSQL, with its schema defined using Drizzle ORM. 
 
 ## Authentication & Authorization
 
-Twealth uses Replit OAuth (OpenID Connect) for authentication, with PostgreSQL-backed session management, role-based access control for groups, and protected API endpoints. User creation occurs automatically upon first login.
+Twealth uses Replit OAuth (OpenID Connect) for authentication, with PostgreSQL-backed session management, role-based access control for groups, and protected API endpoints. User creation occurs automatically upon first login. The upsertUser method handles duplicate email scenarios by checking for existing users by both ID and email, updating existing records when found to prevent unique constraint violations during OIDC authentication.
 
 ## Development & Build
 
@@ -46,6 +46,7 @@ The application features a modern UI with a redesigned landing page, enhanced ac
     - **Conversational Data Collection**: Proactively detects missing financial data and asks users targeted questions one at a time, automatically extracting and saving income, expenses, and savings from natural conversation using regex parsing.
     - **Resilient Data Capture**: Proactive parsing extracts financial estimates from user messages BEFORE AI processing, ensuring data is preserved even if AI fails due to rate limits or errors. Uses pattern matching for income ($X earn/make/salary), expenses ($X spend/cost), and savings ($X saved/have).
     - **Smart Financial Estimates**: Stores monthly income/expense estimates and current savings in user preferences, serving as fallback data when actual transaction history is unavailable. AI uses estimates seamlessly in calculations and advice.
+    - **Flexible Natural Language Processing**: AI tool schemas accept string or number types for amount fields, with backend parseAmount() utility that handles various formats ($300, 300, $1,500.50, etc.) by stripping dollar signs, commas, and whitespace before converting to decimal strings.
     - **Comprehensive Knowledge**: Macroeconomics, investment strategies, tax optimization, retirement planning, debt management, real estate intelligence.
     - **Advanced Analysis Tools**: Portfolio allocation, debt payoff, future value projections, retirement calculators, with detailed explanations.
     - **Advice-First Approach**: Explains strategies and asks for user confirmation before creating goals/events.
