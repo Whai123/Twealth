@@ -731,15 +731,14 @@ export default function AIAssistantPage() {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl blur-sm" />
               <Textarea
                 placeholder={isLimitExceeded ? 
-                  t('aiAssistant.quotaExceeded') :
+                  "Type your message... (Upgrade required to send)" :
                   t('aiAssistant.chatPlaceholder')
                 }
                 value={currentMessage}
-                onChange={(e) => !isLimitExceeded && setCurrentMessage(e.target.value)}
-                disabled={isLimitExceeded}
+                onChange={(e) => setCurrentMessage(e.target.value)}
                 className={`relative min-h-[120px] resize-none border-2 rounded-xl backdrop-blur-sm focus:ring-2 focus:ring-primary transition-all duration-300 text-base leading-relaxed ${
                   isLimitExceeded 
-                    ? 'border-red-300 bg-red-50/50 dark:bg-red-950/20 dark:border-red-700 text-red-600 dark:text-red-400 placeholder-red-400 dark:placeholder-red-500 cursor-not-allowed opacity-70' 
+                    ? 'border-orange-300 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-700 placeholder-orange-400 dark:placeholder-orange-500' 
                     : 'border-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 bg-white/50 dark:bg-gray-900/50 focus:border-transparent'
                 }`}
                 data-testid="textarea-ai-message"
@@ -770,10 +769,10 @@ export default function AIAssistantPage() {
               
               <Button
                 onClick={isLimitExceeded ? () => window.location.href = '/subscription' : handleSendMessage}
-                disabled={(!currentMessage.trim() || sendMessageMutation.isPending) && !isLimitExceeded}
+                disabled={!isLimitExceeded && (!currentMessage.trim() || sendMessageMutation.isPending)}
                 className={`shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-8 py-2 ${
                   isLimitExceeded 
-                    ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600' 
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 animate-pulse' 
                     : 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'
                 }`}
                 data-testid="button-send-ai-message"
