@@ -37,10 +37,10 @@ The application features a modern UI with a redesigned landing page, enhanced ac
     - **Typography**: All text uses responsive Tailwind breakpoints to ensure readability across devices without zooming.
 - **Friend Request System**: Manage friendships and user searches.
 - **Collaborative Financial Sharing**: Share financial goals and budgets with friends for collaborative planning:
-    - **Goal Sharing**: Share financial goals with friends with view-only or collaborative permissions. Friends can see progress and contribute if permitted.
+    - **Goal Sharing**: Share financial goals with friends with view-only or collaborative permissions via dropdown menu on goal cards. UI includes ShareGoalDialog component with friend selection and permission control (view/collaborate). Backend validates ownership and friendship status before sharing.
     - **Shared Budgets**: Create shared budgets with friends for group expenses (trips, households, projects). Track who spent what with automatic total calculations.
     - **Friend Group Invitations**: Invite friends to existing groups with customizable roles and permissions.
-    - **Privacy Controls**: Only share with confirmed friends. Owner maintains full control with ability to revoke access anytime.
+    - **Privacy Controls**: Only share with confirmed friends (status="accepted"). Owner maintains full control with ability to revoke access anytime. Database enforces unique constraint to prevent duplicate shares.
 - **AI Financial Advisor**: An expert-level financial advisor powered by Groq AI (Llama 3.3) offering:
     - **Personalized Advice**: Uses user's financial data (income, expenses, net worth) in every response with mandatory calculation examples.
     - **Conversational Data Collection**: Proactively detects missing financial data and asks users targeted questions one at a time, automatically extracting and saving income, expenses, and savings from natural conversation using regex parsing.
