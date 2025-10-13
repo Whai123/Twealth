@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
@@ -121,6 +121,9 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
     <>
       <DialogHeader>
         <DialogTitle>Add Funds to Goal</DialogTitle>
+        <DialogDescription>
+          Record a contribution towards your goal
+        </DialogDescription>
       </DialogHeader>
       
       <div className="space-y-4">

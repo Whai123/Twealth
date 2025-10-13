@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -151,6 +151,9 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
     <>
       <DialogHeader>
         <DialogTitle>Add Transaction</DialogTitle>
+        <DialogDescription>
+          Record a new income, expense, or transfer transaction
+        </DialogDescription>
       </DialogHeader>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
