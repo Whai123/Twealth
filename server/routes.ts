@@ -42,6 +42,25 @@ import { aiService, type UserContext } from "./aiService";
 import { cryptoService } from "./cryptoService";
 import Stripe from "stripe";
 
+// Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
+function parseAmount(value: string | number): string {
+  if (typeof value === 'number') {
+    return value.toFixed(2);
+  }
+  
+  // Remove dollar signs, commas, and whitespace
+  const cleaned = value.replace(/[\$,\s]/g, '');
+  
+  // Parse to number and back to fixed decimal string
+  const num = parseFloat(cleaned);
+  
+  if (isNaN(num)) {
+    throw new Error(`Invalid amount: ${value}`);
+  }
+  
+  return num.toFixed(2);
+}
+
 // Initialize Stripe (will use environment variable when available)
 let stripe: Stripe | null = null;
 
@@ -2050,7 +2069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
                   title: toolCall.arguments.name,
-                  targetAmount: toolCall.arguments.targetAmount.toString(),
+                  targetAmount: parseAmount(toolCall.arguments.targetAmount),
                   currentAmount: '0',
                   targetDate: new Date(toolCall.arguments.targetDate),
                   description: toolCall.arguments.description || null,
@@ -2085,7 +2104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const transaction = await storage.createTransaction({
                   userId: userId,
                   type: toolCall.arguments.type,
-                  amount: toolCall.arguments.amount.toString(),
+                  amount: parseAmount(toolCall.arguments.amount),
                   category: toolCall.arguments.category,
                   description: toolCall.arguments.description || null,
                   date: toolCall.arguments.date ? new Date(toolCall.arguments.date) : new Date()
@@ -2133,8 +2152,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   coinId: coinId,
                   symbol: symbol,
                   name: name,
-                  amount: toolCall.arguments.amount.toString(),
-                  averageBuyPrice: toolCall.arguments.purchasePrice.toString()
+                  amount: parseAmount(toolCall.arguments.amount),
+                  averageBuyPrice: parseAmount(toolCall.arguments.purchasePrice)
                 });
                 actionsPerformed.push({
                   type: 'crypto_added',
