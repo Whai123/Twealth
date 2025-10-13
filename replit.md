@@ -41,7 +41,7 @@ The application features a modern UI with a redesigned landing page, enhanced ac
     - **Shared Budgets**: Create shared budgets with friends for group expenses (trips, households, projects). Track who spent what with automatic total calculations.
     - **Friend Group Invitations**: Invite friends to existing groups with customizable roles and permissions.
     - **Privacy Controls**: Only share with confirmed friends (status="accepted"). Owner maintains full control with ability to revoke access anytime. Database enforces unique constraint to prevent duplicate shares.
-- **AI Financial Advisor**: An expert-level financial advisor powered by Groq AI (Llama 3.3) offering:
+- **AI Financial Advisor**: An expert-level financial advisor powered by Groq AI (Llama 4 Scout) offering:
     - **Personalized Advice**: Uses user's financial data (income, expenses, net worth) in every response with mandatory calculation examples.
     - **Conversational Data Collection**: Proactively detects missing financial data and asks users targeted questions one at a time, automatically extracting and saving income, expenses, and savings from natural conversation using regex parsing.
     - **Resilient Data Capture**: Proactive parsing extracts financial estimates from user messages BEFORE AI processing, ensuring data is preserved even if AI fails due to rate limits or errors. Uses pattern matching for income ($X earn/make/salary), expenses ($X spend/cost), and savings ($X saved/have).
@@ -85,6 +85,6 @@ The application supports 11 languages (English, Spanish, Indonesian, Thai, Brazi
 -   **Microsoft Graph API**: Outlook calendar integration.
 -   **Stripe**: Payment processing.
 -   **Replit Connectors**: OAuth integration.
--   **Groq AI with Llama 3.3**: AI financial advisor.
+-   **Groq AI with Llama 4 Scout**: AI financial advisor.
 -   **Exchange Rate API**: Live currency conversion rates.
 -   **date-fns**: Date manipulation utilities.

@@ -182,7 +182,7 @@ export default function SubscriptionPage() {
                   <span className="text-sm font-medium">AI Power</span>
                 </div>
                 <div className="text-2xl font-bold text-blue-600">
-                  Llama 3.3
+                  Llama 4 Scout
                 </div>
                 <div className="text-xs text-muted-foreground">Groq AI</div>
               </div>
@@ -642,11 +642,11 @@ export default function SubscriptionPage() {
             <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-xl p-6">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Zap className="w-8 h-8 text-blue-500" />
-                <h4 className="text-xl font-bold">Powered by Groq & Llama 3.3</h4>
+                <h4 className="text-xl font-bold">Powered by Groq & Llama 4 Scout</h4>
                 <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
               </div>
               <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                Lightning-fast AI responses powered by Groq's cutting-edge infrastructure and Meta's Llama 3.3 model. 
+                Lightning-fast AI responses powered by Groq's cutting-edge infrastructure and Meta's Llama 4 Scout model. 
                 <span className="font-semibold text-foreground">You get enterprise-level AI intelligence without enterprise-level prices!</span>
               </p>
             </div>
