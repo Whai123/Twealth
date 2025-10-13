@@ -144,6 +144,77 @@ export const friendships = pgTable("friendships", {
   };
 });
 
+// Shared Goals - Friends can view and optionally contribute to each other's goals
+export const sharedGoals = pgTable("shared_goals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  goalId: varchar("goal_id").notNull().references(() => financialGoals.id, { onDelete: "cascade" }),
+  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sharedWithUserId: varchar("shared_with_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  permission: text("permission", { enum: ["view", "contribute"] }).default("view"), // view-only or can contribute
+  status: text("status", { enum: ["active", "removed"] }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => {
+  return {
+    uniqueShare: unique().on(table.goalId, table.sharedWithUserId),
+  };
+});
+
+// Shared Budgets - Friends can track expenses together
+export const sharedBudgets = pgTable("shared_budgets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  totalBudget: decimal("total_budget", { precision: 10, scale: 2 }).notNull(),
+  currentSpent: decimal("current_spent", { precision: 10, scale: 2 }).default("0"),
+  period: text("period", { enum: ["weekly", "monthly", "yearly"] }).default("monthly"),
+  createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["active", "completed", "archived"] }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Shared Budget Members - Who has access to a shared budget
+export const sharedBudgetMembers = pgTable("shared_budget_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  budgetId: varchar("budget_id").notNull().references(() => sharedBudgets.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role", { enum: ["owner", "contributor"] }).default("contributor"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => {
+  return {
+    uniqueMember: unique().on(table.budgetId, table.userId),
+  };
+});
+
+// Shared Budget Expenses - Track expenses in shared budgets
+export const sharedBudgetExpenses = pgTable("shared_budget_expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  budgetId: varchar("budget_id").notNull().references(() => sharedBudgets.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  category: text("category").notNull(),
+  description: text("description"),
+  date: timestamp("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Friend Group Invitations - Invite friends to join groups directly
+export const friendGroupInvitations = pgTable("friend_group_invitations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
+  invitedBy: varchar("invited_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  invitedUserId: varchar("invited_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role", { enum: ["admin", "member"] }).default("member"),
+  status: text("status", { enum: ["pending", "accepted", "declined"] }).default("pending"),
+  message: text("message"), // optional invitation message
+  createdAt: timestamp("created_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+}, (table) => {
+  return {
+    uniqueInvitation: unique().on(table.groupId, table.invitedUserId),
+  };
+});
+
 export const userSettings = pgTable("user_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
@@ -373,6 +444,52 @@ export const insertFriendshipSchema = createInsertSchema(friendships).omit({
   createdAt: true,
 });
 
+export const insertSharedGoalSchema = createInsertSchema(sharedGoals).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  permission: z.enum(["view", "contribute"]).default("view"),
+  status: z.enum(["active", "removed"]).default("active"),
+});
+
+export const insertSharedBudgetSchema = createInsertSchema(sharedBudgets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  totalBudget: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  currentSpent: z.union([z.string(), z.number()]).transform(val => val.toString()).default("0"),
+  period: z.enum(["weekly", "monthly", "yearly"]).default("monthly"),
+  status: z.enum(["active", "completed", "archived"]).default("active"),
+});
+
+export const insertSharedBudgetMemberSchema = createInsertSchema(sharedBudgetMembers).omit({
+  id: true,
+  joinedAt: true,
+}).extend({
+  role: z.enum(["owner", "contributor"]).default("contributor"),
+});
+
+export const insertSharedBudgetExpenseSchema = createInsertSchema(sharedBudgetExpenses).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  amount: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  date: z.preprocess((val) => {
+    if (typeof val === 'string') return new Date(val);
+    return val;
+  }, z.date()),
+});
+
+export const insertFriendGroupInvitationSchema = createInsertSchema(friendGroupInvitations).omit({
+  id: true,
+  createdAt: true,
+  respondedAt: true,
+}).extend({
+  role: z.enum(["admin", "member"]).default("member"),
+  status: z.enum(["pending", "accepted", "declined"]).default("pending"),
+});
+
 export const insertEventExpenseSchema = createInsertSchema(eventExpenses).omit({
   id: true,
   createdAt: true,
@@ -478,6 +595,21 @@ export type InsertFriendRequest = z.infer<typeof insertFriendRequestSchema>;
 
 export type Friendship = typeof friendships.$inferSelect;
 export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
+
+export type SharedGoal = typeof sharedGoals.$inferSelect;
+export type InsertSharedGoal = z.infer<typeof insertSharedGoalSchema>;
+
+export type SharedBudget = typeof sharedBudgets.$inferSelect;
+export type InsertSharedBudget = z.infer<typeof insertSharedBudgetSchema>;
+
+export type SharedBudgetMember = typeof sharedBudgetMembers.$inferSelect;
+export type InsertSharedBudgetMember = z.infer<typeof insertSharedBudgetMemberSchema>;
+
+export type SharedBudgetExpense = typeof sharedBudgetExpenses.$inferSelect;
+export type InsertSharedBudgetExpense = z.infer<typeof insertSharedBudgetExpenseSchema>;
+
+export type FriendGroupInvitation = typeof friendGroupInvitations.$inferSelect;
+export type InsertFriendGroupInvitation = z.infer<typeof insertFriendGroupInvitationSchema>;
 
 export type EventExpense = typeof eventExpenses.$inferSelect;
 export type InsertEventExpense = z.infer<typeof insertEventExpenseSchema>;
