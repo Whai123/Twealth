@@ -226,12 +226,12 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           (selectedType === "income")) && (
           <div>
             <Label htmlFor="goalId">Financial Goal (Optional)</Label>
-            <Select value={watch("goalId") || ""} onValueChange={(value) => setValue("goalId", value || undefined)}>
+            <Select value={watch("goalId") || "none"} onValueChange={(value) => setValue("goalId", value === "none" ? undefined : value)}>
               <SelectTrigger data-testid="select-transaction-goal">
                 <SelectValue placeholder="Select a goal (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No goal</SelectItem>
+                <SelectItem value="none">No goal</SelectItem>
                 {activeGoals.map((goal: any) => (
                   <SelectItem key={goal.id} value={goal.id}>
                     {goal.title}
