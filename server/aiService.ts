@@ -207,8 +207,8 @@ const TOOLS = [
             description: "Type of transaction"
           },
           amount: {
-            type: "number",
-            description: "Transaction amount in dollars. MUST be a number, not a string."
+            type: "string",
+            description: "Transaction amount in dollars (e.g., '300', '45.50', '$100'). Can include dollar signs and decimals."
           },
           category: {
             type: "string",
