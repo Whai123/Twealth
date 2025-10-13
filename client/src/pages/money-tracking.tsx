@@ -435,17 +435,13 @@ export default function MoneyTracking() {
                   : "Try adjusting your filters to see more transactions"
                 }
               </p>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button data-testid="button-add-first-transaction">
-                    <Plus size={16} className="mr-2" />
-                    Add Transaction
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <TransactionForm onSuccess={() => setIsCreateDialogOpen(false)} />
-                </DialogContent>
-              </Dialog>
+              <Button 
+                data-testid="button-add-first-transaction"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
+                <Plus size={16} className="mr-2" />
+                Add Transaction
+              </Button>
             </div>
           ) : (
             <div style={{ gap: 'var(--space-3)' }} className="flex flex-col">
