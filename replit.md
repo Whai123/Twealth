@@ -30,7 +30,11 @@ The development environment uses Vite with an Express backend proxy, enabling fu
 
 ## UI/UX & Features
 
-The application features a modern UI with a redesigned landing page, enhanced accessibility, and improved error handling. Core features include:
+The application features a modern UI with a redesigned landing page, enhanced accessibility, improved error handling, and fully responsive mobile design. Core features include:
+- **Mobile-First Responsive Design**: Optimized for all screen sizes with adaptive layouts:
+    - **AI Chat Modal**: Full-screen on mobile (< 768px) with `inset-4` margins, floating card on desktop. Responsive text sizing (`text-xs md:text-sm` for messages), proper text wrapping with `break-words`, and optimized button positioning (`bottom-20` on mobile to avoid navigation bar overlap).
+    - **Dashboard**: Responsive header (`text-2xl md:text-4xl`), adaptive stat cards with 2-column mobile grid, compact spacing (`gap-2 md:gap-4`), and touch-friendly sizing.
+    - **Typography**: All text uses responsive Tailwind breakpoints to ensure readability across devices without zooming.
 - **Friend Request System**: Manage friendships and user searches.
 - **AI Financial Advisor**: An expert-level financial advisor powered by Groq AI (Llama 3.3) offering:
     - **Personalized Advice**: Uses user's financial data (income, expenses, net worth) in every response with mandatory calculation examples.
