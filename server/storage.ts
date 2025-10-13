@@ -22,6 +22,16 @@ import {
   type InsertFriendRequest,
   type Friendship,
   type InsertFriendship,
+  type SharedGoal,
+  type InsertSharedGoal,
+  type SharedBudget,
+  type InsertSharedBudget,
+  type SharedBudgetMember,
+  type InsertSharedBudgetMember,
+  type SharedBudgetExpense,
+  type InsertSharedBudgetExpense,
+  type FriendGroupInvitation,
+  type InsertFriendGroupInvitation,
   type EventExpense,
   type InsertEventExpense,
   type EventExpenseShare,
@@ -73,6 +83,11 @@ import {
   calendarShares,
   friendRequests,
   friendships,
+  sharedGoals,
+  sharedBudgets,
+  sharedBudgetMembers,
+  sharedBudgetExpenses,
+  friendGroupInvitations,
   eventExpenses,
   eventExpenseShares,
   userSettings,
@@ -207,6 +222,35 @@ export interface IStorage {
   areFriends(userId: string, friendId: string): Promise<boolean>;
   removeFriendship(userId: string, friendId: string): Promise<void>;
   searchUsers(query: string, excludeUserId: string): Promise<SafeUser[]>;
+  
+  // Shared Goals methods
+  shareGoal(share: InsertSharedGoal): Promise<SharedGoal>;
+  getSharedGoals(userId: string): Promise<Array<SharedGoal & { goal: FinancialGoal; owner: SafeUser }>>;
+  getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser }>>;
+  removeGoalShare(goalId: string, sharedWithUserId: string): Promise<void>;
+  updateGoalSharePermission(goalId: string, sharedWithUserId: string, permission: 'view' | 'contribute'): Promise<SharedGoal>;
+  
+  // Shared Budgets methods
+  createSharedBudget(budget: InsertSharedBudget): Promise<SharedBudget>;
+  getSharedBudget(id: string): Promise<SharedBudget | undefined>;
+  getSharedBudgetsByUserId(userId: string): Promise<Array<SharedBudget & { members: Array<SafeUser> }>>;
+  updateSharedBudget(id: string, updates: Partial<SharedBudget>): Promise<SharedBudget>;
+  deleteSharedBudget(id: string): Promise<void>;
+  
+  addSharedBudgetMember(member: InsertSharedBudgetMember): Promise<SharedBudgetMember>;
+  getSharedBudgetMembers(budgetId: string): Promise<Array<SharedBudgetMember & { user: SafeUser }>>;
+  removeSharedBudgetMember(budgetId: string, userId: string): Promise<void>;
+  
+  createSharedBudgetExpense(expense: InsertSharedBudgetExpense): Promise<SharedBudgetExpense>;
+  getSharedBudgetExpenses(budgetId: string): Promise<Array<SharedBudgetExpense & { user: SafeUser }>>;
+  updateSharedBudgetExpense(id: string, updates: Partial<SharedBudgetExpense>): Promise<SharedBudgetExpense>;
+  deleteSharedBudgetExpense(id: string): Promise<void>;
+  
+  // Friend Group Invitations methods
+  createFriendGroupInvitation(invitation: InsertFriendGroupInvitation): Promise<FriendGroupInvitation>;
+  getFriendGroupInvitations(userId: string): Promise<Array<FriendGroupInvitation & { group: Group; invitedBy: SafeUser }>>;
+  updateFriendGroupInvitationStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendGroupInvitation>;
+  deleteFriendGroupInvitation(id: string): Promise<void>;
   
   // RSVP methods
   updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event>;
@@ -1285,6 +1329,391 @@ export class DatabaseStorage implements IStorage {
       .limit(20);
 
     return foundUsers;
+  }
+
+  // Shared Goals methods
+  async shareGoal(insertShare: InsertSharedGoal): Promise<SharedGoal> {
+    const [share] = await db
+      .insert(sharedGoals)
+      .values(insertShare)
+      .returning();
+
+    return share;
+  }
+
+  async getSharedGoals(userId: string): Promise<Array<SharedGoal & { goal: FinancialGoal; owner: SafeUser }>> {
+    const shares = await db
+      .select({
+        id: sharedGoals.id,
+        goalId: sharedGoals.goalId,
+        ownerId: sharedGoals.ownerId,
+        sharedWithUserId: sharedGoals.sharedWithUserId,
+        permission: sharedGoals.permission,
+        status: sharedGoals.status,
+        createdAt: sharedGoals.createdAt,
+        goal: financialGoals,
+        owner: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(sharedGoals)
+      .innerJoin(financialGoals, eq(sharedGoals.goalId, financialGoals.id))
+      .innerJoin(users, eq(sharedGoals.ownerId, users.id))
+      .where(and(
+        eq(sharedGoals.sharedWithUserId, userId),
+        eq(sharedGoals.status, 'active')
+      ));
+
+    return shares;
+  }
+
+  async getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser }>> {
+    const shares = await db
+      .select({
+        id: sharedGoals.id,
+        goalId: sharedGoals.goalId,
+        ownerId: sharedGoals.ownerId,
+        sharedWithUserId: sharedGoals.sharedWithUserId,
+        permission: sharedGoals.permission,
+        status: sharedGoals.status,
+        createdAt: sharedGoals.createdAt,
+        sharedWith: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(sharedGoals)
+      .innerJoin(users, eq(sharedGoals.sharedWithUserId, users.id))
+      .where(and(
+        eq(sharedGoals.goalId, goalId),
+        eq(sharedGoals.status, 'active')
+      ));
+
+    return shares;
+  }
+
+  async removeGoalShare(goalId: string, sharedWithUserId: string): Promise<void> {
+    await db
+      .update(sharedGoals)
+      .set({ status: 'removed' })
+      .where(and(
+        eq(sharedGoals.goalId, goalId),
+        eq(sharedGoals.sharedWithUserId, sharedWithUserId)
+      ));
+  }
+
+  async updateGoalSharePermission(goalId: string, sharedWithUserId: string, permission: 'view' | 'contribute'): Promise<SharedGoal> {
+    const [share] = await db
+      .update(sharedGoals)
+      .set({ permission })
+      .where(and(
+        eq(sharedGoals.goalId, goalId),
+        eq(sharedGoals.sharedWithUserId, sharedWithUserId)
+      ))
+      .returning();
+
+    return share;
+  }
+
+  // Shared Budgets methods
+  async createSharedBudget(insertBudget: InsertSharedBudget): Promise<SharedBudget> {
+    const [budget] = await db
+      .insert(sharedBudgets)
+      .values(insertBudget)
+      .returning();
+
+    // Add creator as owner member
+    await db.insert(sharedBudgetMembers).values({
+      budgetId: budget.id,
+      userId: insertBudget.createdBy,
+      role: 'owner',
+    });
+
+    return budget;
+  }
+
+  async getSharedBudget(id: string): Promise<SharedBudget | undefined> {
+    const [budget] = await db
+      .select()
+      .from(sharedBudgets)
+      .where(eq(sharedBudgets.id, id));
+
+    return budget || undefined;
+  }
+
+  async getSharedBudgetsByUserId(userId: string): Promise<Array<SharedBudget & { members: Array<SafeUser> }>> {
+    // Get budgets where user is a member
+    const budgetsWithMembers = await db
+      .select({
+        id: sharedBudgets.id,
+        name: sharedBudgets.name,
+        description: sharedBudgets.description,
+        totalBudget: sharedBudgets.totalBudget,
+        currentSpent: sharedBudgets.currentSpent,
+        period: sharedBudgets.period,
+        createdBy: sharedBudgets.createdBy,
+        status: sharedBudgets.status,
+        createdAt: sharedBudgets.createdAt,
+        updatedAt: sharedBudgets.updatedAt,
+      })
+      .from(sharedBudgets)
+      .innerJoin(sharedBudgetMembers, eq(sharedBudgets.id, sharedBudgetMembers.budgetId))
+      .where(eq(sharedBudgetMembers.userId, userId));
+
+    // For each budget, fetch all members
+    const results = await Promise.all(
+      budgetsWithMembers.map(async (budget) => {
+        const members = await this.getSharedBudgetMembers(budget.id);
+        return {
+          ...budget,
+          members: members.map(m => m.user),
+        };
+      })
+    );
+
+    return results;
+  }
+
+  async updateSharedBudget(id: string, updates: Partial<SharedBudget>): Promise<SharedBudget> {
+    const [budget] = await db
+      .update(sharedBudgets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(sharedBudgets.id, id))
+      .returning();
+
+    return budget;
+  }
+
+  async deleteSharedBudget(id: string): Promise<void> {
+    await db.delete(sharedBudgets).where(eq(sharedBudgets.id, id));
+  }
+
+  async addSharedBudgetMember(insertMember: InsertSharedBudgetMember): Promise<SharedBudgetMember> {
+    const [member] = await db
+      .insert(sharedBudgetMembers)
+      .values(insertMember)
+      .returning();
+
+    return member;
+  }
+
+  async getSharedBudgetMembers(budgetId: string): Promise<Array<SharedBudgetMember & { user: SafeUser }>> {
+    const members = await db
+      .select({
+        id: sharedBudgetMembers.id,
+        budgetId: sharedBudgetMembers.budgetId,
+        userId: sharedBudgetMembers.userId,
+        role: sharedBudgetMembers.role,
+        joinedAt: sharedBudgetMembers.joinedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(sharedBudgetMembers)
+      .innerJoin(users, eq(sharedBudgetMembers.userId, users.id))
+      .where(eq(sharedBudgetMembers.budgetId, budgetId));
+
+    return members;
+  }
+
+  async removeSharedBudgetMember(budgetId: string, userId: string): Promise<void> {
+    await db
+      .delete(sharedBudgetMembers)
+      .where(and(
+        eq(sharedBudgetMembers.budgetId, budgetId),
+        eq(sharedBudgetMembers.userId, userId)
+      ));
+  }
+
+  async createSharedBudgetExpense(insertExpense: InsertSharedBudgetExpense): Promise<SharedBudgetExpense> {
+    const [expense] = await db
+      .insert(sharedBudgetExpenses)
+      .values(insertExpense)
+      .returning();
+
+    // Update budget's current spent amount
+    const budget = await this.getSharedBudget(insertExpense.budgetId);
+    if (budget) {
+      const currentSpent = parseFloat(budget.currentSpent?.toString() || '0');
+      const expenseAmount = parseFloat(expense.amount.toString());
+      await this.updateSharedBudget(insertExpense.budgetId, {
+        currentSpent: (currentSpent + expenseAmount).toString(),
+      });
+    }
+
+    return expense;
+  }
+
+  async getSharedBudgetExpenses(budgetId: string): Promise<Array<SharedBudgetExpense & { user: SafeUser }>> {
+    const expenses = await db
+      .select({
+        id: sharedBudgetExpenses.id,
+        budgetId: sharedBudgetExpenses.budgetId,
+        userId: sharedBudgetExpenses.userId,
+        amount: sharedBudgetExpenses.amount,
+        category: sharedBudgetExpenses.category,
+        description: sharedBudgetExpenses.description,
+        date: sharedBudgetExpenses.date,
+        createdAt: sharedBudgetExpenses.createdAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(sharedBudgetExpenses)
+      .innerJoin(users, eq(sharedBudgetExpenses.userId, users.id))
+      .where(eq(sharedBudgetExpenses.budgetId, budgetId))
+      .orderBy(desc(sharedBudgetExpenses.date));
+
+    return expenses;
+  }
+
+  async updateSharedBudgetExpense(id: string, updates: Partial<SharedBudgetExpense>): Promise<SharedBudgetExpense> {
+    // Get old expense to adjust budget
+    const [oldExpense] = await db
+      .select()
+      .from(sharedBudgetExpenses)
+      .where(eq(sharedBudgetExpenses.id, id));
+
+    const [expense] = await db
+      .update(sharedBudgetExpenses)
+      .set(updates)
+      .where(eq(sharedBudgetExpenses.id, id))
+      .returning();
+
+    // Adjust budget if amount changed
+    if (updates.amount && oldExpense) {
+      const budget = await this.getSharedBudget(oldExpense.budgetId);
+      if (budget) {
+        const currentSpent = parseFloat(budget.currentSpent?.toString() || '0');
+        const oldAmount = parseFloat(oldExpense.amount.toString());
+        const newAmount = parseFloat(updates.amount.toString());
+        const diff = newAmount - oldAmount;
+        await this.updateSharedBudget(oldExpense.budgetId, {
+          currentSpent: (currentSpent + diff).toString(),
+        });
+      }
+    }
+
+    return expense;
+  }
+
+  async deleteSharedBudgetExpense(id: string): Promise<void> {
+    // Get expense to adjust budget
+    const [expense] = await db
+      .select()
+      .from(sharedBudgetExpenses)
+      .where(eq(sharedBudgetExpenses.id, id));
+
+    if (expense) {
+      const budget = await this.getSharedBudget(expense.budgetId);
+      if (budget) {
+        const currentSpent = parseFloat(budget.currentSpent?.toString() || '0');
+        const expenseAmount = parseFloat(expense.amount.toString());
+        await this.updateSharedBudget(expense.budgetId, {
+          currentSpent: (currentSpent - expenseAmount).toString(),
+        });
+      }
+    }
+
+    await db.delete(sharedBudgetExpenses).where(eq(sharedBudgetExpenses.id, id));
+  }
+
+  // Friend Group Invitations methods
+  async createFriendGroupInvitation(insertInvitation: InsertFriendGroupInvitation): Promise<FriendGroupInvitation> {
+    const [invitation] = await db
+      .insert(friendGroupInvitations)
+      .values(insertInvitation)
+      .returning();
+
+    return invitation;
+  }
+
+  async getFriendGroupInvitations(userId: string): Promise<Array<FriendGroupInvitation & { group: Group; invitedBy: SafeUser }>> {
+    const invitations = await db
+      .select({
+        id: friendGroupInvitations.id,
+        groupId: friendGroupInvitations.groupId,
+        invitedBy: users.id,
+        invitedUserId: friendGroupInvitations.invitedUserId,
+        role: friendGroupInvitations.role,
+        status: friendGroupInvitations.status,
+        message: friendGroupInvitations.message,
+        createdAt: friendGroupInvitations.createdAt,
+        respondedAt: friendGroupInvitations.respondedAt,
+        group: groups,
+        invitedByUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(friendGroupInvitations)
+      .innerJoin(groups, eq(friendGroupInvitations.groupId, groups.id))
+      .innerJoin(users, eq(friendGroupInvitations.invitedBy, users.id))
+      .where(eq(friendGroupInvitations.invitedUserId, userId));
+
+    return invitations.map(inv => ({
+      id: inv.id,
+      groupId: inv.groupId,
+      invitedBy: inv.invitedByUser,
+      invitedUserId: inv.invitedUserId,
+      role: inv.role,
+      status: inv.status,
+      message: inv.message,
+      createdAt: inv.createdAt,
+      respondedAt: inv.respondedAt,
+      group: inv.group,
+    })) as any;
+  }
+
+  async updateFriendGroupInvitationStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendGroupInvitation> {
+    const [invitation] = await db
+      .update(friendGroupInvitations)
+      .set({ status, respondedAt: new Date() })
+      .where(eq(friendGroupInvitations.id, id))
+      .returning();
+
+    // If accepted, add user to group
+    if (status === 'accepted') {
+      await this.addGroupMember({
+        groupId: invitation.groupId,
+        userId: invitation.invitedUserId,
+        role: invitation.role,
+      });
+    }
+
+    return invitation;
+  }
+
+  async deleteFriendGroupInvitation(id: string): Promise<void> {
+    await db.delete(friendGroupInvitations).where(eq(friendGroupInvitations.id, id));
   }
 
   // RSVP methods
