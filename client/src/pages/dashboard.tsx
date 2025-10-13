@@ -88,39 +88,39 @@ export default function Dashboard() {
       
       {/* Spectacular Header */}
       <header className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="container mx-auto px-4 py-4 md:py-6">
+          <div className="flex items-center justify-between mb-4 md:mb-6">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+              <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
                   <div className="relative">
-                    <Clock className="w-8 h-8 text-white" />
-                    <DollarSign className="w-4 h-4 text-yellow-300 absolute -top-1 -right-1" />
+                    <Clock className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                    <DollarSign className="w-3 h-3 md:w-4 md:h-4 text-yellow-300 absolute -top-1 -right-1" />
                   </div>
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
                     {t('dashboard.title')}
                   </h1>
-                  <p className="text-xl text-muted-foreground">{t('dashboard.subtitle')}</p>
+                  <p className="text-sm md:text-xl text-muted-foreground">{t('dashboard.subtitle')}</p>
                 </div>
               </div>
               
               {/* Dashboard Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                 {timeStatsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 animate-pulse">
-                    <div className="h-5 w-20 bg-muted rounded mb-2"></div>
-                    <div className="h-8 w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-3 w-24 bg-muted rounded"></div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 animate-pulse">
+                    <div className="h-4 md:h-5 w-16 md:w-20 bg-muted rounded mb-2"></div>
+                    <div className="h-6 md:h-8 w-12 md:w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-2 md:h-3 w-20 md:w-24 bg-muted rounded"></div>
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-growth">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className={`w-5 h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
-                      <span className="text-sm font-medium">{t('dashboard.stats.growth')}</span>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-growth">
+                    <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                      <TrendingUp className={`w-4 h-4 md:w-5 md:h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
+                      <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.growth')}</span>
                     </div>
-                    <div className={`text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
+                    <div className={`text-xl md:text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
                       {growthPercent >= 0 ? '+' : ''}{growthPercent}%
                     </div>
                     <div className="text-xs text-muted-foreground">{t('dashboard.stats.thisPeriod')}</div>
@@ -128,18 +128,18 @@ export default function Dashboard() {
                 )}
                 
                 {goalsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 animate-pulse">
-                    <div className="h-5 w-20 bg-muted rounded mb-2"></div>
-                    <div className="h-8 w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-3 w-24 bg-muted rounded"></div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 animate-pulse">
+                    <div className="h-4 md:h-5 w-16 md:w-20 bg-muted rounded mb-2"></div>
+                    <div className="h-6 md:h-8 w-12 md:w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-2 md:h-3 w-20 md:w-24 bg-muted rounded"></div>
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-goals">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-5 h-5 text-blue-500" aria-hidden="true" />
-                      <span className="text-sm font-medium">{t('dashboard.stats.goals')}</span>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-goals">
+                    <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                      <Target className="w-4 h-4 md:w-5 md:h-5 text-blue-500" aria-hidden="true" />
+                      <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.goals')}</span>
                     </div>
-                    <div className="text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
+                    <div className="text-xl md:text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
                       {goalsOnTrack}/{activeGoalsCount}
                     </div>
                     <div className="text-xs text-muted-foreground">{t('dashboard.stats.onTrack')}</div>
@@ -147,18 +147,18 @@ export default function Dashboard() {
                 )}
                 
                 {statsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 animate-pulse">
-                    <div className="h-5 w-20 bg-muted rounded mb-2"></div>
-                    <div className="h-8 w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-3 w-24 bg-muted rounded"></div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 animate-pulse">
+                    <div className="h-4 md:h-5 w-16 md:w-20 bg-muted rounded mb-2"></div>
+                    <div className="h-6 md:h-8 w-12 md:w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-2 md:h-3 w-20 md:w-24 bg-muted rounded"></div>
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-score">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Award className="w-5 h-5 text-orange-500" aria-hidden="true" />
-                      <span className="text-sm font-medium">{t('dashboard.stats.score')}</span>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-score">
+                    <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                      <Award className="w-4 h-4 md:w-5 md:h-5 text-orange-500" aria-hidden="true" />
+                      <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.score')}</span>
                     </div>
-                    <div className="text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
+                    <div className="text-xl md:text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
                       {financialScore}
                     </div>
                     <div className="text-xs text-muted-foreground">
@@ -167,12 +167,12 @@ export default function Dashboard() {
                   </div>
                 )}
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-streak">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="w-5 h-5 text-purple-500" aria-hidden="true" />
-                    <span className="text-sm font-medium">{t('dashboard.stats.streak')}</span>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-streak">
+                  <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
+                    <Crown className="w-4 h-4 md:w-5 md:h-5 text-purple-500" aria-hidden="true" />
+                    <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.streak')}</span>
                   </div>
-                  <div className="text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
+                  <div className="text-xl md:text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
                     {streak}
                   </div>
                   <div className="text-xs text-muted-foreground">{t('dashboard.stats.daysActive')}</div>
