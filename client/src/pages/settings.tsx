@@ -146,7 +146,7 @@ function Settings() {
                   <Cog className="w-8 h-8 text-white animate-spin-slow" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-slate-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     ⚙️ Settings & Preferences
                   </h1>
                   <p className="text-xl text-muted-foreground">Customize your experience to perfection</p>

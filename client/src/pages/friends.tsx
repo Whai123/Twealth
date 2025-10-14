@@ -172,7 +172,7 @@ export default function Friends() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Friends</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Friends</h1>
         <p className="text-muted-foreground">Connect with friends to collaborate on groups and events</p>
       </div>
 

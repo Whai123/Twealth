@@ -181,7 +181,7 @@ export default function ReferralsPage() {
                   <Users className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent" data-testid="heading-referrals">
+                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent" data-testid="heading-referrals">
                     🎁 Referral Rewards
                   </h1>
                   <p className="text-xl text-muted-foreground">Share the wealth, grow together!</p>

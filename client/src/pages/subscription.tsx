@@ -334,7 +334,7 @@ export default function SubscriptionPage() {
       {/* Enhanced Pricing Plans */}
       <div className="space-y-8">
         <div className="text-center space-y-4">
-          <h2 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
             Choose Your Perfect Plan
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -610,7 +610,7 @@ export default function SubscriptionPage() {
                 <Zap className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h3 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                   Why Choose Twealth AI?
                 </h3>
                 <p className="text-lg text-muted-foreground">
@@ -621,19 +621,19 @@ export default function SubscriptionPage() {
             
             <div className="grid gap-6 md:grid-cols-3">
               <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50">
-                <div className="text-4xl font-bold text-green-600">25x</div>
+                <div className="text-3xl md:text-4xl font-bold text-green-600">25x</div>
                 <div className="font-semibold">More Cost-Effective</div>
                 <div className="text-sm text-muted-foreground">Than traditional financial advisors</div>
               </div>
               
               <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
-                <div className="text-4xl font-bold text-blue-600">24/7</div>
+                <div className="text-3xl md:text-4xl font-bold text-blue-600">24/7</div>
                 <div className="font-semibold">AI Assistant</div>
                 <div className="text-sm text-muted-foreground">Always available when you need help</div>
               </div>
               
               <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
-                <div className="text-4xl font-bold text-purple-600">฿99</div>
+                <div className="text-3xl md:text-4xl font-bold text-purple-600">฿99</div>
                 <div className="font-semibold">Affordable Premium</div>
                 <div className="text-sm text-muted-foreground">Less than a coffee per day</div>
               </div>
@@ -678,7 +678,7 @@ export default function SubscriptionPage() {
         <CardContent className="relative p-8 text-center">
           <div className="absolute inset-0 bg-black/10" />
           <div className="relative space-y-4">
-            <h3 className="text-3xl font-bold">Ready to Transform Your Financial Future?</h3>
+            <h3 className="text-2xl md:text-3xl font-bold">Ready to Transform Your Financial Future?</h3>
             <p className="text-xl opacity-90 max-w-2xl mx-auto">
               Join thousands of users who are already saving money and reaching their financial goals with AI-powered insights.
             </p>

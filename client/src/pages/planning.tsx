@@ -172,7 +172,7 @@ export default function Planning() {
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
                     🧠 Smart Financial Planning
                   </h1>
                   <p className="text-muted-foreground text-lg">AI-powered insights to accelerate your financial success</p>

@@ -101,7 +101,7 @@ export default function AIInsightsDashboard() {
           <Brain className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold">{t('aiInsights.title', 'AI Financial Insights')}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{t('aiInsights.title', 'AI Financial Insights')}</h1>
           <p className="text-muted-foreground">{t('aiInsights.subtitle', 'Visual analytics powered by your AI advisor')}</p>
         </div>
       </div>
