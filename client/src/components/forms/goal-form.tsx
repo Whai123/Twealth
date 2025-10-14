@@ -46,7 +46,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [shareWithGroup, setShareWithGroup] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
-  const [groupPermission, setGroupPermission] = useState<"view" | "contribute">("view");
+  const [groupPermission, setGroupPermission] = useState<"view" | "can_contribute">("view");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
@@ -309,13 +309,13 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
 
                 <div>
                   <Label htmlFor="permissionSelect">Permission Level</Label>
-                  <Select value={groupPermission} onValueChange={(val) => setGroupPermission(val as "view" | "contribute")}>
+                  <Select value={groupPermission} onValueChange={(val) => setGroupPermission(val as "view" | "can_contribute")}>
                     <SelectTrigger data-testid="select-group-permission">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="view">View Only</SelectItem>
-                      <SelectItem value="contribute">Can Contribute</SelectItem>
+                      <SelectItem value="can_contribute">Can Contribute</SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground mt-1">

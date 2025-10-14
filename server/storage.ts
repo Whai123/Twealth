@@ -1398,13 +1398,14 @@ export class DatabaseStorage implements IStorage {
     return shares;
   }
 
-  async getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser }>> {
+  async getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser | null; group?: any }>> {
     const shares = await db
       .select({
         id: sharedGoals.id,
         goalId: sharedGoals.goalId,
         ownerId: sharedGoals.ownerId,
         sharedWithUserId: sharedGoals.sharedWithUserId,
+        groupId: sharedGoals.groupId,
         permission: sharedGoals.permission,
         status: sharedGoals.status,
         createdAt: sharedGoals.createdAt,
@@ -1419,7 +1420,7 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .from(sharedGoals)
-      .innerJoin(users, eq(sharedGoals.sharedWithUserId, users.id))
+      .leftJoin(users, eq(sharedGoals.sharedWithUserId, users.id))
       .where(and(
         eq(sharedGoals.goalId, goalId),
         eq(sharedGoals.status, 'active')
