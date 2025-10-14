@@ -625,6 +625,102 @@ const TOOLS = [
         required: ["monthlyIncome", "currentSpending"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "suggest_group_invites",
+      description: "Suggest which friends to invite to a financial group based on shared goals, interests, and financial collaboration potential. CRITICAL: After calling this tool, you MUST explain: why each friend is a good match (shared goals, similar financial timeline, complementary skills), specific collaboration opportunities ('Sarah has an investment goal too - you could share research and split index fund fees'), benefits of inviting each person with concrete examples, suggested roles ('Make David a contributor since he's experienced with budgeting'), specific invitation message suggestions. Provide personalized reasoning for each suggested friend. NEVER just say 'Action completed'.",
+      parameters: {
+        type: "object",
+        properties: {
+          groupName: {
+            type: "string",
+            description: "Name of the group to invite friends to"
+          },
+          groupPurpose: {
+            type: "string",
+            description: "Purpose of the group (e.g., 'Investment Club', 'Vacation Savings', 'Household Budget')"
+          },
+          availableFriends: {
+            type: "array",
+            description: "List of available friends with their financial interests",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                email: { type: "string" },
+                sharedGoals: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "Financial goals they have in common with user"
+                },
+                financialInterests: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "Their financial interests or expertise areas"
+                }
+              }
+            }
+          },
+          maxInvites: {
+            type: "number",
+            description: "Maximum number of friends to suggest (default 5)",
+            default: 5
+          }
+        },
+        required: ["groupName", "groupPurpose", "availableFriends"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "suggest_savings_adjustment",
+      description: "Analyze current budget and suggest optimal savings adjustments to accelerate goal achievement. CRITICAL: After calling this tool, you MUST explain: current savings rate vs optimal savings rate with exact percentages, specific categories to reduce with dollar amounts ('Reduce dining $200/month: cook 3 more meals/week at $15/meal savings'), reallocation strategy with exact numbers ('Redirect $200 dining savings + $100 entertainment cut = $300/month extra toward goal'), timeline improvement ('Reach goal 8 months faster with adjustments'), priority-based recommendations (cut wants before needs, maintain emergency fund), painless savings hacks with specific examples ('Use $50 cash-only for entertainment to avoid overspending'). Calculate exact impact on goals. NEVER just say 'Action completed'.",
+      parameters: {
+        type: "object",
+        properties: {
+          currentMonthlyIncome: {
+            type: "number",
+            description: "Current monthly income in dollars"
+          },
+          currentMonthlyExpenses: {
+            type: "number",
+            description: "Current monthly expenses in dollars"
+          },
+          spendingByCategory: {
+            type: "object",
+            description: "Breakdown of spending by category with amounts",
+            additionalProperties: {
+              type: "number"
+            }
+          },
+          financialGoals: {
+            type: "array",
+            description: "Active financial goals to optimize savings for",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                targetAmount: { type: "number" },
+                currentAmount: { type: "number" },
+                targetDate: { type: "string" },
+                priority: {
+                  type: "string",
+                  enum: ["low", "medium", "high"]
+                }
+              }
+            }
+          },
+          desiredTimelineReduction: {
+            type: "number",
+            description: "How many months earlier user wants to achieve their goals (optional)"
+          }
+        },
+        required: ["currentMonthlyIncome", "currentMonthlyExpenses", "financialGoals"]
+      }
+    }
   }
 ];
 
