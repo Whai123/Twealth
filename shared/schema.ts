@@ -149,7 +149,8 @@ export const sharedGoals = pgTable("shared_goals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   goalId: varchar("goal_id").notNull().references(() => financialGoals.id, { onDelete: "cascade" }),
   ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  sharedWithUserId: varchar("shared_with_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sharedWithUserId: varchar("shared_with_user_id").references(() => users.id, { onDelete: "cascade" }), // null for group shares
+  groupId: varchar("group_id").references(() => groups.id, { onDelete: "cascade" }), // for sharing with entire group
   permission: text("permission", { enum: ["view", "contribute"] }).default("view"), // view-only or can contribute
   status: text("status", { enum: ["active", "removed"] }).default("active"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -168,6 +169,7 @@ export const sharedBudgets = pgTable("shared_budgets", {
   currentSpent: decimal("current_spent", { precision: 10, scale: 2 }).default("0"),
   period: text("period", { enum: ["weekly", "monthly", "yearly"] }).default("monthly"),
   createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
+  linkedGoalId: varchar("linked_goal_id").references(() => financialGoals.id, { onDelete: "set null" }), // link budget to a goal
   status: text("status", { enum: ["active", "completed", "archived"] }).default("active"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
