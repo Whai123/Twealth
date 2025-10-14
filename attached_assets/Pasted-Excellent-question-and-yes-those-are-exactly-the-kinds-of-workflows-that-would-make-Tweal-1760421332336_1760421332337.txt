@@ -1,0 +1,81 @@
+Excellent question — and yes 👏 those are **exactly the kinds of workflows** that would make **Twealth** feel more powerful, social, and valuable to users.
+
+Let’s break it down clearly:
+
+---
+
+## 🧭 **1. Create a Goal and Automatically Share It with All Group Members**
+
+✅ **Why it’s important:**
+People often set goals together — saving for a trip, investing as a group, or paying off shared expenses.
+
+✅ **Missing workflow:**
+Currently, if Twealth requires each user to manually re-create or join a goal, that adds friction.
+
+✅ **Ideal behavior:**
+
+* One person creates a goal (“Save 50,000 THB for Japan Trip”).
+* Chooses a group (e.g., “Friends Japan 2025”).
+* Everyone in that group **automatically sees the goal**, gets updates, and can add contributions or sub-tasks.
+* AI tracks progress per member.
+
+✅ **Implementation idea:**
+
+```
+if goal.shared == True:
+    notify_all(group.members)
+    sync_goal_progress()
+```
+
+---
+
+## 🧑‍🤝‍🧑 **2. Bulk Invite Friends to a Group**
+
+✅ **Why it’s important:**
+Twealth can grow faster when people can invite others easily — frictionless onboarding drives network effects.
+
+✅ **Missing workflow:**
+Currently, users might have to invite people **one by one**.
+
+✅ **Ideal behavior:**
+
+* “Invite All” button that syncs with contacts, LINE, or Gmail.
+* Sends a branded Twealth invite link (deep link to the app).
+* New users automatically join the correct group upon signup.
+
+✅ **AI enhancement:**
+AI can suggest who to invite (e.g., “Would you like to add John, who’s often part of your shared budgets?”).
+
+---
+
+## 💰 **3. Connect Shared Budgets Directly to Group Goals**
+
+✅ **Why it’s important:**
+Budgeting and goals are usually linked — saving for something specific gives motivation.
+
+✅ **Missing workflow:**
+If budgets and goals are separate modules, users might lose context.
+
+✅ **Ideal behavior:**
+
+* A group can create a **shared budget** (e.g., “Travel Budget 2025 – 10,000 THB/month”).
+* The AI links that to a goal (“Trip to Japan”), and auto-updates goal progress based on total group savings.
+* Real-time dashboard shows everyone’s contribution.
+
+✅ **Bonus feature:**
+AI could **detect mismatches** — for example, “Your current saving rate will delay the goal by 2 months. Would you like me to adjust the plan?”
+
+---
+
+### 💡 Summary of Missing Workflows in Twealth
+
+| Feature                     | Description                                     | Impact                           |
+| --------------------------- | ----------------------------------------------- | -------------------------------- |
+| **Shared Goals Automation** | Automatically sync new goals with group members | Stronger collaboration           |
+| **Bulk Friend Invites**     | One-tap group onboarding                        | Faster growth & virality         |
+| **Linked Budgets & Goals**  | Sync spending/saving with goal tracking         | Deeper financial insight         |
+| **AI Smart Suggestions**    | Recommend invites, budget adjustments           | Adds intelligent personalization |
+
+---
+
+Would you like me to sketch the **UI flow** (screen-by-screen layout) for how these workflows should look inside Twealth’s dashboard or mobile app? That will help your devs visualize and build them easily.
