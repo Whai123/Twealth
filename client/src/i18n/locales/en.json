@@ -45,6 +45,13 @@
     "referrals": "Referrals",
     "premium": "Premium",
     "settings": "Settings",
+    "labels": {
+      "home": "Home",
+      "ai": "AI",
+      "insights": "Insights",
+      "calendar": "Calendar",
+      "premium": "Premium"
+    },
     "sections": {
       "main": "Main",
       "finance": "Finance",
