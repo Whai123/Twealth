@@ -31,9 +31,11 @@ The development environment uses Vite with an Express backend proxy, enabling fu
 ## UI/UX & Features
 
 The application features a modern UI with a redesigned landing page, enhanced accessibility, improved error handling, and fully responsive mobile design. Core features include:
-- **Mobile-First Responsive Design**: Optimized for all screen sizes with adaptive layouts:
-    - **AI Chat Modal**: Full-screen on mobile (< 768px) with `inset-4` margins, floating card on desktop. Responsive text sizing (`text-xs md:text-sm` for messages), proper text wrapping with `break-words`, and optimized button positioning (`bottom-20` on mobile to avoid navigation bar overlap).
-    - **Dashboard**: Responsive header (`text-2xl md:text-4xl`), adaptive stat cards with 2-column mobile grid, compact spacing (`gap-2 md:gap-4`), and touch-friendly sizing.
+- **Mobile-First Responsive Design**: Optimized for all screen sizes with adaptive layouts and strategic button positioning to prevent overlaps:
+    - **AI Chat Button**: Positioned at `bottom-20 left-4` on mobile (left side) to avoid conflicts with right-side FAB. Full-screen chat modal on mobile (< 768px) with `inset-4` margins, floating card on desktop. Responsive text sizing (`text-xs md:text-sm` for messages), proper text wrapping with `break-words`.
+    - **Mobile Navigation**: Bottom tab bar with short translated labels (navigation.labels.*) for compact mobile display. Main FAB at `bottom-20 right-4` provides quick actions (hidden on calendar page which has its own specialized FAB).
+    - **PWA Install Prompt**: Positioned at `bottom-24` on mobile to avoid overlapping with navigation bar and floating action buttons.
+    - **Dashboard**: Responsive header (`text-2xl md:text-4xl`), adaptive stat cards with 2-column mobile grid, compact spacing (`gap-2 md:gap-4`), and touch-friendly sizing. New Goal button shows icon-only on mobile without duplicate text.
     - **Typography**: All text uses responsive Tailwind breakpoints to ensure readability across devices without zooming.
 - **Friend Request System**: Manage friendships and user searches.
 - **Collaborative Financial Sharing**: Share financial goals and budgets with friends for collaborative planning:
