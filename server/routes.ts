@@ -2659,11 +2659,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (aiError: any) {
         // Provide more specific error messages based on error type
         console.error('AI Chat Error:', aiError.message);
-        let errorMessage = "I apologize for the inconvenience. I'm experiencing a temporary issue processing your request. Please try rephrasing your message or try again in a moment.";
+        let errorMessage = "I'm having a brief moment of difficulty. Could you try rephrasing your question?";
         
         // If it's a Groq API error, provide helpful guidance
         if (aiError.message?.includes('decommissioned')) {
-          errorMessage = "Our AI system is currently being updated. Please try again in a few moments.";
+          errorMessage = "Our AI is being upgraded! Please try again in a moment.";
+        } else if (aiError.message?.includes('rate limit') || aiError.message?.includes('429')) {
+          errorMessage = "I'm handling lots of conversations right now! Please wait a moment and try again.";
+        } else if (aiError.message?.includes('timeout')) {
+          errorMessage = "Taking longer than expected - please try asking again!";
+        } else if (aiError.message?.includes('model')) {
+          errorMessage = "Experiencing technical difficulties. Please try again shortly!";
         }
         
         const aiChatMessage = await storage.createChatMessage({
