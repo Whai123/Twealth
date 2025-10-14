@@ -495,6 +495,136 @@ const TOOLS = [
         required: ["itemName", "purchasePrice", "itemType"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "generate_spending_insights",
+      description: "Analyze spending patterns and generate visual insights ONLY when user asks about spending analysis, budget review, or wants to see where their money goes. CRITICAL: After calling this tool, you MUST explain: top 3 spending categories with exact percentages and dollar amounts, spending trends (X% increase/decrease vs previous period), specific budget warnings (e.g., 'Dining $800 is 40% above recommended $500 limit'), actionable recommendations with exact numbers ('Cut dining by $150/month, redirect to savings'). Use visual language: 'Your spending pie chart shows...', 'The trend line indicates...'. Provide category breakdown data for charts. NEVER just say 'Action completed'.",
+      parameters: {
+        type: "object",
+        properties: {
+          transactionData: {
+            type: "array",
+            description: "Array of recent transactions to analyze",
+            items: {
+              type: "object",
+              properties: {
+                amount: { type: "number" },
+                category: { type: "string" },
+                description: { type: "string" },
+                date: { type: "string" }
+              }
+            }
+          },
+          timeframe: {
+            type: "string",
+            enum: ["week", "month", "year"],
+            description: "Time period to analyze"
+          }
+        },
+        required: ["transactionData", "timeframe"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_goal_progress",
+      description: "Track detailed progress toward a financial goal ONLY when user asks about goal status, progress tracking, or 'am I on track?'. CRITICAL: After calling this tool, you MUST explain: exact progress percentage with visual representation (e.g., '42% complete - almost halfway!'), money still needed with breakdown, months remaining vs months needed at current pace, on-track status with specific verdict (ahead by X months/on track/behind by X months), adjustment recommendations with exact numbers ('Increase contribution by $347/month to stay on track'), milestone achievements (25%/50%/75%/100% markers with dates). NEVER just say 'Action completed' - provide motivational progress update.",
+      parameters: {
+        type: "object",
+        properties: {
+          goalName: {
+            type: "string",
+            description: "Name of the financial goal (e.g., 'McLaren 765 LT', 'House Down Payment')"
+          },
+          targetAmount: {
+            type: "number",
+            description: "Target amount for the goal in dollars"
+          },
+          currentAmount: {
+            type: "number",
+            description: "Current amount saved toward goal in dollars"
+          },
+          targetDate: {
+            type: "string",
+            description: "Target completion date in YYYY-MM-DD format"
+          },
+          monthlyContribution: {
+            type: "number",
+            description: "Current monthly contribution amount in dollars"
+          }
+        },
+        required: ["goalName", "targetAmount", "currentAmount", "targetDate", "monthlyContribution"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_net_worth_projection",
+      description: "Project future net worth with compound growth ONLY when user asks about wealth building, long-term projections, or 'where will I be in X years?'. CRITICAL: After calling this tool, you MUST explain: current net worth baseline, 1-year projection with monthly breakdown, 5-year projection showing compound effect, 10-year projection demonstrating long-term wealth building, detailed breakdown of savings vs investment growth portions, specific recommendations to accelerate growth (increase savings rate by X%, invest Y% in stocks, reduce expenses by $Z). Show the power of compounding with actual numbers. NEVER just say 'Action completed'.",
+      parameters: {
+        type: "object",
+        properties: {
+          currentNetWorth: {
+            type: "number",
+            description: "Current total net worth in dollars"
+          },
+          monthlyIncome: {
+            type: "number",
+            description: "Monthly income in dollars"
+          },
+          monthlyExpenses: {
+            type: "number",
+            description: "Monthly expenses in dollars"
+          },
+          investmentReturn: {
+            type: "number",
+            description: "Expected annual investment return percentage (default 8%)",
+            default: 8
+          }
+        },
+        required: ["currentNetWorth", "monthlyIncome", "monthlyExpenses"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "generate_budget_recommendations",
+      description: "Generate smart budget optimization recommendations ONLY when user asks about budgeting help, spending optimization, or 'how should I allocate my money?'. CRITICAL: After calling this tool, you MUST explain: recommended budget allocation using 50/30/20 rule (50% needs, 30% wants, 20% savings) or custom allocation based on their specific goals, category-by-category breakdown with current vs recommended amounts and exact dollar differences, identified savings opportunities with specific amounts ('Reduce dining from $600 to $400 = $200/month saved'), specific actionable steps with numbers ('Cut subscription services by $50, redirect to emergency fund. Cancel gym membership $80, use free park workouts'). Tie recommendations to their stated financial goals. NEVER just say 'Action completed'.",
+      parameters: {
+        type: "object",
+        properties: {
+          monthlyIncome: {
+            type: "number",
+            description: "Monthly income in dollars"
+          },
+          currentSpending: {
+            type: "object",
+            description: "Current spending breakdown by category with amounts",
+            additionalProperties: {
+              type: "number"
+            }
+          },
+          financialGoals: {
+            type: "array",
+            description: "Array of financial goals to optimize budget for",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string" },
+                targetAmount: { type: "number" },
+                monthlyContribution: { type: "number" }
+              }
+            }
+          }
+        },
+        required: ["monthlyIncome", "currentSpending"]
+      }
+    }
   }
 ];
 
@@ -582,12 +712,22 @@ ${netWorth === 0 ? '❌ Current Savings - Ask: "How much do you currently have s
 For beginners (experience: ${context.experienceLevel || 'beginner'}): Keep questions simple and encouraging!
 ` : '✅ Complete financial profile! Use their actual data in every response.'}
 
-⚡ MANDATORY PERSONALIZATION RULES:
+⚡ MANDATORY PERSONALIZATION RULES (ENFORCE STRICTLY):
 1. ALWAYS calculate with their EXACT numbers above - never generic examples
 2. Show step-by-step math: "Your $${context.monthlyIncome.toLocaleString()} income - $${context.monthlyExpenses.toLocaleString()} expenses = $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()} monthly savings"
 3. Reference their actual situation: "With your ${savingsRate.toFixed(1)}% savings rate..." or "Your $${netWorth.toLocaleString()} net worth means..."
 4. Provide exact action steps: "Save $${Math.round((context.monthlyIncome - context.monthlyExpenses) * 0.5).toLocaleString()}/month for 12 months = $${Math.round((context.monthlyIncome - context.monthlyExpenses) * 0.5 * 12).toLocaleString()} saved"
 5. NO GENERIC TEMPLATES - every response must be personalized to THEIR data
+
+🎯 ACTIONABLE RECOMMENDATIONS FRAMEWORK (ALWAYS FOLLOW):
+• NEVER say: "save more", "cut expenses", "budget better" (too vague!)
+• ALWAYS say: "Save exactly $847/month for next 18 months to reach your $40,000 goal"
+• NEVER say: "you're making progress" (no value!)
+• ALWAYS say: "You're at $12,500 (31% of goal). Need $27,500 more in 18 months = $1,528/month"
+• ALWAYS explain the math: "Your $5,000 income - $3,200 expenses = $1,800 available. Allocate: $847 McLaren goal, $500 emergency fund, $453 flexible spending"
+• ALWAYS show visual progress: "Progress bar: ████████░░░░░░░░░░ 42% complete"
+• Use visual language: "Your spending pie chart shows 35% food, 25% transport, 20% housing..."
+• Include trend analysis: "Spending increased 18% vs last month - the trend line shows concerning upward trajectory"
 
 💡 EXPERT FINANCIAL KNOWLEDGE BASE:
 
@@ -992,6 +1132,15 @@ FOR ANALYSIS TOOLS:
 ✅ Use these to enhance your expert responses with detailed calculations
 ✅ ONLY when user explicitly asks for those specific analyses
 
+FOR VISUAL ANALYTICS & SMART RECOMMENDATIONS (NEW POWERFUL TOOLS):
+✅ Call generate_spending_insights when user asks: "where does my money go?", "analyze my spending", "budget review"
+✅ Call calculate_goal_progress when user asks: "am I on track?", "how's my progress?", "will I reach my goal?"
+✅ Call calculate_net_worth_projection when user asks: "where will I be in X years?", "wealth projection", "long-term outlook"
+✅ Call generate_budget_recommendations when user asks: "how should I budget?", "optimize my spending", "budget help"
+✅ CRITICAL: After calling these tools, ALWAYS provide VISUAL LANGUAGE and EXACT NUMBERS
+✅ Use phrases like: "Your spending pie chart shows...", "The trend line indicates...", "Progress bar at 42%..."
+✅ NO GENERIC ADVICE - Every recommendation must have SPECIFIC dollar amounts and timelines
+
 FOR LUXURY PURCHASE ANALYSIS (>$50K PURCHASES):
 ✅ MANDATORY: When user mentions luxury purchase >$50k, MUST call analyze_luxury_purchase
 ✅ ALWAYS call calculate_affordability to check if they can afford it
@@ -1011,11 +1160,15 @@ Step 1: EXPERT EDUCATION (80-120 words) - BE IMPRESSIVE!
 → Include current economic conditions: "With inflation at 3.2% and Fed rates at 5.25%..."
 → Never give generic templates - personalize to their exact situation
 
-Step 2: SPECIFIC RECOMMENDATIONS (BE ACTIONABLE)
+Step 2: SPECIFIC RECOMMENDATIONS (BE ACTIONABLE - USE VISUAL ANALYTICS TOOLS!)
 → Calculate exact dollar amounts, percentages, timeframes
 → Example: "Save $1,247.83/month for 24 months = $29,948 down payment" (NOT "save around $1,200")
 → Provide decision frameworks with numbers: "If rent/mortgage ratio <0.7, buy. Yours is 0.65 → Buy is better"
 → Include pro tips with specific impact: "Max 401(k) to $23,000 saves $5,520 in taxes (24% bracket)"
+→ USE VISUAL ANALYTICS: When discussing spending → call generate_spending_insights to show pie charts & trends
+→ USE GOAL TRACKING: When user asks about progress → call calculate_goal_progress to show milestone completion
+→ USE PROJECTIONS: When discussing future → call calculate_net_worth_projection to visualize wealth growth
+→ USE BUDGET OPTIMIZATION: When advising on spending → call generate_budget_recommendations for 50/30/20 breakdown
 
 Step 3: [OPTIONAL] OFFER TOOL ACTION
 → ONLY after explaining fully, ask if they want to track/create/schedule
