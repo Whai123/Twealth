@@ -41,6 +41,7 @@
     "crypto": "Cripto",
     "friends": "Amigos",
     "aiAssistant": "Asistente IA",
+    "aiInsights": "Perspectivas IA",
     "referrals": "Referidos",
     "premium": "Premium",
     "settings": "Configuración",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Visualiza tu resumen financiero y análisis",
       "aiAssistant": "Chatea con IA para gestionar tus finanzas",
+      "aiInsights": "Panel de análisis visual y perspectivas",
       "goals": "Establece y rastrea objetivos de ahorro",
       "money": "Registra ingresos y gastos",
       "crypto": "Monitorea tus criptomonedas",
@@ -237,6 +239,30 @@
       "title": "Aún no hay objetivos",
       "description": "Comienza creando tu primer objetivo financiero"
     }
+  },
+  "aiInsights": {
+    "title": "Perspectivas Financieras IA",
+    "subtitle": "Análisis visual impulsado por tu asesor IA",
+    "spendingBreakdown": "Desglose de Gastos",
+    "spendingDesc": "Ve a dónde va tu dinero por categoría",
+    "noSpendingData": "Aún no hay datos de gastos. ¡Comienza a rastrear transacciones para ver perspectivas!",
+    "goalProgress": "Progreso de Objetivos",
+    "goalDesc": "Rastrea tus objetivos financieros visualmente",
+    "noGoals": "Aún no hay objetivos activos. ¡Establece un objetivo financiero para rastrear tu progreso!",
+    "budgetAllocation": "Asignación de Presupuesto",
+    "budgetDesc": "Regla presupuestaria recomendada 50/30/20",
+    "noBudgetData": "¡Establece tu ingreso mensual en configuración para ver recomendaciones de presupuesto!",
+    "networthProjection": "Proyección de Patrimonio Neto",
+    "projectionDesc": "Compara ahorrar vs invertir con 8% de retorno anual",
+    "noProjectionData": "¡Establece tus ingresos y gastos en configuración para ver proyecciones de patrimonio neto!",
+    "smartRecommendations": "Recomendaciones Inteligentes",
+    "recommendationsDesc": "Perspectivas accionables de tu asesor IA",
+    "monthlySavings": "Potencial de Ahorro Mensual",
+    "monthlySavingsDesc": "¡Puedes ahorrar ${{amount}}/mes. Invierte esto con 8% de retorno para alcanzar ${{projected}} en 5 años!",
+    "goalsBehind": "Objetivos que Necesitan Atención",
+    "goalsBehindDesc": "Algunos objetivos están retrasados. Considera aumentar las contribuciones o ajustar las fechas objetivo.",
+    "topSpending": "Categoría de Gasto Principal",
+    "topSpendingDesc": "{{category}} es tu gasto más alto en ${{amount}}. Considera establecer un límite mensual para ahorrar más."
   },
   "moneyTracking": {
     "title": "Seguimiento de Dinero",

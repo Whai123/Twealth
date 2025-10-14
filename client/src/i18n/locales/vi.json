@@ -41,6 +41,7 @@
     "crypto": "Tiền mã hóa",
     "friends": "Bạn bè",
     "aiAssistant": "Trợ lý AI",
+    "aiInsights": "Thông tin chi tiết AI",
     "referrals": "Giới thiệu",
     "premium": "Premium",
     "settings": "Cài đặt",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Xem tổng quan tài chính và thông tin chi tiết",
       "aiAssistant": "Trò chuyện với AI để quản lý tài chính",
+      "aiInsights": "Bảng điều khiển phân tích trực quan và thông tin chi tiết",
       "goals": "Đặt và theo dõi mục tiêu tiết kiệm",
       "money": "Theo dõi thu nhập và chi tiêu",
       "crypto": "Giám sát tài sản tiền mã hóa",
@@ -237,6 +239,30 @@
       "title": "Chưa có mục tiêu",
       "description": "Bắt đầu bằng cách tạo mục tiêu tài chính đầu tiên"
     }
+  },
+  "aiInsights": {
+    "title": "Thông tin chi tiết tài chính AI",
+    "subtitle": "Phân tích trực quan do cố vấn AI của bạn hỗ trợ",
+    "spendingBreakdown": "Phân tích chi tiêu",
+    "spendingDesc": "Xem tiền của bạn đi đâu theo danh mục",
+    "noSpendingData": "Chưa có dữ liệu chi tiêu. Bắt đầu theo dõi giao dịch để xem thông tin chi tiết!",
+    "goalProgress": "Tiến độ mục tiêu",
+    "goalDesc": "Theo dõi mục tiêu tài chính một cách trực quan",
+    "noGoals": "Chưa có mục tiêu hoạt động. Đặt mục tiêu tài chính để theo dõi tiến độ!",
+    "budgetAllocation": "Phân bổ ngân sách",
+    "budgetDesc": "Quy tắc ngân sách 50/30/20 được đề xuất",
+    "noBudgetData": "Đặt thu nhập hàng tháng trong cài đặt để xem đề xuất ngân sách!",
+    "networthProjection": "Dự báo tài sản ròng",
+    "projectionDesc": "So sánh tiết kiệm với đầu tư với lợi nhuận 8% hàng năm",
+    "noProjectionData": "Đặt thu nhập và chi tiêu trong cài đặt để xem dự báo tài sản ròng!",
+    "smartRecommendations": "Đề xuất thông minh",
+    "recommendationsDesc": "Thông tin chi tiết có thể hành động từ cố vấn AI của bạn",
+    "monthlySavings": "Tiềm năng tiết kiệm hàng tháng",
+    "monthlySavingsDesc": "Bạn có thể tiết kiệm ${{amount}}/tháng. Đầu tư số tiền này với lợi nhuận 8% để đạt ${{projected}} trong 5 năm!",
+    "goalsBehind": "Mục tiêu cần chú ý",
+    "goalsBehindDesc": "Một số mục tiêu đang chậm lịch trình. Hãy xem xét tăng đóng góp hoặc điều chỉnh ngày mục tiêu.",
+    "topSpending": "Danh mục chi tiêu hàng đầu",
+    "topSpendingDesc": "{{category}} là chi phí cao nhất của bạn ở mức ${{amount}}. Hãy xem xét đặt giới hạn hàng tháng để tiết kiệm nhiều hơn."
   },
   "moneyTracking": {
     "title": "Theo dõi tiền",

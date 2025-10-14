@@ -41,6 +41,7 @@
     "crypto": "Crypto",
     "friends": "Mga Kaibigan",
     "aiAssistant": "AI Assistant",
+    "aiInsights": "AI Insights",
     "referrals": "Mga Referral",
     "premium": "Premium",
     "settings": "Mga Setting",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Tingnan ang iyong pinansiyal na overview at insights",
       "aiAssistant": "Makipag-chat sa AI upang pamahalaan ang iyong pananalapi",
+      "aiInsights": "Dashboard ng visual analytics at mga insight",
       "goals": "Magtakda at subaybayan ang mga layuning pag-iimpok",
       "money": "Subaybayan ang kita at gastos",
       "crypto": "Subaybayan ang cryptocurrency holdings",
@@ -237,6 +239,30 @@
       "title": "Walang layunin pa",
       "description": "Magsimula sa pamamagitan ng paggawa ng iyong unang pinansiyal na layunin"
     }
+  },
+  "aiInsights": {
+    "title": "AI Pinansiyal na Insights",
+    "subtitle": "Visual analytics na pinapagana ng iyong AI advisor",
+    "spendingBreakdown": "Breakdown ng Gastos",
+    "spendingDesc": "Tingnan kung saan napupunta ang iyong pera ayon sa kategorya",
+    "noSpendingData": "Walang datos ng gastos pa. Magsimulang mag-track ng mga transaksyon upang makita ang mga insight!",
+    "goalProgress": "Progreso ng Layunin",
+    "goalDesc": "Subaybayan ang iyong mga pinansiyal na layunin nang visual",
+    "noGoals": "Walang aktibong mga layunin pa. Magtakda ng pinansiyal na layunin upang subaybayan ang iyong progreso!",
+    "budgetAllocation": "Paglalaan ng Budget",
+    "budgetDesc": "Inirerekomendang 50/30/20 budget rule",
+    "noBudgetData": "Itakda ang iyong buwanang kita sa mga setting upang makita ang mga rekomendasyon sa budget!",
+    "networthProjection": "Proyeksyon ng Net Worth",
+    "projectionDesc": "Ihambing ang pag-iipon vs pamumuhunan na may 8% taunang kita",
+    "noProjectionData": "Itakda ang iyong kita at gastos sa mga setting upang makita ang mga proyeksyon ng net worth!",
+    "smartRecommendations": "Matalinong Rekomendasyon",
+    "recommendationsDesc": "Mga actionable insights mula sa iyong AI advisor",
+    "monthlySavings": "Potensyal na Buwanang Ipon",
+    "monthlySavingsDesc": "Maaari kang mag-ipon ng ${{amount}}/buwan. I-invest ito sa 8% return upang maabot ang ${{projected}} sa loob ng 5 taon!",
+    "goalsBehind": "Mga Layunin na Nangangailangan ng Pansin",
+    "goalsBehindDesc": "Ang ilang mga layunin ay huli sa iskedyul. Isaalang-alang ang pagdagdag ng mga kontribusyon o pag-adjust ng target dates.",
+    "topSpending": "Nangungunang Kategorya ng Gastos",
+    "topSpendingDesc": "Ang {{category}} ay ang iyong pinakamataas na gastos sa ${{amount}}. Isaalang-alang ang pagtakda ng buwanang limitasyon upang makatipid ng mas marami."
   },
   "moneyTracking": {
     "title": "Pagsubaybay sa Pera",

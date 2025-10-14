@@ -41,6 +41,7 @@
     "crypto": "Kripto",
     "friends": "Arkadaşlar",
     "aiAssistant": "AI Asistanı",
+    "aiInsights": "AI İçgörüleri",
     "referrals": "Referanslar",
     "premium": "Premium",
     "settings": "Ayarlar",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Mali genel bakış ve içgörülerinizi görüntüleyin",
       "aiAssistant": "Finanslarınızı yönetmek için AI ile sohbet edin",
+      "aiInsights": "Görsel analitik ve içgörüler kontrol paneli",
       "goals": "Tasarruf hedeflerini belirleyin ve takip edin",
       "money": "Gelir ve giderleri takip edin",
       "crypto": "Kripto para varlıklarınızı izleyin",
@@ -237,6 +239,30 @@
       "title": "Henüz hedef yok",
       "description": "İlk mali hedefinizi oluşturarak başlayın"
     }
+  },
+  "aiInsights": {
+    "title": "AI Mali İçgörüleri",
+    "subtitle": "AI danışmanınız tarafından desteklenen görsel analitik",
+    "spendingBreakdown": "Harcama Dağılımı",
+    "spendingDesc": "Paranızın kategorilere göre nereye gittiğini görün",
+    "noSpendingData": "Henüz harcama verisi yok. İçgörüleri görmek için işlem takibine başlayın!",
+    "goalProgress": "Hedef İlerlemesi",
+    "goalDesc": "Mali hedeflerinizi görsel olarak takip edin",
+    "noGoals": "Henüz aktif hedef yok. İlerlemenizi takip etmek için bir mali hedef belirleyin!",
+    "budgetAllocation": "Bütçe Tahsisi",
+    "budgetDesc": "Önerilen 50/30/20 bütçe kuralı",
+    "noBudgetData": "Bütçe önerilerini görmek için ayarlardan aylık gelirinizi belirleyin!",
+    "networthProjection": "Net Değer Projeksiyonu",
+    "projectionDesc": "Yıllık %8 getiri ile tasarruf ve yatırımı karşılaştırın",
+    "noProjectionData": "Net değer projeksiyonlarını görmek için ayarlardan gelir ve giderlerinizi belirleyin!",
+    "smartRecommendations": "Akıllı Öneriler",
+    "recommendationsDesc": "AI danışmanınızdan uygulanabilir içgörüler",
+    "monthlySavings": "Aylık Tasarruf Potansiyeli",
+    "monthlySavingsDesc": "Ayda ${{amount}} tasarruf edebilirsiniz. Bunu %8 getiri ile yatırarak 5 yılda ${{projected}} ulaşın!",
+    "goalsBehind": "Hedefler Dikkat Gerektiriyor",
+    "goalsBehindDesc": "Bazı hedefler programın gerisinde. Katkıları artırmayı veya hedef tarihlerini ayarlamayı düşünün.",
+    "topSpending": "En Yüksek Harcama Kategorisi",
+    "topSpendingDesc": "{{category}} ${{amount}} ile en yüksek gideriniz. Daha fazla tasarruf için aylık limit belirlemeyi düşünün."
   },
   "moneyTracking": {
     "title": "Para Takibi",

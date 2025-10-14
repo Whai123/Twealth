@@ -41,6 +41,7 @@
     "crypto": "Cripto",
     "friends": "Amigos",
     "aiAssistant": "Assistente IA",
+    "aiInsights": "Insights IA",
     "referrals": "Indicações",
     "premium": "Premium",
     "settings": "Configurações",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Visualize seu panorama financeiro e insights",
       "aiAssistant": "Converse com IA para gerenciar suas finanças",
+      "aiInsights": "Painel de análises visuais e insights",
       "goals": "Defina e acompanhe metas de economia",
       "money": "Acompanhe receitas e despesas",
       "crypto": "Monitore suas criptomoedas",
@@ -237,6 +239,30 @@
       "title": "Nenhuma meta ainda",
       "description": "Comece criando sua primeira meta financeira"
     }
+  },
+  "aiInsights": {
+    "title": "Insights Financeiros IA",
+    "subtitle": "Análises visuais alimentadas pelo seu consultor IA",
+    "spendingBreakdown": "Detalhamento de Gastos",
+    "spendingDesc": "Veja para onde seu dinheiro vai por categoria",
+    "noSpendingData": "Ainda não há dados de gastos. Comece a rastrear transações para ver insights!",
+    "goalProgress": "Progresso das Metas",
+    "goalDesc": "Acompanhe suas metas financeiras visualmente",
+    "noGoals": "Ainda não há metas ativas. Defina uma meta financeira para acompanhar seu progresso!",
+    "budgetAllocation": "Alocação de Orçamento",
+    "budgetDesc": "Regra orçamentária recomendada 50/30/20",
+    "noBudgetData": "Defina sua renda mensal nas configurações para ver recomendações de orçamento!",
+    "networthProjection": "Projeção de Patrimônio Líquido",
+    "projectionDesc": "Compare economizar vs investir com retorno anual de 8%",
+    "noProjectionData": "Defina sua renda e despesas nas configurações para ver projeções de patrimônio líquido!",
+    "smartRecommendations": "Recomendações Inteligentes",
+    "recommendationsDesc": "Insights acionáveis do seu consultor IA",
+    "monthlySavings": "Potencial de Economia Mensal",
+    "monthlySavingsDesc": "Você pode economizar ${{amount}}/mês. Invista isso com retorno de 8% para alcançar ${{projected}} em 5 anos!",
+    "goalsBehind": "Metas Precisam de Atenção",
+    "goalsBehindDesc": "Algumas metas estão atrasadas. Considere aumentar as contribuições ou ajustar as datas-alvo.",
+    "topSpending": "Categoria de Maior Gasto",
+    "topSpendingDesc": "{{category}} é sua despesa mais alta em ${{amount}}. Considere definir um limite mensal para economizar mais."
   },
   "moneyTracking": {
     "title": "Controle Financeiro",

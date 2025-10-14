@@ -41,6 +41,7 @@
     "crypto": "Crypto",
     "friends": "Friends",
     "aiAssistant": "AI Assistant",
+    "aiInsights": "AI Insights",
     "referrals": "Referrals",
     "premium": "Premium",
     "settings": "Settings",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "View your financial overview and insights",
       "aiAssistant": "Chat with AI to manage your finances",
+      "aiInsights": "Visual analytics and insights dashboard",
       "goals": "Set and track savings goals",
       "money": "Track income and expenses",
       "crypto": "Monitor cryptocurrency holdings",
@@ -237,6 +239,30 @@
       "title": "No goals yet",
       "description": "Start by creating your first financial goal"
     }
+  },
+  "aiInsights": {
+    "title": "AI Financial Insights",
+    "subtitle": "Visual analytics powered by your AI advisor",
+    "spendingBreakdown": "Spending Breakdown",
+    "spendingDesc": "See where your money goes by category",
+    "noSpendingData": "No spending data yet. Start tracking transactions to see insights!",
+    "goalProgress": "Goal Progress",
+    "goalDesc": "Track your financial goals visually",
+    "noGoals": "No active goals yet. Set a financial goal to track your progress!",
+    "budgetAllocation": "Budget Allocation",
+    "budgetDesc": "Recommended 50/30/20 budget rule",
+    "noBudgetData": "Set your monthly income in settings to see budget recommendations!",
+    "networthProjection": "Net Worth Projection",
+    "projectionDesc": "Compare saving vs investing with 8% annual return",
+    "noProjectionData": "Set your income and expenses in settings to see net worth projections!",
+    "smartRecommendations": "Smart Recommendations",
+    "recommendationsDesc": "Actionable insights from your AI advisor",
+    "monthlySavings": "Monthly Savings Potential",
+    "monthlySavingsDesc": "You can save ${{amount}}/month. Invest this at 8% return to reach ${{projected}} in 5 years!",
+    "goalsBehind": "Goals Need Attention",
+    "goalsBehindDesc": "Some goals are behind schedule. Consider increasing contributions or adjusting target dates.",
+    "topSpending": "Top Spending Category",
+    "topSpendingDesc": "{{category}} is your highest expense at ${{amount}}. Consider setting a monthly limit to save more."
   },
   "moneyTracking": {
     "title": "Money Tracking",

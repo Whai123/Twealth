@@ -41,6 +41,7 @@
     "crypto": "Kripto",
     "friends": "Teman",
     "aiAssistant": "Asisten AI",
+    "aiInsights": "Wawasan AI",
     "referrals": "Referral",
     "premium": "Premium",
     "settings": "Pengaturan",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Lihat ringkasan keuangan dan wawasan Anda",
       "aiAssistant": "Chat dengan AI untuk mengelola keuangan Anda",
+      "aiInsights": "Dasbor analitik visual dan wawasan",
       "goals": "Tetapkan dan lacak tujuan tabungan",
       "money": "Lacak pemasukan dan pengeluaran",
       "crypto": "Pantau kepemilikan cryptocurrency",
@@ -237,6 +239,30 @@
       "title": "Belum ada tujuan",
       "description": "Mulai dengan membuat tujuan keuangan pertama Anda"
     }
+  },
+  "aiInsights": {
+    "title": "Wawasan Keuangan AI",
+    "subtitle": "Analitik visual yang didukung oleh penasihat AI Anda",
+    "spendingBreakdown": "Rincian Pengeluaran",
+    "spendingDesc": "Lihat ke mana uang Anda pergi berdasarkan kategori",
+    "noSpendingData": "Belum ada data pengeluaran. Mulai lacak transaksi untuk melihat wawasan!",
+    "goalProgress": "Kemajuan Tujuan",
+    "goalDesc": "Lacak tujuan keuangan Anda secara visual",
+    "noGoals": "Belum ada tujuan aktif. Tetapkan tujuan keuangan untuk melacak kemajuan Anda!",
+    "budgetAllocation": "Alokasi Anggaran",
+    "budgetDesc": "Aturan anggaran yang direkomendasikan 50/30/20",
+    "noBudgetData": "Tetapkan pendapatan bulanan Anda di pengaturan untuk melihat rekomendasi anggaran!",
+    "networthProjection": "Proyeksi Kekayaan Bersih",
+    "projectionDesc": "Bandingkan menabung vs berinvestasi dengan return tahunan 8%",
+    "noProjectionData": "Tetapkan pendapatan dan pengeluaran Anda di pengaturan untuk melihat proyeksi kekayaan bersih!",
+    "smartRecommendations": "Rekomendasi Cerdas",
+    "recommendationsDesc": "Wawasan yang dapat ditindaklanjuti dari penasihat AI Anda",
+    "monthlySavings": "Potensi Tabungan Bulanan",
+    "monthlySavingsDesc": "Anda dapat menabung ${{amount}}/bulan. Investasikan ini dengan return 8% untuk mencapai ${{projected}} dalam 5 tahun!",
+    "goalsBehind": "Tujuan Memerlukan Perhatian",
+    "goalsBehindDesc": "Beberapa tujuan tertinggal dari jadwal. Pertimbangkan untuk meningkatkan kontribusi atau menyesuaikan tanggal target.",
+    "topSpending": "Kategori Pengeluaran Teratas",
+    "topSpendingDesc": "{{category}} adalah pengeluaran tertinggi Anda sebesar ${{amount}}. Pertimbangkan menetapkan batas bulanan untuk menabung lebih banyak."
   },
   "moneyTracking": {
     "title": "Pelacakan Uang",

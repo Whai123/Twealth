@@ -41,6 +41,7 @@
     "crypto": "Kripto",
     "friends": "Rakan",
     "aiAssistant": "Pembantu AI",
+    "aiInsights": "Pandangan AI",
     "referrals": "Rujukan",
     "premium": "Premium",
     "settings": "Tetapan",
@@ -53,6 +54,7 @@
     "descriptions": {
       "dashboard": "Lihat gambaran kewangan dan pandangan anda",
       "aiAssistant": "Sembang dengan AI untuk mengurus kewangan anda",
+      "aiInsights": "Papan pemuka analitik visual dan pandangan",
       "goals": "Tetapkan dan jejaki matlamat simpanan",
       "money": "Jejak pendapatan dan perbelanjaan",
       "crypto": "Pantau pegangan mata wang kripto",
@@ -237,6 +239,30 @@
       "title": "Tiada matlamat lagi",
       "description": "Mulakan dengan mencipta matlamat kewangan pertama anda"
     }
+  },
+  "aiInsights": {
+    "title": "Pandangan Kewangan AI",
+    "subtitle": "Analitik visual dikuasakan oleh penasihat AI anda",
+    "spendingBreakdown": "Pecahan Perbelanjaan",
+    "spendingDesc": "Lihat ke mana wang anda pergi mengikut kategori",
+    "noSpendingData": "Tiada data perbelanjaan lagi. Mula jejak transaksi untuk melihat pandangan!",
+    "goalProgress": "Kemajuan Matlamat",
+    "goalDesc": "Jejak matlamat kewangan anda secara visual",
+    "noGoals": "Tiada matlamat aktif lagi. Tetapkan matlamat kewangan untuk jejak kemajuan anda!",
+    "budgetAllocation": "Peruntukan Bajet",
+    "budgetDesc": "Peraturan bajet 50/30/20 yang disyorkan",
+    "noBudgetData": "Tetapkan pendapatan bulanan anda dalam tetapan untuk melihat cadangan bajet!",
+    "networthProjection": "Unjuran Nilai Bersih",
+    "projectionDesc": "Bandingkan simpanan vs pelaburan dengan pulangan tahunan 8%",
+    "noProjectionData": "Tetapkan pendapatan dan perbelanjaan anda dalam tetapan untuk melihat unjuran nilai bersih!",
+    "smartRecommendations": "Cadangan Pintar",
+    "recommendationsDesc": "Pandangan boleh tindak daripada penasihat AI anda",
+    "monthlySavings": "Potensi Simpanan Bulanan",
+    "monthlySavingsDesc": "Anda boleh simpan ${{amount}}/bulan. Labur ini pada pulangan 8% untuk capai ${{projected}} dalam 5 tahun!",
+    "goalsBehind": "Matlamat Perlukan Perhatian",
+    "goalsBehindDesc": "Sesetengah matlamat ketinggalan jadual. Pertimbangkan untuk meningkatkan sumbangan atau sesuaikan tarikh sasaran.",
+    "topSpending": "Kategori Perbelanjaan Tertinggi",
+    "topSpendingDesc": "{{category}} ialah perbelanjaan tertinggi anda pada ${{amount}}. Pertimbangkan untuk tetapkan had bulanan untuk simpan lebih banyak."
   },
   "moneyTracking": {
     "title": "Penjejakan Wang",
