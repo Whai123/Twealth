@@ -226,7 +226,7 @@ export interface IStorage {
   // Shared Goals methods
   shareGoal(share: InsertSharedGoal): Promise<SharedGoal>;
   getSharedGoals(userId: string): Promise<Array<SharedGoal & { goal: FinancialGoal; owner: SafeUser }>>;
-  getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser }>>;
+  getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser | null }>>;
   removeGoalShare(goalId: string, sharedWithUserId: string): Promise<void>;
   updateGoalSharePermission(goalId: string, sharedWithUserId: string, permission: 'view' | 'contribute'): Promise<SharedGoal>;
   shareGoalWithGroup(goalId: string, ownerId: string, groupId: string, permission: 'view' | 'contribute'): Promise<{ groupShare: SharedGoal; memberShares: SharedGoal[]; memberCount: number }>;
@@ -439,40 +439,54 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     // First try to find existing user by ID
-    let existing = await db
+    const existingById = await db
       .select()
       .from(users)
-      .where(eq(users.id, userData.id))
+      .where(sql`${users.id} = ${userData.id}`)
       .limit(1);
     
-    // If not found by ID, try by email
-    if (existing.length === 0 && userData.email) {
-      existing = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, userData.email))
-        .limit(1);
-    }
-    
-    if (existing.length > 0) {
-      // Update existing user
+    // If found by ID, update that user
+    if (existingById.length > 0) {
       const [user] = await db
         .update(users)
         .set({
           ...userData,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, existing[0].id))
-        .returning();
-      return user;
-    } else {
-      // Insert new user
-      const [user] = await db
-        .insert(users)
-        .values(userData)
+        .where(sql`${users.id} = ${userData.id}`)
         .returning();
       return user;
     }
+    
+    // If not found by ID, try by email
+    if (userData.email) {
+      const existingByEmail = await db
+        .select()
+        .from(users)
+        .where(sql`${users.email} = ${userData.email}`)
+        .limit(1);
+      
+      if (existingByEmail.length > 0) {
+        // Update existing user found by email - DO NOT change ID to avoid FK violations
+        const { id, ...updateData } = userData;
+        const [user] = await db
+          .update(users)
+          .set({
+            ...updateData,
+            updatedAt: new Date(),
+          })
+          .where(sql`${users.id} = ${existingByEmail[0].id}`)
+          .returning();
+        return user;
+      }
+    }
+    
+    // No existing user found - insert new
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .returning();
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -1373,6 +1387,7 @@ export class DatabaseStorage implements IStorage {
         goalId: sharedGoals.goalId,
         ownerId: sharedGoals.ownerId,
         sharedWithUserId: sharedGoals.sharedWithUserId,
+        groupId: sharedGoals.groupId,
         permission: sharedGoals.permission,
         status: sharedGoals.status,
         createdAt: sharedGoals.createdAt,
@@ -1538,6 +1553,7 @@ export class DatabaseStorage implements IStorage {
         currentSpent: sharedBudgets.currentSpent,
         period: sharedBudgets.period,
         createdBy: sharedBudgets.createdBy,
+        linkedGoalId: sharedBudgets.linkedGoalId,
         status: sharedBudgets.status,
         createdAt: sharedBudgets.createdAt,
         updatedAt: sharedBudgets.updatedAt,
@@ -1792,7 +1808,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async bulkInviteFriendsToGroup(groupId: string, invitedBy: string, friendIds: string[], role?: string): Promise<FriendGroupInvitation[]> {
-    const invitationRole = role === 'admin' ? 'admin' : 'member';
+    const invitationRole: 'admin' | 'member' = role === 'admin' ? 'admin' : 'member';
     
     const invitationsData = friendIds.map(friendId => ({
       groupId,

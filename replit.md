@@ -22,7 +22,7 @@ The application utilizes PostgreSQL, with its schema defined using Drizzle ORM. 
 
 ## Authentication & Authorization
 
-Twealth uses Replit OAuth (OpenID Connect) for authentication, with PostgreSQL-backed session management, role-based access control for groups, and protected API endpoints. User creation occurs automatically upon first login. The upsertUser method handles duplicate email scenarios by checking for existing users by both ID and email, updating existing records when found to prevent unique constraint violations during OIDC authentication.
+Twealth uses Replit OAuth (OpenID Connect) for authentication, with PostgreSQL-backed session management, role-based access control for groups, and protected API endpoints. User creation occurs automatically upon first login. The upsertUser method handles duplicate email scenarios by checking for existing users by both ID and email. When an existing user is found by email (but with a different OIDC ID), the system preserves the original user's ID to prevent foreign key constraint violations on related tables like chat_conversations. Updates use SQL template literals to avoid TypeScript type mismatches.
 
 ## Development & Build
 
@@ -50,6 +50,8 @@ The application features a modern UI with a redesigned landing page, enhanced ac
     - **Resilient Data Capture**: Proactive parsing extracts financial estimates from user messages BEFORE AI processing, ensuring data is preserved even if AI fails due to rate limits or errors. Uses pattern matching for income ($X earn/make/salary), expenses ($X spend/cost), and savings ($X saved/have).
     - **Smart Financial Estimates**: Stores monthly income/expense estimates and current savings in user preferences, serving as fallback data when actual transaction history is unavailable. AI uses estimates seamlessly in calculations and advice.
     - **Flexible Natural Language Processing**: AI tool schemas accept string or number types for amount fields, with backend parseAmount() utility that handles various formats ($300, 300, $1,500.50, etc.) by stripping dollar signs, commas, and whitespace before converting to decimal strings.
+    - **Enhanced Error Handling**: User-friendly error messages for Groq API failures (rate limits: "I'm handling lots of conversations right now!", timeouts: "Taking longer than expected", model issues: "Experiencing technical difficulties") instead of technical errors.
+    - **Clean Response Sanitization**: Backend strips all technical details from AI responses including `<function=...>` syntax, "Tool Calls" sections, numbered function lists, and JSON patterns to ensure user-friendly natural language only.
     - **Luxury Purchase Analysis**: Comprehensive CFO-level analysis for major purchases (>$50k) including down payment options (10%/20%/30%), financing terms (3/5/7 years), monthly payments at different rates, total cost of ownership (insurance, maintenance, fuel), depreciation schedules (20-30% year 1 for luxury vehicles), and opportunity cost analysis (invested at 8% over 5/10 years).
     - **Affordability Calculator**: Detailed analysis with debt-to-income ratio, recommended max purchase (2.5x annual income), savings timeline, emergency fund impact, and financial responsibility assessment.
     - **Lease vs Buy Comparison**: 3-year lease costs, buy costs with financing, equity analysis, total cost comparison, comprehensive pros/cons for informed decisions.
