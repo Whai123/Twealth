@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from 'react-i18next';
 import { 
@@ -42,6 +42,16 @@ export default function MobileNavigation() {
   
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [activeAction, setActiveAction] = useState<'goal' | 'transaction' | 'event' | null>(null);
+  
+  // Only render on mobile viewports
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const quickActions = [
     {
@@ -72,6 +82,11 @@ export default function MobileNavigation() {
       action: () => { setActiveAction('event'); setIsQuickActionsOpen(false); }
     }
   ];
+
+  // Don't render at all on desktop
+  if (!isMobile) {
+    return null;
+  }
 
   return (
     <>
