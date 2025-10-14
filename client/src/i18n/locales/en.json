@@ -485,6 +485,9 @@
     "errors": {
       "failedToSend": "Failed to send message"
     },
+    "confirmAction": "Quick reply:",
+    "processingRequest": "Processing your request...",
+    "actionCancelled": "Action cancelled",
     "quickActions": {
       "title": "Quick AI Actions",
       "subtitle": "Get instant AI insights for your financial needs",

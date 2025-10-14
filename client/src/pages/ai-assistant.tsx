@@ -28,6 +28,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { detectConfirmation } from "@/lib/aiConfirmation";
+import { ConfirmationButtons } from "@/components/chat/ConfirmationButtons";
 
 interface UsageInfo {
   chatUsage: {
@@ -668,43 +670,60 @@ export default function AIAssistantPage() {
                   <Sparkles className="w-4 h-4 text-yellow-500" />
                 </h4>
               </div>
-              {currentConversation.messages.map((message: ChatMessage, index) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom duration-500`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                  data-testid={`message-${message.role}-${message.id}`}
-                >
-                  <div className="flex items-end gap-2 max-w-[85%]">
-                    {message.role === 'assistant' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
-                        <Brain className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                    <div
-                      className={`relative rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg ${
-                        message.role === 'user'
-                          ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm'
-                          : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-bl-sm'
-                      }`}
-                    >
+              {currentConversation.messages!.map((message: ChatMessage, index) => {
+                const confirmation = message.role === 'assistant' ? detectConfirmation(message.content) : { detected: false };
+                const isLastMessage = index === currentConversation.messages!.length - 1;
+                
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom duration-500`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    data-testid={`message-${message.role}-${message.id}`}
+                  >
+                    <div className="flex items-end gap-2 max-w-[85%]">
                       {message.role === 'assistant' && (
-                        <div className="absolute -top-1 -left-1 w-3 h-3 bg-gradient-to-br from-primary to-purple-600 rounded-full animate-pulse" />
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
+                          <Brain className="w-4 h-4 text-white" />
+                        </div>
                       )}
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                      <p className="text-xs opacity-70 mt-2 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {new Date(message.createdAt).toLocaleTimeString()}
-                      </p>
-                    </div>
-                    {message.role === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg">
-                        <span className="text-white text-sm font-bold">You</span>
+                      <div className="flex flex-col gap-1 flex-1">
+                        <div
+                          className={`relative rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg ${
+                            message.role === 'user'
+                              ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm'
+                              : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-bl-sm'
+                          }`}
+                        >
+                          {message.role === 'assistant' && (
+                            <div className="absolute -top-1 -left-1 w-3 h-3 bg-gradient-to-br from-primary to-purple-600 rounded-full animate-pulse" />
+                          )}
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs opacity-70 mt-2 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(message.createdAt).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        
+                        {/* Show confirmation buttons only for last AI message with confirmation */}
+                        {message.role === 'assistant' && confirmation.detected && isLastMessage && (
+                          <ConfirmationButtons
+                            confirmation={confirmation}
+                            onConfirm={() => sendMessageMutation.mutate(t('common.yes'))}
+                            onDecline={() => sendMessageMutation.mutate(t('common.no'))}
+                            disabled={sendMessageMutation.isPending}
+                          />
+                        )}
                       </div>
-                    )}
+                      {message.role === 'user' && (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg">
+                          <span className="text-white text-sm font-bold">You</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {sendMessageMutation.isPending && (
                 <div className="flex justify-start animate-in slide-in-from-bottom duration-300">
                   <div className="flex items-end gap-2">
