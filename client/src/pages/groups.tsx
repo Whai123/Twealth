@@ -60,7 +60,7 @@ export default function Groups() {
     queryFn: () => fetch("/api/events").then(res => res.json()),
   });
 
-  const { data: friends = [] } = useQuery({
+  const { data: friends = [] } = useQuery<any[]>({
     queryKey: ["/api/friends"],
     enabled: bulkInviteDialogOpen,
   });
