@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import GroupForm from "@/components/forms/group-form";
 import EventForm from "@/components/forms/event-form";
 import { apiRequest } from "@/lib/queryClient";
@@ -33,6 +34,7 @@ export default function Groups() {
   }, []);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [calendarShareDialogOpen, setCalendarShareDialogOpen] = useState(false);
+  const [bulkInviteDialogOpen, setBulkInviteDialogOpen] = useState(false);
   const [isEventDetailsDialogOpen, setIsEventDetailsDialogOpen] = useState(false);
   const [isCreateEventDialogOpen, setIsCreateEventDialogOpen] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -42,6 +44,8 @@ export default function Groups() {
   const [inviteExpiry, setInviteExpiry] = useState<string>("7");
   const [calendarShareExpiry, setCalendarShareExpiry] = useState<string>("30");
   const [generatedInvite, setGeneratedInvite] = useState<any>(null);
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>([]);
+  const [bulkInviteRole, setBulkInviteRole] = useState<string>("member");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const userId = useUserId();
@@ -54,6 +58,11 @@ export default function Groups() {
   const { data: events } = useQuery({
     queryKey: ["/api/events"],
     queryFn: () => fetch("/api/events").then(res => res.json()),
+  });
+
+  const { data: friends = [] } = useQuery({
+    queryKey: ["/api/friends"],
+    enabled: bulkInviteDialogOpen,
   });
 
   const deleteGroupMutation = useMutation({
@@ -129,6 +138,27 @@ export default function Groups() {
     },
   });
 
+  const bulkInviteMutation = useMutation({
+    mutationFn: ({ groupId, friendIds, role }: { groupId: string; friendIds: string[]; role: string }) =>
+      apiRequest("POST", `/api/groups/${groupId}/bulk-invite-friends`, { friendIds, role }),
+    onSuccess: (data: any) => {
+      toast({
+        title: "Friends invited",
+        description: `Successfully invited ${data.invitations?.length || 0} friends to the group.`,
+      });
+      setBulkInviteDialogOpen(false);
+      setSelectedFriendIds([]);
+      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('common.error'),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const rsvpMutation = useMutation({
     mutationFn: ({ eventId, status }: { eventId: string; status: string }) =>
       apiRequest("POST", `/api/events/${eventId}/rsvp`, { status }),
@@ -178,6 +208,30 @@ export default function Groups() {
   const handleCreateCalendarShare = (groupId: string) => {
     setSelectedGroupId(groupId);
     setCalendarShareDialogOpen(true);
+  };
+
+  const handleBulkInvite = (groupId: string) => {
+    setSelectedGroupId(groupId);
+    setSelectedFriendIds([]);
+    setBulkInviteDialogOpen(true);
+  };
+
+  const handleConfirmBulkInvite = () => {
+    if (selectedGroupId && selectedFriendIds.length > 0) {
+      bulkInviteMutation.mutate({
+        groupId: selectedGroupId,
+        friendIds: selectedFriendIds,
+        role: bulkInviteRole,
+      });
+    }
+  };
+
+  const toggleFriendSelection = (friendId: string) => {
+    setSelectedFriendIds(prev => 
+      prev.includes(friendId) 
+        ? prev.filter(id => id !== friendId)
+        : [...prev, friendId]
+    );
   };
 
   const handleGenerateInvite = () => {
@@ -516,6 +570,10 @@ export default function Groups() {
                           <DropdownMenuItem onClick={() => handleCreateInvite(group.id)}>
                             <UserPlus size={16} className="mr-2" />
                             Create Invite Link
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleBulkInvite(group.id)}>
+                            <Users size={16} className="mr-2" />
+                            Bulk Invite Friends
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleCreateCalendarShare(group.id)}>
                             <Calendar size={16} className="mr-2" />
@@ -891,6 +949,86 @@ export default function Groups() {
               }} 
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Invite Dialog */}
+      <Dialog open={bulkInviteDialogOpen} onOpenChange={setBulkInviteDialogOpen}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bulk Invite Friends to Group</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bulk-role">Role for all invited friends</Label>
+              <Select value={bulkInviteRole} onValueChange={setBulkInviteRole}>
+                <SelectTrigger data-testid="select-bulk-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Member</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Select Friends ({selectedFriendIds.length} selected)</Label>
+              {friends && friends.length > 0 ? (
+                <div className="border rounded-lg max-h-[300px] overflow-y-auto">
+                  {(friends as any[]).map((friend: any) => (
+                    <div 
+                      key={friend.id} 
+                      className="flex items-center space-x-2 p-3 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => toggleFriendSelection(friend.id)}
+                    >
+                      <Checkbox 
+                        checked={selectedFriendIds.includes(friend.id)}
+                        onCheckedChange={() => toggleFriendSelection(friend.id)}
+                        data-testid={`checkbox-friend-${friend.id}`}
+                      />
+                      <div className="flex items-center gap-3 flex-1">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            {(friend.displayName || friend.email || 'U')[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium text-sm">{friend.displayName || friend.email}</p>
+                          {friend.displayName && (
+                            <p className="text-xs text-muted-foreground">{friend.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground p-4 text-center border rounded-lg">
+                  No friends available to invite. Add friends first!
+                </p>
+              )}
+            </div>
+
+            <Button 
+              onClick={handleConfirmBulkInvite} 
+              disabled={selectedFriendIds.length === 0 || bulkInviteMutation.isPending}
+              className="w-full"
+              data-testid="button-confirm-bulk-invite"
+            >
+              {bulkInviteMutation.isPending ? (
+                <>
+                  <Clock size={16} className="mr-2 animate-spin" />
+                  Inviting...
+                </>
+              ) : (
+                <>
+                  <Users size={16} className="mr-2" />
+                  Invite {selectedFriendIds.length} Friend{selectedFriendIds.length !== 1 ? 's' : ''}
+                </>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
       
