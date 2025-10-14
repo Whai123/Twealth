@@ -229,6 +229,7 @@ export interface IStorage {
   getGoalShares(goalId: string): Promise<Array<SharedGoal & { sharedWith: SafeUser }>>;
   removeGoalShare(goalId: string, sharedWithUserId: string): Promise<void>;
   updateGoalSharePermission(goalId: string, sharedWithUserId: string, permission: 'view' | 'contribute'): Promise<SharedGoal>;
+  shareGoalWithGroup(goalId: string, ownerId: string, groupId: string, permission: 'view' | 'contribute'): Promise<{ groupShare: SharedGoal; memberShares: SharedGoal[]; memberCount: number }>;
   
   // Shared Budgets methods
   createSharedBudget(budget: InsertSharedBudget): Promise<SharedBudget>;
@@ -251,6 +252,7 @@ export interface IStorage {
   getFriendGroupInvitations(userId: string): Promise<Array<FriendGroupInvitation & { group: Group; invitedBy: SafeUser }>>;
   updateFriendGroupInvitationStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendGroupInvitation>;
   deleteFriendGroupInvitation(id: string): Promise<void>;
+  bulkInviteFriendsToGroup(groupId: string, invitedBy: string, friendIds: string[], role?: string): Promise<FriendGroupInvitation[]>;
   
   // RSVP methods
   updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event>;
@@ -1449,6 +1451,55 @@ export class DatabaseStorage implements IStorage {
     return share;
   }
 
+  async shareGoalWithGroup(goalId: string, ownerId: string, groupId: string, permission: 'view' | 'contribute'): Promise<{ groupShare: SharedGoal; memberShares: SharedGoal[]; memberCount: number }> {
+    // Create group-level share entry
+    const [groupShare] = await db
+      .insert(sharedGoals)
+      .values({
+        goalId,
+        ownerId,
+        groupId,
+        sharedWithUserId: null,
+        permission,
+        status: 'active',
+      })
+      .returning();
+
+    // Get all group members (excluding owner)
+    const members = await db
+      .select()
+      .from(groupMembers)
+      .where(and(
+        eq(groupMembers.groupId, groupId),
+        sql`${groupMembers.userId} != ${ownerId}`
+      ));
+
+    // Create individual shares for each member
+    const memberSharesData = members.map(member => ({
+      goalId,
+      ownerId,
+      sharedWithUserId: member.userId,
+      groupId: null,
+      permission,
+      status: 'active' as const,
+    }));
+
+    let memberShares: SharedGoal[] = [];
+    if (memberSharesData.length > 0) {
+      memberShares = await db
+        .insert(sharedGoals)
+        .values(memberSharesData)
+        .onConflictDoNothing()
+        .returning();
+    }
+
+    return {
+      groupShare,
+      memberShares,
+      memberCount: members.length,
+    };
+  }
+
   // Shared Budgets methods
   async createSharedBudget(insertBudget: InsertSharedBudget): Promise<SharedBudget> {
     const [budget] = await db
@@ -1737,6 +1788,26 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFriendGroupInvitation(id: string): Promise<void> {
     await db.delete(friendGroupInvitations).where(eq(friendGroupInvitations.id, id));
+  }
+
+  async bulkInviteFriendsToGroup(groupId: string, invitedBy: string, friendIds: string[], role?: string): Promise<FriendGroupInvitation[]> {
+    const invitationRole = role === 'admin' ? 'admin' : 'member';
+    
+    const invitationsData = friendIds.map(friendId => ({
+      groupId,
+      invitedBy,
+      invitedUserId: friendId,
+      role: invitationRole,
+      status: 'pending' as const,
+    }));
+
+    const invitations = await db
+      .insert(friendGroupInvitations)
+      .values(invitationsData)
+      .onConflictDoNothing()
+      .returning();
+
+    return invitations;
   }
 
   // RSVP methods

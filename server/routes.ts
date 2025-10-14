@@ -637,6 +637,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/goals/:goalId/share-with-group", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { groupId, permission } = req.body;
+      
+      // Verify goal ownership
+      const goal = await storage.getFinancialGoal(req.params.goalId);
+      if (!goal || goal.userId !== userId) {
+        return res.status(403).json({ message: "You can only share your own goals" });
+      }
+      
+      // Verify user is member of the group
+      const members = await storage.getGroupMembers(groupId);
+      const isMember = members.some((m: any) => m.userId === userId);
+      if (!isMember) {
+        return res.status(403).json({ message: "You must be a member of the group to share goals with it" });
+      }
+      
+      // Share goal with group
+      const result = await storage.shareGoalWithGroup(
+        req.params.goalId,
+        userId,
+        groupId,
+        permission || 'view'
+      );
+      
+      // Create notifications for all group members
+      const notificationPromises = members
+        .filter((m: any) => m.userId !== userId)
+        .map((m: any) => storage.createNotification({
+          userId: m.userId,
+          type: 'goal_shared',
+          title: 'Goal Shared With You',
+          message: `${goal.title} has been shared with your group`,
+          data: { goalId: req.params.goalId, groupId, permission },
+          isRead: false,
+        }));
+      
+      await Promise.all(notificationPromises);
+      
+      res.status(201).json({
+        success: true,
+        groupShare: result.groupShare,
+        memberCount: result.memberCount,
+        message: `Goal shared with ${result.memberCount} group members`,
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Shared Budgets routes
   app.post("/api/shared-budgets", isAuthenticated, async (req: any, res) => {
     try {
@@ -727,6 +778,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/shared-budgets/:budgetId/link-goal", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { goalId } = req.body;
+      
+      // Verify budget exists and user owns it
+      const budget = await storage.getSharedBudget(req.params.budgetId);
+      if (!budget) {
+        return res.status(404).json({ message: "Shared budget not found" });
+      }
+      
+      if (budget.createdBy !== userId) {
+        return res.status(403).json({ message: "Only the budget owner can link a goal" });
+      }
+      
+      // Verify goal exists and user has access (owner or shared with them)
+      const goal = await storage.getFinancialGoal(goalId);
+      if (!goal) {
+        return res.status(404).json({ message: "Financial goal not found" });
+      }
+      
+      const hasAccess = goal.userId === userId;
+      if (!hasAccess) {
+        // Check if goal is shared with user
+        const sharedGoals = await storage.getSharedGoals(userId);
+        const hasSharedAccess = sharedGoals.some(sg => sg.goalId === goalId);
+        if (!hasSharedAccess) {
+          return res.status(403).json({ message: "You don't have access to this goal" });
+        }
+      }
+      
+      // Update budget with linked goal
+      const updatedBudget = await storage.updateSharedBudget(req.params.budgetId, {
+        linkedGoalId: goalId,
+      });
+      
+      // Return updated budget with goal info
+      res.json({
+        ...updatedBudget,
+        linkedGoal: goal,
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 
@@ -827,6 +924,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const expense = await storage.createSharedBudgetExpense(validatedData);
+      
+      // Check if budget has a linked goal and update it
+      const budget = await storage.getSharedBudget(req.params.budgetId);
+      if (budget?.linkedGoalId) {
+        const goal = await storage.getFinancialGoal(budget.linkedGoalId);
+        if (goal) {
+          const currentAmount = parseFloat(goal.currentAmount?.toString() || '0');
+          const expenseAmount = parseFloat(expense.amount.toString());
+          const newAmount = currentAmount + expenseAmount;
+          
+          await storage.updateFinancialGoal(budget.linkedGoalId, {
+            currentAmount: newAmount.toFixed(2),
+          });
+        }
+      }
+      
       res.status(201).json(expense);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -945,6 +1058,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.status(201).json(invitation);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/groups/:groupId/bulk-invite-friends", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { friendIds, role } = req.body;
+      
+      if (!Array.isArray(friendIds) || friendIds.length === 0) {
+        return res.status(400).json({ message: "friendIds must be a non-empty array" });
+      }
+      
+      // Verify user is group owner or admin
+      const members = await storage.getGroupMembers(req.params.groupId);
+      const member = members.find(m => m.userId === userId);
+      if (!member || (member.role !== 'owner' && member.role !== 'admin')) {
+        return res.status(403).json({ message: "Only group owners and admins can invite friends" });
+      }
+      
+      // Get group for notifications
+      const group = await storage.getGroup(req.params.groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Group not found" });
+      }
+      
+      // Verify all are friends and not already members
+      const validFriendIds: string[] = [];
+      const errors: string[] = [];
+      
+      for (const friendId of friendIds) {
+        const areFriends = await storage.areFriends(userId, friendId);
+        if (!areFriends) {
+          errors.push(`User ${friendId} is not your friend`);
+          continue;
+        }
+        
+        const existingMember = members.find(m => m.userId === friendId);
+        if (existingMember) {
+          errors.push(`User ${friendId} is already a member`);
+          continue;
+        }
+        
+        validFriendIds.push(friendId);
+      }
+      
+      if (validFriendIds.length === 0) {
+        return res.status(400).json({ 
+          message: "No valid friends to invite",
+          errors 
+        });
+      }
+      
+      // Bulk create invitations
+      const invitations = await storage.bulkInviteFriendsToGroup(
+        req.params.groupId,
+        userId,
+        validFriendIds,
+        role
+      );
+      
+      // Create notifications for each invited friend
+      const notificationPromises = invitations.map(inv => 
+        storage.createNotification({
+          userId: inv.invitedUserId,
+          type: 'group_invitation',
+          title: 'Group Invitation',
+          message: `You've been invited to join ${group.name}`,
+          data: { groupId: req.params.groupId, invitationId: inv.id },
+          isRead: false,
+        })
+      );
+      
+      await Promise.all(notificationPromises);
+      
+      res.status(201).json({
+        success: true,
+        invitations,
+        count: invitations.length,
+        errors: errors.length > 0 ? errors : undefined,
+      });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
