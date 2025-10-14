@@ -50,8 +50,12 @@ The application features a modern UI with a redesigned landing page, enhanced ac
     - **Luxury Purchase Analysis**: Comprehensive CFO-level analysis for major purchases (>$50k) including down payment options (10%/20%/30%), financing terms (3/5/7 years), monthly payments at different rates, total cost of ownership (insurance, maintenance, fuel), depreciation schedules (20-30% year 1 for luxury vehicles), and opportunity cost analysis (invested at 8% over 5/10 years).
     - **Affordability Calculator**: Detailed analysis with debt-to-income ratio, recommended max purchase (2.5x annual income), savings timeline, emergency fund impact, and financial responsibility assessment.
     - **Lease vs Buy Comparison**: 3-year lease costs, buy costs with financing, equity analysis, total cost comparison, comprehensive pros/cons for informed decisions.
-    - **Visual Analytics**: Spending insights with category breakdowns, trend analysis, budget warnings, and visual data for charts. Goal progress tracking with percentages, milestones, on-track status, and adjustment recommendations.
-    - **Net Worth Projection**: 1-year, 5-year, and 10-year projections showing savings vs investment growth with compound interest calculations.
+    - **Visual Analytics Dashboard**: Dedicated AI Insights page (`/ai-insights`) with Recharts visualizations displaying:
+      - **Spending Breakdown**: Pie chart showing expense distribution by category with color-coded segments
+      - **Goal Progress**: Progress bars tracking completion percentage for each financial goal
+      - **Net Worth Projection**: Line chart with 1-year, 5-year, and 10-year projections comparing savings vs investment growth with compound interest
+      - **Budget Allocation**: 50/30/20 rule visualization with recommended category spending
+      - Accessible via sidebar (desktop) and bottom navigation (mobile) with BarChart3 icon
     - **Smart Budget Recommendations**: 50/30/20 rule allocation, category-specific recommendations, savings opportunities, and exact action steps tied to financial goals.
     - **Actionable Recommendations**: Always provides exact numbers ("Save $847/month for 18 months") instead of generic advice, with step-by-step math and progress tracking.
     - **Comprehensive Knowledge**: Macroeconomics, investment strategies, tax optimization, retirement planning, debt management, real estate intelligence.
