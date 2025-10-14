@@ -185,12 +185,11 @@ export default function Dashboard() {
               <Drawer open={isCreateGoalOpen} onOpenChange={setIsCreateGoalOpen}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-4 sm:px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
                     data-testid="button-new-goal"
                   >
-                    <Plus size={18} className="mr-2" />
+                    <Plus size={18} className="sm:mr-2" />
                     <span className="hidden sm:inline">{t('dashboard.newGoal')}</span>
-                    <span className="sm:hidden">+</span>
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="max-h-[90vh]">

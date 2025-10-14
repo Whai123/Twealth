@@ -130,7 +130,7 @@ export default function AIChatButton() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 group">
+      <div className="fixed bottom-20 left-4 md:bottom-6 md:right-6 md:left-auto z-50 group">
         <Button
           onClick={() => setIsOpen(true)}
           className="h-14 w-14 md:h-16 md:w-16 rounded-full shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl active:scale-95 bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 text-white border-0 ring-2 ring-blue-400/30 ring-offset-2 ring-offset-background"
@@ -146,7 +146,7 @@ export default function AIChatButton() {
           </div>
         </Button>
         
-        {/* Enhanced Tooltip - desktop only */}
+        {/* Enhanced Tooltip */}
         <div className="hidden md:block absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
           <div className="bg-gray-900 text-white text-sm rounded-lg px-4 py-2 whitespace-nowrap">
             💬 Chat with AI Assistant
