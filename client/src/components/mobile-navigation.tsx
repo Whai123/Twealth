@@ -75,22 +75,24 @@ export default function MobileNavigation() {
 
   return (
     <>
-      {/* Floating Action Button - Enhanced Design */}
-      <div className="fixed bottom-20 right-4 z-50 md:hidden">
-        <Button
-          size="lg"
-          onClick={() => setIsQuickActionsOpen(true)}
-          className="w-14 h-14 rounded-full shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground border-0 ring-2 ring-primary/20 ring-offset-2 ring-offset-background"
-          style={{ 
-            boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.3), 0 10px 10px -5px hsl(var(--primary) / 0.1)',
-            background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.95), hsl(var(--primary) / 0.9))'
-          }}
-          aria-label={t('quickActions.addNew')}
-          data-testid="fab-add"
-        >
-          <Plus size={24} className="drop-shadow-sm" />
-        </Button>
-      </div>
+      {/* Floating Action Button - Enhanced Design (hidden on calendar page which has its own FAB) */}
+      {location !== '/calendar' && (
+        <div className="fixed bottom-20 right-4 z-50 md:hidden">
+          <Button
+            size="lg"
+            onClick={() => setIsQuickActionsOpen(true)}
+            className="w-14 h-14 rounded-full shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95 bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground border-0 ring-2 ring-primary/20 ring-offset-2 ring-offset-background"
+            style={{ 
+              boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.3), 0 10px 10px -5px hsl(var(--primary) / 0.1)',
+              background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.95), hsl(var(--primary) / 0.9))'
+            }}
+            aria-label={t('quickActions.addNew')}
+            data-testid="fab-add"
+          >
+            <Plus size={24} className="drop-shadow-sm" />
+          </Button>
+        </div>
+      )}
 
       {/* Quick Actions Drawer */}
       <Drawer open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
