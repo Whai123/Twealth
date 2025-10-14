@@ -41,12 +41,19 @@ The application features a modern UI with a redesigned landing page, enhanced ac
     - **Shared Budgets**: Create shared budgets with friends for group expenses (trips, households, projects). Track who spent what with automatic total calculations.
     - **Friend Group Invitations**: Invite friends to existing groups with customizable roles and permissions.
     - **Privacy Controls**: Only share with confirmed friends (status="accepted"). Owner maintains full control with ability to revoke access anytime. Database enforces unique constraint to prevent duplicate shares.
-- **AI Financial Advisor**: An expert-level financial advisor powered by Groq AI (Llama 4 Scout) offering:
+- **AI Financial Advisor**: A CFO-level financial advisor ($150/hour expertise) powered by Groq AI (Llama 4 Scout) offering:
     - **Personalized Advice**: Uses user's financial data (income, expenses, net worth) in every response with mandatory calculation examples.
     - **Conversational Data Collection**: Proactively detects missing financial data and asks users targeted questions one at a time, automatically extracting and saving income, expenses, and savings from natural conversation using regex parsing.
     - **Resilient Data Capture**: Proactive parsing extracts financial estimates from user messages BEFORE AI processing, ensuring data is preserved even if AI fails due to rate limits or errors. Uses pattern matching for income ($X earn/make/salary), expenses ($X spend/cost), and savings ($X saved/have).
     - **Smart Financial Estimates**: Stores monthly income/expense estimates and current savings in user preferences, serving as fallback data when actual transaction history is unavailable. AI uses estimates seamlessly in calculations and advice.
     - **Flexible Natural Language Processing**: AI tool schemas accept string or number types for amount fields, with backend parseAmount() utility that handles various formats ($300, 300, $1,500.50, etc.) by stripping dollar signs, commas, and whitespace before converting to decimal strings.
+    - **Luxury Purchase Analysis**: Comprehensive CFO-level analysis for major purchases (>$50k) including down payment options (10%/20%/30%), financing terms (3/5/7 years), monthly payments at different rates, total cost of ownership (insurance, maintenance, fuel), depreciation schedules (20-30% year 1 for luxury vehicles), and opportunity cost analysis (invested at 8% over 5/10 years).
+    - **Affordability Calculator**: Detailed analysis with debt-to-income ratio, recommended max purchase (2.5x annual income), savings timeline, emergency fund impact, and financial responsibility assessment.
+    - **Lease vs Buy Comparison**: 3-year lease costs, buy costs with financing, equity analysis, total cost comparison, comprehensive pros/cons for informed decisions.
+    - **Visual Analytics**: Spending insights with category breakdowns, trend analysis, budget warnings, and visual data for charts. Goal progress tracking with percentages, milestones, on-track status, and adjustment recommendations.
+    - **Net Worth Projection**: 1-year, 5-year, and 10-year projections showing savings vs investment growth with compound interest calculations.
+    - **Smart Budget Recommendations**: 50/30/20 rule allocation, category-specific recommendations, savings opportunities, and exact action steps tied to financial goals.
+    - **Actionable Recommendations**: Always provides exact numbers ("Save $847/month for 18 months") instead of generic advice, with step-by-step math and progress tracking.
     - **Comprehensive Knowledge**: Macroeconomics, investment strategies, tax optimization, retirement planning, debt management, real estate intelligence.
     - **Advanced Analysis Tools**: Portfolio allocation, debt payoff, future value projections, retirement calculators, with detailed explanations.
     - **Advice-First Approach**: Explains strategies and asks for user confirmation before creating goals/events.
