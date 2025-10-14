@@ -677,6 +677,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map((m: any) => storage.createNotification({
           userId: m.userId,
           type: 'goal_shared',
+          category: 'goals',
+          priority: 'normal',
           title: 'Goal Shared With You',
           message: `${goal.title} has been shared with your group`,
           data: { goalId: req.params.goalId, groupId, permission },
@@ -1133,6 +1135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.createNotification({
           userId: inv.invitedUserId,
           type: 'group_invitation',
+          category: 'suggestions',
+          priority: 'normal',
           title: 'Group Invitation',
           message: `You've been invited to join ${group.name}`,
           data: { groupId: req.params.groupId, invitationId: inv.id },
@@ -2543,11 +2547,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Generate response content - use AI response or create confirmation if empty
         let responseContent = aiResult.response;
         
-        // Sanitize response: remove any leaked function call syntax
+        // Sanitize response: remove any leaked function call syntax or technical details
         if (responseContent) {
           // Remove <function=...>...</function> syntax
           responseContent = responseContent.replace(/<function=[^>]+>.*?<\/function>/gi, '').trim();
-          // Remove standalone function call patterns
+          
+          // Remove "Tool Calls" sections and similar technical disclosures
+          responseContent = responseContent.replace(/##?\s*Tool Calls?.*$/gi, '').trim();
+          responseContent = responseContent.replace(/I've made the following tool calls?:.*$/gi, '').trim();
+          responseContent = responseContent.replace(/\*\*Tool Calls?\*\*:?.*$/gi, '').trim();
+          
+          // Remove numbered tool call lists (1. create_financial_goal, 2. generate_investment...)
+          responseContent = responseContent.replace(/\d+\.\s*\w+_\w+:?\s*.*$/gm, (match) => {
+            if (match.match(/\w+_\w+/)) return '';
+            return match;
+          }).trim();
+          
+          // Remove standalone function call patterns  
           responseContent = responseContent.replace(/\{[^}]*"?\w+"?\s*:\s*[^}]+\}/g, (match) => {
             // Only remove if it looks like a function call (has common function params)
             if (match.includes('targetAmount') || match.includes('userConfirmed') || 
@@ -2556,6 +2572,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
             return match;
           }).trim();
+          
+          // Clean up any double newlines or trailing whitespace
+          responseContent = responseContent.replace(/\n{3,}/g, '\n\n').trim();
         }
         
         // If AI used tools but didn't provide a text response, generate detailed explanation
