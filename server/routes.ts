@@ -496,9 +496,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/financial-goals", async (req, res) => {
+  app.post("/api/financial-goals", isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertFinancialGoalSchema.parse(req.body);
+      const userId = getUserIdFromRequest(req);
+      const validatedData = insertFinancialGoalSchema.parse({ ...req.body, userId });
       const goal = await storage.createFinancialGoal(validatedData);
       res.status(201).json(goal);
     } catch (error: any) {
@@ -642,16 +643,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const { groupId, permission } = req.body;
       
+      console.log('[SHARE-WITH-GROUP] Starting share request:', { goalId: req.params.goalId, userId, groupId, permission });
+      
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
+      console.log('[SHARE-WITH-GROUP] Goal found:', { goalUserId: goal?.userId, requestUserId: userId, matches: goal?.userId === userId });
       if (!goal || goal.userId !== userId) {
+        console.log('[SHARE-WITH-GROUP] FAILED: Ownership check failed');
         return res.status(403).json({ message: "You can only share your own goals" });
       }
       
       // Verify user is member of the group
       const members = await storage.getGroupMembers(groupId);
+      console.log('[SHARE-WITH-GROUP] Group members:', { count: members.length, userIds: members.map((m: any) => m.userId), lookingFor: userId });
       const isMember = members.some((m: any) => m.userId === userId);
+      console.log('[SHARE-WITH-GROUP] Membership check:', { isMember });
       if (!isMember) {
+        console.log('[SHARE-WITH-GROUP] FAILED: User is not a member of the group');
         return res.status(403).json({ message: "You must be a member of the group to share goals with it" });
       }
       

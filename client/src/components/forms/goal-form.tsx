@@ -73,14 +73,15 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
   });
 
   const createGoalMutation = useMutation({
-    mutationFn: (data: GoalFormData) => 
-      apiRequest("POST", "/api/financial-goals", {
+    mutationFn: async (data: GoalFormData) => {
+      const response = await apiRequest("POST", "/api/financial-goals", {
         ...data,
-        userId: user?.id, // Use actual user ID from context
         targetAmount: data.targetAmount, // Keep as string for decimal field
         currentAmount: data.currentAmount || "0", // Keep as string for decimal field
         targetDate: new Date(data.targetDate), // Send as Date object for timestamp field
-      }),
+      });
+      return await response.json();
+    },
     onSuccess: async (createdGoal: any) => {
       // If sharing with group, call the share API
       if (shareWithGroup && selectedGroupId) {
