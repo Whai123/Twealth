@@ -21,6 +21,7 @@ const Settings = lazy(() => import("./pages/settings"));
 const Subscription = lazy(() => import("./pages/subscription"));
 const Upgrade = lazy(() => import("./pages/upgrade"));
 const AIAssistant = lazy(() => import("./pages/ai-assistant"));
+const AIInsights = lazy(() => import("./pages/ai-insights"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const Crypto = lazy(() => import("./pages/crypto"));
 const Friends = lazy(() => import("./pages/friends"));
@@ -117,6 +118,7 @@ function Router() {
                 <Route path="/crypto" component={Crypto} />
                 <Route path="/friends" component={Friends} />
                 <Route path="/ai-assistant" component={AIAssistant} />
+                <Route path="/ai-insights" component={AIInsights} />
                 <Route path="/referrals" component={Referrals} />
                 <Route path="/subscription" component={Subscription} />
                 <Route path="/upgrade" component={Upgrade} />

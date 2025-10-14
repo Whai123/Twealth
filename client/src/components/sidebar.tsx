@@ -17,7 +17,8 @@ import {
   Sun,
   Bitcoin,
   UserPlus,
-  Wallet
+  Wallet,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
@@ -52,6 +53,12 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
         href: "/ai-assistant", 
         icon: Brain,
         description: t('navigation.descriptions.aiAssistant')
+      },
+      { 
+        name: t('navigation.aiInsights'), 
+        href: "/ai-insights", 
+        icon: BarChart3,
+        description: t('navigation.descriptions.aiInsights')
       },
     ]
   },
