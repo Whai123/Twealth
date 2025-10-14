@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
+import { Users } from "lucide-react";
 
 const goalFormSchema = z.object({
   title: z.string().min(1, "Goal title is required"),
@@ -42,9 +44,18 @@ const GOAL_CATEGORIES = [
 
 export default function GoalForm({ onSuccess }: GoalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shareWithGroup, setShareWithGroup] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [groupPermission, setGroupPermission] = useState<"view" | "contribute">("view");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
+
+  // Fetch user's groups
+  const { data: groups } = useQuery({
+    queryKey: ["/api/groups"],
+    enabled: !!user,
+  });
 
   const {
     register,
@@ -70,13 +81,34 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
         currentAmount: data.currentAmount || "0", // Keep as string for decimal field
         targetDate: new Date(data.targetDate), // Send as Date object for timestamp field
       }),
-    onSuccess: () => {
+    onSuccess: async (createdGoal: any) => {
+      // If sharing with group, call the share API
+      if (shareWithGroup && selectedGroupId) {
+        try {
+          await apiRequest("POST", `/api/goals/${createdGoal.id}/share-with-group`, {
+            groupId: selectedGroupId,
+            permission: groupPermission,
+          });
+          toast({
+            title: "Goal created and shared",
+            description: "Your goal has been created and shared with the group.",
+          });
+        } catch (error: any) {
+          toast({
+            title: "Goal created but sharing failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Goal created",
+          description: "Your financial goal has been created successfully.",
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-      toast({
-        title: "Goal created",
-        description: "Your financial goal has been created successfully.",
-      });
       onSuccess?.();
     },
     onError: (error: any) => {
@@ -239,6 +271,62 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
             </Select>
           </div>
         </div>
+
+        {/* Group Sharing Section */}
+        {groups && groups.length > 0 && (
+          <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="shareWithGroup" 
+                checked={shareWithGroup} 
+                onCheckedChange={(checked) => setShareWithGroup(checked as boolean)}
+                data-testid="checkbox-share-with-group"
+              />
+              <Label htmlFor="shareWithGroup" className="flex items-center gap-2 cursor-pointer">
+                <Users className="w-4 h-4" />
+                Share with Group
+              </Label>
+            </div>
+
+            {shareWithGroup && (
+              <div className="space-y-3 pl-6">
+                <div>
+                  <Label htmlFor="groupSelect">Select Group</Label>
+                  <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                    <SelectTrigger data-testid="select-share-group">
+                      <SelectValue placeholder="Choose a group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(groups as any[]).map((group: any) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="permissionSelect">Permission Level</Label>
+                  <Select value={groupPermission} onValueChange={(val) => setGroupPermission(val as "view" | "contribute")}>
+                    <SelectTrigger data-testid="select-group-permission">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="view">View Only</SelectItem>
+                      <SelectItem value="contribute">Can Contribute</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {groupPermission === "view" 
+                      ? "Group members can view this goal but cannot contribute"
+                      : "Group members can view and add money to this goal"}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex justify-end space-x-2 pt-4">
           <Button
