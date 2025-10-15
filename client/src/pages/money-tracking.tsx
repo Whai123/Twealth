@@ -386,7 +386,7 @@ export default function MoneyTracking() {
           <div>
             <label className="text-sm font-medium mb-1 block">Category</label>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger data-testid="select-transaction-category">
+              <SelectTrigger data-testid="select-filter-category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
