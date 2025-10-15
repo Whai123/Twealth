@@ -80,6 +80,17 @@
     "dark": "Dark",
     "system": "System"
   },
+  "quickActions": {
+    "addNew": "Add New",
+    "title": "Quick Actions",
+    "description": "Create goals, transactions, or events instantly",
+    "newGoal": "New Goal",
+    "newGoalDesc": "Set financial target",
+    "addTransaction": "Add Transaction",
+    "addTransactionDesc": "Record income/expense",
+    "scheduleEvent": "Add Event",
+    "scheduleEventDesc": "Plan new activity"
+  },
   "mobileNav": {
     "quickActions": {
       "newGoal": {
@@ -91,7 +102,7 @@
         "description": "Record income/expense"
       },
       "scheduleEvent": {
-        "title": "Schedule Event",
+        "title": "Add Event",
         "description": "Plan new activity"
       }
     },
@@ -109,7 +120,7 @@
         "description": "Record your income, expenses, or transfers"
       },
       "event": {
-        "title": "Schedule New Event",
+        "title": "Add New Event",
         "description": "Plan your time effectively and track activities"
       }
     }
