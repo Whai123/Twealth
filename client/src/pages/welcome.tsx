@@ -374,7 +374,7 @@ export default function WelcomePage() {
                       <kbd className="px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white rounded text-xs font-mono">T</kbd>
                     </div>
                     <div className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                      <span className="text-sm">Schedule Event</span>
+                      <span className="text-sm">Add Event</span>
                       <kbd className="px-2 py-1 bg-gray-800 dark:bg-gray-700 text-white rounded text-xs font-mono">E</kbd>
                     </div>
                   </CardContent>

@@ -89,7 +89,7 @@ export default function QuickActions() {
     },
     {
       id: "schedule-event",
-      title: "Schedule Event",
+      title: "Add Event",
       description: "Plan new activity",
       icon: Calendar,
       color: "text-warning",
