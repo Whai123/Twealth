@@ -78,7 +78,8 @@ The application features a modern UI with a redesigned landing page, enhanced ac
 - **Cryptocurrency Tracking**: Displays live crypto prices.
 - **Enhanced Onboarding**: A 6-step flow introducing key features and pro tips.
 - **Organized Sidebar**: Logical navigation with visual dividers and tooltips.
-- **Keyboard Shortcuts**: Quick access to common actions (G for Goal, T for Transaction, E for Event).
+- **Keyboard Shortcuts**: Quick access to common actions (G for Goal, T for Transaction, E for Add Event).
+- **Mobile Navigation Optimization**: Bottom navigation bar completely removed from DOM on desktop (>= 768px) using JavaScript viewport detection with useEffect, ensuring clean desktop experience without CSS hiding artifacts. Translation keys properly mapped with dedicated `quickActions` section for FAB drawer labels.
 - **Premium AI Personalization**: Offers CFO-level advice with detailed, user-specific financial data integration for premium subscribers.
 - **Premium Pricing Model**: Free plan (10 lifetime trial chats), Pro Plan ($25/month for 500 monthly chats), Enterprise (custom pricing for power users). Free tier uses lifetime limits to encourage trial-to-conversion.
 
