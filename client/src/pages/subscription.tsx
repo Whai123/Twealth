@@ -633,7 +633,7 @@ export default function SubscriptionPage() {
               </div>
               
               <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
-                <div className="text-3xl md:text-4xl font-bold text-purple-600">฿99</div>
+                <div className="text-3xl md:text-4xl font-bold text-purple-600">$25</div>
                 <div className="font-semibold">Affordable Premium</div>
                 <div className="text-sm text-muted-foreground">Less than a coffee per day</div>
               </div>
