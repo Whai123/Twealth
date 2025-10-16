@@ -1473,30 +1473,51 @@ CRITICAL RULES:
       // Add current user message
       messages.push({ role: "user", content: userMessage });
 
-      // Detect confirmation keywords in user message
-      const confirmationWords = ['yes', 'add it', 'create it', 'sure', 'do it', 'make it', 'set it', 'please', 'go ahead', 'ok'];
-      const isConfirmation = confirmationWords.some(word => userMessage.toLowerCase().includes(word));
+      // Detect confirmation keywords in user message (multi-language support)
+      const lowerMsg = userMessage.toLowerCase();
+      
+      // Standard confirmation words
+      const confirmationWords = ['yes', 'add it', 'create it', 'sure', 'do it', 'make it', 'set it', 'please', 'go ahead', 'ok', 'yeah', 'yep'];
+      const isConfirmation = confirmationWords.some(word => lowerMsg.includes(word));
+      
+      // Imperative action phrases (commands that implicitly include confirmation)
+      const imperativeGoalPhrases = [
+        'add goal', 'add this goal', 'add to goal', 'add it to goal', 'add to my goal',
+        'create goal', 'create this goal', 'make goal', 'set goal',
+        'add as goal', 'save as goal', 'track this', 'add this to',
+        'เพิ่ม', // Thai: add/increase
+        'añadir', // Spanish: add
+        'adicionar', 'adicione', // Portuguese: add
+        'tambah', // Indonesian/Malay: add
+        'thêm', // Vietnamese: add
+        'magdagdag', 'idagdag', // Tagalog: add
+        'ekle', // Turkish: add
+        'أضف', 'اضف' // Arabic: add
+      ];
+      const isImperativeAction = imperativeGoalPhrases.some(phrase => lowerMsg.includes(phrase));
       
       // Check if last assistant message was asking for confirmation
       const lastAssistantMsg = conversationHistory.slice().reverse().find(m => m.role === 'assistant')?.content || '';
       const wasAskingForConfirmation = lastAssistantMsg.includes('Want me to') || 
                                        lastAssistantMsg.includes('Should I') || 
                                        lastAssistantMsg.includes('add this as a') ||
-                                       lastAssistantMsg.includes('create') && lastAssistantMsg.includes('?');
+                                       lastAssistantMsg.includes('คุณต้องการ') || // Thai: Do you want
+                                       (lastAssistantMsg.includes('create') && lastAssistantMsg.includes('?'));
       
-      // Only enable creation tools if user is confirming after being asked
-      const canCreate = isConfirmation && wasAskingForConfirmation;
+      // Enable creation tools if:
+      // 1. User confirms after being asked, OR
+      // 2. User gives imperative command (direct action request)
+      const canCreate = (isConfirmation && wasAskingForConfirmation) || isImperativeAction;
       
       // Filter tools based on context
       const availableTools = canCreate 
         ? TOOLS  // All tools available if confirming
         : TOOLS.filter(t => !['create_financial_goal', 'create_calendar_event', 'create_group'].includes(t.function.name));
       
-      console.log(`🛡️  Tool filtering: isConfirmation=${isConfirmation}, wasAsking=${wasAskingForConfirmation}, canCreate=${canCreate}, toolCount=${availableTools.length}/${TOOLS.length}`);
+      console.log(`🛡️  Tool filtering: isConfirmation=${isConfirmation}, wasAsking=${wasAskingForConfirmation}, isImperative=${isImperativeAction}, canCreate=${canCreate}, toolCount=${availableTools.length}/${TOOLS.length}`);
       
       // Check if message indicates need for transaction/crypto tracking (immediate actions)
       // Only trigger for PAST tense actions, NOT future intentions
-      const lowerMsg = userMessage.toLowerCase();
       const needsImmediateAction = (
         (lowerMsg.includes('spent') || lowerMsg.includes('paid') || 
          lowerMsg.includes('received') || lowerMsg.includes('earned')) &&
