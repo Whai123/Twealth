@@ -2678,10 +2678,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (aiError: any) {
         // Provide more specific error messages based on error type
         console.error('AI Chat Error:', aiError.message);
-        let errorMessage = "I'm having a brief moment of difficulty. Could you try rephrasing your question?";
+        let errorMessage = "I apologize for the confusion. Let me help you with that!";
         
-        // If it's a Groq API error, provide helpful guidance
-        if (aiError.message?.includes('decommissioned')) {
+        // Check if user is trying to create something
+        const lowerMsg = userMessage.toLowerCase();
+        const isCreationIntent = lowerMsg.includes('add') || lowerMsg.includes('create') || 
+                                lowerMsg.includes('เพิ่ม') || lowerMsg.includes('goal') ||
+                                lowerMsg.includes('add to') || lowerMsg.includes('track');
+        
+        if (isCreationIntent) {
+          // Check if there's context from previous conversation
+          if (conversationHistory.length > 2) {
+            errorMessage = "I'd be happy to create that goal for you! Based on our conversation, I can set it up. Let me process that for you - could you tell me the specific details you'd like tracked? For example: goal name, target amount, and timeline.";
+          } else {
+            errorMessage = "I'd love to help you create that! Could you provide the details? For example: What's the goal name, target amount, and when do you want to achieve it?";
+          }
+        } else if (aiError.message?.includes('decommissioned')) {
           errorMessage = "Our AI is being upgraded! Please try again in a moment.";
         } else if (aiError.message?.includes('rate limit') || aiError.message?.includes('429')) {
           errorMessage = "I'm handling lots of conversations right now! Please wait a moment and try again.";
