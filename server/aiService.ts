@@ -404,16 +404,16 @@ const TOOLS = [
         type: "object",
         properties: {
           monthlyIncome: {
-            type: "number",
-            description: "Estimated monthly income in dollars. Only include if user provided this information."
+            type: ["number", "string"],
+            description: "Estimated monthly income in dollars. Can be number or string like '$5000' or '5000'. Only include if user provided this information."
           },
           monthlyExpenses: {
-            type: "number",
-            description: "Estimated monthly expenses in dollars. Only include if user provided this information."
+            type: ["number", "string"],
+            description: "Estimated monthly expenses in dollars. Can be number or string like '$3000' or '3000'. Only include if user provided this information."
           },
           currentSavings: {
-            type: "number",
-            description: "Current total savings/net worth in dollars. Only include if user provided this information."
+            type: ["number", "string"],
+            description: "Current total savings/net worth in dollars. Can be number or string like '$10000' or '10000'. Only include if user provided this information."
           }
         }
       }

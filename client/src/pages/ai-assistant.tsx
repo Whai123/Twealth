@@ -400,7 +400,7 @@ export default function AIAssistantPage() {
                     </div>
                     <div className="relative">
                       <Progress value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} className="h-3 bg-blue-100 dark:bg-blue-900/30" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full opacity-20 animate-pulse" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full opacity-20 animate-pulse pointer-events-none" />
                     </div>
                     <div className="text-xs text-muted-foreground text-center">
                       {usage.chatUsage.remaining} remaining
@@ -425,7 +425,7 @@ export default function AIAssistantPage() {
                     </div>
                     <div className="relative">
                       <Progress value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} className="h-3 bg-green-100 dark:bg-green-900/30" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 rounded-full opacity-20 animate-pulse" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 rounded-full opacity-20 animate-pulse pointer-events-none" />
                     </div>
                     <div className="text-xs text-muted-foreground text-center">
                       {usage.analysisUsage.remaining} remaining
@@ -606,7 +606,7 @@ export default function AIAssistantPage() {
                         {action.icon}
                       </div>
                       {selectedQuickAction === action.id && (
-                        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-xl blur opacity-30 animate-pulse" />
+                        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-xl blur opacity-30 animate-pulse pointer-events-none" />
                       )}
                       {isLimitExceeded && (
                         <div className="absolute -inset-1 bg-red-500/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
