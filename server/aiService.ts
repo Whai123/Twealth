@@ -135,7 +135,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal ONLY after user explicitly confirms. CRITICAL: userConfirmed parameter MUST be true, which is ONLY possible after user responds with 'yes', 'add it', 'create it', 'sure', etc. WORKFLOW: (1) User mentions goal → (2) You explain strategy & calculations WITHOUT calling this tool → (3) You ask 'Want me to add this as a trackable goal?' → (4) User confirms → (5) THEN call this tool with userConfirmed=true. NEVER call this on first mention!",
+      description: "Create a financial goal when user confirms OR gives imperative command. TRIGGERS: (1) User confirms after being asked: 'yes', 'add it', 'create it', 'sure', OR (2) User gives direct command: 'add goal', 'add this to goal', 'เพิ่ม' (Thai), etc. WORKFLOW: If user just mentioned wanting something → explain strategy first, ask for confirmation. If user gives imperative command after discussion → extract goal details from conversation context and create immediately. userConfirmed=true for both cases.",
       parameters: {
         type: "object",
         properties: {
@@ -1033,7 +1033,15 @@ Want me to compare lease vs buy options?"
    → Create goal with targetAmount: 80000 (NUMBER, no quotes!)
    → Respond: "✅ Goal added! Tesla $80,000 by [date]. You'll get reminders to stay on track!"
    
-   ⚠️ NEVER create goals without asking first!
+   🚀 IMPERATIVE COMMANDS (Direct Action):
+   When user gives direct command like "add goal", "add to goal", "add this", "เพิ่ม" (Thai), etc:
+   → Extract goal details from recent conversation context
+   → Create goal immediately with userConfirmed=true
+   → Example: After discussing Audi R8 for 15M baht, user says "add to my goals"
+      → Create goal: name="Audi R8", targetAmount=15000000, targetDate=5 years from now
+      → Respond: "✅ Goal created! Audi R8 - 15M baht in 5 years. Save 250K/month to stay on track!"
+   
+   ⚠️ For initial mentions, ask first. For imperative commands, create immediately!
 
 2️⃣ CALENDAR EVENTS (create_calendar_event):
    User: "Remind me to check my portfolio next Friday"
