@@ -45,6 +45,7 @@ import { cryptoService } from "./cryptoService";
 import { taxService } from "./taxService";
 import { spendingPatternService } from "./spendingPatternService";
 import { calculateFinancialHealth } from './financialHealthService';
+import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
 import Stripe from "stripe";
 
 // Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
@@ -2942,6 +2943,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(healthScore);
     } catch (error: any) {
       console.error('Financial health calculation error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Goal Progress & Milestones endpoints
+  app.get("/api/goals/progress", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const result = await checkGoalProgress(storage, userId);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Goal progress check error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/goals/:goalId/milestones", isAuthenticated, async (req: any, res) => {
+    try {
+      const { goalId } = req.params;
+      const milestones = await getGoalMilestones(storage, goalId);
+      res.json(milestones);
+    } catch (error: any) {
+      console.error('Goal milestones error:', error);
       res.status(500).json({ message: error.message });
     }
   });
