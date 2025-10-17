@@ -39,6 +39,19 @@ The core AI financial advisor, powered by Groq AI (Llama 4 Scout), offers CFO-le
 - **Brand Verification**: Prevents confusion between similar vehicles (e.g., McLaren 765 LT vs Lamborghini models)
 - **Total Ownership Cost Analysis**: Calculates 5-year costs including purchase price, insurance ($6k-28k/year), maintenance ($3k-18k/year), and accurate depreciation (10-30% year 1)
 
+### Live Market Intelligence
+- **Real-Time Market Data**: Integration with Alpha Vantage (stocks), exchangerate-api (forex), and public APIs for inflation data
+- **Market Context in AI**: AI advisor receives live market data including S&P 500, forex rates, and economic indicators for informed advice
+- **Country-Specific Tax Calculations**: Comprehensive tax bracket system for 10+ countries (US, UK, Canada, Germany, France, India, Brazil, Singapore, UAE, Australia) with accurate federal tax, social security, and healthcare deductions
+- **Net Income Calculations**: Automatically calculates take-home pay after all taxes, providing accurate budgeting recommendations
+
+### Spending Intelligence & Behavioral Analysis
+- **Pattern Recognition**: Analyzes transaction history to detect spending patterns, recurring expenses, and behavioral trends
+- **Behavioral Insights**: Detects impulsive buying, weekend vs. weekday spending patterns, time-of-day habits, and monthly spending cycles
+- **Smart Recommendations**: AI generates personalized recommendations based on spending behavior (e.g., "24-hour rule for impulse purchases")
+- **Unusual Transaction Detection**: Automatically flags outlier transactions and suspicious spending patterns
+- **Top Category Analysis**: Identifies highest spending categories with percentage breakdowns and trend analysis (increasing/decreasing/stable)
+
 ### Core Features
 - Conversational data collection with resilient parsing, smart financial estimates, and flexible natural language processing
 - Luxury purchase analysis, affordability calculators, lease vs. buy comparisons, and visual analytics dashboards
@@ -73,5 +86,46 @@ The application supports 11 languages (English, Spanish, Indonesian, Thai, Brazi
 -   **Stripe**: Payment processing.
 -   **Replit Connectors**: OAuth integration.
 -   **Groq AI with Llama 4 Scout**: AI financial advisor.
--   **Exchange Rate API**: Live currency conversion.
+-   **Alpha Vantage API**: Real-time stock market data.
+-   **Exchange Rate API**: Live forex and currency conversion.
+-   **Public Economic APIs**: Inflation and economic indicator data.
 -   **date-fns**: Date manipulation utilities.
+
+# Recent Enhancements (October 2025)
+
+## Phase 2: Advanced Intelligence Features
+
+### Market Data Integration (✅ Complete)
+- Integrated Alpha Vantage for real-time stock prices (S&P 500, major indices)
+- Connected exchangerate-api for live forex rates and currency conversion
+- Added inflation data from public economic APIs
+- Market context automatically included in AI system prompt for informed investment advice
+
+### Tax Calculation System (✅ Complete)
+- Built comprehensive tax bracket system supporting 10 countries
+- Accurate calculations for federal tax, social security, Medicare/healthcare contributions
+- Provides net income (take-home pay) calculations for realistic budgeting
+- API endpoints: `/api/calculate-tax`, `/api/supported-tax-countries`
+- Tax context automatically included in AI responses
+
+### Spending Pattern Recognition (✅ Complete)
+- Analyzes transaction history to detect behavioral patterns
+- Identifies impulsive buying (frequency, average amount, categories)
+- Tracks weekend vs weekday spending habits
+- Detects time-of-day and monthly spending cycles
+- Flags unusual transactions (outliers, same-day large purchases)
+- Generates personalized recommendations based on spending behavior
+- API endpoint: `/api/spending-patterns`
+
+## Services Architecture
+
+### New Services Added
+1. **marketDataService.ts**: Fetches live market data from multiple APIs
+2. **taxService.ts**: Country-specific tax calculations with 10+ tax regimes
+3. **spendingPatternService.ts**: Behavioral analysis and pattern recognition
+
+### AI Integration
+All new services are integrated into the AI system prompt via async `buildSystemPrompt()`:
+- Market data provides current economic context
+- Tax calculations ensure advice uses net (not gross) income
+- Spending patterns enable behavioral insights and personalized recommendations

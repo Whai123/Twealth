@@ -68,13 +68,22 @@ function updateUserSession(
 async function upsertUser(
   claims: Record<string, any>,
 ) {
+  const userId = claims["sub"];
+  
+  // Create or update user
   await storage.upsertUser({
-    id: claims["sub"],
+    id: userId,
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
   });
+  
+  // Ensure user has a subscription (initialize Free tier if new)
+  const subscription = await storage.getUserSubscription(userId);
+  if (!subscription) {
+    await storage.initializeDefaultSubscription(userId);
+  }
 }
 
 export async function setupAuth(app: Express) {
