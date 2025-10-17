@@ -1622,7 +1622,7 @@ CRITICAL RULES:
         tools: availableTools,
         tool_choice: needsImmediateAction ? "required" : "auto",
         temperature: 0.5,
-        max_tokens: 500
+        max_tokens: 3000  // Increased from 500 to allow complete luxury analysis responses
       });
 
       const assistantMessage = response.choices[0]?.message;
