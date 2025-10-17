@@ -44,6 +44,7 @@ import { extractAndUpdateMemory, getMemoryContext } from './conversationMemorySe
 import { cryptoService } from "./cryptoService";
 import { taxService } from "./taxService";
 import { spendingPatternService } from "./spendingPatternService";
+import { calculateFinancialHealth } from './financialHealthService';
 import Stripe from "stripe";
 
 // Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
@@ -2929,6 +2930,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getMessageFeedbackStats(userId);
       res.json(stats);
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Financial Health Score endpoint
+  app.get("/api/financial-health", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const healthScore = await calculateFinancialHealth(storage, userId);
+      res.json(healthScore);
+    } catch (error: any) {
+      console.error('Financial health calculation error:', error);
       res.status(500).json({ message: error.message });
     }
   });
