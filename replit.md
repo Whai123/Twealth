@@ -26,7 +26,24 @@ Twealth uses Replit OAuth (OpenID Connect) for authentication, with PostgreSQL f
 
 ## AI Financial Advisor
 
-The core AI financial advisor, powered by Groq AI (Llama 4 Scout), offers CFO-level advice using user financial data, conversational data collection with resilient parsing, smart financial estimates, and flexible natural language processing. It includes features like luxury purchase analysis, affordability calculators, lease vs. buy comparisons, and visual analytics dashboards. AI provides smart budget recommendations, actionable advice, and supports imperative commands in 11 languages. It also offers tiered crypto experience and AI actions for creating goals, scheduling events, and tracking transactions.
+The core AI financial advisor, powered by Groq AI (Llama 4 Scout), offers CFO-level advice using user financial data with advanced intelligence features:
+
+### Data Intelligence & Validation
+- **Smart Data Validation**: Automatically detects unrealistic financial inputs (income >$100k/month, expenses exceeding income, inconsistent net worth) and flags them with warnings before saving
+- **Critical Thinking Engine**: AI questions suspicious data before analysis (e.g., "$2M monthly income - did you mean $2,000?" or "765 LT is McLaren, not Lamborghini - which did you mean?")
+- **Logical Consistency Checks**: Cross-validates financial data for red flags (savings rate <1% with high income, negative net worth without mentioned debt)
+- **Professional Skepticism**: Challenges round numbers, verifies asset names, reconciles conflicting data points
+
+### Luxury Asset Intelligence
+- **Comprehensive Vehicle Database**: Accurate pricing, insurance costs, maintenance, and depreciation for 25+ luxury vehicles (Lamborghini, Ferrari, McLaren, Porsche, Bentley, Rolls-Royce, Aston Martin)
+- **Brand Verification**: Prevents confusion between similar vehicles (e.g., McLaren 765 LT vs Lamborghini models)
+- **Total Ownership Cost Analysis**: Calculates 5-year costs including purchase price, insurance ($6k-28k/year), maintenance ($3k-18k/year), and accurate depreciation (10-30% year 1)
+
+### Core Features
+- Conversational data collection with resilient parsing, smart financial estimates, and flexible natural language processing
+- Luxury purchase analysis, affordability calculators, lease vs. buy comparisons, and visual analytics dashboards
+- Smart budget recommendations, actionable advice, and imperative command support in 11 languages
+- Tiered crypto experience and AI actions for creating goals, scheduling events, and tracking transactions
 
 ## UI/UX & Features
 
