@@ -46,6 +46,7 @@ import { taxService } from "./taxService";
 import { spendingPatternService } from "./spendingPatternService";
 import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
+import { generateProactiveInsights } from './proactiveInsightsService';
 import Stripe from "stripe";
 
 // Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
@@ -2966,6 +2967,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(milestones);
     } catch (error: any) {
       console.error('Goal milestones error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Proactive Insights endpoint
+  app.get("/api/insights/proactive", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const insights = await generateProactiveInsights(storage, userId);
+      res.json(insights);
+    } catch (error: any) {
+      console.error('Proactive insights error:', error);
       res.status(500).json({ message: error.message });
     }
   });

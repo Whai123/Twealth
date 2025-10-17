@@ -145,6 +145,15 @@ The application supports 11 languages (English, Spanish, Indonesian, Thai, Brazi
 - Proactive alerts for goals at risk and ahead-of-schedule celebrations
 - API endpoints: GET `/api/goals/progress`, GET `/api/goals/:goalId/milestones`
 
+### Proactive Insight System (✅ Complete)
+- Automatic spending anomaly detection (unusual large purchases, category overspending)
+- Savings opportunity identification (subscriptions, dining out, high-yield savings)
+- Goal deadline reminders with actionable recovery plans
+- Budget warnings when spending exceeds limits
+- Achievement celebrations for savings streaks and milestones
+- Priority-based insights (high, medium, low) with specific action steps
+- API endpoint: GET `/api/insights/proactive` returns personalized financial insights
+
 ## Services Architecture
 
 ### New Services Added
