@@ -40,6 +40,7 @@ import {
 } from "@shared/schema";
 import { aiService, type UserContext } from "./aiService";
 import { cryptoService } from "./cryptoService";
+import { taxService } from "./taxService";
 import Stripe from "stripe";
 
 // Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
@@ -1731,6 +1732,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(preferences);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Tax Calculation Routes
+  app.post("/api/calculate-tax", isAuthenticated, async (req: any, res) => {
+    try {
+      const { income, period, countryCode } = req.body;
+      
+      if (!income || income <= 0) {
+        return res.status(400).json({ message: "Income must be a positive number" });
+      }
+      
+      const country = countryCode || 'US';
+      
+      if (!taxService.isCountrySupported(country)) {
+        return res.status(400).json({ 
+          message: `Country code ${country} is not supported`,
+          supportedCountries: taxService.getSupportedCountries().map(c => ({
+            code: c.countryCode,
+            name: c.countryName
+          }))
+        });
+      }
+      
+      const result = period === 'annual' 
+        ? taxService.calculateAnnualTax(income, country)
+        : taxService.calculateMonthlyTax(income, country);
+      
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/supported-tax-countries", async (req, res) => {
+    try {
+      const countries = taxService.getSupportedCountries();
+      res.json(countries.map(c => ({
+        code: c.countryCode,
+        name: c.countryName,
+        currency: c.currency
+      })));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
