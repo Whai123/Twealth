@@ -52,6 +52,8 @@ import {
   type InsertChatConversation,
   type ChatMessage,
   type InsertChatMessage,
+  type MessageFeedback,
+  type InsertMessageFeedback,
   type SubscriptionPlan,
   type InsertSubscriptionPlan,
   type Subscription,
@@ -98,6 +100,7 @@ import {
   notifications,
   chatConversations,
   chatMessages,
+  messageFeedback,
   subscriptionPlans,
   subscriptions,
   usageTracking,
@@ -361,6 +364,12 @@ export interface IStorage {
   getChatMessages(conversationId: string, limit?: number, offset?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessagesByUserId(userId: string, limit?: number): Promise<ChatMessage[]>;
+
+  // Message Feedback methods
+  getMessageFeedback(messageId: string, userId: string): Promise<MessageFeedback | undefined>;
+  createMessageFeedback(feedback: InsertMessageFeedback): Promise<MessageFeedback>;
+  updateMessageFeedback(messageId: string, userId: string, updates: Partial<MessageFeedback>): Promise<MessageFeedback>;
+  getMessageFeedbackStats(userId: string): Promise<{ helpful: number; notHelpful: number; total: number }>;
 
   // Subscription Plan methods
   getSubscriptionPlans(): Promise<SubscriptionPlan[]>;
@@ -2725,6 +2734,57 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatConversations.userId, userId))
       .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
+  }
+
+  // Message Feedback methods
+  async getMessageFeedback(messageId: string, userId: string): Promise<MessageFeedback | undefined> {
+    const [feedback] = await db.select()
+      .from(messageFeedback)
+      .where(and(
+        eq(messageFeedback.messageId, messageId),
+        eq(messageFeedback.userId, userId)
+      ))
+      .limit(1);
+    return feedback;
+  }
+
+  async createMessageFeedback(feedback: InsertMessageFeedback): Promise<MessageFeedback> {
+    const [newFeedback] = await db.insert(messageFeedback)
+      .values({
+        ...feedback,
+        updatedAt: new Date()
+      })
+      .returning();
+    return newFeedback;
+  }
+
+  async updateMessageFeedback(messageId: string, userId: string, updates: Partial<MessageFeedback>): Promise<MessageFeedback> {
+    const [updated] = await db.update(messageFeedback)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(messageFeedback.messageId, messageId),
+        eq(messageFeedback.userId, userId)
+      ))
+      .returning();
+    return updated;
+  }
+
+  async getMessageFeedbackStats(userId: string): Promise<{ helpful: number; notHelpful: number; total: number }> {
+    const userFeedback = await db.select()
+      .from(messageFeedback)
+      .where(eq(messageFeedback.userId, userId));
+    
+    const helpful = userFeedback.filter(f => f.rating === 'helpful').length;
+    const notHelpful = userFeedback.filter(f => f.rating === 'not_helpful').length;
+    
+    return {
+      helpful,
+      notHelpful,
+      total: userFeedback.length
+    };
   }
 
   // Subscription Plan methods

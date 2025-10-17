@@ -856,6 +856,19 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI Message Feedback/Rating Table
+export const messageFeedback = pgTable("message_feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  messageId: varchar("message_id").notNull().references(() => chatMessages.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  rating: text("rating", { enum: ["helpful", "not_helpful"] }).notNull(),
+  feedbackText: text("feedback_text"), // Optional detailed feedback
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  unique("unique_user_message_feedback").on(table.userId, table.messageId)
+]);
+
 export const insertChatConversationSchema = createInsertSchema(chatConversations).omit({
   id: true,
   createdAt: true,
@@ -867,11 +880,20 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   createdAt: true,
 });
 
+export const insertMessageFeedbackSchema = createInsertSchema(messageFeedback).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type ChatConversation = typeof chatConversations.$inferSelect;
 export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
 
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+
+export type MessageFeedback = typeof messageFeedback.$inferSelect;
+export type InsertMessageFeedback = z.infer<typeof insertMessageFeedbackSchema>;
 
 export const chatConversationsRelations = relations(chatConversations, ({ one, many }) => ({
   user: one(users, {
@@ -881,10 +903,22 @@ export const chatConversationsRelations = relations(chatConversations, ({ one, m
   messages: many(chatMessages),
 }));
 
-export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+export const chatMessagesRelations = relations(chatMessages, ({ one, many }) => ({
   conversation: one(chatConversations, {
     fields: [chatMessages.conversationId],
     references: [chatConversations.id],
+  }),
+  feedback: many(messageFeedback),
+}));
+
+export const messageFeedbackRelations = relations(messageFeedback, ({ one }) => ({
+  message: one(chatMessages, {
+    fields: [messageFeedback.messageId],
+    references: [chatMessages.id],
+  }),
+  user: one(users, {
+    fields: [messageFeedback.userId],
+    references: [users.id],
   }),
 }));
 

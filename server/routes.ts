@@ -27,6 +27,7 @@ import {
   insertNotificationSchema,
   insertChatConversationSchema,
   insertChatMessageSchema,
+  insertMessageFeedbackSchema,
   insertReferralCodeSchema,
   insertReferralSchema,
   insertBonusCreditSchema,
@@ -2856,6 +2857,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Reset usage error:', error);
       res.status(500).json({ message: "Failed to reset usage" });
+    }
+  });
+
+  // Message Feedback Routes
+  app.post("/api/messages/:messageId/feedback", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { messageId } = req.params;
+      const { rating, feedbackText } = req.body;
+
+      if (!rating || !['helpful', 'not_helpful'].includes(rating)) {
+        return res.status(400).json({ message: "Invalid rating. Must be 'helpful' or 'not_helpful'" });
+      }
+
+      // Check if feedback already exists
+      const existingFeedback = await storage.getMessageFeedback(messageId, userId);
+      
+      let feedback;
+      if (existingFeedback) {
+        // Update existing feedback
+        feedback = await storage.updateMessageFeedback(messageId, userId, {
+          rating,
+          feedbackText: feedbackText || existingFeedback.feedbackText
+        });
+      } else {
+        // Create new feedback
+        const validatedData = insertMessageFeedbackSchema.parse({
+          messageId,
+          userId,
+          rating,
+          feedbackText: feedbackText || null
+        });
+        feedback = await storage.createMessageFeedback(validatedData);
+      }
+
+      res.json(feedback);
+    } catch (error: any) {
+      console.error('Error submitting message feedback:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/messages/:messageId/feedback", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { messageId } = req.params;
+      
+      const feedback = await storage.getMessageFeedback(messageId, userId);
+      
+      if (!feedback) {
+        return res.status(404).json({ message: "No feedback found for this message" });
+      }
+      
+      res.json(feedback);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/messages/feedback/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const stats = await storage.getMessageFeedbackStats(userId);
+      res.json(stats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
