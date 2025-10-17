@@ -142,9 +142,13 @@ export default function CheckoutPage() {
     // Create subscription session
     const createSubscription = async () => {
       try {
+        // Use environment variable for Stripe Price ID or construct it from plan name
+        const stripePriceId = import.meta.env[`VITE_STRIPE_PRICE_${plan?.name?.toUpperCase()}`] || 
+                             `price_${plan?.name?.toLowerCase()}`;
+        
         const response = await apiRequest('POST', '/api/subscription/create-subscription', {
           planId,
-          priceId: `price_${plan?.name?.toLowerCase()}`, // This should match your Stripe Price ID
+          priceId: stripePriceId,
         });
 
         if (response.ok) {

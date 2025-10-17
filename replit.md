@@ -93,6 +93,35 @@ The application supports 11 languages (English, Spanish, Indonesian, Thai, Brazi
 
 # Recent Enhancements (October 2025)
 
+## Stripe Payment Integration (October 17, 2025)
+
+### Backend Implementation (✅ Complete)
+- Stripe SDK initialized with API keys from environment variables
+- Subscription creation endpoint: `/api/subscription/create-subscription`
+- Webhook handler for payment events: `/api/webhooks/stripe`
+- Payment success handlers for one-time and subscription payments
+- Customer creation and management integrated with user accounts
+
+### Frontend Implementation (✅ Complete)
+- Checkout page with Stripe Elements: `/checkout/:planId`
+- Secure payment form with PaymentElement component
+- Plan summary display with pricing and features
+- Return URL handling for successful payments
+- Error handling and user feedback
+
+### Configuration Required
+To enable Stripe payments, configure these environment variables:
+1. **VITE_STRIPE_PUBLIC_KEY** - Stripe publishable key (pk_test_* or pk_live_*)
+2. **STRIPE_SECRET_KEY** - Stripe secret key (sk_test_* or sk_live_*)
+3. **STRIPE_WEBHOOK_SECRET** (optional) - For webhook signature verification
+4. **VITE_STRIPE_PRICE_PRO** - Stripe Price ID for Pro plan (price_*)
+
+To create a Stripe Price for Pro plan ($25/month):
+1. Go to https://dashboard.stripe.com/products
+2. Create a new product: "Twealth Pro"
+3. Add recurring price: $25/month
+4. Copy the Price ID (starts with price_) and set as VITE_STRIPE_PRICE_PRO
+
 ## Data Validation & Response Quality Improvements (October 17, 2025)
 
 ### Smart Income Validation (✅ Complete)
