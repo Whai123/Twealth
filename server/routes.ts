@@ -2509,29 +2509,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                 });
               } else if (toolCall.name === 'save_financial_estimates') {
-                // Save user's financial estimates to help with future advice
+                // Validate and save user's financial estimates
                 const estimates: any = {};
+                const warnings: string[] = [];
                 
-                // Only save values that were provided
+                // Validation helper
+                const validateAmount = (value: any, name: string, maxRealistic: number) => {
+                  const num = typeof value === 'string' ? parseFloat(value.replace(/[$,]/g, '')) : value;
+                  if (num > maxRealistic) {
+                    warnings.push(`${name} of $${num.toLocaleString()} seems unusually high - is this correct?`);
+                  }
+                  return num;
+                };
+                
+                // Validate and save with sanity checks
                 if (toolCall.arguments.monthlyIncome !== undefined) {
-                  estimates.monthlyIncomeEstimate = toolCall.arguments.monthlyIncome.toString();
+                  const income = validateAmount(toolCall.arguments.monthlyIncome, 'Monthly income', 100000);
+                  estimates.monthlyIncomeEstimate = income.toString();
                 }
                 if (toolCall.arguments.monthlyExpenses !== undefined) {
-                  estimates.monthlyExpensesEstimate = toolCall.arguments.monthlyExpenses.toString();
+                  const expenses = validateAmount(toolCall.arguments.monthlyExpenses, 'Monthly expenses', 100000);
+                  estimates.monthlyExpensesEstimate = expenses.toString();
                 }
                 if (toolCall.arguments.currentSavings !== undefined) {
-                  estimates.currentSavingsEstimate = toolCall.arguments.currentSavings.toString();
+                  const savings = validateAmount(toolCall.arguments.currentSavings, 'Current savings', 10000000);
+                  estimates.currentSavingsEstimate = savings.toString();
+                }
+                
+                // Check if expenses exceed income (major red flag)
+                if (estimates.monthlyIncomeEstimate && estimates.monthlyExpensesEstimate) {
+                  const income = parseFloat(estimates.monthlyIncomeEstimate);
+                  const expenses = parseFloat(estimates.monthlyExpensesEstimate);
+                  if (expenses > income) {
+                    warnings.push(`Your expenses ($${expenses.toLocaleString()}) exceed your income ($${income.toLocaleString()}) - this needs immediate attention!`);
+                  }
+                }
+                
+                // If there are warnings, flag them but still save (user might have explained context)
+                if (warnings.length > 0) {
+                  console.log('⚠️  Financial data warnings:', warnings);
+                  actionsPerformed.push({
+                    type: 'financial_estimates_saved_with_warnings',
+                    data: estimates,
+                    warnings: warnings
+                  });
+                } else {
+                  actionsPerformed.push({
+                    type: 'financial_estimates_saved',
+                    data: estimates
+                  });
                 }
                 
                 // Update user preferences with financial estimates
                 await storage.updateUserPreferences(userId, estimates);
                 
-                actionsPerformed.push({
-                  type: 'financial_estimates_saved',
-                  data: estimates
-                });
-                
-                console.log('💾 Saved financial estimates:', estimates);
+                console.log('💾 Saved financial estimates:', estimates, warnings.length > 0 ? `(${warnings.length} warnings)` : '');
               }
             } catch (toolError) {
               console.error(`Tool execution error (${toolCall.name}):`, toolError);

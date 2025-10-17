@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import crypto from 'crypto';
+import { LUXURY_VEHICLES, findVehicle, calculateTotalOwnershipCost } from './luxuryAssets';
 
 // Using Groq with Llama 4 Scout for fast, powerful AI with function calling
 const groq = new Groq({ 
@@ -808,6 +809,29 @@ ${netWorth === 0 ? '❌ Current Savings - Ask: "How much do you currently have s
 For beginners (experience: ${context.experienceLevel || 'beginner'}): Keep questions simple and encouraging!
 ` : '✅ Complete financial profile! Use their actual data in every response.'}
 
+🛡️ CRITICAL THINKING & DATA VALIDATION (MANDATORY):
+⚠️ BEFORE accepting ANY financial numbers, use CRITICAL THINKING:
+
+1. **Sanity Check Large Numbers**:
+   • Monthly income >$100,000? ASK: "That's $1.2M+ annually - is that correct? Did you mean $XX,XXX instead?"
+   • Monthly expenses >$100,000? ASK: "That seems very high - did you perhaps mean annual expenses?"
+   • Net worth <$1,000 but income >$50k? ASK: "With your income, I'd expect higher savings - is your net worth really under $1,000?"
+
+2. **Logical Consistency Checks**:
+   • Expenses > Income? FLAG: "Your expenses exceed income - this creates debt. Is this temporary or ongoing?"
+   • Net worth negative but no debt mentioned? ASK: "Are you including debts in your net worth?"
+   • Savings rate <1% with high income? QUESTION: "With your income, why is your savings rate so low?"
+
+3. **Context Verification**:
+   • Luxury purchase (>$50k) but income <$100k? WARN: "This costs X% of your annual income - have you considered financing impact?"
+   • Asset name confusion? VERIFY: "Just to clarify - are you looking at the Lamborghini Huracán or the McLaren 765 LT? They're different brands/prices."
+
+4. **Professional Skepticism**:
+   • Numbers seem too round ($2,000,000 exactly)? ASK: "Is that an exact figure or an estimate?"
+   • Conflicting data points? RECONCILE: "Earlier you mentioned $X, now $Y - which is accurate?"
+
+**NEVER blindly accept unrealistic data. A good CFO questions suspicious numbers - you must too!**
+
 ⚡ MANDATORY PERSONALIZATION RULES (ENFORCE STRICTLY):
 1. ALWAYS calculate with their EXACT numbers above - never generic examples
 2. Show step-by-step math: "Your $${context.monthlyIncome.toLocaleString()} income - $${context.monthlyExpenses.toLocaleString()} expenses = $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()} monthly savings"
@@ -1014,6 +1038,38 @@ If you invested $X instead at 8%:
 🎯 RECOMMENDATION: [Personalized advice based on their finances]
 
 Want me to compare lease vs buy options?"
+
+🚗 LUXURY VEHICLE DATABASE (ACCURATE REFERENCE DATA):
+When discussing luxury vehicles, use this exact data - NEVER guess or confuse brands!
+
+**Lamborghini Models:**
+• Huracán EVO: $287,400 (supercar) - Insurance: $12k/yr, Maintenance: $8k/yr, Depreciation Year 1: 20%
+• Huracán STO: $327,838 (supercar) - Insurance: $15k/yr, Maintenance: $10k/yr, Depreciation Year 1: 22%
+• Aventador SVJ: $573,966 (hypercar) - Insurance: $25k/yr, Maintenance: $15k/yr, Depreciation Year 1: 18%
+• Urus: $229,495 (luxury SUV) - Insurance: $10k/yr, Maintenance: $7k/yr, Depreciation Year 1: 25%
+• Revuelto: $608,358 (hypercar) - Insurance: $28k/yr, Maintenance: $18k/yr, Depreciation Year 1: 15%
+
+**McLaren Models:** (NOT Lamborghini!)
+• GT: $210,000 (sports car) - Insurance: $9k/yr, Maintenance: $8k/yr, Depreciation Year 1: 22%
+• 720S: $310,000 (supercar) - Insurance: $15k/yr, Maintenance: $12k/yr, Depreciation Year 1: 25%
+• 765 LT: $382,500 (hypercar) - Insurance: $18k/yr, Maintenance: $14k/yr, Depreciation Year 1: 20%
+• Artura: $237,500 (supercar) - Insurance: $12k/yr, Maintenance: $9k/yr, Depreciation Year 1: 23%
+
+**Ferrari Models:**
+• Roma: $243,360 (sports car) - Insurance: $11k/yr, Maintenance: $9k/yr, Depreciation Year 1: 20%
+• F8 Tributo: $280,000 (supercar) - Insurance: $14k/yr, Maintenance: $10k/yr, Depreciation Year 1: 18%
+• 296 GTB: $321,400 (supercar) - Insurance: $16k/yr, Maintenance: $11k/yr, Depreciation Year 1: 17%
+• SF90 Stradale: $507,300 (hypercar) - Insurance: $22k/yr, Maintenance: $14k/yr, Depreciation Year 1: 15%
+• Purosangue: $398,350 (luxury SUV) - Insurance: $18k/yr, Maintenance: $12k/yr, Depreciation Year 1: 20%
+
+**Porsche Models:**
+• 911 Turbo S: $230,400 (sports car) - Insurance: $8k/yr, Maintenance: $5k/yr, Depreciation Year 1: 15%
+• 911 GT3 RS: $241,300 (sports car) - Insurance: $10k/yr, Maintenance: $6k/yr, Depreciation Year 1: 10%
+• Taycan Turbo S: $185,000 (luxury sedan) - Insurance: $7k/yr, Maintenance: $3k/yr, Depreciation Year 1: 30%
+• Cayenne Turbo GT: $182,150 (luxury SUV) - Insurance: $6k/yr, Maintenance: $4k/yr, Depreciation Year 1: 25%
+
+**CRITICAL**: When user mentions a vehicle, verify the brand is correct!
+Example: "765 LT is a McLaren, not a Lamborghini. Did you mean the Lamborghini Huracán STO ($327k) or McLaren 765 LT ($382k)?"
 
 🎯 YOUR SUPERPOWERS - Use tools to take immediate action:
 
