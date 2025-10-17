@@ -2576,61 +2576,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                 });
               } else if (toolCall.name === 'save_financial_estimates') {
-                // Validate and save user's financial estimates
+                // Smart validation and parsing of financial estimates
                 const estimates: any = {};
                 const warnings: string[] = [];
+                const errors: string[] = [];
                 
-                // Validation helper
-                const validateAmount = (value: any, name: string, maxRealistic: number) => {
-                  const num = typeof value === 'string' ? parseFloat(value.replace(/[$,]/g, '')) : value;
-                  if (num > maxRealistic) {
-                    warnings.push(`${name} of $${num.toLocaleString()} seems unusually high - is this correct?`);
+                // Enhanced validation helper with smart parsing
+                const validateAmount = (value: any, name: string, field: 'income' | 'expenses' | 'savings') => {
+                  // Parse the value - handle various formats
+                  let num: number;
+                  if (typeof value === 'string') {
+                    // Remove all formatting characters except decimal point
+                    const cleaned = value.replace(/[$,]/g, '').trim();
+                    num = parseFloat(cleaned);
+                  } else {
+                    num = value;
                   }
+                  
+                  if (isNaN(num) || num < 0) {
+                    errors.push(`${name} must be a valid positive number`);
+                    return 0;
+                  }
+                  
+                  // Field-specific validation thresholds
+                  const thresholds = {
+                    income: { 
+                      warning: 50000, // $50k/month = $600k/year - already very high
+                      error: 150000   // $150k/month = $1.8M/year - likely an error
+                    },
+                    expenses: {
+                      warning: 50000,
+                      error: 150000
+                    },
+                    savings: {
+                      warning: 1000000,  // $1M net worth - reasonable
+                      error: 100000000   // $100M - likely typo
+                    }
+                  };
+                  
+                  const threshold = thresholds[field];
+                  
+                  // Critical error check - values that are almost certainly wrong
+                  if (num > threshold.error) {
+                    errors.push(
+                      `${name} of $${num.toLocaleString()} is unrealistically high. ` +
+                      `Did you mean $${(num / 1000).toLocaleString()} (1/1000th) or enter it in a different unit? ` +
+                      `Please provide the correct amount.`
+                    );
+                    return num; // Return for error display, but won't save
+                  }
+                  
+                  // Warning check - high but possibly correct
+                  if (num > threshold.warning) {
+                    warnings.push(
+                      `${name} of $${num.toLocaleString()} ${field === 'income' ? `($${(num * 12).toLocaleString()}/year)` : ''} is very high. ` +
+                      `Is this correct?`
+                    );
+                  }
+                  
                   return num;
                 };
                 
-                // Validate and save with sanity checks
-                if (toolCall.arguments.monthlyIncome !== undefined) {
-                  const income = validateAmount(toolCall.arguments.monthlyIncome, 'Monthly income', 100000);
-                  estimates.monthlyIncomeEstimate = income.toString();
-                }
-                if (toolCall.arguments.monthlyExpenses !== undefined) {
-                  const expenses = validateAmount(toolCall.arguments.monthlyExpenses, 'Monthly expenses', 100000);
-                  estimates.monthlyExpensesEstimate = expenses.toString();
-                }
-                if (toolCall.arguments.currentSavings !== undefined) {
-                  const savings = validateAmount(toolCall.arguments.currentSavings, 'Current savings', 10000000);
-                  estimates.currentSavingsEstimate = savings.toString();
-                }
+                // Validate each field
+                let income = 0;
+                let expenses = 0;
+                let savings = 0;
                 
-                // Check if expenses exceed income (major red flag)
-                if (estimates.monthlyIncomeEstimate && estimates.monthlyExpensesEstimate) {
-                  const income = parseFloat(estimates.monthlyIncomeEstimate);
-                  const expenses = parseFloat(estimates.monthlyExpensesEstimate);
-                  if (expenses > income) {
-                    warnings.push(`Your expenses ($${expenses.toLocaleString()}) exceed your income ($${income.toLocaleString()}) - this needs immediate attention!`);
+                if (toolCall.arguments.monthlyIncome !== undefined) {
+                  income = validateAmount(toolCall.arguments.monthlyIncome, 'Monthly income', 'income');
+                  if (errors.length === 0) {
+                    estimates.monthlyIncomeEstimate = income.toString();
                   }
                 }
                 
-                // If there are warnings, flag them but still save (user might have explained context)
-                if (warnings.length > 0) {
-                  console.log('⚠️  Financial data warnings:', warnings);
+                if (toolCall.arguments.monthlyExpenses !== undefined) {
+                  expenses = validateAmount(toolCall.arguments.monthlyExpenses, 'Monthly expenses', 'expenses');
+                  if (errors.length === 0) {
+                    estimates.monthlyExpensesEstimate = expenses.toString();
+                  }
+                }
+                
+                if (toolCall.arguments.currentSavings !== undefined) {
+                  savings = validateAmount(toolCall.arguments.currentSavings, 'Current savings', 'savings');
+                  if (errors.length === 0) {
+                    estimates.currentSavingsEstimate = savings.toString();
+                  }
+                }
+                
+                // Logical consistency checks (only if no critical errors)
+                if (errors.length === 0) {
+                  // Expenses vs Income check
+                  if (income > 0 && expenses > 0 && expenses > income * 1.5) {
+                    warnings.push(
+                      `Your expenses ($${expenses.toLocaleString()}) are ${Math.round((expenses/income - 1) * 100)}% higher than income - ` +
+                      `this creates significant debt. Is this temporary or ongoing?`
+                    );
+                  }
+                  
+                  // Savings vs Income consistency
+                  if (income > 10000 && savings < 1000) {
+                    warnings.push(
+                      `With monthly income of $${income.toLocaleString()}, I'd expect higher savings. ` +
+                      `Is your net worth really $${savings.toLocaleString()}?`
+                    );
+                  }
+                  
+                  // Negative savings rate check
+                  if (income > 0 && expenses > income) {
+                    const deficit = expenses - income;
+                    warnings.push(
+                      `You're running a deficit of $${deficit.toLocaleString()}/month. ` +
+                      `This means you're going into debt or depleting savings - needs immediate action!`
+                    );
+                  }
+                }
+                
+                // If there are CRITICAL ERRORS, don't save - ask user to correct
+                if (errors.length > 0) {
+                  console.log('❌ Financial data ERRORS (not saved):', errors);
+                  actionsPerformed.push({
+                    type: 'financial_estimates_validation_failed',
+                    errors: errors,
+                    suggestions: [
+                      'Check if you entered the amount in the wrong currency/unit',
+                      'Verify you didn\'t include extra zeros',
+                      'Confirm whether this is monthly, yearly, or lifetime amount'
+                    ]
+                  });
+                }
+                // If there are warnings but no errors, save with warnings
+                else if (warnings.length > 0) {
+                  console.log('⚠️  Financial data warnings (saved with flags):', warnings);
                   actionsPerformed.push({
                     type: 'financial_estimates_saved_with_warnings',
                     data: estimates,
                     warnings: warnings
                   });
-                } else {
+                  await storage.updateUserPreferences(userId, estimates);
+                  console.log('💾 Saved financial estimates with warnings:', estimates);
+                }
+                // Clean save - no issues
+                else {
                   actionsPerformed.push({
                     type: 'financial_estimates_saved',
                     data: estimates
                   });
+                  await storage.updateUserPreferences(userId, estimates);
+                  console.log('💾 Saved financial estimates:', estimates);
                 }
-                
-                // Update user preferences with financial estimates
-                await storage.updateUserPreferences(userId, estimates);
-                
-                console.log('💾 Saved financial estimates:', estimates, warnings.length > 0 ? `(${warnings.length} warnings)` : '');
               }
             } catch (toolError) {
               console.error(`Tool execution error (${toolCall.name}):`, toolError);

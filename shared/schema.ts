@@ -533,6 +533,17 @@ export const insertUserPreferencesSchema = createInsertSchema(userPreferences).o
   updatedAt: true,
 }).extend({
   theme: z.enum(["light", "dark", "system"]).default("system"),
+  conversationMemory: z.object({
+    financialPriorities: z.array(z.string()).optional(),
+    investmentPreferences: z.array(z.string()).optional(),
+    lifeEvents: z.array(z.object({
+      event: z.string(),
+      timeframe: z.string().optional()
+    })).optional(),
+    spendingHabits: z.array(z.string()).optional(),
+    riskTolerance: z.string().optional(),
+    lastUpdated: z.string().optional()
+  }).optional(),
 });
 
 export const insertFinancialPreferencesSchema = createInsertSchema(financialPreferences).omit({
