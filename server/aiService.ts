@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 import crypto from 'crypto';
 import { LUXURY_VEHICLES, findVehicle, calculateTotalOwnershipCost } from './luxuryAssets';
+import { marketDataService } from './marketDataService';
 
 // Using Groq with Llama 4 Scout for fast, powerful AI with function calling
 const groq = new Groq({ 
@@ -726,10 +727,13 @@ const TOOLS = [
 ];
 
 export class TwealthAIService {
-  private buildSystemPrompt(context: UserContext): string {
+  private async buildSystemPrompt(context: UserContext): Promise<string> {
     const savingsRate = ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome) * 100;
     const netWorth = context.totalSavings;
     const goals = context.activeGoals;
+    
+    // Fetch live market data for AI context
+    const marketContext = await marketDataService.getMarketContextForAI('US');
     const emergencyFund = context.monthlyExpenses * 6;
     const age = 30; // TODO: Get from user profile when available
     const stockAllocation = Math.max(10, 110 - age); // Age-based rule of thumb
@@ -791,6 +795,8 @@ ${cryptoContext}
 • Emergency Fund: Has $${netWorth.toLocaleString()} vs Target $${emergencyFund.toLocaleString()} (${netWorth >= emergencyFund ? 'COMPLETE ✅' : 'needs $' + (emergencyFund - netWorth).toLocaleString()})
 • Recommended Allocation: ${stockAllocation}% stocks / ${100-stockAllocation}% bonds (age-based)
 ${context.recentTransactions.length > 0 ? `• Recent spending: ${context.recentTransactions.slice(0, 3).map(t => `$${t.amount} on ${t.category}`).join(', ')}` : ''}
+
+${marketContext}
 
 🔍 DATA COMPLETENESS CHECK:
 ${context.monthlyIncome === 0 || context.monthlyExpenses === 0 || netWorth === 0 ? `
@@ -1519,7 +1525,7 @@ CRITICAL RULES:
     }
 
     try {
-      const systemPrompt = this.buildSystemPrompt(context);
+      const systemPrompt = await this.buildSystemPrompt(context);
       
       // Build messages array
       const messages: any[] = [
