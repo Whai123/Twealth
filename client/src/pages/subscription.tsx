@@ -102,26 +102,31 @@ export default function SubscriptionPage() {
     queryKey: ["/api/user-preferences"],
   });
 
-  const upgradeMutation = useMutation({
-    mutationFn: async (planId: string) => {
-      return apiRequest("POST", "/api/subscription/upgrade", { planId });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Subscription upgraded!",
-        description: "Your subscription has been upgraded successfully."
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/subscription/current"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Upgrade failed",
-        description: error.message || "Failed to upgrade subscription",
-        variant: "destructive"
-      });
+  const handleUpgrade = (planId: string, planName: string) => {
+    // Free plan doesn't need payment
+    if (planName === 'Free') {
+      // Direct upgrade without payment
+      apiRequest("POST", "/api/subscription/upgrade", { planId })
+        .then(() => {
+          toast({
+            title: "Switched to Free Plan",
+            description: "You're now on the Free plan."
+          });
+          queryClient.invalidateQueries({ queryKey: ["/api/subscription/current"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
+        })
+        .catch((error: any) => {
+          toast({
+            title: "Upgrade failed",
+            description: error.message || "Failed to change plan",
+            variant: "destructive"
+          });
+        });
+    } else {
+      // Redirect to Stripe checkout for paid plans
+      setLocation(`/checkout/${planId}`);
     }
-  });
+  };
 
   if (plansLoading || subscriptionLoading) {
     return (
@@ -520,16 +525,11 @@ export default function SubscriptionPage() {
                         ? 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
                         : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white'
                     }`}
-                    disabled={isCurrentPlan || upgradeMutation.isPending}
-                    onClick={() => upgradeMutation.mutate(plan.id)}
+                    disabled={isCurrentPlan}
+                    onClick={() => handleUpgrade(plan.id, plan.name)}
                     data-testid={`button-upgrade-${plan.name.toLowerCase()}`}
                   >
-                    {upgradeMutation.isPending ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Upgrading...</span>
-                      </div>
-                    ) : isCurrentPlan ? (
+                    {isCurrentPlan ? (
                       <>
                         <Crown className="w-5 h-5 mr-2" />
                         Your Current Plan
