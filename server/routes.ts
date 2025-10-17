@@ -74,11 +74,14 @@ let stripe: Stripe | null = null;
 try {
   if (process.env.STRIPE_SECRET_KEY) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-08-27.basil" as any,
+      apiVersion: "2024-12-18.acacia" as any,
     });
+    console.log('✅ Stripe initialized successfully');
+  } else {
+    console.log("⚠️  Stripe not initialized - API key not provided");
   }
 } catch (error) {
-  console.log("Stripe not initialized - API key not provided");
+  console.error("❌ Stripe initialization failed:", error);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
