@@ -93,6 +93,28 @@ The application supports 11 languages (English, Spanish, Indonesian, Thai, Brazi
 
 # Recent Enhancements (October 2025)
 
+## Data Validation & Response Quality Improvements (October 17, 2025)
+
+### Smart Income Validation (✅ Complete)
+- **Rejection threshold**: Monthly income >$150,000 ($1.8M/year) → REJECTED with error message
+- **Warning threshold**: Monthly income >$50,000 ($600k/year) → WARNING but saved
+- **Format parsing**: Handles "$2,013.80", "$2,013,800", "2013.80" correctly
+- **Error messages**: Suggests corrections like "Did you mean $2,014 instead of $2,013,800?"
+- **Logical consistency checks**: Validates expenses vs income, savings vs income ratios
+- Server-side validation at `/api/ai/chat` using `save_financial_estimates` tool
+
+### Response Truncation Fix (✅ Complete)
+- **max_tokens increased**: 500 → 3000 tokens for complete luxury analysis responses
+- **Impact**: Lamborghini Urus analysis now shows all 7-8 sections without cutting off
+- **Sections included**: Purchase price, down payment options, financing scenarios, TCO, depreciation, opportunity cost, affordability, recommendation
+
+### Validation Error Handling (✅ Complete)
+- Added confirmation messages for validation failures
+- `financial_estimates_validation_failed`: Shows errors and suggestions to user
+- `financial_estimates_saved_with_warnings`: Displays warnings when data is saved
+- `financial_estimates_saved`: Confirms successful data save
+- Prevents Groq API errors when validation fails
+
 ## Phase 2: Advanced Intelligence Features
 
 ### Market Data Integration (✅ Complete)

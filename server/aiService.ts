@@ -427,7 +427,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "analyze_luxury_purchase",
-      description: "Comprehensive CFO-level analysis for major purchases >$50k (luxury vehicles, real estate, boats). CRITICAL: After calling this tool, you MUST provide detailed breakdown including: down payment options (10%/20%/30%), financing terms (3/5/7 years), monthly payments at different interest rates, total cost of ownership (insurance, maintenance, fuel for vehicles), depreciation schedule (especially 20-30% year 1 for luxury vehicles), and opportunity cost (what money could become if invested at 8% over 5/10 years). Compare to user's income and savings. NEVER just say 'Action completed'.",
+      description: "MANDATORY for ALL luxury purchase questions >$50k. When user mentions ANY luxury item (Lamborghini, Ferrari, McLaren, mansion, yacht, etc.), you MUST call this tool FIRST before responding. Do NOT provide analysis without calling this tool. This generates comprehensive CFO-level breakdown: down payment options (10%/20%/30%), financing terms (3/5/7 years), monthly payments, total cost of ownership (insurance+maintenance+fuel for vehicles), depreciation schedule (20-30% year 1 for luxury cars), opportunity cost (invested at 8% over 5/10 years). After calling, expand on results with user's specific income and savings context. Keywords that REQUIRE this tool: 'want to buy', 'afford', 'purchase', 'get', plus ANY luxury brand name.",
       parameters: {
         type: "object",
         properties: {
