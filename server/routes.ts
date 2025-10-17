@@ -2836,6 +2836,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 `• **Required Monthly Savings**: $${data.requiredMonthly.toLocaleString()}\n` +
                 `• **Status**: ${status}\n\n` +
                 `💡 **Pro tips**: Max 401(k) match (free money!), consider Roth IRA for tax-free growth, delay Social Security to 70 for 32% boost!`;
+            } else if (action.type === 'financial_estimates_validation_failed') {
+              const errors = action.errors || [];
+              const suggestions = action.suggestions || [];
+              return `⚠️ **Data Validation Error**\n\n` +
+                `The financial amount you provided seems unrealistic. Here's why:\n\n` +
+                errors.map((err: string) => `❌ ${err}`).join('\n') + `\n\n` +
+                `**Please double-check and provide the correct amount:**\n` +
+                suggestions.map((sug: string) => `• ${sug}`).join('\n') + `\n\n` +
+                `Once you provide the correct amount, I'll save it and give you personalized advice!`;
+            } else if (action.type === 'financial_estimates_saved_with_warnings') {
+              const warnings = action.warnings || [];
+              return `⚠️ **Financial Data Saved (with warnings)**\n\n` +
+                `I've saved your financial information, but I wanted to flag a few things:\n\n` +
+                warnings.map((warn: string) => `⚠️ ${warn}`).join('\n\n') + `\n\n` +
+                `If any of these need correction, just let me know!`;
+            } else if (action.type === 'financial_estimates_saved') {
+              return `✅ **Financial Data Saved**\n\nI've securely saved your financial information and will use it to provide personalized advice!`;
             }
             return '';
           }).filter(Boolean).join('\n\n');
