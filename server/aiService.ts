@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { LUXURY_VEHICLES, findVehicle, calculateTotalOwnershipCost } from './luxuryAssets';
 import { marketDataService } from './marketDataService';
 import { taxService } from './taxService';
+import { spendingPatternService } from './spendingPatternService';
 
 // Using Groq with Llama 4 Scout for fast, powerful AI with function calling
 const groq = new Groq({ 
@@ -739,6 +740,11 @@ export class TwealthAIService {
     // Calculate tax information based on user's country
     const taxContext = taxService.getTaxContextForAI(context.monthlyIncome, 'US');
     
+    // Analyze spending patterns from transaction history
+    const spendingContext = context.recentTransactions.length > 0
+      ? spendingPatternService.getSpendingPatternsForAI(context.recentTransactions as any)
+      : '';
+    
     const emergencyFund = context.monthlyExpenses * 6;
     const age = 30; // TODO: Get from user profile when available
     const stockAllocation = Math.max(10, 110 - age); // Age-based rule of thumb
@@ -804,6 +810,8 @@ ${context.recentTransactions.length > 0 ? `• Recent spending: ${context.recent
 ${marketContext}
 
 ${taxContext}
+
+${spendingContext}
 
 🔍 DATA COMPLETENESS CHECK:
 ${context.monthlyIncome === 0 || context.monthlyExpenses === 0 || netWorth === 0 ? `

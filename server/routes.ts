@@ -41,6 +41,7 @@ import {
 import { aiService, type UserContext } from "./aiService";
 import { cryptoService } from "./cryptoService";
 import { taxService } from "./taxService";
+import { spendingPatternService } from "./spendingPatternService";
 import Stripe from "stripe";
 
 // Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
@@ -1774,6 +1775,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: c.countryName,
         currency: c.currency
       })));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Spending Pattern Analysis Routes
+  app.get("/api/spending-patterns", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const transactions = await storage.getTransactionsByUserId(userId, 100); // Last 100 transactions
+      
+      const insights = spendingPatternService.analyzeSpendingPatterns(transactions as any);
+      res.json(insights);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
