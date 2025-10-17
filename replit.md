@@ -117,6 +117,19 @@ The application supports 11 languages (English, Spanish, Indonesian, Thai, Brazi
 - Generates personalized recommendations based on spending behavior
 - API endpoint: `/api/spending-patterns`
 
+### AI Feedback System (✅ Complete)
+- Thumbs up/down ratings on AI messages for quality tracking
+- Stores feedback per message per user with optional text comments
+- API endpoints: POST/GET `/api/messages/:messageId/feedback`, GET `/api/messages/feedback/stats`
+- Tracks helpful vs unhelpful advice to improve AI recommendations over time
+
+### AI Conversation Intelligence (✅ Complete)
+- Persistent memory system that learns from user conversations
+- Automatically extracts and stores financial priorities (e.g., "saving for house", "planning retirement")
+- Tracks investment preferences, life events, spending habits, and risk tolerance
+- Memory context automatically included in AI system prompt for personalized advice across sessions
+- Service: `conversationMemoryService.ts` with intelligent pattern recognition
+
 ## Services Architecture
 
 ### New Services Added

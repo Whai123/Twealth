@@ -729,7 +729,7 @@ const TOOLS = [
 ];
 
 export class TwealthAIService {
-  private async buildSystemPrompt(context: UserContext): Promise<string> {
+  private async buildSystemPrompt(context: UserContext, memoryContext?: string): Promise<string> {
     const savingsRate = ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome) * 100;
     const netWorth = context.totalSavings;
     const goals = context.activeGoals;
@@ -812,6 +812,7 @@ ${marketContext}
 ${taxContext}
 
 ${spendingContext}
+${memoryContext || ''}
 
 🔍 DATA COMPLETENESS CHECK:
 ${context.monthlyIncome === 0 || context.monthlyExpenses === 0 || netWorth === 0 ? `
@@ -1526,7 +1527,8 @@ CRITICAL RULES:
   async generateAdvice(
     userMessage: string, 
     context: UserContext, 
-    conversationHistory: ChatMessage[] = []
+    conversationHistory: ChatMessage[] = [],
+    memoryContext?: string
   ): Promise<{ response: string; toolCalls?: ToolCall[] }> {
     if (!process.env.GROQ_API_KEY) {
       throw new Error('Groq API key not configured');
@@ -1540,7 +1542,7 @@ CRITICAL RULES:
     }
 
     try {
-      const systemPrompt = await this.buildSystemPrompt(context);
+      const systemPrompt = await this.buildSystemPrompt(context, memoryContext);
       
       // Build messages array
       const messages: any[] = [

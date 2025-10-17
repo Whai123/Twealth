@@ -251,6 +251,15 @@ export const userPreferences = pgTable("user_preferences", {
   monthlyIncomeEstimate: decimal("monthly_income_estimate", { precision: 10, scale: 2 }),
   monthlyExpensesEstimate: decimal("monthly_expenses_estimate", { precision: 10, scale: 2 }),
   currentSavingsEstimate: decimal("current_savings_estimate", { precision: 10, scale: 2 }),
+  // AI Conversation Memory - Stores key insights learned from user conversations
+  conversationMemory: jsonb("conversation_memory").$type<{
+    financialPriorities?: string[]; // e.g., ["saving for house", "planning retirement"]
+    investmentPreferences?: string[]; // e.g., ["prefers conservative", "interested in tech stocks"]
+    lifeEvents?: { event: string; timeframe?: string }[]; // e.g., [{ event: "getting married", timeframe: "2026" }]
+    spendingHabits?: string[]; // e.g., ["eats out frequently", "shops online weekly"]
+    riskTolerance?: string; // e.g., "conservative", "moderate", "aggressive"
+    lastUpdated?: string; // ISO timestamp of last memory update
+  }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

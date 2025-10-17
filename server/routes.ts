@@ -40,6 +40,7 @@ import {
   friendGroupInvitations
 } from "@shared/schema";
 import { aiService, type UserContext } from "./aiService";
+import { extractAndUpdateMemory, getMemoryContext } from './conversationMemoryService';
 import { cryptoService } from "./cryptoService";
 import { taxService } from "./taxService";
 import { spendingPatternService } from "./spendingPatternService";
@@ -2315,8 +2316,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       try {
+        // Get memory context from previous conversations
+        const memoryContext = await getMemoryContext(storage, userId);
+        
         // Generate AI response with potential tool calls
-        const aiResult = await aiService.generateAdvice(userMessage, userContext, conversationHistory);
+        const aiResult = await aiService.generateAdvice(userMessage, userContext, conversationHistory, memoryContext);
         
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
@@ -2752,6 +2756,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tokenCount: Math.ceil(responseContent.length / 4),
           cost: isDeepAnalysis ? '0.0005' : '0.0001' // Higher cost for deep analysis
         });
+
+        // Extract and update conversation memory
+        await extractAndUpdateMemory(storage, userId, userMessage, responseContent);
 
         // Update conversation title if it's the first exchange
         if (conversationHistory.length <= 1) {
