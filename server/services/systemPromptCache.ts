@@ -96,11 +96,13 @@ class SystemPromptCacheService {
    * Clear cache for a specific user (when their data changes significantly)
    */
   clearUser(userId: string): void {
-    for (const [key] of this.cache) {
+    const keysToDelete: string[] = [];
+    this.cache.forEach((_, key) => {
       if (key.startsWith(`${userId}:`)) {
-        this.cache.delete(key);
+        keysToDelete.push(key);
       }
-    }
+    });
+    keysToDelete.forEach(key => this.cache.delete(key));
   }
   
   /**
@@ -109,11 +111,11 @@ class SystemPromptCacheService {
   getStats(): { size: number; oldestEntry: number | null } {
     let oldestTimestamp: number | null = null;
     
-    for (const [, value] of this.cache) {
+    this.cache.forEach((value) => {
       if (!oldestTimestamp || value.timestamp < oldestTimestamp) {
         oldestTimestamp = value.timestamp;
       }
-    }
+    });
     
     return {
       size: this.cache.size,
