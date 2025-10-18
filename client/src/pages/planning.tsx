@@ -21,12 +21,12 @@ interface Suggestion {
 export default function Planning() {
   const [activeTab, setActiveTab] = useState("suggestions");
 
-  const { data: goals } = useQuery({
+  const { data: goals = [] } = useQuery<any[]>({
     queryKey: ["/api/financial-goals"],
     queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
   });
 
-  const { data: transactions } = useQuery({
+  const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/transactions"],
     queryFn: () => fetch("/api/transactions?limit=100").then(res => res.json()),
   });

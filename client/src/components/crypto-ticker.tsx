@@ -10,7 +10,7 @@ const POPULAR_CRYPTOS = [
 export default function CryptoTicker() {
   const coinIds = POPULAR_CRYPTOS.map(c => c.id).join(',');
   
-  const { data: prices, isLoading, error } = useQuery({
+  const { data: prices = [], isLoading, error } = useQuery<any[]>({
     queryKey: ['/api/crypto/prices', coinIds],
     queryFn: async () => {
       const res = await fetch(`/api/crypto/prices?ids=${coinIds}`, {
