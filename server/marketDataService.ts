@@ -39,7 +39,7 @@ interface MarketDataCache {
   indicators: Map<string, { data: EconomicIndicator; timestamp: number }>;
 }
 
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes for market data
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour for market data (most users don't need real-time updates)
 const cache: MarketDataCache = {
   stocks: new Map(),
   forex: new Map(),
