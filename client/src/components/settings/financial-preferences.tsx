@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -17,12 +17,11 @@ import {
   Plus,
   Minus,
   CheckCircle,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react";
 
-interface FinancialPreferencesProps {
-  // Add props as needed
-}
+interface FinancialPreferencesProps {}
 
 type FinancialPreferences = {
   id: string;
@@ -42,12 +41,10 @@ type FinancialPreferences = {
 export default function FinancialPreferences({ }: FinancialPreferencesProps) {
   const { toast } = useToast();
 
-  // Fetch financial preferences
   const { data: preferences, isLoading } = useQuery<FinancialPreferences>({
     queryKey: ['/api/financial-preferences'],
   });
 
-  // Update preferences mutation
   const updatePreferencesMutation = useMutation({
     mutationFn: (updates: Partial<FinancialPreferences>) =>
       apiRequest('PUT', '/api/financial-preferences', updates),
@@ -68,15 +65,15 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
   });
 
   const budgetPeriods = [
-    { value: "weekly", label: "Weekly", description: "Track spending week by week" },
-    { value: "monthly", label: "Monthly", description: "Monthly budget cycles" },
-    { value: "yearly", label: "Yearly", description: "Annual budget planning" }
+    { value: "weekly", label: "Weekly", description: "Track spending week by week", icon: Calendar },
+    { value: "monthly", label: "Monthly", description: "Monthly budget cycles", icon: Calendar },
+    { value: "yearly", label: "Yearly", description: "Annual budget planning", icon: Calendar }
   ];
 
   const goalPriorities = [
-    { value: "low", label: "Low Priority", color: "bg-gray-100 text-gray-800" },
-    { value: "medium", label: "Medium Priority", color: "bg-blue-100 text-blue-800" },
-    { value: "high", label: "High Priority", color: "bg-red-100 text-red-800" }
+    { value: "low", label: "Low Priority", color: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" },
+    { value: "medium", label: "Medium Priority", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
+    { value: "high", label: "High Priority", color: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300" }
   ];
 
   const savingsFrequencies = [
@@ -111,86 +108,66 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
     updatePreferencesMutation.mutate({ autoSavingsFrequency: frequency });
   };
 
-  const addExpenseCategory = (category: string) => {
-    if (!preferences || !category.trim()) return;
-    const newCategories = [...preferences.expenseCategories, category.trim()];
-    updatePreferencesMutation.mutate({ expenseCategories: newCategories });
-  };
-
-  const removeExpenseCategory = (index: number) => {
-    if (!preferences) return;
-    const newCategories = preferences.expenseCategories.filter((_, i) => i !== index);
-    updatePreferencesMutation.mutate({ expenseCategories: newCategories });
-  };
-
-  const addIncomeCategory = (category: string) => {
-    if (!preferences || !category.trim()) return;
-    const newCategories = [...preferences.incomeCategories, category.trim()];
-    updatePreferencesMutation.mutate({ incomeCategories: newCategories });
-  };
-
-  const removeIncomeCategory = (index: number) => {
-    if (!preferences) return;
-    const newCategories = preferences.incomeCategories.filter((_, i) => i !== index);
-    updatePreferencesMutation.mutate({ incomeCategories: newCategories });
-  };
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="animate-spin mr-2" size={24} />
-        Loading financial preferences...
+      <div className="flex items-center justify-center p-8 sm:p-12">
+        <Loader2 className="animate-spin mr-2 w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
+        <span className="text-base sm:text-lg text-slate-600 dark:text-slate-400">Loading financial preferences...</span>
       </div>
     );
   }
 
   if (!preferences) {
     return (
-      <div className="text-center p-8">
-        <p className="text-muted-foreground">Failed to load financial preferences</p>
+      <div className="text-center p-8 sm:p-12">
+        <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400">Failed to load financial preferences</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Budget Settings */}
-      <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex items-center">
-            <DollarSign className="mr-2" size={20} />
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             Budget Settings
           </CardTitle>
+          <CardDescription className="text-sm sm:text-base mt-1">
+            Configure your budget tracking and warning preferences
+          </CardDescription>
         </CardHeader>
-        <CardContent className="px-0 space-y-6">
-          {/* Budget Period */}
-          <div className="space-y-3">
-            <h4 className="font-medium">Default Budget Period</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <CardContent className="p-4 sm:p-6 space-y-6">
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="font-medium text-sm sm:text-base text-slate-700 dark:text-slate-300">Default Budget Period</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {budgetPeriods.map((period) => (
                 <button
                   key={period.value}
                   data-testid={`budget-period-${period.value}`}
                   onClick={() => handleBudgetPeriodChange(period.value as "weekly" | "monthly" | "yearly")}
                   disabled={updatePreferencesMutation.isPending}
-                  className={`p-4 rounded-lg border transition-all text-left ${
+                  className={`min-h-[88px] p-4 rounded-xl border-2 transition-all duration-300 text-left ${
                     preferences.defaultBudgetPeriod === period.value 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-border hover:border-primary/50'
-                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      ? 'border-green-600 bg-green-50 dark:bg-green-950/30 shadow-md' 
+                      : 'border-slate-200 dark:border-slate-700 hover:border-green-400 dark:hover:border-green-600 bg-white dark:bg-slate-800/50'
+                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
                 >
-                  <h4 className="font-medium">{period.label}</h4>
-                  <p className="text-sm text-muted-foreground">{period.description}</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <period.icon className={`w-5 h-5 ${preferences.defaultBudgetPeriod === period.value ? 'text-green-600' : 'text-slate-400'}`} />
+                    <h4 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">{period.label}</h4>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">{period.description}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Budget Warning Threshold */}
-          <div className="space-y-3">
-            <h4 className="font-medium">Budget Warning Threshold</h4>
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
+          <div className="space-y-3 sm:space-y-4">
+            <h4 className="font-medium text-sm sm:text-base text-slate-700 dark:text-slate-300">Budget Warning Threshold</h4>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex-1 w-full">
                 <Input
                   data-testid="input-warning-threshold"
                   type="number"
@@ -199,15 +176,15 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
                   value={preferences.budgetWarningThreshold}
                   onChange={(e) => handleWarningThresholdChange(parseInt(e.target.value))}
                   disabled={updatePreferencesMutation.isPending}
-                  className="w-full"
+                  className="h-12 sm:h-14 text-base w-full bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
                 />
               </div>
-              <div className="flex items-center">
-                <AlertTriangle className="text-yellow-500 mr-2" size={20} />
-                <span className="text-sm text-muted-foreground">% of budget</span>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="text-yellow-600 w-5 h-5" />
+                <span className="text-sm sm:text-base text-slate-600 dark:text-slate-400">% of budget</span>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
               Get notified when spending reaches {preferences.budgetWarningThreshold}% of your budget
             </p>
           </div>
@@ -215,32 +192,36 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
       </Card>
 
       {/* Auto-Savings */}
-      <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex items-center">
-            <Target className="mr-2" size={20} />
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             Auto-Savings Options
           </CardTitle>
+          <CardDescription className="text-sm sm:text-base mt-1">
+            Automatically save toward your financial goals
+          </CardDescription>
         </CardHeader>
-        <CardContent className="px-0 space-y-4">
-          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-            <div>
-              <p className="font-medium">Enable Auto-Savings</p>
-              <p className="text-sm text-muted-foreground">Automatically save toward your goals</p>
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between min-h-[60px] p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="mb-3 sm:mb-0">
+              <p className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">Enable Auto-Savings</p>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Automatically save toward your goals</p>
             </div>
             <Switch 
               data-testid="switch-auto-savings"
               checked={preferences.autoSavingsEnabled}
               onCheckedChange={handleAutoSavingsToggle}
               disabled={updatePreferencesMutation.isPending}
+              className="scale-110"
             />
           </div>
 
           {preferences.autoSavingsEnabled && (
-            <div className="space-y-4 ml-4 border-l-2 border-primary/20 pl-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Auto-Savings Amount</label>
+            <div className="space-y-4 animate-in fade-in-50 duration-300 border-l-4 border-blue-500 pl-4 ml-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 block">Auto-Savings Amount</label>
                   <Input
                     data-testid="input-auto-savings-amount"
                     type="number"
@@ -250,17 +231,18 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
                     onChange={(e) => handleAutoSavingsAmountChange(e.target.value)}
                     disabled={updatePreferencesMutation.isPending}
                     placeholder="0.00"
+                    className="h-12 sm:h-14 text-base w-full bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700"
                   />
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Frequency</label>
+                <div className="space-y-2">
+                  <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 block">Frequency</label>
                   <Select 
                     value={preferences.autoSavingsFrequency} 
                     onValueChange={handleSavingsFrequencyChange}
                     disabled={updatePreferencesMutation.isPending}
                   >
-                    <SelectTrigger data-testid="select-savings-frequency">
+                    <SelectTrigger className="h-12 sm:h-14 text-base bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700" data-testid="select-savings-frequency">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -279,29 +261,32 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
       </Card>
 
       {/* Goal Defaults */}
-      <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex items-center">
-            <TrendingUp className="mr-2" size={20} />
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
             Goal Defaults
           </CardTitle>
+          <CardDescription className="text-sm sm:text-base mt-1">
+            Set default priority level for new financial goals
+          </CardDescription>
         </CardHeader>
-        <CardContent className="px-0 space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Default Goal Priority</label>
+        <CardContent className="p-4 sm:p-6 space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 block">Default Goal Priority</label>
             <Select 
               value={preferences.defaultGoalPriority} 
               onValueChange={handleGoalPriorityChange}
               disabled={updatePreferencesMutation.isPending}
             >
-              <SelectTrigger data-testid="select-goal-priority">
+              <SelectTrigger className="h-12 sm:h-14 text-base bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700" data-testid="select-goal-priority">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {goalPriorities.map((priority) => (
                   <SelectItem key={priority.value} value={priority.value}>
-                    <div className="flex items-center">
-                      <Badge className={`mr-2 ${priority.color}`}>
+                    <div className="flex items-center py-1">
+                      <Badge className={`${priority.color} font-medium`}>
                         {priority.label}
                       </Badge>
                     </div>
@@ -311,124 +296,6 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
             </Select>
           </div>
         </CardContent>
-      </Card>
-
-      {/* Category Management */}
-      <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex items-center">
-            <Settings className="mr-2" size={20} />
-            Category Management
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0 space-y-6">
-          {/* Expense Categories */}
-          <div className="space-y-3">
-            <h4 className="font-medium">Expense Categories</h4>
-            <div className="flex flex-wrap gap-2">
-              {preferences.expenseCategories.map((category, index) => (
-                <Badge
-                  key={index}
-                  data-testid={`expense-category-${index}`}
-                  variant="secondary"
-                  className="flex items-center space-x-1"
-                >
-                  <span>{category}</span>
-                  <button
-                    data-testid={`remove-expense-category-${index}`}
-                    onClick={() => removeExpenseCategory(index)}
-                    disabled={updatePreferencesMutation.isPending}
-                    className="ml-1 hover:text-red-500"
-                  >
-                    <Minus size={14} />
-                  </button>
-                </Badge>
-              ))}
-              <Button
-                data-testid="add-expense-category"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const category = prompt("Enter new expense category:");
-                  if (category) addExpenseCategory(category);
-                }}
-                disabled={updatePreferencesMutation.isPending}
-              >
-                <Plus size={14} className="mr-1" />
-                Add Category
-              </Button>
-            </div>
-          </div>
-
-          {/* Income Categories */}
-          <div className="space-y-3">
-            <h4 className="font-medium">Income Categories</h4>
-            <div className="flex flex-wrap gap-2">
-              {preferences.incomeCategories.map((category, index) => (
-                <Badge
-                  key={index}
-                  data-testid={`income-category-${index}`}
-                  variant="secondary"
-                  className="flex items-center space-x-1"
-                >
-                  <span>{category}</span>
-                  <button
-                    data-testid={`remove-income-category-${index}`}
-                    onClick={() => removeIncomeCategory(index)}
-                    disabled={updatePreferencesMutation.isPending}
-                    className="ml-1 hover:text-red-500"
-                  >
-                    <Minus size={14} />
-                  </button>
-                </Badge>
-              ))}
-              <Button
-                data-testid="add-income-category"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const category = prompt("Enter new income category:");
-                  if (category) addIncomeCategory(category);
-                }}
-                disabled={updatePreferencesMutation.isPending}
-              >
-                <Plus size={14} className="mr-1" />
-                Add Category
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Save Button */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="font-medium">Financial Settings</h4>
-            <p className="text-sm text-muted-foreground">
-              {updatePreferencesMutation.isPending ? 'Saving...' : 'Settings are saved automatically'}
-            </p>
-          </div>
-          <Button 
-            data-testid="button-save-financial-preferences"
-            onClick={() => {
-              queryClient.invalidateQueries({ queryKey: ['/api/financial-preferences'] });
-              toast({
-                title: "Financial preferences synchronized",
-                description: "All settings are up to date.",
-              });
-            }}
-            disabled={updatePreferencesMutation.isPending}
-            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-          >
-            {updatePreferencesMutation.isPending ? (
-              <Loader2 className="mr-2 animate-spin" size={16} />
-            ) : (
-              <CheckCircle className="mr-2" size={16} />
-            )}
-            {updatePreferencesMutation.isPending ? 'Saving...' : 'Sync Settings'}
-          </Button>
-        </div>
       </Card>
     </div>
   );
