@@ -64,7 +64,11 @@ export const events = pgTable("events", {
   actualDurationMinutes: integer("actual_duration_minutes"), // actual time spent from time logs
   timeTracked: boolean("time_tracked").default(false), // whether user has tracked time for this event
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_events_created_by").on(table.createdBy),
+  index("idx_events_start_time").on(table.startTime),
+  index("idx_events_group_id").on(table.groupId),
+]);
 
 export const financialGoals = pgTable("financial_goals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -78,7 +82,10 @@ export const financialGoals = pgTable("financial_goals", {
   priority: text("priority").default("medium"), // low, medium, high
   status: text("status").default("active"), // active, completed, paused
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_goals_user_id").on(table.userId),
+  index("idx_goals_status").on(table.status),
+]);
 
 export const transactions = pgTable("transactions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -90,7 +97,11 @@ export const transactions = pgTable("transactions", {
   goalId: varchar("goal_id").references(() => financialGoals.id, { onDelete: "cascade" }),
   date: timestamp("date").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  index("idx_transactions_user_id").on(table.userId),
+  index("idx_transactions_date").on(table.date),
+  index("idx_transactions_type").on(table.type),
+]);
 
 export const goalContributions = pgTable("goal_contributions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
