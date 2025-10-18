@@ -65,11 +65,11 @@ export default function Calendar() {
     }
   }, []);
 
-  const { data: events, isLoading } = useQuery({
+  const { data: events = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/events"],
   });
 
-  const { data: groups } = useQuery({
+  const { data: groups = [] } = useQuery<any[]>({
     queryKey: ["/api/groups"],
   });
 
@@ -268,8 +268,8 @@ export default function Calendar() {
 
   const days = getDaysInMonth();
   const filteredEvents = getFilteredEvents();
-  const availableCategories = Array.from(new Set(
-    (events || []).map((event: any) => event.category).filter(Boolean)
+  const availableCategories: string[] = Array.from(new Set(
+    events.map((event: any) => event.category).filter(Boolean)
   ));
 
   return (
@@ -301,7 +301,7 @@ export default function Calendar() {
               <AdvancedFilters
                 onFiltersChange={setFilters}
                 availableCategories={availableCategories}
-                availableGroups={(groups as any[]) || []}
+                availableGroups={groups}
                 open={isFiltersOpen}
                 onOpenChange={setIsFiltersOpen}
               />
@@ -358,7 +358,7 @@ export default function Calendar() {
                             <SelectValue placeholder="Choose a group..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {(groups as any[])?.map((group: any) => (
+                            {groups?.map((group: any) => (
                               <SelectItem key={group.id} value={group.id}>
                                 <div className="flex items-center">
                                   <CalendarIcon size={16} className="mr-2" />
