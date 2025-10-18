@@ -43,11 +43,13 @@ const PageLoader = () => (
 
 import Sidebar from "./components/sidebar";
 import MobileNavigation from "./components/mobile-navigation";
+import MobileHeader from "./components/mobile-header";
 import ErrorBoundary from "./components/error-boundary";
 import { OnboardingRedirect } from "./components/onboarding-redirect";
 import { OfflineIndicator } from "./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from "./components/pwa/install-prompt";
 import { RTLProvider } from "./components/rtl-provider";
+import { SidebarProvider } from "./components/ui/sidebar";
 
 function Router() {
   const [location] = useLocation();
@@ -95,45 +97,46 @@ function Router() {
   // Authenticated routes with responsive navigation
   return (
     <OnboardingRedirect>
-      <div className="flex min-h-screen bg-background">
-        {/* Desktop Sidebar - hidden on mobile and welcome page */}
-        {location !== "/welcome" && (
-          <div className="hidden md:block">
-            <Sidebar />
-          </div>
-        )}
-        
-        {/* Main Content Area */}
-        <main className={`flex-1 overflow-auto ${location !== "/welcome" ? "pb-20 md:pb-0" : ""}`}>
-          <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <Switch>
-                <Route path="/" component={Dashboard} />
-                <Route path="/welcome" component={Welcome} />
-                <Route path="/invite/:token" component={InvitePage} />
-                <Route path="/groups" component={Groups} />
-                <Route path="/calendar" component={Calendar} />
-                <Route path="/financial-goals" component={FinancialGoals} />
-                <Route path="/money-tracking" component={MoneyTracking} />
-                <Route path="/planning" component={Planning} />
-                <Route path="/crypto" component={Crypto} />
-                <Route path="/friends" component={Friends} />
-                <Route path="/ai-assistant" component={AIAssistant} />
-                <Route path="/ai-insights" component={AIInsights} />
-                <Route path="/referrals" component={Referrals} />
-                <Route path="/subscription" component={Subscription} />
-                <Route path="/checkout/:planId" component={Checkout} />
-                <Route path="/upgrade" component={Upgrade} />
-                <Route path="/settings" component={Settings} />
-                <Route component={NotFound} />
-              </Switch>
-            </Suspense>
-          </ErrorBoundary>
-        </main>
-        
-        {/* Mobile Navigation - shown only on mobile and not on welcome page */}
-        {location !== "/welcome" && <MobileNavigation />}
-      </div>
+      <SidebarProvider>
+        <div className="flex min-h-screen bg-background">
+          {/* Sidebar - uses Sheet on mobile, fixed sidebar on desktop */}
+          {location !== "/welcome" && <Sidebar />}
+          
+          {/* Main Content Area */}
+          <main className={`flex-1 overflow-auto ${location !== "/welcome" ? "pt-16 md:pt-0 pb-20 md:pb-0" : ""}`}>
+            {/* Mobile Header - sticky at top on mobile only */}
+            {location !== "/welcome" && <MobileHeader />}
+            
+            <ErrorBoundary>
+              <Suspense fallback={<PageLoader />}>
+                <Switch>
+                  <Route path="/" component={Dashboard} />
+                  <Route path="/welcome" component={Welcome} />
+                  <Route path="/invite/:token" component={InvitePage} />
+                  <Route path="/groups" component={Groups} />
+                  <Route path="/calendar" component={Calendar} />
+                  <Route path="/financial-goals" component={FinancialGoals} />
+                  <Route path="/money-tracking" component={MoneyTracking} />
+                  <Route path="/planning" component={Planning} />
+                  <Route path="/crypto" component={Crypto} />
+                  <Route path="/friends" component={Friends} />
+                  <Route path="/ai-assistant" component={AIAssistant} />
+                  <Route path="/ai-insights" component={AIInsights} />
+                  <Route path="/referrals" component={Referrals} />
+                  <Route path="/subscription" component={Subscription} />
+                  <Route path="/checkout/:planId" component={Checkout} />
+                  <Route path="/upgrade" component={Upgrade} />
+                  <Route path="/settings" component={Settings} />
+                  <Route component={NotFound} />
+                </Switch>
+              </Suspense>
+            </ErrorBoundary>
+          </main>
+          
+          {/* Mobile Navigation - shown only on mobile and not on welcome page */}
+          {location !== "/welcome" && <MobileNavigation />}
+        </div>
+      </SidebarProvider>
     </OnboardingRedirect>
   );
 }
