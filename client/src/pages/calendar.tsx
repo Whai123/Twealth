@@ -1,44 +1,34 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Copy, Users, Globe, Clock, DollarSign, TrendingUp, TrendingDown, Edit, Trash2, BarChart3, Filter } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Users, Globe, Clock, DollarSign, TrendingUp, Edit, Trash2, BarChart3, Filter, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import EventForm from "@/components/forms/event-form";
 import { TimeTracker } from "@/components/time-tracker";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import MobileCalendarGrid from "@/components/calendar/mobile-calendar-grid";
+import { useIsMobile } from "@/hooks/use-mobile";
 import AdvancedFilters, { type FilterOptions } from "@/components/calendar/advanced-filters";
 import SmartCalendarInsights from "@/components/calendar/smart-calendar-insights";
-import MobileFloatingActions from "@/components/calendar/mobile-floating-actions";
 
+const DAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function Calendar() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
-  // Check for create query parameter and open dialog automatically
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('create') === '1') {
-      setIsCreateDialogOpen(true);
-      setShowEventForm(true);
-      // Clean up URL by removing the query parameter
-      window.history.replaceState({}, '', '/calendar');
-    }
-  }, []);
   const [showEventForm, setShowEventForm] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isEventDetailsOpen, setIsEventDetailsOpen] = useState(false);
@@ -50,7 +40,7 @@ export default function Calendar() {
   const [eventToEdit, setEventToEdit] = useState<any>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<any>(null);
-  const [currentView, setCurrentView] = useState<'month' | 'week' | 'agenda'>('month');
+  const [currentView, setCurrentView] = useState<'month' | 'agenda'>('month');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     categories: [],
@@ -64,6 +54,16 @@ export default function Calendar() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check for create query parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('create') === '1') {
+      setIsCreateDialogOpen(true);
+      setShowEventForm(true);
+      window.history.replaceState({}, '', '/calendar');
+    }
+  }, []);
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["/api/events"],
@@ -104,7 +104,6 @@ export default function Calendar() {
         description: "The share link has been copied to your clipboard.",
       });
       setIsShareDialogOpen(false);
-      // Invalidate calendar shares cache
       queryClient.invalidateQueries({ queryKey: ["/api/calendar/shares"] });
     },
     onError: (error: any) => {
@@ -206,7 +205,6 @@ export default function Calendar() {
     if (date && currentView === 'month') {
       setSelectedEventId(null);
       setShowEventForm(true);
-      // Set the date in the form if possible via a context or prop
     }
   };
 
@@ -219,44 +217,28 @@ export default function Calendar() {
     const startingDayOfWeek = firstDay.getDay();
 
     const days = [];
-
-    // Add empty cells for previous month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-
-    // Add days of current month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
     }
-
     return days;
   };
 
-  // Enhanced event filtering based on applied filters
   const getFilteredEvents = () => {
     if (!events || !Array.isArray(events)) return [];
     
     return events.filter((event: any) => {
-      // Category filter
-      if (filters.categories.length > 0 && !filters.categories.includes(event.category)) {
-        return false;
-      }
+      if (filters.categories.length > 0 && !filters.categories.includes(event.category)) return false;
       
-      // Time value filter
       const duration = event.actualDurationMinutes || event.plannedDurationMinutes || 0;
-      const timeValue = (duration / 60) * 50; // $50/hr default
-      if (timeValue < filters.timeValueRange[0] || timeValue > filters.timeValueRange[1]) {
-        return false;
-      }
+      const timeValue = (duration / 60) * 50;
+      if (timeValue < filters.timeValueRange[0] || timeValue > filters.timeValueRange[1]) return false;
       
-      // Budget filter
       const budget = parseFloat(event.budget || '0');
-      if (budget > 0 && (budget < filters.budgetRange[0] || budget > filters.budgetRange[1])) {
-        return false;
-      }
+      if (budget > 0 && (budget < filters.budgetRange[0] || budget > filters.budgetRange[1])) return false;
       
-      // ROI filter
       if (filters.hasROI) {
         const actualCost = parseFloat(event.actualCost || '0');
         if (actualCost === 0 || budget === 0) return false;
@@ -264,20 +246,9 @@ export default function Calendar() {
         if (roi < filters.roiThreshold) return false;
       }
       
-      // Time tracking filter
-      if (filters.hasTimeTracking && (!event.actualDurationMinutes || event.actualDurationMinutes === 0)) {
-        return false;
-      }
-      
-      // Upcoming filter
-      if (filters.isUpcoming && new Date(event.startTime) <= new Date()) {
-        return false;
-      }
-      
-      // Group filter
-      if (filters.groupId && event.groupId !== filters.groupId) {
-        return false;
-      }
+      if (filters.hasTimeTracking && (!event.actualDurationMinutes || event.actualDurationMinutes === 0)) return false;
+      if (filters.isUpcoming && new Date(event.startTime) <= new Date()) return false;
+      if (filters.groupId && event.groupId !== filters.groupId) return false;
       
       return true;
     });
@@ -287,7 +258,6 @@ export default function Calendar() {
     const filteredEvents = getFilteredEvents();
     return filteredEvents.filter((event: any) => {
       const eventDate = new Date(event.startTime);
-      // Compare dates in local timezone to avoid UTC conversion issues
       return (
         eventDate.getFullYear() === date.getFullYear() &&
         eventDate.getMonth() === date.getMonth() &&
@@ -298,172 +268,130 @@ export default function Calendar() {
 
   const days = getDaysInMonth();
   const filteredEvents = getFilteredEvents();
-  
-  // Extract available categories for filters
   const availableCategories = Array.from(new Set(
     (events || []).map((event: any) => event.category).filter(Boolean)
   ));
-  
-  const handleQuickEvent = () => {
-    // Quick event creation with current date/time
-    setShowEventForm(true);
-  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30">
-      {/* Spectacular Header */}
-      <header className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/50 dark:via-indigo-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
-                  <CalendarIcon className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    📅 Smart Calendar
-                  </h1>
-                  <p className="text-xl text-muted-foreground">AI-powered scheduling and time optimization</p>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
+      {/* Mobile-Optimized Header */}
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          {/* Header Top Row */}
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Icon - Smaller on mobile */}
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
+                <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               
-              {/* Calendar Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CalendarIcon className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-medium">Events</span>
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600">{filteredEvents?.length || 0}</div>
-                  <div className="text-xs text-muted-foreground">This month</div>
-                </div>
-                
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-5 h-5 text-indigo-500" />
-                    <span className="text-sm font-medium">Time Value</span>
-                  </div>
-                  <div className="text-2xl font-bold text-indigo-600">
-                    ${Math.round(filteredEvents?.reduce((sum: number, event: any) => {
-                      const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
-                      return sum + (duration * 50);
-                    }, 0) || 0)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Tracked value</div>
-                </div>
-                
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-5 h-5 text-purple-500" />
-                    <span className="text-sm font-medium">Efficiency</span>
-                  </div>
-                  <div className="text-2xl font-bold text-purple-600">92%</div>
-                  <div className="text-xs text-muted-foreground">Optimization</div>
-                </div>
-                
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BarChart3 className="w-5 h-5 text-pink-500" />
-                    <span className="text-sm font-medium">ROI</span>
-                  </div>
-                  <div className="text-2xl font-bold text-pink-600">+185%</div>
-                  <div className="text-xs text-muted-foreground">Average return</div>
-                </div>
+              {/* Title - Responsive sizing */}
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
+                  Smart Calendar
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
+                  AI-powered scheduling
+                </p>
               </div>
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 ml-6">
+            {/* Action Buttons - Touch-friendly */}
+            <div className="flex items-center gap-2 flex-shrink-0">
               <AdvancedFilters
                 onFiltersChange={setFilters}
                 availableCategories={availableCategories}
                 availableGroups={(groups as any[]) || []}
+                open={isFiltersOpen}
+                onOpenChange={setIsFiltersOpen}
               />
               
               <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
                 <DialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="hidden sm:flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-700/90 transition-all duration-300 hover:scale-105"
+                    size={isMobile ? "icon" : "default"}
+                    className="h-11 sm:h-12 min-w-[44px] transition-all hover:scale-105 active:scale-95"
                     data-testid="button-share-calendar"
                   >
-                    <Share2 size={16} className="mr-2" />
-                    🔗 Share
+                    <Share2 size={18} className={isMobile ? "" : "mr-2"} />
+                    {!isMobile && <span className="hidden sm:inline">Share</span>}
                   </Button>
                 </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-lg max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Share Your Calendar</DialogTitle>
-                  <DialogDescription>
-                    Create a shareable link to let others view your calendar or group events.
-                  </DialogDescription>
-                </DialogHeader>
+                <DialogContent className="w-[95vw] max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Share Your Calendar</DialogTitle>
+                    <DialogDescription>
+                      Create a shareable link to let others view your calendar or group events.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="share-scope">Share Type</Label>
+                      <Select value={shareScope} onValueChange={(value: 'user' | 'group') => setShareScope(value)}>
+                        <SelectTrigger className="h-12" data-testid="select-share-scope">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="user">
+                            <div className="flex items-center">
+                              <Globe size={16} className="mr-2" />
+                              My Personal Calendar
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="group">
+                            <div className="flex items-center">
+                              <Users size={16} className="mr-2" />
+                              Group Calendar
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {shareScope === 'group' && (
+                      <div>
+                        <Label htmlFor="group-select">Select Group</Label>
+                        <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                          <SelectTrigger className="h-12" data-testid="select-group">
+                            <SelectValue placeholder="Choose a group..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(groups as any[])?.map((group: any) => (
+                              <SelectItem key={group.id} value={group.id}>
+                                <div className="flex items-center">
+                                  <CalendarIcon size={16} className="mr-2" />
+                                  {group.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    
+                    <Button 
+                      onClick={handleCreateShare} 
+                      disabled={shareScope === 'group' && !selectedGroupId}
+                      className="w-full h-12 sm:h-14 text-base font-medium"
+                      data-testid="button-generate-share-link"
+                    >
+                      Generate Share Link
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="share-scope">Share Type</Label>
-                  <Select value={shareScope} onValueChange={(value: 'user' | 'group') => setShareScope(value)}>
-                    <SelectTrigger data-testid="select-share-scope">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">
-                        <div className="flex items-center">
-                          <Globe size={16} className="mr-2" />
-                          My Personal Calendar
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="group">
-                        <div className="flex items-center">
-                          <Users size={16} className="mr-2" />
-                          Group Calendar
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-              {shareScope === 'group' && (
-                <div>
-                  <Label htmlFor="group-select">Select Group</Label>
-                  <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-                    <SelectTrigger data-testid="select-group">
-                      <SelectValue placeholder="Choose a group..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(groups as any[])?.map((group: any) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          <div className="flex items-center">
-                            <CalendarIcon size={16} className="mr-2" />
-                            {group.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-                
-                <Button 
-                  onClick={() => handleCreateShare()} 
-                  disabled={shareScope === 'group' && !selectedGroupId}
-                  className="w-full"
-                >
-                  Generate Share Link
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-            
               <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
                 <DialogTrigger asChild>
                   <Button 
-                    className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white font-semibold px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    className="h-11 sm:h-12 px-4 sm:px-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold shadow-lg transition-all hover:scale-105 active:scale-95"
                     data-testid="button-create-event"
                   >
                     <Plus size={18} className="mr-2" />
-                    📅 New Event
+                    <span className="hidden sm:inline">New Event</span>
+                    <span className="sm:hidden">New</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -473,805 +401,528 @@ export default function Calendar() {
             </div>
           </div>
           
-          {/* Welcome Message */}
-          <div className="bg-gradient-to-r from-white/80 to-blue-50/80 dark:from-gray-800/80 dark:to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-blue-500" />
-              <div>
-                <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-200">Time Is Money 💰</h2>
-                <p className="text-blue-600 dark:text-blue-300">AI analyzes your schedule to maximize productivity and minimize wasted time.</p>
+          {/* Stats Cards - Responsive Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 mb-1">
+                <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <span className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100">Events</span>
               </div>
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">{filteredEvents?.length || 0}</div>
+              <div className="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300">This month</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                <span className="text-xs sm:text-sm font-medium text-purple-900 dark:text-purple-100">Value</span>
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                ${Math.round(filteredEvents?.reduce((sum: number, event: any) => {
+                  const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
+                  return sum + (duration * 50);
+                }, 0) || 0)}
+              </div>
+              <div className="text-[10px] sm:text-xs text-purple-700 dark:text-purple-300">Time value</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                <span className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-100">ROI</span>
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-green-600">+185%</div>
+              <div className="text-[10px] sm:text-xs text-green-700 dark:text-green-300">Avg return</div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 mb-1">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                <span className="text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-100">Efficiency</span>
+              </div>
+              <div className="text-xl sm:text-2xl font-bold text-amber-600">92%</div>
+              <div className="text-[10px] sm:text-xs text-amber-700 dark:text-amber-300">Optimized</div>
             </div>
           </div>
         </div>
       </header>
       
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Smart Insights - Desktop Only */}
+        <div className="mb-6 hidden lg:block">
+          <SmartCalendarInsights 
+            events={filteredEvents}
+            timeRange="month"
+          />
+        </div>
 
-      {/* Smart Calendar Insights - Desktop */}
-      <div className="mb-6 hidden lg:block">
-        <SmartCalendarInsights 
-          events={filteredEvents}
-          timeRange="month"
-        />
-      </div>
-
-      {/* Enhanced Calendar Navigation */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          {/* Top Navigation Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigateMonth('prev')}
-                data-testid="button-prev-month"
-              >
-                <ChevronLeft size={16} />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigateMonth('next')}
-                data-testid="button-next-month"
-              >
-                <ChevronRight size={16} />
-              </Button>
-            </div>
-
-            <h2 className="text-xl font-semibold text-center flex-1">
-              {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-            </h2>
-
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={goToToday}
-              data-testid="button-today"
-              className="text-primary hover:bg-primary/10"
-            >
-              Today
-            </Button>
-          </div>
-
-          {/* View Switcher */}
-          <div className="flex items-center justify-center mb-4">
-            <div className="flex bg-muted rounded-lg p-1">
-              {(['month', 'agenda'] as const).map((view) => (
-                <Button
-                  key={view}
-                  variant={currentView === view ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentView(view)}
-                  className="capitalize"
-                  data-testid={`button-view-${view}`}
+        {/* Calendar Navigation */}
+        <Card className="mb-6 shadow-lg">
+          <CardContent className="p-4 sm:p-6">
+            {/* Navigation Row - Mobile Optimized */}
+            <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
+              {/* Month Navigation */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => navigateMonth('prev')}
+                  className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl transition-all hover:scale-105 active:scale-95"
+                  data-testid="button-prev-month"
                 >
-                  {view}
+                  <ChevronLeft className="w-5 h-5" />
                 </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Enhanced Calendar Views */}
-          {currentView === 'month' && (
-            <>
-              {/* Desktop Calendar Grid */}
-              <div className="hidden md:grid grid-cols-7 gap-1">
-                {/* Day headers */}
-                {DAYS.map((day) => (
-                  <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
-                    {day}
-                  </div>
-                ))}
                 
-                {/* Calendar days */}
-                {days.map((date, index) => (
-                  <div
-                    key={index}
-                    className={`min-h-[100px] p-2 border border-border rounded-lg transition-colors ${
-                      date ? 'bg-card hover:bg-muted/50 cursor-pointer' : 'bg-muted/50'
-                    } ${
-                      date && date.toDateString() === new Date().toDateString()
-                        ? 'bg-primary/10 border-primary'
-                        : ''
-                    }`}
-                    onClick={() => handleDayClick(date)}
-                    data-testid={date ? `calendar-day-${date.getDate()}` : undefined}
+                <div className="min-w-[140px] sm:min-w-[180px] text-center">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+                    {isMobile ? MONTHS_SHORT[currentDate.getMonth()] : MONTHS[currentDate.getMonth()]}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    {currentDate.getFullYear()}
+                  </p>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => navigateMonth('next')}
+                  className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl transition-all hover:scale-105 active:scale-95"
+                  data-testid="button-next-month"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Today & View Switcher */}
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size={isMobile ? "sm" : "default"}
+                  onClick={goToToday}
+                  className="h-11 sm:h-12 px-3 sm:px-4 font-medium transition-all hover:scale-105 active:scale-95"
+                  data-testid="button-today"
+                >
+                  Today
+                </Button>
+              </div>
+            </div>
+
+            {/* View Switcher */}
+            <div className="flex justify-center mb-4">
+              <div className="inline-flex bg-muted p-1 rounded-lg sm:rounded-xl">
+                {(['month', 'agenda'] as const).map((view) => (
+                  <Button
+                    key={view}
+                    variant={currentView === view ? "default" : "ghost"}
+                    size={isMobile ? "sm" : "default"}
+                    onClick={() => setCurrentView(view)}
+                    className="h-10 sm:h-11 px-4 sm:px-6 capitalize font-medium transition-all"
+                    data-testid={`button-view-${view}`}
                   >
-                    {date && (
-                      <>
-                        <div className="text-sm font-medium mb-1">
-                          {date.getDate()}
-                        </div>
-                        <div className="space-y-1">
-                          {getEventsForDate(date).slice(0, 2).map((event: any) => {
-                        // Enhanced time-value calculations
-                        const actualDuration = event.actualDurationMinutes || 0;
-                        const plannedDuration = event.plannedDurationMinutes || 0;
-                        const duration = actualDuration || plannedDuration;
-                        const durationHours = duration / 60;
-                        
-                        // Get user hourly rate from settings (default $50 if not set)
-                        const userHourlyRate = 50; // Default hourly rate
-                        const timeValue = Math.round(durationHours * userHourlyRate);
-                        
-                        const hasBudget = event.budget && parseFloat(event.budget) > 0;
-                        const budget = hasBudget ? parseFloat(event.budget) : 0;
-                        const hasActualCost = event.actualCost && parseFloat(event.actualCost) > 0;
-                        const actualCost = hasActualCost ? parseFloat(event.actualCost) : 0;
-                        
-                        // Enhanced value indicators
-                        const hasTimeValue = duration > 0;
-                        const isHighValue = timeValue > 200; // High time value
-                        const isOverBudget = hasBudget && hasActualCost && actualCost > budget;
-                        const roi = actualCost > 0 ? Math.round(((timeValue - actualCost) / actualCost) * 100) : null;
-                        
-                        return (
-                          <div
-                            key={event.id}
-                            className="text-xs p-1 bg-primary/20 text-primary rounded truncate relative group cursor-pointer"
-                            title={`${event.title}${hasTimeValue ? ` • Time Value: $${timeValue} (${Math.round(durationHours * 10) / 10}h)` : ''}${hasBudget ? ` • Budget: $${budget}` : ''}${hasActualCost ? ` • Cost: $${actualCost}` : ''}${roi !== null ? ` • ROI: ${roi > 0 ? '+' : ''}${roi}%` : ''}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewEventDetails(event.id);
-                            }}
-                            data-testid={`calendar-event-${event.id}`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="truncate flex-1">{event.title}</span>
-                              <div className="flex items-center gap-1 ml-1">
-                                {hasTimeValue && (
-                                  <span 
-                                    className="inline-flex items-center px-1 py-0.5 rounded text-[10px] font-medium bg-time-bg text-time-fg border border-time-border" 
-                                    title={`Time value: $${timeValue}`}
-                                  >
-                                    ${timeValue}
-                                  </span>
-                                )}
-                                {roi !== null && (
-                                  <span 
-                                    className={`inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium ${roi >= 0 ? 'bg-value-positive/20 text-value-positive border border-value-positive/30' : 'bg-value-negative/20 text-value-negative border border-value-negative/30'}`}
-                                    title={`ROI: ${roi > 0 ? '+' : ''}${roi}%`}
-                                  >
-                                    {roi > 0 ? '+' : ''}{roi}%
-                                  </span>
-                                )}
-                                {isHighValue && !roi && (
-                                  <span 
-                                    className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-productivity-high/20 text-productivity-high border border-productivity-high/30" 
-                                    title="High value event"
-                                  >
-                                    💎HV
-                                  </span>
-                                )}
-                                {isOverBudget && (
-                                  <span 
-                                    className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-medium bg-value-negative/20 text-value-negative border border-value-negative/30" 
-                                    title={`Over budget by $${Math.round(actualCost - budget)}`}
-                                  >
-                                    +${Math.round(actualCost - budget)}
-                                  </span>
+                    {view}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Calendar Views */}
+            {currentView === 'month' && (
+              <>
+                {/* Desktop Calendar Grid */}
+                <div className="hidden md:block">
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 gap-2 mb-2">
+                    {DAYS.map((day) => (
+                      <div key={day} className="p-3 text-center">
+                        <span className="text-sm font-semibold text-muted-foreground">
+                          {day}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Calendar Days */}
+                  <div className="grid grid-cols-7 gap-2">
+                    {days.map((date, index) => {
+                      const dayEvents = date ? getEventsForDate(date) : [];
+                      const isToday = date && date.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`
+                            min-h-[100px] lg:min-h-[120px] p-2 lg:p-3 border-2 rounded-xl transition-all duration-200
+                            ${date 
+                              ? 'bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-95' 
+                              : 'bg-gray-50 dark:bg-gray-900/50 cursor-not-allowed'
+                            }
+                            ${isToday 
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-lg' 
+                              : 'border-gray-200 dark:border-gray-700'
+                            }
+                          `}
+                          onClick={() => handleDayClick(date)}
+                          data-testid={date ? `calendar-day-${date.getDate()}` : undefined}
+                        >
+                          {date && (
+                            <>
+                              <div className={`
+                                text-sm lg:text-base font-semibold mb-2
+                                ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}
+                              `}>
+                                {date.getDate()}
+                              </div>
+                              <div className="space-y-1">
+                                {dayEvents.slice(0, 3).map((event: any) => {
+                                  const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
+                                  const timeValue = Math.round(duration * 50);
+                                  
+                                  return (
+                                    <div
+                                      key={event.id}
+                                      className="text-xs p-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 text-blue-900 dark:text-blue-100 rounded-lg cursor-pointer transition-all hover:shadow-md group"
+                                      title={`${event.title} - $${timeValue}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewEventDetails(event.id);
+                                      }}
+                                      data-testid={`calendar-event-${event.id}`}
+                                    >
+                                      <div className="flex items-center justify-between gap-1">
+                                        <span className="truncate font-medium">{event.title}</span>
+                                        {timeValue > 0 && (
+                                          <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                                            ${timeValue}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {dayEvents.length > 3 && (
+                                  <div className="text-[10px] text-center text-muted-foreground bg-gray-100 dark:bg-gray-800 rounded py-1 font-medium">
+                                    +{dayEvents.length - 3} more
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      
-                      {/* Show more events indicator - moved outside loop */}
-                      {getEventsForDate(date).length > 2 && (
-                        <div className="text-[10px] text-muted-foreground mt-1 text-center bg-muted/50 rounded px-1 py-0.5">
-                          +{getEventsForDate(date).length - 2} more
+                            </>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-              </div>
-              
-              {/* Mobile Calendar Grid */}
-              <div className="md:hidden">
-                <MobileCalendarGrid
-                  currentDate={currentDate}
-                  events={filteredEvents}
-                  onNavigate={navigateMonth}
-                  onTodayClick={goToToday}
-                  onEventClick={handleViewEventDetails}
-                  onDayClick={handleDayClick}
-                  onFiltersClick={() => setIsFiltersOpen(true)}
-                />
-              </div>
-            </>
-          )}
-
-          {/* Agenda View */}
-          {currentView === 'agenda' && (
-            <div className="space-y-3">
-              <h3 className="font-medium text-muted-foreground">This Week's Events</h3>
-              {Array.from({ length: 7 }, (_, i) => {
-                const date = new Date();
-                date.setDate(date.getDate() + i);
-                const dayEvents = getEventsForDate(date);
-                
-                if (dayEvents.length === 0) return null;
-                
-                return (
-                  <Card key={date.toISOString()} className="border-l-4 border-l-primary">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</h4>
-                          <p className="text-sm text-muted-foreground">{dayEvents.length} events</p>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDayClick(date)}
-                          data-testid={`button-add-event-${date.getDate()}`}
-                        >
-                          <Plus size={16} />
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        {dayEvents.map((event: any) => (
-                          <div 
-                            key={event.id}
-                            className="flex items-center justify-between p-2 bg-muted rounded cursor-pointer hover:bg-muted/80"
-                            onClick={() => handleViewEventDetails(event.id)}
-                            data-testid={`mobile-event-${event.id}`}
-                          >
-                            <div>
-                              <p className="font-medium">{event.title}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                              </p>
-                            </div>
-                            <ChevronRight size={16} className="text-muted-foreground" />
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              }).filter(Boolean)}
-              {Array.from({ length: 7 }, (_, i) => {
-                const date = new Date();
-                date.setDate(date.getDate() + i);
-                return getEventsForDate(date);
-              }).flat().length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <CalendarIcon className="mx-auto h-12 w-12 mb-4" />
-                  <p>No events this week</p>
+                      );
+                    })}
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Mobile Month View - Show agenda on small screens */}
-          {currentView === 'month' && (
-            <div className="md:hidden space-y-3">
-              <h3 className="font-medium text-muted-foreground">This Week's Events</h3>
-              {Array.from({ length: 7 }, (_, i) => {
-                const date = new Date();
-                date.setDate(date.getDate() + i);
-                const dayEvents = getEventsForDate(date);
                 
-                if (dayEvents.length === 0) return null;
-                
-                return (
-                  <Card key={date.toISOString()} className="border-l-4 border-l-primary">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-medium">{date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</h4>
-                          <p className="text-sm text-muted-foreground">{dayEvents.length} events</p>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
+                {/* Mobile Calendar Grid */}
+                <div className="md:hidden">
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {DAYS_SHORT.map((day) => (
+                      <div key={day} className="p-2 text-center">
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          {day}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Calendar Days - Touch Optimized */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {days.map((date, index) => {
+                      const dayEvents = date ? getEventsForDate(date) : [];
+                      const isToday = date && date.toDateString() === new Date().toDateString();
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`
+                            relative aspect-square border-2 rounded-lg transition-all duration-200
+                            ${date 
+                              ? 'bg-white dark:bg-gray-800 active:scale-95 active:bg-blue-100 dark:active:bg-blue-900/40' 
+                              : 'bg-gray-50 dark:bg-gray-900/50'
+                            }
+                            ${isToday 
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-md' 
+                              : 'border-gray-200 dark:border-gray-700'
+                            }
+                          `}
                           onClick={() => handleDayClick(date)}
-                          data-testid={`button-add-event-${date.getDate()}`}
+                          data-testid={date ? `mobile-calendar-day-${date.getDate()}` : undefined}
                         >
-                          <Plus size={16} />
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        {dayEvents.map((event: any) => (
-                          <div 
-                            key={event.id}
-                            className="flex items-center justify-between p-2 bg-muted rounded cursor-pointer hover:bg-muted/80"
-                            onClick={() => handleViewEventDetails(event.id)}
-                            data-testid={`mobile-event-${event.id}`}
-                          >
-                            <div>
-                              <p className="font-medium">{event.title}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                              </p>
+                          {date && (
+                            <>
+                              <div className={`
+                                absolute top-1 left-0 right-0 text-center text-sm font-semibold
+                                ${isToday ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}
+                              `}>
+                                {date.getDate()}
+                              </div>
+                              
+                              {dayEvents.length > 0 && (
+                                <div className="absolute bottom-1 left-1 right-1 flex justify-center gap-0.5">
+                                  {dayEvents.slice(0, 3).map((event, i) => {
+                                    const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
+                                    const timeValue = Math.round(duration * 50);
+                                    const color = timeValue > 200 ? 'bg-purple-500' : timeValue > 100 ? 'bg-blue-500' : 'bg-green-500';
+                                    
+                                    return (
+                                      <div 
+                                        key={event.id}
+                                        className={`w-1 h-1.5 rounded-full ${color}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleViewEventDetails(event.id);
+                                        }}
+                                      />
+                                    );
+                                  })}
+                                  {dayEvents.length > 3 && (
+                                    <div className="w-1 h-1.5 rounded-full bg-gray-400" />
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Mobile Event List Below Calendar */}
+                  <div className="mt-6 space-y-3">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Upcoming Events
+                    </h3>
+                    {filteredEvents
+                      .filter((event: any) => new Date(event.startTime) >= new Date())
+                      .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                      .slice(0, 5)
+                      .map((event: any) => (
+                        <Card
+                          key={event.id}
+                          className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all active:scale-[0.98] cursor-pointer"
+                          onClick={() => handleViewEventDetails(event.id)}
+                          data-testid={`mobile-event-card-${event.id}`}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                                  {event.title}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(event.startTime).toLocaleDateString('en-US', { 
+                                    weekday: 'short', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {new Date(event.startTime).toLocaleTimeString('en-US', { 
+                                    hour: 'numeric', 
+                                    minute: '2-digit' 
+                                  })}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                {(() => {
+                                  const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
+                                  const timeValue = Math.round(duration * 50);
+                                  return timeValue > 0 && (
+                                    <Badge className="bg-blue-500 text-white">
+                                      ${timeValue}
+                                    </Badge>
+                                  );
+                                })()}
+                                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                              </div>
                             </div>
-                            <ChevronRight size={16} className="text-muted-foreground" />
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Agenda View */}
+            {currentView === 'agenda' && (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">This Week's Events</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + i);
+                    const dayEvents = getEventsForDate(date);
+                    
+                    if (dayEvents.length === 0) return null;
+                    
+                    return (
+                      <Card key={date.toISOString()} className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all">
+                        <CardContent className="p-4 sm:p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">{dayEvents.length} events</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleDayClick(date)}
+                              className="h-10 w-10"
+                              data-testid={`button-add-event-${date.getDate()}`}
+                            >
+                              <Plus size={18} />
+                            </Button>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              }).filter(Boolean)}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                          <div className="space-y-2">
+                            {dayEvents.map((event: any) => (
+                              <div 
+                                key={event.id}
+                                className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                                onClick={() => handleViewEventDetails(event.id)}
+                                data-testid={`agenda-event-${event.id}`}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{event.title}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                  </p>
+                                </div>
+                                <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" />
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  }).filter(Boolean)}
+                  
+                  {Array.from({ length: 7 }, (_, i) => {
+                    const date = new Date();
+                    date.setDate(date.getDate() + i);
+                    return getEventsForDate(date);
+                  }).flat().length === 0 && (
+                    <div className="col-span-full text-center py-12">
+                      <CalendarIcon className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground text-lg">No events this week</p>
+                      <Button 
+                        onClick={() => setShowEventForm(true)}
+                        className="mt-4 h-12"
+                        data-testid="button-create-first-event"
+                      >
+                        <Plus size={18} className="mr-2" />
+                        Create Your First Event
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Event Details Dialog */}
       <Dialog open={isEventDetailsOpen} onOpenChange={setIsEventDetailsOpen}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-event-details">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-2 text-xl">
               <BarChart3 className="text-primary" size={20} />
-              Event ROI & Time-Value Analysis
+              Event Analysis
             </DialogTitle>
             <DialogDescription>
-              Complete financial and productivity analysis for this event
+              Financial and productivity insights
             </DialogDescription>
           </DialogHeader>
           
-          {selectedEventId && (
-            <div className="space-y-6">
-              {/* Time-Value Analysis */}
-              {eventTimeValue && (
-                <Card className="border-2 time-money-gradient-border">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Clock className="text-time" size={20} />
-                      Time = Money Analysis
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Clock className="text-time" size={16} />
-                          <span className="text-sm font-medium text-time">Planned Time Value</span>
-                        </div>
-                        <p className="text-2xl font-bold currency-format" data-testid="text-planned-time-value">
-                          ${Math.round(eventTimeValue.plannedTimeValue || 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Based on planned duration
-                        </p>
-                      </div>
-                      
-                      <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/10 border border-yellow-200 dark:border-yellow-800">
-                        <div className="flex items-center gap-2 mb-2">
-                          <DollarSign className="text-money" size={16} />
-                          <span className="text-sm font-medium text-money">Actual Time Value</span>
-                        </div>
-                        <p className="text-2xl font-bold currency-format" data-testid="text-actual-time-value">
-                          ${Math.round(eventTimeValue.actualTimeValue || 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          From tracked time
-                        </p>
-                      </div>
-                      
-                      <div className={`p-4 rounded-lg ${eventTimeValue.totalImpact >= 0 ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 border border-green-200 dark:border-green-800' : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 border border-red-200 dark:border-red-800'}`}>
-                        <div className="flex items-center gap-2 mb-2">
-                          <TrendingUp className={eventTimeValue.totalImpact >= 0 ? "text-value-positive" : "text-value-negative"} size={16} />
-                          <span className={`text-sm font-medium ${eventTimeValue.totalImpact >= 0 ? "text-value-positive" : "text-value-negative"}`}>
-                            Total Impact
-                          </span>
-                        </div>
-                        <p className={`text-2xl font-bold currency-format ${eventTimeValue.totalImpact >= 0 ? "text-value-positive" : "text-value-negative"}`} data-testid="text-total-impact">
-                          ${Math.round(eventTimeValue.totalImpact || 0).toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Time + monetary cost
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* ROI Calculation */}
-                    <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-semibold text-lg">ROI Analysis</h4>
-                          <p className="text-sm text-muted-foreground">Return on Investment: (Value - Cost) ÷ Cost × 100</p>
-                        </div>
-                        <div className="text-right">
-                          {eventTimeValue.actualTimeValue > 0 && eventFinancials?.totalExpenses && (
-                            <>
-                              {(() => {
-                                const value = eventTimeValue.actualTimeValue || eventTimeValue.plannedTimeValue || 0;
-                                const cost = eventFinancials.totalExpenses || 0;
-                                const roi = cost > 0 ? ((value - cost) / cost) * 100 : 0;
-                                const isPositive = roi >= 0;
-                                return (
-                                  <>
-                                    <p className="text-3xl font-bold">
-                                      <span className={isPositive ? "text-value-positive" : "text-value-negative"}>
-                                        {roi > 0 ? '+' : ''}{Math.round(roi)}%
-                                      </span>
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {isPositive ? "📈 Positive ROI" : "📉 Negative ROI"}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Value: ${Math.round(value)} | Cost: ${Math.round(cost)}
-                                    </p>
-                                  </>
-                                );
-                              })()}
-                            </>
-                          )}
-                          {eventTimeValue.actualTimeValue > 0 && !eventFinancials?.totalExpenses && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">No expenses tracked</p>
-                              <p className="text-xs text-muted-foreground">Add expenses to calculate ROI</p>
-                            </div>
-                          )}
-                          {eventTimeValue.actualTimeValue === 0 && (
-                            <div>
-                              <p className="text-sm text-muted-foreground">No time tracked</p>
-                              <p className="text-xs text-muted-foreground">Track time to calculate ROI</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Budget vs Actual Analysis */}
-                      {eventFinancials?.budget && (
-                        <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-700">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">Budget Variance:</span>
-                            <div className="text-right">
-                              {(() => {
-                                const actualCost = eventFinancials.totalExpenses || 0;
-                                const budget = eventFinancials.budget;
-                                const variance = budget - actualCost;
-                                const isUnderBudget = variance >= 0;
-                                return (
-                                  <>
-                                    <span className={isUnderBudget ? "text-value-positive" : "text-value-negative"}>
-                                      {isUnderBudget ? '+' : ''}${Math.round(variance)}
-                                    </span>
-                                    <p className="text-xs text-muted-foreground">
-                                      {isUnderBudget ? "Under budget" : "Over budget"}
-                                    </p>
-                                  </>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Efficiency Insights */}
-                    <div className="p-3 rounded-lg bg-muted/50">
-                      <h5 className="font-medium mb-2 flex items-center gap-2">
-                        💡 Productivity Insights
-                      </h5>
-                      <div className="space-y-1 text-sm">
-                        {eventTimeValue.plannedTimeValue > eventTimeValue.actualTimeValue && eventTimeValue.actualTimeValue > 0 && (
-                          <p className="text-value-positive">✅ Completed faster than planned - great efficiency!</p>
-                        )}
-                        {eventTimeValue.actualTimeValue > eventTimeValue.plannedTimeValue && eventTimeValue.plannedTimeValue > 0 && (
-                          <p className="text-value-negative">⚠️ Took longer than planned - consider better time estimation</p>
-                        )}
-                        {eventTimeValue.totalImpact > 1000 && (
-                          <p className="text-productivity-high">🚀 High-impact event - significant value generated</p>
-                        )}
-                        {eventFinancials?.budget && eventTimeValue.totalImpact < eventFinancials.budget * 0.5 && (
-                          <p className="text-value-positive">💰 Excellent cost efficiency - under 50% of budget</p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Time Tracker */}
-              {(() => {
-                const selectedEvent = Array.isArray(events) ? events.find((event: any) => event.id === selectedEventId) : null;
-                return selectedEvent && (
-                  <TimeTracker
-                    eventId={selectedEvent.id}
-                    eventTitle={selectedEvent.title}
-                    plannedDurationMinutes={selectedEvent.plannedDurationMinutes}
-                    actualDurationMinutes={selectedEvent.actualDurationMinutes}
-                    onTimeUpdate={(minutes: number) => {
-                      // Update the event data and refresh queries
-                      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
-                      queryClient.invalidateQueries({ queryKey: ['/api/events', selectedEventId] });
-                    }}
-                  />
-                );
-              })()}
-
-              {/* Financial Summary */}
-              {eventFinancials && (
+          {selectedEventId && (() => {
+            const selectedEvent = Array.isArray(events) ? events.find((event: any) => event.id === selectedEventId) : null;
+            
+            return selectedEvent && (
+              <div className="space-y-6">
+                {/* Event Info */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center">
-                      <DollarSign className="mr-2" size={20} />
-                      Financial Summary
-                    </CardTitle>
+                    <CardTitle className="text-lg">{selectedEvent.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-600 font-medium">Budget</p>
-                        <p className="text-xl font-bold text-blue-700" data-testid="text-budget">
-                          ${eventFinancials.budget ? eventFinancials.budget.toFixed(2) : 'Not set'}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-green-50 rounded-lg">
-                        <p className="text-sm text-green-600 font-medium">Total Expenses</p>
-                        <p className="text-xl font-bold text-green-700" data-testid="text-total-expenses">
-                          ${eventFinancials.totalExpenses.toFixed(2)}
-                        </p>
-                      </div>
+                  <CardContent className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4" />
+                      {new Date(selectedEvent.startTime).toLocaleString()}
                     </div>
-                    
-                    {eventFinancials.budget && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600 font-medium">
-                          {eventFinancials.totalExpenses <= eventFinancials.budget ? 'Under Budget' : 'Over Budget'}
-                        </p>
-                        <p className={`text-lg font-bold ${
-                          eventFinancials.totalExpenses <= eventFinancials.budget ? 'text-green-700' : 'text-red-700'
-                        }`}>
-                          ${Math.abs(eventFinancials.budget - eventFinancials.totalExpenses).toFixed(2)}
-                        </p>
-                      </div>
+                    {selectedEvent.description && (
+                      <p className="text-sm text-muted-foreground">{selectedEvent.description}</p>
                     )}
-
-                    {eventFinancials.unpaidShares > 0 && (
-                      <div className="p-3 bg-yellow-50 rounded-lg">
-                        <p className="text-sm text-yellow-600 font-medium">Unpaid Shares</p>
-                        <p className="text-lg font-bold text-yellow-700" data-testid="text-unpaid-shares">
-                          ${eventFinancials.unpaidShares.toFixed(2)}
-                        </p>
-                      </div>
+                    {selectedEvent.location && (
+                      <p className="text-sm text-muted-foreground">📍 {selectedEvent.location}</p>
                     )}
                   </CardContent>
                 </Card>
-              )}
 
-              {/* Expenses List */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Expenses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {eventExpenses && eventExpenses.length > 0 ? (
-                    <div className="space-y-2">
-                      {eventExpenses.map((expense: any) => (
-                        <div key={expense.id} className="flex items-center justify-between p-3 border rounded-lg" data-testid={`expense-item-${expense.id}`}>
-                          <div>
-                            <h4 className="font-medium">{expense.title}</h4>
-                            <p className="text-sm text-gray-600">
-                              {expense.category && (
-                                <span className="bg-gray-100 px-2 py-1 rounded-full text-xs mr-2">
-                                  {expense.category}
-                                </span>
-                              )}
-                              {new Date(expense.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-bold text-lg">${expense.amount.toFixed(2)}</p>
-                            <p className="text-xs text-gray-500">
-                              Paid by: {expense.paidBy}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No expenses recorded for this event
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                {/* Time Tracker */}
+                <TimeTracker
+                  eventId={selectedEvent.id}
+                  eventTitle={selectedEvent.title}
+                  plannedDurationMinutes={selectedEvent.plannedDurationMinutes}
+                  actualDurationMinutes={selectedEvent.actualDurationMinutes}
+                  onTimeUpdate={(minutes: number) => {
+                    queryClient.invalidateQueries({ queryKey: ['/api/events'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/events', selectedEventId] });
+                  }}
+                />
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => handleEditEvent(selectedEvent)}
+                    className="flex-1 h-12 sm:h-14"
+                    data-testid="button-edit-event"
+                  >
+                    <Edit size={18} className="mr-2" />
+                    Edit Event
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    onClick={() => handleDeleteEvent(selectedEvent)}
+                    className="flex-1 h-12 sm:h-14"
+                    data-testid="button-delete-event"
+                  >
+                    <Trash2 size={18} className="mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
-
-      {/* Upcoming Events */}
-      <Card>
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Upcoming Events</h3>
-          {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-muted rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          ) : events && Array.isArray(events) && events.length > 0 ? (
-            <div className="space-y-4">
-              {events
-                .filter((event: any) => new Date(event.startTime) > new Date())
-                .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-                .slice(0, 5)
-                .map((event: any) => {
-                  // Enhanced time-value calculations for upcoming events
-                  const plannedMinutes = event.plannedDurationMinutes || 
-                    ((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60));
-                  const actualMinutes = event.actualDurationMinutes || 0;
-                  const budget = parseFloat(event.budget || '0');
-                  const actualCost = parseFloat(event.actualCost || '0');
-                  
-                  // Simple time value calculation (using default $50/hr)
-                  const plannedTimeValue = Math.round((plannedMinutes / 60) * 50);
-                  const actualTimeValue = actualMinutes > 0 ? Math.round((actualMinutes / 60) * 50) : 0;
-                  
-                  // ROI calculations
-                  const totalInvestment = actualTimeValue + actualCost;
-                  const roi = totalInvestment > 0 ? ((budget - totalInvestment) / totalInvestment * 100) : 0;
-                  
-                  const isHighROI = roi > 50;
-                  const isPositiveROI = roi > 0;
-                  const hasTimeTracking = actualMinutes > 0 || plannedMinutes > 0;
-                  
-                  return (
-                    <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/30 transition-colors group">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium" data-testid={`text-event-${event.id}`}>
-                            {event.title}
-                          </h4>
-                          
-                          {/* Time Value Badges */}
-                          <div className="flex items-center gap-1">
-                            {hasTimeTracking && (
-                              <span className="time-badge" title={`${Math.round(plannedMinutes / 60)}h planned${actualMinutes > 0 ? `, ${Math.round(actualMinutes / 60)}h actual` : ''}`}>
-                                ⏰ {Math.round((actualMinutes || plannedMinutes) / 60)}h
-                              </span>
-                            )}
-                            
-                            {plannedTimeValue > 0 && (
-                              <span className="money-badge" title={`Estimated time value: $${plannedTimeValue}`}>
-                                💰 ${plannedTimeValue}
-                              </span>
-                            )}
-                            
-                            {roi !== 0 && budget > 0 && totalInvestment > 0 && (
-                              <span className={isPositiveROI ? "value-badge-positive" : "value-badge-negative"} title={`ROI: ${roi.toFixed(0)}%`}>
-                                {isHighROI ? '🚀' : isPositiveROI ? '📈' : '📉'} {roi.toFixed(0)}%
-                              </span>
-                            )}
-                            
-                            {budget > 500 && (
-                              <span className="productivity-medium" title="High-value event">
-                                💎
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Financial Summary */}
-                          {((event.budget && parseFloat(event.budget || "0") > 0) || (event.actualCost && parseFloat(event.actualCost || "0") > 0)) && (
-                            <div className="flex items-center gap-1">
-                              <DollarSign size={14} className="text-green-600" />
-                              {event.budget && event.actualCost && (
-                                <span className={`text-xs ${parseFloat(event.actualCost) <= parseFloat(event.budget) ? 'text-green-600' : 'text-red-600'}`}>
-                                  ${parseFloat(event.actualCost).toFixed(0)} / ${parseFloat(event.budget).toFixed(0)}
-                                  {parseFloat(event.actualCost) <= parseFloat(event.budget) ? 
-                                    <TrendingDown size={10} className="inline ml-1" /> :
-                                    <TrendingUp size={10} className="inline ml-1" />
-                                  }
-                                </span>
-                              )}
-                              {event.budget && !event.actualCost && (
-                                <span className="text-xs text-gray-600">Budget: ${parseFloat(event.budget).toFixed(0)}</span>
-                              )}
-                              {!event.budget && event.actualCost && (
-                                <span className="text-xs text-blue-600">Spent: ${parseFloat(event.actualCost).toFixed(0)}</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(event.startTime).toLocaleDateString()} at {new Date(event.startTime).toLocaleTimeString()}
-                        </p>
-                        {event.location && (
-                          <p className="text-xs text-muted-foreground">{event.location}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleViewEventDetails(event.id)}
-                          className="time-money-gradient hover:opacity-80 text-white border-0"
-                          data-testid={`button-view-details-${event.id}`}
-                        >
-                          <BarChart3 size={14} className="mr-1" />
-                          ROI Details
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEditEvent(event)}
-                          data-testid={`button-edit-${event.id}`}
-                        >
-                          <Edit size={14} />
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDeleteEvent(event)}
-                          data-testid={`button-delete-${event.id}`}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">No upcoming events</p>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button data-testid="button-create-first-event">
-                    <Plus size={16} className="mr-2" />
-                    Create Your First Event
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <EventForm onSuccess={() => setIsCreateDialogOpen(false)} />
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Edit Event Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Event</DialogTitle>
-            <DialogDescription>
-              Update your event details
-            </DialogDescription>
-          </DialogHeader>
-          {eventToEdit && (
-            <EventForm
-              eventToEdit={eventToEdit}
-              onSuccess={() => {
-                setIsEditDialogOpen(false);
-                setEventToEdit(null);
-              }}
-            />
-          )}
+          {eventToEdit && <EventForm eventToEdit={eventToEdit} onSuccess={() => setIsEditDialogOpen(false)} />}
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="w-[95vw] max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Event</DialogTitle>
+            <DialogTitle>Delete Event?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{eventToDelete?.title}"? This action cannot be undone.
+              This action cannot be undone. The event will be permanently deleted.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-2 justify-end mt-6">
+          <div className="flex gap-3 mt-4">
             <Button 
               variant="outline" 
               onClick={() => setIsDeleteDialogOpen(false)}
+              className="flex-1 h-12"
               data-testid="button-cancel-delete"
             >
               Cancel
@@ -1279,32 +930,14 @@ export default function Calendar() {
             <Button 
               variant="destructive"
               onClick={() => eventToDelete && deleteEventMutation.mutate(eventToDelete.id)}
-              disabled={deleteEventMutation.isPending}
+              className="flex-1 h-12"
               data-testid="button-confirm-delete"
             >
-              {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
+              Delete
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Mobile Floating Actions */}
-      <MobileFloatingActions
-        onFilterClick={() => setIsFiltersOpen(true)}
-        onQuickEventClick={handleQuickEvent}
-      />
-
-      {/* Mobile Filters - Use the same AdvancedFilters with controlled state */}
-      <div className="sm:hidden">
-        <AdvancedFilters
-          open={isFiltersOpen}
-          onOpenChange={setIsFiltersOpen}
-          onFiltersChange={setFilters}
-          availableCategories={availableCategories}
-          availableGroups={(groups as any[]) || []}
-        />
-      </div>
-      </div>
     </div>
   );
 }

@@ -253,7 +253,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
             id="title"
             {...register("title")}
             placeholder="e.g., Q4 Financial Strategy Meeting 💰"
-            className="text-base p-3 border-2 focus:border-purple-500 transition-all duration-200"
+            className="h-12 sm:h-14 text-base px-4 border-2 focus:border-purple-500 transition-all duration-200"
             data-testid="input-event-title"
           />
           {errors.title && (
@@ -271,7 +271,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
             id="description"
             {...register("description")}
             placeholder="Tell people what to expect! Goals, what to bring, what they'll learn..."
-            className="min-h-[80px] text-sm p-3 border-2 focus:border-blue-500 transition-all duration-200 resize-none text-no-overflow"
+            className="min-h-[100px] sm:min-h-[120px] text-base p-4 border-2 focus:border-blue-500 transition-all duration-200 resize-none"
             data-testid="input-event-description"
           />
         </div>
@@ -283,12 +283,12 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
             📅 Which day? Slide to choose! 
           </Label>
           
-          <Card className="p-6 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200">
+          <Card className="p-4 sm:p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-200 dark:border-green-800">
             <div className="space-y-4">
               {/* Current Date Display */}
               <div className="text-center">
-                <p className="text-sm text-green-600 font-medium">Event Date</p>
-                <p className="text-2xl font-bold text-green-800" data-testid="text-event-date">
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium">Event Date</p>
+                <p className="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200" data-testid="text-event-date">
                   {new Date(getCurrentDate(watch("startTime"))).toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
@@ -346,7 +346,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-11 px-4 text-sm font-medium"
                   onClick={() => {
                     const today = new Date();
                     const currentStart = watch("startTime");
@@ -363,7 +363,6 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                       setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
                     }
                   }}
-                  className="text-xs"
                   data-testid="button-preset-today"
                 >
                   📅 Today
@@ -371,7 +370,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-11 px-4 text-sm font-medium"
                   onClick={() => {
                     const tomorrow = new Date();
                     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -389,7 +388,6 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                       setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
                     }
                   }}
-                  className="text-xs"
                   data-testid="button-preset-tomorrow"
                 >
                   ➡️ Tomorrow
@@ -397,7 +395,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-11 px-4 text-sm font-medium"
                   onClick={() => {
                     const nextWeek = new Date();
                     nextWeek.setDate(nextWeek.getDate() + 7);
@@ -415,7 +413,6 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                       setValue("endTime", formatDateTimeLocal(endTime), { shouldValidate: true, shouldDirty: true });
                     }
                   }}
-                  className="text-xs"
                   data-testid="button-preset-next-week"
                 >
                   📅 Next Week
@@ -432,25 +429,25 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
             ⏰ What time? Slide to choose! 
           </Label>
           
-          <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200">
+          <Card className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-800">
             <div className="space-y-6">
               {/* Time Display */}
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center gap-2">
                 <div className="text-center">
-                  <p className="text-sm text-blue-600 font-medium">Start Time</p>
-                  <p className="text-2xl font-bold text-blue-800" data-testid="text-start-time">
+                  <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-medium">Start Time</p>
+                  <p className="text-xl sm:text-2xl font-bold text-blue-800 dark:text-blue-200" data-testid="text-start-time">
                     {formatTimeDisplay(timeRange[0])}
                   </p>
                 </div>
-                <div className="text-center px-4">
-                  <p className="text-sm text-gray-600">Duration</p>
-                  <p className="text-lg font-semibold text-gray-800">
+                <div className="text-center px-2 sm:px-4">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Duration</p>
+                  <p className="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">
                     {Math.round((timeRange[1] - timeRange[0]) / 60 * 10) / 10}h
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-purple-600 font-medium">End Time</p>
-                  <p className="text-2xl font-bold text-purple-800" data-testid="text-end-time">
+                  <p className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 font-medium">End Time</p>
+                  <p className="text-xl sm:text-2xl font-bold text-purple-800 dark:text-purple-200" data-testid="text-end-time">
                     {formatTimeDisplay(timeRange[1])}
                   </p>
                 </div>
@@ -498,7 +495,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-11 px-3 sm:px-4 text-sm font-medium"
                   onClick={() => {
                     const preset = [9 * 60, 10 * 60]; // 9-10 AM
                     setTimeRange(preset);
@@ -513,15 +510,14 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                     setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
                     setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
                   }}
-                  className="text-xs"
                   data-testid="button-preset-morning"
                 >
-                  🌅 Morning (9-10 AM)
+                  🌅 Morning
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-11 px-3 sm:px-4 text-sm font-medium"
                   onClick={() => {
                     const preset = [12 * 60, 13 * 60]; // 12-1 PM
                     setTimeRange(preset);
@@ -536,15 +532,14 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                     setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
                     setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
                   }}
-                  className="text-xs"
                   data-testid="button-preset-lunch"
                 >
-                  🍽️ Lunch (12-1 PM)
+                  🍽️ Lunch
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-11 px-3 sm:px-4 text-sm font-medium"
                   onClick={() => {
                     const preset = [14 * 60, 15 * 60]; // 2-3 PM
                     setTimeRange(preset);
@@ -559,10 +554,9 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                     setValue("startTime", formatDateTimeLocal(startDate), { shouldValidate: true, shouldDirty: true });
                     setValue("endTime", formatDateTimeLocal(endDate), { shouldValidate: true, shouldDirty: true });
                   }}
-                  className="text-xs"
                   data-testid="button-preset-afternoon"
                 >
-                  ☀️ Afternoon (2-3 PM)
+                  ☀️ Afternoon
                 </Button>
               </div>
             </div>
@@ -587,20 +581,25 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
           )}
         </div>
 
-        <div>
-          <Label htmlFor="location">Location (Optional)</Label>
+        <div className="space-y-3">
+          <Label htmlFor="location" className="text-base font-medium">
+            📍 Location (Optional)
+          </Label>
           <Input
             id="location"
             {...register("location")}
-            placeholder="Enter location"
+            placeholder="e.g., Conference Room A, Zoom, etc."
+            className="h-12 sm:h-14 text-base px-4"
             data-testid="input-event-location"
           />
         </div>
 
-        <div>
-          <Label htmlFor="groupId">Group (Optional)</Label>
+        <div className="space-y-3">
+          <Label htmlFor="groupId" className="text-base font-medium">
+            👥 Group (Optional)
+          </Label>
           <Select value={watch("groupId") || "personal"} onValueChange={(value) => setValue("groupId", value === "personal" ? undefined : value)}>
-            <SelectTrigger data-testid="select-event-group">
+            <SelectTrigger className="h-12 sm:h-14 text-base" data-testid="select-event-group">
               <SelectValue placeholder="Select a group (optional)" />
             </SelectTrigger>
             <SelectContent>
@@ -614,15 +613,16 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
           </Select>
         </div>
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className="flex gap-3 pt-6">
           <Button
             type="submit"
             disabled={isSubmitting}
+            className="flex-1 h-12 sm:h-14 text-base font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
             data-testid="button-submit-event"
           >
             {isSubmitting 
               ? (eventToEdit ? "Updating..." : "Creating...") 
-              : (eventToEdit ? "Update Event" : "Create Event")
+              : (eventToEdit ? "✅ Update Event" : "✨ Create Event")
             }
           </Button>
         </div>
