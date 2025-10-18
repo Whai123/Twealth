@@ -86,110 +86,111 @@ export default function Dashboard() {
       {/* AI Chat Button - Floating */}
       <AIChatButton />
       
-      {/* Spectacular Header */}
+      {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4 md:py-6">
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 md:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
+            <div className="flex-1 min-w-0 w-full sm:w-auto">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-3 md:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg sm:shadow-xl animate-pulse flex-shrink-0">
                   <div className="relative">
-                    <Clock className="w-6 h-6 md:w-8 md:h-8 text-white" />
-                    <DollarSign className="w-3 h-3 md:w-4 md:h-4 text-yellow-300 absolute -top-1 -right-1" />
+                    <Clock className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
+                    <DollarSign className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 text-yellow-300 absolute -top-1 -right-1" />
                   </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
                     {t('dashboard.title')}
                   </h1>
-                  <p className="text-sm md:text-xl text-muted-foreground">{t('dashboard.subtitle')}</p>
+                  <p className="text-xs sm:text-sm md:text-base lg:text-xl text-muted-foreground truncate">{t('dashboard.subtitle')}</p>
                 </div>
               </div>
               
-              {/* Dashboard Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+              {/* Mobile-First Responsive Stats Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                 {timeStatsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 animate-pulse">
-                    <div className="h-4 md:h-5 w-16 md:w-20 bg-muted rounded mb-2"></div>
-                    <div className="h-6 md:h-8 w-12 md:w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-2 md:h-3 w-20 md:w-24 bg-muted rounded"></div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
+                    <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
+                    <div className="h-5 sm:h-6 md:h-8 w-10 sm:w-12 md:w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-2 md:h-3 w-16 sm:w-20 md:w-24 bg-muted rounded"></div>
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-growth">
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-growth">
                     <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                      <TrendingUp className={`w-4 h-4 md:w-5 md:h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
-                      <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.growth')}</span>
+                      <TrendingUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
+                      <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.growth')}</span>
                     </div>
-                    <div className={`text-xl md:text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
+                    <div className={`text-lg sm:text-xl md:text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
                       {growthPercent >= 0 ? '+' : ''}{growthPercent}%
                     </div>
-                    <div className="text-xs text-muted-foreground">{t('dashboard.stats.thisPeriod')}</div>
+                    <div className="text-xs text-muted-foreground truncate">{t('dashboard.stats.thisPeriod')}</div>
                   </div>
                 )}
                 
                 {goalsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 animate-pulse">
-                    <div className="h-4 md:h-5 w-16 md:w-20 bg-muted rounded mb-2"></div>
-                    <div className="h-6 md:h-8 w-12 md:w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-2 md:h-3 w-20 md:w-24 bg-muted rounded"></div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
+                    <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
+                    <div className="h-5 sm:h-6 md:h-8 w-10 sm:w-12 md:w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-2 md:h-3 w-16 sm:w-20 md:w-24 bg-muted rounded"></div>
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-goals">
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-goals">
                     <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                      <Target className="w-4 h-4 md:w-5 md:h-5 text-blue-500" aria-hidden="true" />
-                      <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.goals')}</span>
+                      <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-500" aria-hidden="true" />
+                      <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.goals')}</span>
                     </div>
-                    <div className="text-xl md:text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
                       {goalsOnTrack}/{activeGoalsCount}
                     </div>
-                    <div className="text-xs text-muted-foreground">{t('dashboard.stats.onTrack')}</div>
+                    <div className="text-xs text-muted-foreground truncate">{t('dashboard.stats.onTrack')}</div>
                   </div>
                 )}
                 
                 {statsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 animate-pulse">
-                    <div className="h-4 md:h-5 w-16 md:w-20 bg-muted rounded mb-2"></div>
-                    <div className="h-6 md:h-8 w-12 md:w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-2 md:h-3 w-20 md:w-24 bg-muted rounded"></div>
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
+                    <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
+                    <div className="h-5 sm:h-6 md:h-8 w-10 sm:w-12 md:w-16 bg-muted rounded mb-1"></div>
+                    <div className="h-2 md:h-3 w-16 sm:w-20 md:w-24 bg-muted rounded"></div>
                   </div>
                 ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-score">
+                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-score">
                     <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                      <Award className="w-4 h-4 md:w-5 md:h-5 text-orange-500" aria-hidden="true" />
-                      <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.score')}</span>
+                      <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-orange-500" aria-hidden="true" />
+                      <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.score')}</span>
                     </div>
-                    <div className="text-xl md:text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
+                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
                       {financialScore}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground truncate">
                       {financialScore >= 800 ? t('dashboard.stats.excellent') : financialScore >= 600 ? t('dashboard.stats.good') : financialScore >= 400 ? t('dashboard.stats.fair') : t('dashboard.stats.building')}
                     </div>
                   </div>
                 )}
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg" data-testid="stat-streak">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-streak">
                   <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                    <Crown className="w-4 h-4 md:w-5 md:h-5 text-purple-500" aria-hidden="true" />
-                    <span className="text-xs md:text-sm font-medium">{t('dashboard.stats.streak')}</span>
+                    <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-purple-500" aria-hidden="true" />
+                    <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.streak')}</span>
                   </div>
-                  <div className="text-xl md:text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
                     {streak}
                   </div>
-                  <div className="text-xs text-muted-foreground">{t('dashboard.stats.daysActive')}</div>
+                  <div className="text-xs text-muted-foreground truncate">{t('dashboard.stats.daysActive')}</div>
                 </div>
               </div>
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 ml-6">
+            {/* Mobile-First Action Buttons */}
+            <div className="flex items-center gap-2 sm:gap-3 sm:ml-4 md:ml-6 w-full sm:w-auto">
               <Drawer open={isCreateGoalOpen} onOpenChange={setIsCreateGoalOpen}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-4 sm:px-6 py-3 h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl"
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 sm:px-4 md:px-6 min-h-[44px] h-11 sm:h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl active:scale-95 flex-1 sm:flex-initial"
                     data-testid="button-new-goal"
                   >
-                    <Plus size={18} className="sm:mr-2" />
+                    <Plus size={16} className="sm:mr-2" />
                     <span className="hidden sm:inline">{t('dashboard.newGoal')}</span>
+                    <span className="sm:hidden text-xs">New Goal</span>
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="max-h-[90vh]">
@@ -206,13 +207,13 @@ export default function Dashboard() {
             </div>
           </div>
           
-          {/* Welcome Message */}
-          <div className="bg-gradient-to-r from-white/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-indigo-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20 transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-700" role="banner">
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-indigo-500 animate-pulse" aria-hidden="true" />
-              <div>
-                <h2 className="text-lg font-semibold text-indigo-800 dark:text-indigo-200">{t('dashboard.welcome')}</h2>
-                <p className="text-indigo-600 dark:text-indigo-300">{t('dashboard.welcomeMessage')}</p>
+          {/* Mobile-First Welcome Message */}
+          <div className="bg-gradient-to-r from-white/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-indigo-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-700" role="banner">
+            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-500 animate-pulse flex-shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm sm:text-base md:text-lg font-semibold text-indigo-800 dark:text-indigo-200">{t('dashboard.welcome')}</h2>
+                <p className="text-xs sm:text-sm md:text-base text-indigo-600 dark:text-indigo-300 line-clamp-2 sm:line-clamp-none">{t('dashboard.welcomeMessage')}</p>
               </div>
             </div>
           </div>
@@ -220,11 +221,7 @@ export default function Dashboard() {
       </header>
 
       <div 
-        className="space-y-6" 
-        style={{ 
-          padding: 'var(--space-6)',
-          paddingTop: 'var(--space-4)'
-        }}
+        className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-3 sm:py-4 md:py-6"
       >
         {/* Quick Stats Cards */}
         <QuickStats />

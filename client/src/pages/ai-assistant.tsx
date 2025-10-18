@@ -287,82 +287,82 @@ export default function AIAssistantPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-900/30 dark:via-blue-900/30 dark:to-pink-900/30">
-      {/* Spectacular Header */}
+      {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-900/50 dark:via-blue-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-8 max-w-6xl">
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 via-blue-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
-                <Brain className="w-8 h-8 text-white" />
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 max-w-6xl">
+          <div className="text-center space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 via-blue-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg sm:shadow-xl animate-pulse flex-shrink-0">
+                <Brain className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
               </div>
-              <div>
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 bg-clip-text text-transparent">
                   🤖 {t('aiAssistant.title')}
                 </h1>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
-                  <span className="text-lg text-muted-foreground">Advanced AI-powered financial advisor</span>
-                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
+                <div className="flex items-center justify-center sm:justify-start gap-2 mt-1 sm:mt-2">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 animate-bounce" />
+                  <span className="text-sm sm:text-base md:text-lg text-muted-foreground">Advanced AI-powered financial advisor</span>
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 animate-bounce delay-300" />
                 </div>
               </div>
             </div>
             
-            {/* AI Stats Dashboard */}
+            {/* Mobile-First AI Stats Dashboard */}
             {usage && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MessageCircle className="w-5 h-5 text-purple-500" />
-                    <span className="text-sm font-medium">Chat Usage</span>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/20 transition-all hover:scale-105 active:scale-95">
+                  <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                    <span className="text-xs sm:text-sm font-medium truncate">Chat Usage</span>
                   </div>
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600">
                     {usage.chatUsage.used}/{usage.chatUsage.limit}
                   </div>
-                  <div className="text-xs text-muted-foreground">AI conversations</div>
+                  <div className="text-xs text-muted-foreground truncate">AI conversations</div>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BarChart3 className="w-5 h-5 text-blue-500" />
-                    <span className="text-sm font-medium">Analysis</span>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/20 transition-all hover:scale-105 active:scale-95">
+                  <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                    <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
+                    <span className="text-xs sm:text-sm font-medium truncate">Analysis</span>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">
                     {usage.analysisUsage.used}/{usage.analysisUsage.limit}
                   </div>
-                  <div className="text-xs text-muted-foreground">Deep insights</div>
+                  <div className="text-xs text-muted-foreground truncate">Deep insights</div>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="w-5 h-5 text-yellow-500" />
-                    <span className="text-sm font-medium">Insights</span>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/20 transition-all hover:scale-105 active:scale-95">
+                  <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                    <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+                    <span className="text-xs sm:text-sm font-medium truncate">Insights</span>
                   </div>
-                  <div className="text-2xl font-bold text-yellow-600">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-yellow-600">
                     {usage.insights}
                   </div>
-                  <div className="text-xs text-muted-foreground">Generated</div>
+                  <div className="text-xs text-muted-foreground truncate">Generated</div>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-5 h-5 text-green-500" />
-                    <span className="text-sm font-medium">Status</span>
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-white/20 transition-all hover:scale-105 active:scale-95">
+                  <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                    <span className="text-xs sm:text-sm font-medium truncate">Status</span>
                   </div>
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">
                     {isLimitExceeded ? "⚠️" : "✅"}
                   </div>
-                  <div className="text-xs text-muted-foreground">{isLimitExceeded ? t('aiAssistant.stats.limitReached') : t('aiAssistant.stats.active')}</div>
+                  <div className="text-xs text-muted-foreground truncate">{isLimitExceeded ? t('aiAssistant.stats.limitReached') : t('aiAssistant.stats.active')}</div>
                 </div>
               </div>
             )}
             
-            {/* Welcome Message */}
-            <div className="bg-gradient-to-r from-white/80 to-purple-50/80 dark:from-gray-800/80 dark:to-purple-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center gap-3">
-                <Brain className="w-6 h-6 text-purple-500" />
-                <div>
-                  <h2 className="text-lg font-semibold text-purple-800 dark:text-purple-200">Intelligent Financial Assistant 🧠</h2>
-                  <p className="text-purple-600 dark:text-purple-300">{t('aiAssistant.subtitle')}</p>
+            {/* Mobile-First Welcome Message */}
+            <div className="bg-gradient-to-r from-white/80 to-purple-50/80 dark:from-gray-800/80 dark:to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-white/20">
+              <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+                <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-purple-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <div className="min-w-0 flex-1 text-center sm:text-left">
+                  <h2 className="text-sm sm:text-base md:text-lg font-semibold text-purple-800 dark:text-purple-200">Intelligent Financial Assistant 🧠</h2>
+                  <p className="text-xs sm:text-sm md:text-base text-purple-600 dark:text-purple-300 line-clamp-2 sm:line-clamp-none">{t('aiAssistant.subtitle')}</p>
                 </div>
               </div>
             </div>
@@ -370,7 +370,7 @@ export default function AIAssistantPage() {
         </div>
       </header>
       
-      <div className="container mx-auto p-6 max-w-6xl space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 max-w-6xl space-y-6 sm:space-y-8">
 
       {/* Enhanced Usage Summary */}
       {usage && (
@@ -574,16 +574,16 @@ export default function AIAssistantPage() {
         </CardContent>
       </Card>
 
-      {/* Quick AI Actions */}
-      <div className="space-y-6">
+      {/* Mobile-First Quick AI Actions */}
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h2 className="text-2xl font-semibold mb-2">Quick AI Actions</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-2">Quick AI Actions</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Get instant AI assistance with these common financial tasks
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {quickActions.map((action, index) => (
             <Card 
               key={action.id} 
@@ -681,15 +681,15 @@ export default function AIAssistantPage() {
                     style={{ animationDelay: `${index * 100}ms` }}
                     data-testid={`message-${message.role}-${message.id}`}
                   >
-                    <div className="flex items-end gap-2 max-w-[85%]">
+                    <div className="flex items-end gap-2 w-full sm:max-w-[85%]">
                       {message.role === 'assistant' && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg">
-                          <Brain className="w-4 h-4 text-white" />
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                          <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                         </div>
                       )}
-                      <div className="flex flex-col gap-1 flex-1">
+                      <div className="flex flex-col gap-1 flex-1 min-w-0">
                         <div
-                          className={`relative rounded-2xl p-4 shadow-md transition-all duration-300 hover:shadow-lg ${
+                          className={`relative rounded-2xl p-3 sm:p-4 shadow-md transition-all duration-300 hover:shadow-lg ${
                             message.role === 'user'
                               ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-sm'
                               : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-bl-sm'
@@ -698,7 +698,7 @@ export default function AIAssistantPage() {
                           {message.role === 'assistant' && (
                             <div className="absolute -top-1 -left-1 w-3 h-3 bg-gradient-to-br from-primary to-purple-600 rounded-full animate-pulse" />
                           )}
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
                           <p className="text-xs opacity-70 mt-2 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {new Date(message.createdAt).toLocaleTimeString()}
@@ -716,8 +716,8 @@ export default function AIAssistantPage() {
                         )}
                       </div>
                       {message.role === 'user' && (
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg">
-                          <span className="text-white text-sm font-bold">You</span>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center shadow-lg flex-shrink-0">
+                          <span className="text-white text-xs sm:text-sm font-bold">You</span>
                         </div>
                       )}
                     </div>
@@ -789,7 +789,7 @@ export default function AIAssistantPage() {
               <Button
                 onClick={isLimitExceeded ? () => window.location.href = '/subscription' : handleSendMessage}
                 disabled={!isLimitExceeded && (!currentMessage.trim() || sendMessageMutation.isPending)}
-                className={`shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 px-8 py-2 ${
+                className={`shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300 px-4 sm:px-6 md:px-8 py-2 min-h-[44px] h-11 sm:h-12 ${
                   isLimitExceeded 
                     ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 animate-pulse' 
                     : 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90'

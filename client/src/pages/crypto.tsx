@@ -132,23 +132,31 @@ export default function CryptoPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-            <Bitcoin className="w-8 h-8 text-orange-500" />
-            Crypto Portfolio
-          </h1>
-          <p className="text-muted-foreground mt-1">Manage your cryptocurrency holdings</p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-crypto">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Crypto
-            </Button>
-          </DialogTrigger>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/30 dark:via-amber-900/30 dark:to-yellow-900/30">
+      {/* Mobile-First Responsive Header */}
+      <header className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/50 dark:via-amber-900/50 dark:to-yellow-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <Bitcoin className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-orange-500 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 bg-clip-text text-transparent truncate">
+                  Crypto Portfolio
+                </h1>
+                <p className="text-sm sm:text-base text-muted-foreground truncate">Manage your cryptocurrency holdings</p>
+              </div>
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-600 hover:from-orange-600 hover:via-amber-600 hover:to-yellow-700 text-white font-semibold px-4 sm:px-6 min-h-[44px] h-11 sm:h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl active:scale-95 w-full sm:w-auto"
+                  data-testid="button-add-crypto"
+                >
+                  <Plus className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Add Crypto</span>
+                  <span className="sm:hidden text-xs">Add</span>
+                </Button>
+              </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Cryptocurrency</DialogTitle>
@@ -242,57 +250,64 @@ export default function CryptoPage() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Portfolio Value Card */}
-      <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
-        <CardContent className="p-6">
+      </div>
+    </header>
+    
+    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
+      {/* Mobile-First Portfolio Value Card */}
+      <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800 transition-all hover:scale-105 active:scale-95">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Total Portfolio Value</p>
-              <p className="text-4xl font-bold text-orange-600 dark:text-orange-400" data-testid="text-total-value">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Portfolio Value</p>
+              <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400 truncate" data-testid="text-total-value">
                 ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
-            <Bitcoin className="w-16 h-16 text-orange-500 opacity-20" />
+            <Bitcoin className="w-12 h-12 sm:w-16 sm:h-16 text-orange-500 opacity-20 flex-shrink-0" />
           </div>
         </CardContent>
       </Card>
 
-      {/* Holdings Grid */}
+      {/* Mobile-First Holdings Grid */}
       {holdingsList.length === 0 ? (
-        <Card className="p-12">
+        <Card className="p-8 sm:p-12">
           <div className="text-center">
-            <Bitcoin className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <h3 className="text-xl font-semibold mb-2">No Crypto Holdings Yet</h3>
-            <p className="text-muted-foreground mb-6">
+            <Bitcoin className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg sm:text-xl font-semibold mb-2">No Crypto Holdings Yet</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-6">
               Start building your crypto portfolio by adding your first cryptocurrency
             </p>
-            <Button onClick={() => setIsAddDialogOpen(true)} data-testid="button-add-first-crypto">
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)} 
+              data-testid="button-add-first-crypto"
+              className="min-h-[44px] h-11 sm:h-12"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Your First Crypto
             </Button>
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {holdingsList.map((holding: any) => {
             const value = parseFloat(holding.currentPrice || 0) * parseFloat(holding.amount || 0);
             const change = holding.priceChange24h || 0;
             const isPositive = change >= 0;
 
             return (
-              <Card key={holding.id} className="relative overflow-hidden" data-testid={`card-holding-${holding.symbol.toLowerCase()}`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
-                        <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
+              <Card key={holding.id} className="relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 active:scale-95" data-testid={`card-holding-${holding.symbol.toLowerCase()}`}>
+                <CardHeader className="pb-3 p-4 sm:p-6">
+                  <div className="flex items-start sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400">
                           {holding.symbol.slice(0, 3)}
                         </span>
                       </div>
-                      <div>
-                        <CardTitle className="text-lg" data-testid={`text-name-${holding.symbol.toLowerCase()}`}>{holding.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{holding.symbol}</p>
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-base sm:text-lg truncate" data-testid={`text-name-${holding.symbol.toLowerCase()}`}>{holding.name}</CardTitle>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{holding.symbol}</p>
                       </div>
                     </div>
                     <Button
@@ -300,27 +315,28 @@ export default function CryptoPage() {
                       size="sm"
                       onClick={() => deleteHoldingMutation.mutate(holding.id)}
                       data-testid={`button-delete-${holding.symbol.toLowerCase()}`}
+                      className="min-h-[44px] h-11"
                     >
                       <Trash2 className="w-4 h-4 text-destructive" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 p-4 sm:p-6 pt-0">
                   <div>
-                    <p className="text-sm text-muted-foreground">Amount</p>
-                    <p className="text-xl font-semibold" data-testid={`text-amount-${holding.symbol.toLowerCase()}`}>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Amount</p>
+                    <p className="text-lg sm:text-xl font-semibold truncate" data-testid={`text-amount-${holding.symbol.toLowerCase()}`}>
                       {parseFloat(holding.amount).toLocaleString()} {holding.symbol}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Value</p>
-                    <p className="text-2xl font-bold" data-testid={`text-value-${holding.symbol.toLowerCase()}`}>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Value</p>
+                    <p className="text-xl sm:text-2xl font-bold truncate" data-testid={`text-value-${holding.symbol.toLowerCase()}`}>
                       ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">24h Change</p>
-                    <div className={`flex items-center gap-1 text-lg font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className="text-xs sm:text-sm text-muted-foreground">24h Change</p>
+                    <div className={`flex items-center gap-1 text-base sm:text-lg font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
                       {isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                       <span data-testid={`text-change-${holding.symbol.toLowerCase()}`}>
                         {isPositive ? '+' : ''}{change.toFixed(2)}%
