@@ -249,9 +249,9 @@ export default function CryptoPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-      </div>
-    </header>
+          </div>
+        </div>
+      </header>
     
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
       {/* Mobile-First Portfolio Value Card */}
@@ -357,6 +357,7 @@ export default function CryptoPage() {
           })}
         </div>
       )}
+    </div>
     </div>
   );
 }
