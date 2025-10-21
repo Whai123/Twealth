@@ -117,7 +117,7 @@ function Settings() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
-        <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8 max-w-7xl">
+        <div className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
           <div className="space-y-6 animate-pulse">
             <div className="h-16 bg-muted rounded-xl" />
             <div className="h-12 bg-muted rounded-lg w-full max-w-2xl" />
@@ -134,7 +134,7 @@ function Settings() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
       {/* Mobile-Optimized Header */}
       <header className="sticky top-0 z-40 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8 max-w-7xl">
+        <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
           {/* Compact Header for Mobile */}
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -188,7 +188,7 @@ function Settings() {
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 max-w-7xl">
+      <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 max-w-7xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Mobile-Responsive Horizontal Scrollable Tabs */}
           <div className="mb-6 sm:mb-8">

@@ -130,7 +130,7 @@ export default function SubscriptionPage() {
 
   if (plansLoading || subscriptionLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
         <div className="space-y-2">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-4 w-64" />
@@ -150,7 +150,7 @@ export default function SubscriptionPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/30 dark:via-red-900/30 dark:to-pink-900/30">
       {/* Spectacular Header */}
       <header className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/50 dark:via-red-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-4 mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
@@ -229,7 +229,7 @@ export default function SubscriptionPage() {
         </div>
       </header>
       
-      <div className="container mx-auto p-6 space-y-10">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-10">
 
       {/* Enhanced Current Plan Status */}
       {currentPlan && (
