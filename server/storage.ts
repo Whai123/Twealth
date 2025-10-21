@@ -2832,6 +2832,7 @@ export class DatabaseStorage implements IStorage {
       stripeCustomerId: subscriptions.stripeCustomerId,
       localCurrency: subscriptions.localCurrency,
       localPrice: subscriptions.localPrice,
+      freePremium: subscriptions.freePremium,
       createdAt: subscriptions.createdAt,
       plan: {
         id: subscriptionPlans.id,
@@ -3052,6 +3053,15 @@ export class DatabaseStorage implements IStorage {
     
     if (!subscription) {
       return { allowed: false, usage: 0, limit: 0 };
+    }
+
+    // Free premium users have unlimited access
+    if (subscription.freePremium) {
+      return {
+        allowed: true,
+        usage: usage?.[type] || 0,
+        limit: 999999 // Unlimited
+      };
     }
 
     const currentUsage = usage?.[type] || 0;

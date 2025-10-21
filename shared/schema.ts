@@ -990,6 +990,8 @@ export const subscriptions = pgTable("subscriptions", {
   // Regional pricing
   localCurrency: text("local_currency").default("THB"),
   localPrice: decimal("local_price", { precision: 10, scale: 2 }),
+  // Free premium access for special users
+  freePremium: boolean("free_premium").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
