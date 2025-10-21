@@ -117,7 +117,7 @@ export default function CryptoPage() {
 
   if (portfolioLoading || holdingsLoading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-muted rounded w-1/3"></div>
           <div className="h-32 bg-muted rounded"></div>
@@ -135,7 +135,7 @@ export default function CryptoPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/30 dark:via-amber-900/30 dark:to-yellow-900/30">
       {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/50 dark:via-amber-900/50 dark:to-yellow-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <Bitcoin className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-orange-500 flex-shrink-0" />
@@ -253,7 +253,7 @@ export default function CryptoPage() {
         </div>
       </header>
     
-    <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
       {/* Mobile-First Portfolio Value Card */}
       <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800 transition-all hover:scale-105 active:scale-95">
         <CardContent className="p-4 sm:p-6">
