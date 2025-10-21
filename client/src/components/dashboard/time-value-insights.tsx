@@ -27,7 +27,7 @@ export default function TimeValueInsights() {
           <div className="h-6 bg-muted rounded w-1/3 mb-6"></div>
           <div className="space-y-4">
             <div className="h-64 bg-muted rounded"></div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="h-20 bg-muted rounded"></div>
               ))}
@@ -96,7 +96,7 @@ export default function TimeValueInsights() {
       
       <CardContent className="p-6">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
             <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
             <TabsTrigger value="efficiency" data-testid="tab-efficiency">Efficiency</TabsTrigger>
             <TabsTrigger value="distribution" data-testid="tab-distribution">Distribution</TabsTrigger>
@@ -104,7 +104,7 @@ export default function TimeValueInsights() {
           
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics Cards */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="text-time" size={16} />

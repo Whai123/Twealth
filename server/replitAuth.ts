@@ -70,8 +70,8 @@ async function upsertUser(
 ) {
   const userId = claims["sub"];
   
-  // Create or update user
-  await storage.upsertUser({
+  // Create or update user - get the actual user record to ensure we have the correct ID
+  const user = await storage.upsertUser({
     id: userId,
     email: claims["email"],
     firstName: claims["first_name"],
@@ -80,9 +80,10 @@ async function upsertUser(
   });
   
   // Ensure user has a subscription (initialize Free tier if new)
-  const subscription = await storage.getUserSubscription(userId);
+  // Use the returned user.id in case it differs from claims.sub
+  const subscription = await storage.getUserSubscription(user.id);
   if (!subscription) {
-    await storage.initializeDefaultSubscription(userId);
+    await storage.initializeDefaultSubscription(user.id);
   }
 }
 

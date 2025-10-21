@@ -107,7 +107,7 @@ export default function Dashboard() {
               </div>
               
               {/* Mobile-First Responsive Stats Grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                 {timeStatsLoading ? (
                   <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
                     <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
@@ -221,7 +221,7 @@ export default function Dashboard() {
       </header>
 
       <div 
-        className="space-y-4 sm:space-y-6 px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 md:py-6"
+        className="w-full max-w-full overflow-x-hidden space-y-4 sm:space-y-6 px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 md:py-6"
       >
         {/* Quick Stats Cards */}
         <QuickStats />

@@ -61,7 +61,7 @@ export default function MonthlyProgressChart() {
         <div className="animate-pulse">
           <div className="h-6 bg-muted rounded w-1/3 mb-6"></div>
           <div className="h-64 bg-muted/20 rounded-lg mb-4"></div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="h-16 bg-muted/50 rounded-lg"></div>
             ))}
