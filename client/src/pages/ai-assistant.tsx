@@ -289,7 +289,7 @@ export default function AIAssistantPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-900/30 dark:via-blue-900/30 dark:to-pink-900/30">
       {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-purple-900/50 dark:via-blue-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 max-w-6xl">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
           <div className="text-center space-y-4 sm:space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
               <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 via-blue-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg sm:shadow-xl animate-pulse flex-shrink-0">
@@ -370,7 +370,7 @@ export default function AIAssistantPage() {
         </div>
       </header>
       
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8 max-w-6xl space-y-6 sm:space-y-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8">
 
       {/* Enhanced Usage Summary */}
       {usage && (
