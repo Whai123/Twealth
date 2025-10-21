@@ -18,9 +18,16 @@ The backend is an Express.js application in TypeScript, offering a RESTful API. 
 
 ## Feature Specifications
 
--   **AI Financial Advisor**: Powered by Groq AI (Llama 4 Scout), offering CFO-level advice with advanced intelligence for data validation, luxury asset intelligence, live market intelligence, spending intelligence, and behavioral analysis.
+-   **AI Financial Advisor**: Powered by Groq AI (Llama 4 Scout), offering CFO-level advice with advanced intelligence for data validation, comprehensive luxury asset intelligence, live market intelligence, spending intelligence, and behavioral analysis.
     -   **Data Intelligence**: Smart validation, critical thinking engine, logical consistency checks, and professional skepticism for financial inputs.
-    -   **Luxury Asset Intelligence**: Comprehensive database for 25+ luxury vehicles including pricing, insurance, maintenance, and depreciation.
+    -   **Comprehensive Luxury Asset Intelligence** (Oct 2025): Extensive database covering 150+ luxury assets across 7 categories:
+        -   **Vehicles**: 25+ models (Lamborghini, Ferrari, McLaren, Porsche, Rolls-Royce, Bentley, Aston Martin) with pricing, insurance, maintenance, and depreciation data.
+        -   **Yachts**: 12+ models (65' to 364' superyachts) with purchase prices, docking, crew, fuel, and annual operating costs ($810k-$38.5M/year).
+        -   **Private Jets**: 12+ models (HondaJet to Gulfstream G700) with purchase prices ($7.2M-$75M), hourly operating costs ($1,200-$6,000/hour), and range specifications.
+        -   **Real Estate**: 15+ luxury markets globally (Manhattan, Monaco, Beverly Hills, Hong Kong, Aspen) with price ranges, property taxes, and HOA costs.
+        -   **Jewelry**: 10+ categories (Tiffany, Cartier, Harry Winston, Graff) with appreciation rates (investment-grade diamonds appreciate 3-12%/year).
+        -   **Designer Fashion**: 12+ brands (Hermès Birkin/Kelly, Chanel, Louis Vuitton, Louboutin) with appreciation analysis (Birkin appreciates 14%/year, beating S&P 500).
+        -   **Art & Collectibles**: 10+ categories (contemporary art, classic cars, rare whisky, vintage watches) with historical appreciation rates (rare whisky +15%/year).
     -   **Live Market Intelligence**: Integration with Alpha Vantage, exchangerate-api, and public APIs for real-time market data, including country-specific tax calculations for 10+ countries.
     -   **Spending Intelligence**: Pattern recognition, behavioral insights, smart recommendations, and unusual transaction detection.
     -   **Imperative Command Detection** (Oct 2025): AI detects direct goal creation commands like "add it to my goal", "add this", "เพิ่ม" (Thai) and extracts context from conversation history to create goals immediately without asking for confirmation again.
