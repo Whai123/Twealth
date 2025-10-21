@@ -227,7 +227,7 @@ export default function AIChatButton() {
                     }`}
                   >
                     <p className="text-xs md:text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                    <p className="text-[10px] md:text-xs opacity-70 mt-1">
+                    <p className="text-xs opacity-70 mt-1">
                       {formatMessageTime(message.createdAt)}
                     </p>
                   </div>

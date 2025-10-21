@@ -409,7 +409,7 @@ export default function Calendar() {
                 <span className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100">Events</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-blue-600">{filteredEvents?.length || 0}</div>
-              <div className="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300">This month</div>
+              <div className="text-xs text-blue-700 dark:text-blue-300">This month</div>
             </div>
             
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200 dark:border-purple-800">
@@ -423,7 +423,7 @@ export default function Calendar() {
                   return sum + (duration * 50);
                 }, 0) || 0)}
               </div>
-              <div className="text-[10px] sm:text-xs text-purple-700 dark:text-purple-300">Time value</div>
+              <div className="text-xs text-purple-700 dark:text-purple-300">Time value</div>
             </div>
             
             <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200 dark:border-green-800">
@@ -432,7 +432,7 @@ export default function Calendar() {
                 <span className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-100">ROI</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-green-600">+185%</div>
-              <div className="text-[10px] sm:text-xs text-green-700 dark:text-green-300">Avg return</div>
+              <div className="text-xs text-green-700 dark:text-green-300">Avg return</div>
             </div>
             
             <div className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-200 dark:border-amber-800">
@@ -441,7 +441,7 @@ export default function Calendar() {
                 <span className="text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-100">Efficiency</span>
               </div>
               <div className="text-xl sm:text-2xl font-bold text-amber-600">92%</div>
-              <div className="text-[10px] sm:text-xs text-amber-700 dark:text-amber-300">Optimized</div>
+              <div className="text-xs text-amber-700 dark:text-amber-300">Optimized</div>
             </div>
           </div>
         </div>
@@ -591,7 +591,7 @@ export default function Calendar() {
                                       <div className="flex items-center justify-between gap-1">
                                         <span className="truncate font-medium">{event.title}</span>
                                         {timeValue > 0 && (
-                                          <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
+                                          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
                                             ${timeValue}
                                           </Badge>
                                         )}
@@ -601,7 +601,7 @@ export default function Calendar() {
                                 })}
                                 
                                 {dayEvents.length > 3 && (
-                                  <div className="text-[10px] text-center text-muted-foreground bg-gray-100 dark:bg-gray-800 rounded py-1 font-medium">
+                                  <div className="text-xs text-center text-muted-foreground bg-gray-100 dark:bg-gray-800 rounded py-1 font-medium">
                                     +{dayEvents.length - 3} more
                                   </div>
                                 )}

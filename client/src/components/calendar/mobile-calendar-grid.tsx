@@ -147,7 +147,7 @@ export default function MobileCalendarGrid({
               <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                 {day}
               </span>
-              <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 hidden sm:block">
+              <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 hidden sm:block">
                 {DAYS_FULL[index].slice(0, 3)}
               </div>
             </div>
@@ -221,7 +221,7 @@ export default function MobileCalendarGrid({
                           <div className="flex items-center gap-0.5">
                             <div className={`w-2 h-1.5 rounded-full ${getEventIndicator(dayEvents[0]).color}`} />
                             <div className={`w-2 h-1.5 rounded-full ${getEventIndicator(dayEvents[1]).color}`} />
-                            <Badge variant="secondary" className="text-[8px] px-1 py-0 h-3">
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
                               +{dayEvents.length - 2}
                             </Badge>
                           </div>

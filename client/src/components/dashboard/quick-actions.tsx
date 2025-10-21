@@ -143,11 +143,11 @@ export default function QuickActions() {
                   <p className="font-medium text-primary-foreground text-xs md:text-sm leading-tight">
                     {action.title}
                   </p>
-                  <p className="text-[10px] md:text-xs text-primary-foreground/70 mt-1 hidden sm:block">
+                  <p className="text-xs text-primary-foreground/70 mt-1 hidden sm:block">
                     {action.description}
                   </p>
                 </div>
-                <div className="text-[10px] md:text-xs bg-white/20 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-primary-foreground/80 font-mono">
+                <div className="text-xs bg-white/20 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-primary-foreground/80 font-mono">
                   {action.shortcut}
                 </div>
               </Button>

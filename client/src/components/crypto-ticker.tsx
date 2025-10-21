@@ -91,7 +91,7 @@ export default function CryptoTicker() {
                 </span>
                 <div className={`flex items-center ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {isPositive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                  <span className="ml-0.5 text-[10px]">
+                  <span className="ml-0.5 text-xs">
                     {Math.abs(data.price_change_percentage_24h || 0).toFixed(1)}%
                   </span>
                 </div>

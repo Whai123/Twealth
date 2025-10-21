@@ -98,7 +98,7 @@ function Router() {
   return (
     <OnboardingRedirect>
       <SidebarProvider>
-        <div className="flex min-h-screen bg-background">
+        <div className="flex min-h-screen bg-background w-full max-w-full overflow-x-hidden">
           {/* Sidebar - uses Sheet on mobile, fixed sidebar on desktop */}
           {location !== "/welcome" && <Sidebar />}
           

@@ -191,7 +191,7 @@ export default function TimeValueInsights() {
                             const value = Number(payload[1]?.value || 0);
                             const efficiency = hours > 0 ? value / hours : 0;
                             return (
-                              <div className="bg-card border rounded-lg p-3 shadow-lg min-w-[200px]">
+                              <div className="bg-card border rounded-lg p-3 shadow-lg sm:min-w-[200px]">
                                 <p className="font-medium mb-2 truncate">{label}</p>
                                 <p className="text-sm text-time">
                                   ⏰ {hours.toFixed(1)}h tracked
@@ -313,7 +313,7 @@ export default function TimeValueInsights() {
                             const percentage = Math.round((hours / (insights?.totalTimeHours || 1)) * 100);
                             const value = Number(payload[1]?.value || 0);
                             return (
-                              <div className="bg-card border rounded-lg p-3 shadow-lg min-w-[200px]">
+                              <div className="bg-card border rounded-lg p-3 shadow-lg sm:min-w-[200px]">
                                 <p className="font-medium mb-2 truncate">{label}</p>
                                 <p className="text-sm text-time">
                                   ⏰ {hours.toFixed(1)}h ({percentage}%)
