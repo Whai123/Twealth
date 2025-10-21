@@ -330,7 +330,7 @@ export default function Groups() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-emerald-900/30 dark:via-blue-900/30 dark:to-purple-900/30">
       {/* Spectacular Header */}
       <header className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-emerald-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 backdrop-blur-sm">
-        <div className="container mx-auto px-6 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-4 mb-6">
@@ -418,7 +418,7 @@ export default function Groups() {
         </div>
       </header>
       
-      <div className="container mx-auto px-6 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
 
       {/* Enhanced Empty State */}
       {userGroups.length === 0 ? (

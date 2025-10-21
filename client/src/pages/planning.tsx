@@ -164,7 +164,7 @@ export default function Planning() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
       {/* Modern Header with gradient background */}
       <header className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 border-b border-border/50">
-        <div className="container mx-auto px-4 sm:px-6 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 md:py-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
@@ -215,7 +215,7 @@ export default function Planning() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 max-w-7xl mx-auto">
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-1 rounded-xl border border-indigo-200/50 dark:border-indigo-700/50">

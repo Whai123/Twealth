@@ -276,7 +276,7 @@ export default function Calendar() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
       {/* Mobile-Optimized Header */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6">
           {/* Header Top Row */}
           <div className="flex items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -447,7 +447,7 @@ export default function Calendar() {
         </div>
       </header>
       
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8">
         {/* Smart Insights - Desktop Only */}
         <div className="mb-6 hidden lg:block">
           <SmartCalendarInsights 

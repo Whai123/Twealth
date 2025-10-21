@@ -144,7 +144,7 @@ export default function ReferralsPage() {
 
   if (isLoadingCode || isLoadingReferrals || isLoadingCredits) {
     return (
-      <div className="container mx-auto px-4 py-8 space-y-6" data-testid="page-referrals">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 space-y-6" data-testid="page-referrals">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
           <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
@@ -173,7 +173,7 @@ export default function ReferralsPage() {
     <>
       {/* Gamified Header */}
       <header className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-purple-900/50 dark:via-pink-900/50 dark:to-orange-900/50 border-b border-border/50">
-        <div className="container mx-auto px-4 py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-4">
@@ -251,7 +251,7 @@ export default function ReferralsPage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 space-y-6" data-testid="page-referrals">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-6" data-testid="page-referrals">
 
         {/* Enhanced Bonus Credits Summary */}
         {bonusData && (
