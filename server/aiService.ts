@@ -1166,17 +1166,18 @@ If you invested $X instead at 8%:
 
 Want me to compare lease vs buy options?"
 
-🚗 LUXURY VEHICLE DATABASE (ACCURATE REFERENCE DATA):
-When discussing luxury vehicles, use this exact data - NEVER guess or confuse brands!
+💎 COMPREHENSIVE LUXURY ASSET DATABASE (ACCURATE REFERENCE DATA):
+When discussing luxury assets, use this exact data - NEVER guess prices or confuse brands!
 
-**Lamborghini Models:**
+🚗 **LUXURY VEHICLES:**
+**Lamborghini:**
 • Huracán EVO: $287,400 (supercar) - Insurance: $12k/yr, Maintenance: $8k/yr, Depreciation Year 1: 20%
 • Huracán STO: $327,838 (supercar) - Insurance: $15k/yr, Maintenance: $10k/yr, Depreciation Year 1: 22%
 • Aventador SVJ: $573,966 (hypercar) - Insurance: $25k/yr, Maintenance: $15k/yr, Depreciation Year 1: 18%
 • Urus: $229,495 (luxury SUV) - Insurance: $10k/yr, Maintenance: $7k/yr, Depreciation Year 1: 25%
 • Revuelto: $608,358 (hypercar) - Insurance: $28k/yr, Maintenance: $18k/yr, Depreciation Year 1: 15%
 
-**McLaren Models:** (NOT Lamborghini!)
+**McLaren:** (NOT Lamborghini!)
 • GT: $210,000 (sports car) - Insurance: $9k/yr, Maintenance: $8k/yr, Depreciation Year 1: 22%
 • 720S: $310,000 (supercar) - Insurance: $15k/yr, Maintenance: $12k/yr, Depreciation Year 1: 25%
 • 765 LT: $382,500 (hypercar) - Insurance: $18k/yr, Maintenance: $14k/yr, Depreciation Year 1: 20%
@@ -1197,6 +1198,88 @@ When discussing luxury vehicles, use this exact data - NEVER guess or confuse br
 
 **CRITICAL**: When user mentions a vehicle, verify the brand is correct!
 Example: "765 LT is a McLaren, not a Lamborghini. Did you mean the Lamborghini Huracán STO ($327k) or McLaren 765 LT ($382k)?"
+
+⛵ **LUXURY YACHTS:**
+• Sunseeker Predator 65 (65'): $2.8M - Annual: Docking $150k, Crew $200k, Fuel $180k, Maintenance $280k = $810k/year
+• Ferretti 850 (85'): $8.5M - Annual running cost: $1.25M
+• Benetti Delfino 95 (95'): $14.5M - Annual running cost: $2.93M
+• Lürssen Custom 111m (364'): $275M - Annual running cost: $38.5M (docking, crew, fuel, maintenance)
+• Feadship Custom 78m (256'): $180M - Annual running cost: $25.8M
+**RULE**: Annual yacht operating costs = 10-15% of purchase price!
+
+✈️ **PRIVATE JETS:**
+• HondaJet Elite II: $7.2M - $1,200/flight hour - Range: 1,547 nm - 6 passengers
+• Embraer Praetor 600: $21M - $2,800/flight hour - Range: 4,018 nm - 12 passengers
+• Cessna Citation Longitude: $28M - $3,200/flight hour - Range: 3,500 nm - 12 passengers
+• Gulfstream G280: $24.5M - $2,700/flight hour - Range: 3,600 nm - 10 passengers
+• Bombardier Global 7500: $73M - $5,800/flight hour - Range: 7,700 nm - 19 passengers
+• Gulfstream G700: $75M - $6,000/flight hour - Range: 7,500 nm - 19 passengers
+**RULE**: 200 flight hours/year typical use = $540k-$1.2M annual operating costs for mid-range jets!
+
+🏡 **LUXURY REAL ESTATE** (Global Markets):
+• Manhattan Penthouse: $15M-$95M - Property tax 0.88%, HOA $8,500/month
+• Beverly Hills Mansion: $25M-$150M - Property tax 1.2%, HOA $5,000/month
+• Monaco Penthouse: $35M-$200M - Property tax 0%, HOA $12,000/month
+• Hong Kong The Peak: $40M-$180M - Property tax 0%, HOA $9,000/month
+• Miami Beach Penthouse: $12M-$75M - Property tax 1.02%, HOA $7,500/month
+• Aspen Chalet: $22M-$120M - Property tax 0.55%, HOA $4,000/month
+**RULE**: Annual ownership cost = 1.5-3% of property value (taxes + HOA + maintenance)
+
+💍 **LUXURY JEWELRY:**
+• Tiffany Engagement Ring (2-5ct): $15k-$500k - Depreciates 30-50% (retail markup)
+• Cartier Diamond Necklace: $50k-$2M - Investment-grade APPRECIATES 3-5%/year
+• Harry Winston Emerald Ring: $75k-$1.5M - Colombian emeralds APPRECIATE 4-6%/year
+• Graff Diamond Bracelet: $120k-$5M - D-color flawless APPRECIATES 5-8%/year
+• De Beers Pink Diamond Ring: $250k-$10M - Investment-grade APPRECIATES 8-12%/year
+**RULE**: Investment jewelry (rare stones, limited pieces) appreciates. Retail diamonds depreciate!
+
+👜 **DESIGNER FASHION:**
+• Hermès Birkin: $12k-$500k - APPRECIATES 14% annually (better than S&P 500!)
+• Hermès Kelly: $10k-$400k - APPRECIATES 12% annually
+• Chanel Classic Flap: $9k-$45k - APPRECIATES 5% annually
+• Louis Vuitton Monogram: $1.5k-$8k - Depreciates (mass market)
+• Christian Louboutin Heels: $700-$6k - Depreciates 60-80%
+• Loro Piana Cashmere Coat: $6k-$25k - Depreciates 70%
+**RULE**: Only Hermès Birkin/Kelly and vintage Chanel appreciate. Everything else depreciates!
+
+🎨 **LUXURY ART & COLLECTIBLES:**
+• Contemporary Art (Banksy, Kaws): $100k-$50M - APPRECIATES 8.5%/year
+• Impressionist Paintings (Monet): $500k-$100M - APPRECIATES 6.2%/year
+• Modern Art (Warhol, Picasso): $250k-$75M - APPRECIATES 7.1%/year
+• Fine Art Photography: $15k-$5M - APPRECIATES 5.8%/year
+• Investment-Grade Wine (Bordeaux): $10k-$2M - APPRECIATES 9.2%/year
+• Classic Cars (Ferrari 250 GTO): $500k-$70M - APPRECIATES 12.5%/year
+• Rare Whisky (Macallan): $5k-$500k - APPRECIATES 15%/year (best liquid asset!)
+• Vintage Hermès Bags: $15k-$500k - APPRECIATES 11.3%/year
+**RULE**: Blue-chip art outperforms stocks long-term. Rare whisky has highest returns!
+
+⌚ **LUXURY WATCHES** (Investment vs Depreciation):
+**APPRECIATING (Buy as investment):**
+• Rolex Daytona: $35k → +8%/year
+• Rolex Submariner: $12k → +5%/year
+• Patek Philippe Nautilus 5711: $150k → +15%/year (discontinued model!)
+• Audemars Piguet Royal Oak: $85k → +7%/year
+**DEPRECIATING (Love it but don't expect returns):**
+• Richard Mille RM 011: $180k → -30% resale
+• Omega Speedmaster: $6.5k → -20% resale
+**RULE**: Steel sport watches from Rolex/Patek appreciate. Complicated/gold watches depreciate!
+
+💡 **SMART LUXURY INVESTMENT STRATEGY:**
+ASSETS THAT APPRECIATE (Buy for wealth):
+1. Hermès Birkin bags (+14%/year)
+2. Rare whisky collections (+15%/year)
+3. Classic investment cars (+12.5%/year)
+4. Patek Philippe steel sports watches (+10-15%/year)
+5. Blue-chip contemporary art (+8.5%/year)
+
+ASSETS THAT DEPRECIATE (Buy only if you love it):
+1. New luxury cars (-20-30% year 1)
+2. Yachts (-8-10%/year + massive running costs)
+3. Private jets (-5-8%/year + $500k-$2M annual costs)
+4. Most jewelry (-30-50% at resale)
+5. Most designer fashion (-60-80% at resale)
+
+**CFO WISDOM**: If you're buying for investment, choose appreciating assets. If buying for lifestyle, understand the depreciation cost!
 
 🎯 YOUR SUPERPOWERS - Use tools to take immediate action:
 
