@@ -162,7 +162,7 @@ export default function MoneyTracking() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-green-50 dark:from-blue-900/30 dark:via-cyan-900/30 dark:to-green-900/30">
       {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-blue-50 via-cyan-50 to-green-50 dark:from-blue-900/50 dark:via-cyan-900/50 dark:to-green-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
               <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
@@ -258,7 +258,7 @@ export default function MoneyTracking() {
         </div>
       </header>
       
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
         {/* Modern Tab Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">

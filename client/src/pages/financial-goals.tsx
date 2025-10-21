@@ -308,7 +308,7 @@ export default function FinancialGoals() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/30 dark:via-emerald-900/30 dark:to-teal-900/30">
       {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/50 dark:via-emerald-900/50 dark:to-teal-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
               <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
@@ -415,7 +415,7 @@ export default function FinancialGoals() {
         </div>
       </header>
       
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center space-x-2" data-testid="tab-overview">
