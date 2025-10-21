@@ -88,7 +88,7 @@ export default function Dashboard() {
       
       {/* Mobile-First Responsive Header */}
       <header className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4 md:py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 md:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
               <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-3 md:mb-4">
@@ -221,7 +221,7 @@ export default function Dashboard() {
       </header>
 
       <div 
-        className="space-y-4 sm:space-y-6 px-4 sm:px-6 py-3 sm:py-4 md:py-6"
+        className="space-y-4 sm:space-y-6 px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 md:py-6"
       >
         {/* Quick Stats Cards */}
         <QuickStats />
