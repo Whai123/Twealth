@@ -171,7 +171,7 @@ export default function Friends() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-pink-900/30 dark:via-purple-900/30 dark:to-blue-900/30">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8 max-w-7xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
         <div className="mb-4 sm:mb-6">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">👥 Friends</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Connect with friends to collaborate on groups and events</p>

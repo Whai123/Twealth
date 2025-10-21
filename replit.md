@@ -32,7 +32,7 @@ The backend is an Express.js application in TypeScript, offering a RESTful API. 
 
 The architecture incorporates a comprehensive caching strategy for improved performance, including a system prompt cache, market data cache, and optimized React Query settings. Database indexes are implemented on frequently queried columns to enhance query performance.
 
-**Full-Width Responsive Layout**: Application uses big tech-style full-width layouts (Stripe/Robinhood pattern) with responsive padding (`w-full px-4 sm:px-6 lg:px-8 xl:px-12`). Data/dashboard pages maximize viewport width; form pages use centered containers (`max-w-7xl mx-auto`) for readability. Mobile-first responsive grids prevent horizontal overflow (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3/4`).
+**Full-Width Responsive Layout**: Application uses big tech-style full-width layouts matching Stripe/Robinhood pattern with fixed sidebar (~256px) and content area using `flex-1` to fill remaining viewport width. Responsive padding (`w-full px-4 sm:px-6 lg:px-8 xl:px-12`) grows with screen size. Data/dashboard pages (Dashboard, Goals, Money, Crypto, Friends, Groups, Planning, Referrals, Calendar, AI) maximize available width; form/pricing pages (Settings, Subscription, Upgrade) use centered containers (`max-w-5xl`/`max-w-7xl`) for readability. Mobile-first responsive grids prevent horizontal overflow (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3/4`).
 
 **Authentication**: Fixed OIDC foreign key constraint violation by ensuring subscription initialization uses returned user ID rather than claims sub, preventing errors when existing users log in with different provider IDs.
 

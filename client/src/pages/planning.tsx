@@ -215,7 +215,7 @@ export default function Planning() {
         </div>
       </header>
 
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 max-w-7xl mx-auto">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-1 rounded-xl border border-indigo-200/50 dark:border-indigo-700/50">
