@@ -141,7 +141,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal when user confirms OR gives imperative command. TRIGGERS: (1) User confirms after being asked: 'yes', 'add it', 'create it', 'sure', OR (2) User gives direct command: 'add goal', 'add this to goal', 'เพิ่ม' (Thai), etc. WORKFLOW: If user just mentioned wanting something → explain strategy first, ask for confirmation. If user gives imperative command after discussion → extract goal details from conversation context and create immediately. userConfirmed=true for both cases.",
+      description: "Create a financial goal when user confirms OR gives imperative command. TRIGGERS: (1) User confirms after being asked: 'yes', 'add it', 'create it', 'sure', OR (2) User gives IMPERATIVE COMMAND after discussion: 'add goal', 'add to goal', 'add it to my goal', 'make it a goal', 'เพิ่ม' (Thai), etc. CRITICAL FOR IMPERATIVE COMMANDS: Look back 2-5 messages in conversation history to extract: item name (e.g., 'Lamborghini SVJ'), price (e.g., 573966), and user's financial situation. Calculate realistic target date based on their savings capacity. Set userConfirmed=true and create immediately. Example: After discussing $573,966 Lamborghini with $2k/month income, user says 'add it to my goal' → MUST call this tool with name='Buy Lamborghini SVJ', targetAmount='573966', targetDate=10 years from now.",
       parameters: {
         type: "object",
         properties: {
@@ -1216,15 +1216,35 @@ Example: "765 LT is a McLaren, not a Lamborghini. Did you mean the Lamborghini H
    → Create goal with targetAmount: 80000 (NUMBER, no quotes!)
    → Respond: "✅ Goal added! Tesla $80,000 by [date]. You'll get reminders to stay on track!"
    
-   🚀 IMPERATIVE COMMANDS (Direct Action):
-   When user gives direct command like "add goal", "add to goal", "add this", "เพิ่ม" (Thai), etc:
-   → Extract goal details from recent conversation context
-   → Create goal immediately with userConfirmed=true
-   → Example: After discussing Audi R8 for 15M baht, user says "add to my goals"
-      → Create goal: name="Audi R8", targetAmount=15000000, targetDate=5 years from now
-      → Respond: "✅ Goal created! Audi R8 - 15M baht in 5 years. Save 250K/month to stay on track!"
+   🚀 IMPERATIVE COMMANDS (Direct Action) - CRITICAL:
+   When user gives direct command like "add goal", "add to goal", "add this", "add it to my goal", "เพิ่ม" (Thai), etc:
+   → IMMEDIATELY call create_financial_goal tool with userConfirmed=true
+   → Extract goal details from CONVERSATION HISTORY (what they just discussed)
+   → Set realistic target date (5-10 years for expensive items, 1-3 years for smaller goals)
    
-   ⚠️ For initial mentions, ask first. For imperative commands, create immediately!
+   **EXAMPLE - User wants Lamborghini SVJ ($573,966):**
+   User: "อยากซื้อ lambo SVJ"
+   You: [Provide full CFO analysis with price $573,966]
+   User: "My income is $2000, expenses $500"
+   You: [Show empathetic path forward]
+   User: "Add it to my goal"  ← IMPERATIVE COMMAND!
+   You MUST:
+   1. Call create_financial_goal({
+        userConfirmed: true,
+        name: "Buy Lamborghini SVJ",
+        targetAmount: "573966",  // From conversation context
+        targetDate: "2035-10-21",  // 10 years from now for luxury item
+        description: "Lamborghini Aventador SVJ - save $4,783/month for 10 years"
+      })
+   2. Respond: "✅ Goal created! Lamborghini SVJ - $573,966 in 10 years. You'll need to save $4,783/month. Let's make it happen!"
+   
+   **KEY RULES FOR IMPERATIVE COMMANDS:**
+   - ALWAYS look back 2-5 messages to find what they were discussing
+   - Use EXACT prices/amounts mentioned in your analysis
+   - Calculate realistic targetDate based on their savings rate
+   - NEVER ask for confirmation again - they already commanded you to add it!
+   
+   ⚠️ For initial mentions, ask first. For imperative commands like "add it", create immediately!
 
 2️⃣ CALENDAR EVENTS (create_calendar_event):
    User: "Remind me to check my portfolio next Friday"
@@ -1804,8 +1824,11 @@ CRITICAL RULES:
       const wasAskingForConfirmation = lastAssistantMsg.includes('Want me to') || 
                                        lastAssistantMsg.includes('Should I') || 
                                        lastAssistantMsg.includes('add this as a') ||
+                                       lastAssistantMsg.includes('Would you like') ||
+                                       lastAssistantMsg.includes('ต้องการให้') || // Thai: Want me to
                                        lastAssistantMsg.includes('คุณต้องการ') || // Thai: Do you want
-                                       (lastAssistantMsg.includes('create') && lastAssistantMsg.includes('?'));
+                                       (lastAssistantMsg.includes('create') && lastAssistantMsg.includes('?')) ||
+                                       (lastAssistantMsg.includes('goal') && lastAssistantMsg.includes('?'));
       
       // Enable creation tools if:
       // 1. User confirms after being asked, OR
@@ -1817,7 +1840,15 @@ CRITICAL RULES:
         ? TOOLS  // All tools available if confirming
         : TOOLS.filter(t => !['create_financial_goal', 'create_calendar_event', 'create_group'].includes(t.function.name));
       
-      console.log(`🛡️  Tool filtering: isConfirmation=${isConfirmation}, wasAsking=${wasAskingForConfirmation}, isImperative=${isImperativeAction}, canCreate=${canCreate}, toolCount=${availableTools.length}/${TOOLS.length}`);
+      console.log(`🛡️  Tool filtering DEBUG:
+        - User message: "${userMessage}"
+        - isConfirmation: ${isConfirmation}
+        - wasAsking: ${wasAskingForConfirmation}
+        - isImperative: ${isImperativeAction}
+        - canCreate: ${canCreate}
+        - toolCount: ${availableTools.length}/${TOOLS.length}
+        - Last assistant msg preview: "${lastAssistantMsg.substring(0, 100)}..."
+      `);
       
       // Check if message indicates need for transaction/crypto tracking (immediate actions)
       // Only trigger for PAST tense actions, NOT future intentions
