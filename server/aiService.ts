@@ -1979,8 +1979,22 @@ CRITICAL RULES:
       }
       
       return { response: text, toolCalls };
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI Service Error:', error);
+      
+      // GRACEFUL DEGRADATION (like ChatGPT/Claude):
+      // If Groq rejected the response due to tool_use_failed, extract the generated text
+      if (error?.error?.error?.failed_generation) {
+        const failedText = error.error.error.failed_generation;
+        console.log('✅ Recovered failed response text - returning to user');
+        
+        // Cache the recovered response (estimate tokens without systemPrompt)
+        const tokenCount = this.estimateTokenCount(userMessage + failedText);
+        responseCache.set(userMessage, context, failedText, tokenCount);
+        
+        return { response: failedText, toolCalls: undefined };
+      }
+      
       throw new Error('Failed to generate AI response');
     }
   }
