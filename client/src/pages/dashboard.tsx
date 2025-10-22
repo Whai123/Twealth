@@ -28,12 +28,15 @@ import AIChatButton from "@/components/chat/ai-chat-button";
 import AIInsightsCard from "@/components/dashboard/ai-insights-card";
 import CryptoPortfolioWidget from "@/components/dashboard/crypto-portfolio-widget";
 import MultiCurrencyCalculator from "@/components/wealth/multi-currency-calculator";
+import OnboardingWizard from "@/components/onboarding/onboarding-wizard";
+import { useOnboarding } from "@/hooks/use-onboarding";
 import { UserPreferences } from "@shared/schema";
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const [isCreateGoalOpen, setIsCreateGoalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const { showOnboarding, completeOnboarding } = useOnboarding();
   
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -81,6 +84,11 @@ export default function Dashboard() {
   const daysActive = Math.floor((Date.now() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
   const streak = Math.min(daysActive, 42);
   
+  // Show onboarding wizard for new users
+  if (showOnboarding) {
+    return <OnboardingWizard onComplete={completeOnboarding} />;
+  }
+
   return (
     <>
       {/* AI Chat Button - Floating */}
