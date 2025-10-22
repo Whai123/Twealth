@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 export default function MonthlyProgressChart() {
   const [period, setPeriod] = useState("6months");
@@ -90,60 +91,67 @@ export default function MonthlyProgressChart() {
       </CardHeader>
       
       <CardContent className="p-0">
-        {/* Chart Area */}
-        <div className="h-64 bg-muted/20 rounded-lg flex items-center justify-center relative overflow-hidden">
-          {/* Y-axis labels */}
-          <div className="absolute left-0 top-4 text-xs text-muted-foreground space-y-8">
-            <div>$6k</div>
-            <div>$4k</div>
-            <div>$2k</div>
-            <div>$0</div>
-          </div>
-          
-          {/* Chart bars */}
-          <div className="flex items-end justify-center space-x-6 h-full pt-8 pl-12 pr-4 pb-8">
-            {monthlyData.map((data, index) => {
-              const height = Math.max((data.income / maxValue) * 100, 5); // Ensure minimum visible height
-              const isProjected = data.projected;
-              
-              return (
-                <div key={data.month} className="flex flex-col items-center h-full justify-end">
-                  <div 
-                    className={`w-8 rounded-t transition-all duration-300 min-h-[8px] ${
-                      isProjected 
-                        ? "bg-primary/60 border-2 border-primary border-dashed" 
-                        : "bg-primary"
-                    }`}
-                    style={{ 
-                      height: `${height}%`,
-                      minHeight: '8px'
-                    }}
-                    title={`${data.month}: $${data.income.toLocaleString()}`}
-                    data-testid={`chart-bar-${data.month.toLowerCase()}`}
-                  />
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* X-axis labels */}
-          <div className="absolute bottom-0 left-12 right-4 flex justify-between text-xs text-muted-foreground">
-            {monthlyData.map((data) => (
-              <span key={data.month}>{data.month}</span>
-            ))}
-          </div>
-          
-          {/* Chart Legend */}
-          <div className="absolute top-4 right-4 flex items-center space-x-4 text-xs">
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-primary rounded"></div>
-              <span className="text-muted-foreground">Income</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 border-2 border-primary border-dashed rounded"></div>
-              <span className="text-muted-foreground">Target</span>
-            </div>
-          </div>
+        {/* Beautiful Recharts Visualization */}
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart 
+              data={monthlyData} 
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <defs>
+                <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.9}/>
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.9}/>
+                </linearGradient>
+                <linearGradient id="colorTarget" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.6}/>
+                  <stop offset="95%" stopColor="#6ee7b7" stopOpacity={0.6}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
+              <XAxis 
+                dataKey="month" 
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+                tickLine={false}
+              />
+              <YAxis 
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+                tickLine={false}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                formatter={(value: any) => [`$${value.toLocaleString()}`, '']}
+                labelStyle={{ fontWeight: 600, marginBottom: 4 }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: 20 }}
+                iconType="square"
+              />
+              <Bar 
+                dataKey="income" 
+                name="Income" 
+                fill="url(#colorIncome)" 
+                radius={[8, 8, 0, 0]}
+                animationDuration={1000}
+                data-testid="chart-bar-income"
+              />
+              <Bar 
+                dataKey="target" 
+                name="Target" 
+                fill="url(#colorTarget)" 
+                radius={[8, 8, 0, 0]}
+                animationDuration={1000}
+                fillOpacity={0.7}
+                data-testid="chart-bar-target"
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
         
         {/* Summary Stats */}
