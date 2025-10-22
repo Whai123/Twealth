@@ -258,6 +258,8 @@ export const userPreferences = pgTable("user_preferences", {
   cryptoEnabled: boolean("crypto_enabled").default(false),
   experienceLevel: text("experience_level", { enum: ["beginner", "intermediate", "advanced"] }).default("beginner"),
   preferredCurrencies: text("preferred_currencies").array().default(sql`ARRAY['USD']::text[]`), // e.g., ['USD', 'BTC', 'EUR', 'CNY']
+  // Demo Mode - Show sample data for new users
+  demoMode: boolean("demo_mode").default(true), // New users start in demo mode
   // Financial estimates provided by user via AI chat
   monthlyIncomeEstimate: decimal("monthly_income_estimate", { precision: 10, scale: 2 }),
   monthlyExpensesEstimate: decimal("monthly_expenses_estimate", { precision: 10, scale: 2 }),
