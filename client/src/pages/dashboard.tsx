@@ -94,111 +94,29 @@ export default function Dashboard() {
       {/* AI Chat Button - Floating */}
       <AIChatButton />
       
-      {/* Mobile-First Responsive Header */}
-      <header className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-900/50 dark:via-blue-900/50 dark:to-purple-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 md:py-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4 md:mb-6">
-            <div className="flex-1 min-w-0 w-full sm:w-auto">
-              <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-3 md:mb-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-600 rounded-lg sm:rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg sm:shadow-xl animate-pulse flex-shrink-0">
-                  <div className="relative">
-                    <Clock className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
-                    <DollarSign className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 text-yellow-300 absolute -top-1 -right-1" />
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
-                    {t('dashboard.title')}
-                  </h1>
-                  <p className="text-xs sm:text-sm md:text-base lg:text-xl text-muted-foreground truncate">{t('dashboard.subtitle')}</p>
-                </div>
-              </div>
-              
-              {/* Mobile-First Responsive Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-                {timeStatsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
-                    <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
-                    <div className="h-5 sm:h-6 md:h-8 w-10 sm:w-12 md:w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-2 md:h-3 w-16 sm:w-20 md:w-24 bg-muted rounded"></div>
-                  </div>
-                ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-growth">
-                    <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                      <TrendingUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 ${growthPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} aria-hidden="true" />
-                      <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.growth')}</span>
-                    </div>
-                    <div className={`text-lg sm:text-xl md:text-2xl font-bold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'} transition-colors duration-300`} data-testid="value-growth">
-                      {growthPercent >= 0 ? '+' : ''}{growthPercent}%
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">{t('dashboard.stats.thisPeriod')}</div>
-                  </div>
-                )}
-                
-                {goalsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
-                    <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
-                    <div className="h-5 sm:h-6 md:h-8 w-10 sm:w-12 md:w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-2 md:h-3 w-16 sm:w-20 md:w-24 bg-muted rounded"></div>
-                  </div>
-                ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-goals">
-                    <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                      <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-blue-500" aria-hidden="true" />
-                      <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.goals')}</span>
-                    </div>
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600 transition-colors duration-300" data-testid="value-goals">
-                      {goalsOnTrack}/{activeGoalsCount}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">{t('dashboard.stats.onTrack')}</div>
-                  </div>
-                )}
-                
-                {statsLoading ? (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 animate-pulse">
-                    <div className="h-3 sm:h-4 md:h-5 w-12 sm:w-16 md:w-20 bg-muted rounded mb-1.5 sm:mb-2"></div>
-                    <div className="h-5 sm:h-6 md:h-8 w-10 sm:w-12 md:w-16 bg-muted rounded mb-1"></div>
-                    <div className="h-2 md:h-3 w-16 sm:w-20 md:w-24 bg-muted rounded"></div>
-                  </div>
-                ) : (
-                  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-score">
-                    <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                      <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-orange-500" aria-hidden="true" />
-                      <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.score')}</span>
-                    </div>
-                    <div className="text-lg sm:text-xl md:text-2xl font-bold text-orange-600 transition-colors duration-300" data-testid="value-score">
-                      {financialScore}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {financialScore >= 800 ? t('dashboard.stats.excellent') : financialScore >= 600 ? t('dashboard.stats.good') : financialScore >= 400 ? t('dashboard.stats.fair') : t('dashboard.stats.building')}
-                    </div>
-                  </div>
-                )}
-                
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95" data-testid="stat-streak">
-                  <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-2">
-                    <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-purple-500" aria-hidden="true" />
-                    <span className="text-xs md:text-sm font-medium truncate">{t('dashboard.stats.streak')}</span>
-                  </div>
-                  <div className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600 transition-colors duration-300" data-testid="value-streak">
-                    {streak}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate">{t('dashboard.stats.daysActive')}</div>
-                </div>
-              </div>
+      {/* Clean Stripe-style Header */}
+      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                {t('dashboard.title')}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">{t('dashboard.subtitle')}</p>
             </div>
             
-            {/* Mobile-First Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3 sm:ml-4 md:ml-6 w-full sm:w-auto">
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
               <Drawer open={isCreateGoalOpen} onOpenChange={setIsCreateGoalOpen}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-3 sm:px-4 md:px-6 min-h-[44px] h-11 sm:h-12 transition-all duration-300 hover:scale-105 hover:-translate-y-0.5 shadow-lg hover:shadow-xl active:scale-95 flex-1 sm:flex-initial"
+                    size="default"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm min-h-[44px]"
                     data-testid="button-new-goal"
                   >
-                    <Plus size={16} className="sm:mr-2" />
+                    <Plus className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">{t('dashboard.newGoal')}</span>
-                    <span className="sm:hidden text-xs">New Goal</span>
+                    <span className="sm:hidden">New</span>
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="max-h-[90vh]">
@@ -214,23 +132,106 @@ export default function Dashboard() {
               <NotificationsBell />
             </div>
           </div>
-          
-          {/* Mobile-First Welcome Message */}
-          <div className="bg-gradient-to-r from-white/80 to-indigo-50/80 dark:from-gray-800/80 dark:to-indigo-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 border border-white/20 transition-all duration-300 hover:border-indigo-300 dark:hover:border-indigo-700" role="banner">
-            <div className="flex items-start sm:items-center gap-2 sm:gap-3">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-500 animate-pulse flex-shrink-0 mt-0.5 sm:mt-0" aria-hidden="true" />
-              <div className="min-w-0 flex-1">
-                <h2 className="text-sm sm:text-base md:text-lg font-semibold text-indigo-800 dark:text-indigo-200">{t('dashboard.welcome')}</h2>
-                <p className="text-xs sm:text-sm md:text-base text-indigo-600 dark:text-indigo-300 line-clamp-2 sm:line-clamp-none">{t('dashboard.welcomeMessage')}</p>
-              </div>
-            </div>
-          </div>
         </div>
       </header>
 
       <div 
-        className="w-full max-w-full overflow-x-hidden space-y-4 sm:space-y-6 px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-4 md:py-6"
+        className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8"
       >
+        {/* Welcome Message */}
+        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 sm:p-5" role="banner">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" aria-hidden="true" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base font-semibold text-foreground mb-1">{t('dashboard.welcome')}</h2>
+              <p className="text-sm text-muted-foreground">{t('dashboard.welcomeMessage')}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Metrics - Stripe-style stat cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {timeStatsLoading ? (
+            <Card className="p-6">
+              <div className="space-y-3">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-6" data-testid="stat-growth">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className={`w-4 h-4 ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.growth')}</span>
+              </div>
+              <div className={`text-3xl font-semibold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="value-growth">
+                {growthPercent >= 0 ? '+' : ''}{growthPercent}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.stats.thisPeriod')}</p>
+            </Card>
+          )}
+          
+          {goalsLoading ? (
+            <Card className="p-6">
+              <div className="space-y-3">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-6" data-testid="stat-goals">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-4 h-4 text-blue-600" aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.goals')}</span>
+              </div>
+              <div className="text-3xl font-semibold text-blue-600" data-testid="value-goals">
+                {goalsOnTrack}/{activeGoalsCount}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.stats.onTrack')}</p>
+            </Card>
+          )}
+          
+          {statsLoading ? (
+            <Card className="p-6">
+              <div className="space-y-3">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-6" data-testid="stat-score">
+              <div className="flex items-center gap-2 mb-3">
+                <Award className="w-4 h-4 text-orange-600" aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.score')}</span>
+              </div>
+              <div className="text-3xl font-semibold text-orange-600" data-testid="value-score">
+                {financialScore}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {financialScore >= 800 ? t('dashboard.stats.excellent') : financialScore >= 600 ? t('dashboard.stats.good') : financialScore >= 400 ? t('dashboard.stats.fair') : t('dashboard.stats.building')}
+              </p>
+            </Card>
+          )}
+          
+          <Card className="p-6" data-testid="stat-streak">
+            <div className="flex items-center gap-2 mb-3">
+              <Crown className="w-4 h-4 text-purple-600" aria-hidden="true" />
+              <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.streak')}</span>
+            </div>
+            <div className="text-3xl font-semibold text-purple-600" data-testid="value-streak">
+              {streak}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{t('dashboard.stats.daysActive')}</p>
+          </Card>
+        </div>
+
         {/* Quick Stats Cards */}
         <QuickStats />
 
