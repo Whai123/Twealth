@@ -104,6 +104,7 @@ const responseCache = new ResponseCache();
 
 export interface UserContext {
   userId?: string;
+  userName?: string; // User's first name for personalization
   totalSavings: number;
   monthlyIncome: number;
   monthlyExpenses: number;
@@ -111,6 +112,14 @@ export interface UserContext {
   language?: string; // User's preferred language (en, es, id, th, pt, hi, vi, tl, ms, tr, ar)
   cryptoEnabled?: boolean; // Whether user has enabled crypto features
   experienceLevel?: 'beginner' | 'intermediate' | 'advanced'; // User's financial experience level
+  conversationMemory?: {
+    financialPriorities?: string[];
+    investmentPreferences?: string[];
+    lifeEvents?: { event: string; timeframe?: string }[];
+    spendingHabits?: string[];
+    riskTolerance?: string;
+    lastUpdated?: string;
+  }; // User's conversation history and preferences
   recentTransactions: Array<{
     amount: number;
     category: string;
@@ -805,7 +814,39 @@ ${context.experienceLevel === 'advanced' ? '• Advanced crypto strategies: yiel
 • If user asks about crypto, politely suggest enabling crypto features in Settings → Advanced Financial Features
 `;
     
-    return `You are Twealth AI, an expert-level CFO and financial advisor worth $150/hour. Your advice must be SO GOOD that users think "$25/month is a steal!" Every response must demonstrate deep expertise with EXACT calculations using the user's actual data.
+    const userName = context.userName || 'there';
+    const personalGreeting = context.userName ? `working with ${context.userName}` : 'helping you';
+    
+    // Build conversation memory context
+    let memorySection = '';
+    if (context.conversationMemory) {
+      const mem = context.conversationMemory;
+      const memoryPoints = [];
+      
+      if (mem.financialPriorities && mem.financialPriorities.length > 0) {
+        memoryPoints.push(`💡 ${context.userName || 'They'}'s priorities: ${mem.financialPriorities.join(', ')}`);
+      }
+      if (mem.investmentPreferences && mem.investmentPreferences.length > 0) {
+        memoryPoints.push(`📈 Investment style: ${mem.investmentPreferences.join(', ')}`);
+      }
+      if (mem.lifeEvents && mem.lifeEvents.length > 0) {
+        memoryPoints.push(`🎯 Upcoming milestones: ${mem.lifeEvents.map(e => `${e.event}${e.timeframe ? ` (${e.timeframe})` : ''}`).join(', ')}`);
+      }
+      if (mem.riskTolerance) {
+        memoryPoints.push(`⚖️ Risk tolerance: ${mem.riskTolerance}`);
+      }
+      if (mem.spendingHabits && mem.spendingHabits.length > 0) {
+        memoryPoints.push(`💳 Spending patterns: ${mem.spendingHabits.join(', ')}`);
+      }
+      
+      if (memoryPoints.length > 0) {
+        memorySection = `\n\n👤 WHAT I REMEMBER ABOUT ${context.userName?.toUpperCase() || 'THIS USER'}:\n${memoryPoints.join('\n')}\n\n⭐ IMPORTANT: Reference these past topics naturally! Say things like "As you mentioned before..." or "I remember you're planning to..."`;
+      }
+    }
+    
+    return `You are Twealth AI, ${userName}'s personal CFO and trusted financial mentor worth $150/hour. Your advice must be SO GOOD that ${userName} thinks "$25/month is a steal!" 
+
+🤝 YOUR ROLE: Act like ${userName}'s experienced financial advisor who KNOWS them personally, not a generic chatbot. Be warm, encouraging, and reference past conversations. Every response must demonstrate deep expertise with EXACT calculations using ${userName}'s actual data.${memorySection}
 
 🌍 LANGUAGE INSTRUCTION & AUTO-DETECTION:
 • User's Language Preference: ${languageName} (${userLanguage})

@@ -20,6 +20,8 @@ The backend is an Express.js application in TypeScript, offering a RESTful API. 
 
 -   **AI Financial Advisor**: Powered by Groq AI (Llama 4 Scout), offering CFO-level advice with advanced intelligence for data validation, comprehensive luxury asset intelligence, live market intelligence, spending intelligence, and behavioral analysis.
     -   **Data Intelligence**: Smart validation, critical thinking engine, logical consistency checks, and professional skepticism for financial inputs.
+    -   **AI Personalization & Memory** (Oct 2025): AI acts as personal CFO mentor, not chatbot - addresses users by name, remembers financial priorities, investment preferences, life events, spending habits, and risk tolerance. References past conversations naturally with phrases like "As you mentioned before..."
+    -   **Graceful Error Handling** (Oct 2025): Implements enterprise-grade error recovery like ChatGPT/Claude - extracts and returns valuable AI responses even when tool calls fail, eliminating "I apologize for confusion" errors. First message always works.
     -   **Comprehensive Luxury Asset Intelligence** (Oct 2025): Extensive database covering 150+ luxury assets across 7 categories:
         -   **Vehicles**: 25+ models (Lamborghini, Ferrari, McLaren, Porsche, Rolls-Royce, Bentley, Aston Martin) with pricing, insurance, maintenance, and depreciation data.
         -   **Yachts**: 12+ models (65' to 364' superyachts) with purchase prices, docking, crew, fuel, and annual operating costs ($810k-$38.5M/year).
@@ -45,6 +47,26 @@ The architecture incorporates a comprehensive caching strategy for improved perf
 **Full-Width Responsive Layout**: Application uses big tech-style full-width layouts matching Stripe/Robinhood pattern with fixed sidebar (~256px) and content area using `flex-1` to fill remaining viewport width. Responsive padding (`w-full px-4 sm:px-6 lg:px-8 xl:px-12`) grows with screen size. Data/dashboard pages (Dashboard, Goals, Money, Crypto, Friends, Groups, Planning, Referrals, Calendar, AI) maximize available width; form/pricing pages (Settings, Subscription, Upgrade) use centered containers (`max-w-5xl`/`max-w-7xl`) for readability. Mobile-first responsive grids prevent horizontal overflow (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3/4`).
 
 **Authentication**: Fixed OIDC foreign key constraint violation by ensuring subscription initialization uses returned user ID rather than claims sub, preventing errors when existing users log in with different provider IDs.
+
+## Pre-Launch Improvements (Oct 2025)
+
+Following user feedback analysis, the following enhancements were made to transform Twealth from functional MVP to market-ready product:
+
+1. **Dynamic Dashboard Visualizations**: Replaced static stats with animated recharts - beautiful bar charts for Income vs Target with gradient fills, smooth animations, and professional tooltips. Charts now make users "feel" their financial progress visually.
+
+2. **AI Personalization Infrastructure**: Enhanced AI to act as personal CFO mentor:
+   - Addresses users by name throughout conversations
+   - Stores and references conversation memory (financial priorities, investment preferences, life events, spending habits, risk tolerance)
+   - Uses phrases like "As you mentioned before..." to maintain context
+   - System prompt dynamically builds personalized context section
+
+3. **Demo Mode Foundation**: Created infrastructure for new user experience:
+   - Added `demoMode` boolean to user preferences schema (defaults to true for new users)
+   - Built realistic sample data service with 6 months of transactions, 5 financial goals, crypto holdings
+   - Created demo data middleware for future route integration
+   - Generates authentic financial scenarios (salary, recurring expenses, random purchases)
+
+**Status**: Charts complete ✅, AI personalization complete ✅, Demo mode foundation complete (full route integration deferred)
 
 # External Dependencies
 
