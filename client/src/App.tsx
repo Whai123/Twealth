@@ -21,6 +21,7 @@ const Settings = lazy(() => import("./pages/settings"));
 const Subscription = lazy(() => import("./pages/subscription"));
 const Checkout = lazy(() => import("./pages/checkout"));
 const Upgrade = lazy(() => import("./pages/upgrade"));
+const Pricing = lazy(() => import("./pages/pricing"));
 const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const AIInsights = lazy(() => import("./pages/ai-insights"));
 const Referrals = lazy(() => import("./pages/referrals"));
@@ -126,6 +127,7 @@ function Router() {
                   <Route path="/subscription" component={Subscription} />
                   <Route path="/checkout/:planId" component={Checkout} />
                   <Route path="/upgrade" component={Upgrade} />
+                  <Route path="/pricing" component={Pricing} />
                   <Route path="/settings" component={Settings} />
                   <Route component={NotFound} />
                 </Switch>
