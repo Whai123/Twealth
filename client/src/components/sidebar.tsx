@@ -80,8 +80,14 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
       { 
         name: t('navigation.money'), 
         href: "/money-tracking", 
-        icon: TrendingUp,
+        icon: Wallet,
         description: t('navigation.descriptions.money')
+      },
+      { 
+        name: "Investments", 
+        href: "/investments", 
+        icon: TrendingUp,
+        description: "AI-powered investment recommendations and passive income opportunities"
       },
       { 
         name: t('navigation.crypto'), 

@@ -31,6 +31,7 @@ const InvitePage = lazy(() => import("./pages/invite"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
+const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
@@ -123,6 +124,7 @@ function Router() {
                   <Route path="/friends" component={Friends} />
                   <Route path="/ai-assistant" component={AIAssistant} />
                   <Route path="/ai-insights" component={AIInsights} />
+                  <Route path="/investments" component={InvestmentIntelligence} />
                   <Route path="/referrals" component={Referrals} />
                   <Route path="/subscription" component={Subscription} />
                   <Route path="/checkout/:planId" component={Checkout} />
