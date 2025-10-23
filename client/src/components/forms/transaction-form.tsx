@@ -19,6 +19,7 @@ const transactionFormSchema = z.object({
   category: z.string().min(1, "Category is required"),
   description: z.string().optional(),
   goalId: z.string().optional(),
+  destination: z.string().optional(),
   date: z.string().min(1, "Date is required"),
 });
 
@@ -142,6 +143,14 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
     setValue("type", type as any);
     setValue("category", "");
     setValue("goalId", undefined);
+    setValue("destination", undefined);
+  };
+
+  // Reset destination when category changes
+  const handleCategoryChange = (category: string) => {
+    setValue("category", category);
+    setValue("goalId", undefined);
+    setValue("destination", undefined);
   };
 
   const availableCategories = TRANSACTION_CATEGORIES[selectedType] || [];
@@ -199,7 +208,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
         {/* Category - Important for Tracking */}
         <div>
           <Label htmlFor="category" className="text-base font-semibold">What category?</Label>
-          <Select value={selectedCategory || ""} onValueChange={(value) => setValue("category", value)}>
+          <Select value={selectedCategory || ""} onValueChange={handleCategoryChange}>
             <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-category">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
@@ -215,6 +224,66 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
             <p className="text-sm text-destructive mt-1">{errors.category.message}</p>
           )}
         </div>
+
+        {/* Destination - Only for Transfer/Savings */}
+        {selectedType === "transfer" && selectedCategory === "goal_contribution" && (
+          <div>
+            <Label htmlFor="goalId" className="text-base font-semibold">💰 Which financial goal?</Label>
+            <Select value={watch("goalId") || ""} onValueChange={(value) => setValue("goalId", value)}>
+              <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-goal">
+                <SelectValue placeholder="Select a goal" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeGoals.length === 0 ? (
+                  <SelectItem value="none" disabled>No active goals yet</SelectItem>
+                ) : (
+                  activeGoals.map((goal: any) => (
+                    <SelectItem key={goal.id} value={goal.id}>
+                      {goal.title} (${parseFloat(goal.currentAmount || '0').toFixed(0)} / ${parseFloat(goal.targetAmount).toFixed(0)})
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {selectedType === "transfer" && selectedCategory === "savings" && (
+          <div>
+            <Label htmlFor="destination" className="text-base font-semibold">🏦 Where is this money going?</Label>
+            <Select value={watch("destination") || ""} onValueChange={(value) => setValue("destination", value)}>
+              <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-destination">
+                <SelectValue placeholder="Select destination" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="emergency_fund">🚨 Emergency Fund</SelectItem>
+                <SelectItem value="general_savings">💵 General Savings</SelectItem>
+                <SelectItem value="vacation_fund">✈️ Vacation Fund</SelectItem>
+                <SelectItem value="down_payment">🏠 Down Payment</SelectItem>
+                <SelectItem value="other">📦 Other Savings</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {selectedType === "transfer" && selectedCategory === "investment" && (
+          <div>
+            <Label htmlFor="destination" className="text-base font-semibold">📈 Which investment account?</Label>
+            <Select value={watch("destination") || ""} onValueChange={(value) => setValue("destination", value)}>
+              <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-destination">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="brokerage">🏦 Brokerage Account</SelectItem>
+                <SelectItem value="401k">👴 401(k)</SelectItem>
+                <SelectItem value="roth_ira">💎 Roth IRA</SelectItem>
+                <SelectItem value="crypto">₿ Cryptocurrency</SelectItem>
+                <SelectItem value="real_estate">🏘️ Real Estate</SelectItem>
+                <SelectItem value="other">📊 Other Investment</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Date - Secondary */}
         <div>

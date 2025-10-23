@@ -95,6 +95,7 @@ export const transactions = pgTable("transactions", {
   category: text("category").notNull(),
   description: text("description"),
   goalId: varchar("goal_id").references(() => financialGoals.id, { onDelete: "cascade" }),
+  destination: text("destination"), // For transfer/savings: emergency_fund, general_savings, investment_account, etc.
   date: timestamp("date").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
