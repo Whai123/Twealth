@@ -121,6 +121,7 @@ export interface UserContext {
     riskTolerance?: string;
     lastUpdated?: string;
   }; // User's conversation history and preferences
+  impossibleGoalWarning?: string; // Backend pre-validation flag when goal is mathematically impossible
   recentTransactions: Array<{
     amount: number;
     category: string;
