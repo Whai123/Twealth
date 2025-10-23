@@ -2375,7 +2375,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasPurchaseIntent = purchaseKeywords.some(kw => msgLower.includes(kw));
       const hasTimeframe = timeKeywords.some(kw => msgLower.includes(kw));
       
+      console.log(`🔍 Impossibility Check: message="${userMessage}", hasPurchaseIntent=${hasPurchaseIntent}, hasTimeframe=${hasTimeframe}`);
+      
       if (hasPurchaseIntent && hasTimeframe) {
+        console.log(`✅ Both conditions met, proceeding with feasibility check...`);
         // Extract potential price (look for common luxury items or dollar amounts)
         const pricePatterns = [
           /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g, // $573,966 or $1,000,000
@@ -2425,7 +2428,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // If we found both goal amount and timeframe, check feasibility
+        console.log(`📊 Extracted: goalAmount=$${goalAmount.toLocaleString()}, yearsExtracted=${yearsExtracted}`);
+        
         if (goalAmount > 0 && yearsExtracted > 0 && yearsExtracted <= 30) {
+          console.log(`💰 Running feasibility check: income=$${userContext.monthlyIncome}, expenses=$${userContext.monthlyExpenses}`);
+          
           const { checkGoalFeasibility } = await import('./financialCalculations');
           const feasibility = checkGoalFeasibility(
             goalAmount,
@@ -2434,6 +2441,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userContext.monthlyExpenses,
             userContext.totalSavings
           );
+          
+          console.log(`📈 Feasibility result: isFeasible=${feasibility.isFeasible}, monthlyNeeded=$${feasibility.monthlyNeeded.toLocaleString()}, capacity=$${feasibility.monthlyCapacity.toLocaleString()}`);
           
           if (!feasibility.isFeasible) {
             console.log(`🚨 IMPOSSIBLE GOAL DETECTED: $${goalAmount.toLocaleString()} in ${yearsExtracted}y - ${feasibility.reason}`);
