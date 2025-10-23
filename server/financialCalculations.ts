@@ -275,3 +275,52 @@ export function detectLanguage(message: string): string {
   // Default to English
   return 'en';
 }
+
+/**
+ * Check if a financial goal is mathematically feasible
+ * Used for pre-AI validation to prevent impossible advice
+ */
+export interface GoalFeasibilityCheck {
+  isFeasible: boolean;
+  monthlyNeeded: number;
+  monthlyCapacity: number;
+  shortfall: number;
+  multiplier: number; // How many times over capacity (e.g., 13x)
+  realisticYears: number;
+  reason?: string;
+}
+
+export function checkGoalFeasibility(
+  goalAmount: number,
+  timeframeYears: number,
+  monthlyIncome: number,
+  monthlyExpenses: number,
+  currentSavings: number = 0
+): GoalFeasibilityCheck {
+  const monthlyCapacity = Math.max(0, monthlyIncome - monthlyExpenses);
+  const months = timeframeYears * 12;
+  
+  // Simple calculation: what they need to save per month (without compound interest)
+  const amountNeeded = goalAmount - currentSavings;
+  const simpleMonthlyNeeded = amountNeeded / months;
+  
+  // Check if it's impossible
+  const isFeasible = simpleMonthlyNeeded <= monthlyCapacity;
+  const shortfall = Math.max(0, simpleMonthlyNeeded - monthlyCapacity);
+  const multiplier = monthlyCapacity > 0 ? simpleMonthlyNeeded / monthlyCapacity : Infinity;
+  
+  // Calculate realistic timeline with 70% of capacity @ 7.5% returns
+  const realistic = calculateRealisticTimeline(goalAmount, currentSavings, monthlyCapacity, 0.7);
+  
+  return {
+    isFeasible,
+    monthlyNeeded: simpleMonthlyNeeded,
+    monthlyCapacity,
+    shortfall,
+    multiplier,
+    realisticYears: realistic.yearsNeeded,
+    reason: !isFeasible 
+      ? `Requires $${Math.round(simpleMonthlyNeeded).toLocaleString()}/month but capacity is only $${Math.round(monthlyCapacity).toLocaleString()}/month (${multiplier.toFixed(1)}x over capacity)`
+      : undefined
+  };
+}
