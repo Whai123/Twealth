@@ -112,6 +112,53 @@ export const goalContributions = pgTable("goal_contributions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const investmentStrategies = pgTable("investment_strategies", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // "S&P 500 Index Funds", "High-Yield Savings", etc.
+  category: text("category").notNull(), // stocks, bonds, real_estate, crypto, savings, passive_income
+  subcategory: text("subcategory"), // index_funds, reits, dividend_stocks, etc.
+  riskLevel: text("risk_level").notNull(), // very_low, low, moderate, high, very_high
+  expectedReturn: decimal("expected_return", { precision: 5, scale: 2 }).notNull(), // Annual percentage (e.g., 10.00 for 10%)
+  historicalReturn: decimal("historical_return", { precision: 5, scale: 2 }), // Long-term historical average
+  minInvestment: decimal("min_investment", { precision: 10, scale: 2 }), // Minimum amount to start
+  timeHorizon: text("time_horizon").notNull(), // short (< 3 years), medium (3-10 years), long (10+ years)
+  liquidity: text("liquidity").notNull(), // high, medium, low (how quickly you can access money)
+  description: text("description").notNull(), // Detailed explanation
+  pros: text("pros").array(), // Array of advantages
+  cons: text("cons").array(), // Array of disadvantages
+  bestFor: text("best_for").array(), // Who this is best for
+  volatility: text("volatility"), // low, medium, high, very_high
+  taxTreatment: text("tax_treatment"), // tax_deferred, tax_free, taxable, etc.
+  platformSuggestions: text("platform_suggestions").array(), // ["Vanguard", "Fidelity", etc.]
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_strategies_category").on(table.category),
+  index("idx_strategies_risk_level").on(table.riskLevel),
+]);
+
+export const passiveIncomeOpportunities = pgTable("passive_income_opportunities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // "Digital Products", "YouTube Content", "Airbnb", etc.
+  category: text("category").notNull(), // digital_products, content_creation, real_estate, investments
+  startupCost: text("startup_cost").notNull(), // very_low, low, medium, high
+  monthlyEarningsMin: decimal("monthly_earnings_min", { precision: 10, scale: 2 }), // Minimum realistic monthly earnings
+  monthlyEarningsMax: decimal("monthly_earnings_max", { precision: 10, scale: 2 }), // Maximum realistic monthly earnings
+  effortLevel: text("effort_level").notNull(), // low, medium, high, very_high (upfront work required)
+  timeToProfit: text("time_to_profit").notNull(), // immediate, 1_3_months, 3_6_months, 6_12_months, 12_plus_months
+  scalability: text("scalability").notNull(), // low, medium, high (can earnings grow significantly?)
+  description: text("description").notNull(),
+  requiredSkills: text("required_skills").array(), // ["Writing", "Marketing", "Design", etc.]
+  platforms: text("platforms").array(), // ["Etsy", "Gumroad", "YouTube", etc.]
+  pros: text("pros").array(),
+  cons: text("cons").array(),
+  bestFor: text("best_for").array(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_passive_income_category").on(table.category),
+]);
+
 export const groupInvites = pgTable("group_invites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   groupId: varchar("group_id").notNull().references(() => groups.id, { onDelete: "cascade" }),
@@ -432,6 +479,18 @@ export const insertGoalContributionSchema = createInsertSchema(goalContributions
   createdAt: true,
 });
 
+export const insertInvestmentStrategySchema = createInsertSchema(investmentStrategies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPassiveIncomeOpportunitySchema = createInsertSchema(passiveIncomeOpportunities).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertGroupInviteSchema = createInsertSchema(groupInvites).omit({
   id: true,
   token: true,
@@ -619,6 +678,12 @@ export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 
 export type GoalContribution = typeof goalContributions.$inferSelect;
 export type InsertGoalContribution = z.infer<typeof insertGoalContributionSchema>;
+
+export type InvestmentStrategy = typeof investmentStrategies.$inferSelect;
+export type InsertInvestmentStrategy = z.infer<typeof insertInvestmentStrategySchema>;
+
+export type PassiveIncomeOpportunity = typeof passiveIncomeOpportunities.$inferSelect;
+export type InsertPassiveIncomeOpportunity = z.infer<typeof insertPassiveIncomeOpportunitySchema>;
 
 export type GroupInvite = typeof groupInvites.$inferSelect;
 export type InsertGroupInvite = z.infer<typeof insertGroupInviteSchema>;
