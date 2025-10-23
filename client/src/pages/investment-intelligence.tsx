@@ -829,33 +829,36 @@ export default function InvestmentIntelligence() {
                       </ResponsiveContainer>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="bg-muted/30 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">1 Year</p>
-                        <p className="text-lg font-bold" data-testid="text-return-1year">
-                          {formatCurrency(calculatorData[0]?.amount || 0)}
-                        </p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          +{formatCurrency((calculatorData[0]?.amount || 0) - calculatorAmount)}
-                        </p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">5 Years</p>
-                        <p className="text-lg font-bold" data-testid="text-return-5years">
-                          {formatCurrency(calculatorData[1]?.amount || 0)}
-                        </p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          +{formatCurrency((calculatorData[1]?.amount || 0) - calculatorAmount)}
-                        </p>
-                      </div>
-                      <div className="bg-muted/30 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">10 Years</p>
-                        <p className="text-lg font-bold" data-testid="text-return-10years">
-                          {formatCurrency(calculatorData[2]?.amount || 0)}
-                        </p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          +{formatCurrency((calculatorData[2]?.amount || 0) - calculatorAmount)}
-                        </p>
+                    <div className="mt-4" data-testid="calculator-projections">
+                      <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Investment Projections</h4>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">1 Year</p>
+                          <p className="text-lg font-bold" data-testid="text-return-1year">
+                            {formatCurrency(calculatorData[0]?.amount || 0)}
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            +{formatCurrency((calculatorData[0]?.amount || 0) - calculatorAmount)}
+                          </p>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">5 Years</p>
+                          <p className="text-lg font-bold" data-testid="text-return-5years">
+                            {formatCurrency(calculatorData[1]?.amount || 0)}
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            +{formatCurrency((calculatorData[1]?.amount || 0) - calculatorAmount)}
+                          </p>
+                        </div>
+                        <div className="bg-muted/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">10 Years</p>
+                          <p className="text-lg font-bold" data-testid="text-return-10years">
+                            {formatCurrency(calculatorData[2]?.amount || 0)}
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            +{formatCurrency((calculatorData[2]?.amount || 0) - calculatorAmount)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </motion.div>

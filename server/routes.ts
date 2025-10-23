@@ -108,13 +108,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      const user = await storage.getUser(userId);
+      let user = await storage.getUser(userId);
+      
+      // Defensive: if user doesn't exist but we have valid claims, create them
+      // This handles testing scenarios and edge cases where OIDC callback didn't create user
+      if (!user && req.user && req.user.claims) {
+        console.log('[/api/users/me] User not found, creating from claims:', userId);
+        const claims = req.user.claims;
+        user = await storage.upsertUser({
+          id: claims.sub,
+          email: claims.email,
+          firstName: claims.first_name,
+          lastName: claims.last_name,
+          profileImageUrl: claims.profile_image_url,
+        });
+        
+        // Initialize subscription for new user
+        const subscription = await storage.getUserSubscription(user.id);
+        if (!subscription) {
+          await storage.initializeDefaultSubscription(user.id);
+        }
+      }
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
       res.json(user);
     } catch (error: any) {
+      console.error('[/api/users/me] Error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -1683,6 +1704,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user-preferences", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
+      
+      // Defensive: ensure user exists before creating preferences (handles testing scenarios)
+      let user = await storage.getUser(userId);
+      if (!user && req.user && req.user.claims) {
+        console.log('[/api/user-preferences] User not found, creating from claims:', userId);
+        const claims = req.user.claims;
+        user = await storage.upsertUser({
+          id: claims.sub,
+          email: claims.email,
+          firstName: claims.first_name,
+          lastName: claims.last_name,
+          profileImageUrl: claims.profile_image_url,
+        });
+        
+        // Initialize subscription for new user
+        const subscription = await storage.getUserSubscription(user.id);
+        if (!subscription) {
+          await storage.initializeDefaultSubscription(user.id);
+        }
+      }
+      
       const preferences = await storage.getUserPreferences(userId);
       if (!preferences) {
         // Create default preferences if they don't exist
@@ -1695,6 +1737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(preferences);
     } catch (error: any) {
+      console.error('[/api/user-preferences] Error:', error);
       res.status(500).json({ message: error.message });
     }
   });
