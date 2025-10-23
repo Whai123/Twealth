@@ -61,10 +61,10 @@ export default function AIInsightsDashboard() {
         })
     : [];
 
-  // Net worth projection
-  const monthlyIncome = (preferences as any)?.financialPreferences?.monthlyIncome || 0;
-  const monthlyExpenses = (preferences as any)?.financialPreferences?.monthlyExpenses || 0;
-  const currentSavings = (preferences as any)?.financialPreferences?.currentSavings || (stats as any)?.totalSavings || 0;
+  // Net worth projection - pull from UserPreferences
+  const monthlyIncome = parseFloat((preferences as any)?.monthlyIncomeEstimate || '0') || 0;
+  const monthlyExpenses = parseFloat((preferences as any)?.monthlyExpensesEstimate || '0') || 0;
+  const currentSavings = parseFloat((preferences as any)?.currentSavingsEstimate || '0') || (stats as any)?.totalSavings || 0;
   const monthlySavings = monthlyIncome - monthlyExpenses;
 
   const projectionData = [
