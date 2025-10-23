@@ -261,22 +261,22 @@ export default function MoneyTracking() {
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
         {/* Modern Tab Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="overview" className="flex items-center gap-2" data-testid="tab-overview">
-              <DollarSign size={16} />
-              <span className="hidden sm:inline">Overview</span>
+          <TabsList className="grid w-full grid-cols-4 mb-6 p-1">
+            <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-overview">
+              <DollarSign size={16} className="flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2" data-testid="tab-analytics">
-              <BarChart3 size={16} />
-              <span className="hidden sm:inline">Analytics</span>
+            <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-analytics">
+              <BarChart3 size={16} className="flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="budget" className="flex items-center gap-2" data-testid="tab-budget">
-              <Target size={16} />
-              <span className="hidden sm:inline">Budget</span>
+            <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-budget">
+              <Target size={16} className="flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Budget</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-2" data-testid="tab-insights">
-              <Lightbulb size={16} />
-              <span className="hidden sm:inline">Insights</span>
+            <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-insights">
+              <Lightbulb size={16} className="flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Insights</span>
             </TabsTrigger>
           </TabsList>
 

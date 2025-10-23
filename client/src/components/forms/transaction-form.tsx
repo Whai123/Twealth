@@ -156,17 +156,18 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
         </DialogDescription>
       </DialogHeader>
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Transaction Type - First Choice */}
         <div>
-          <Label htmlFor="type">Transaction Type</Label>
+          <Label htmlFor="type" className="text-base font-semibold">Is this money in or out?</Label>
           <Select value={selectedType} onValueChange={handleTypeChange}>
-            <SelectTrigger data-testid="select-transaction-type">
+            <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-type">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="income">Income</SelectItem>
-              <SelectItem value="expense">Expense</SelectItem>
-              <SelectItem value="transfer">Transfer/Savings</SelectItem>
+              <SelectItem value="income">💰 Money In (Income)</SelectItem>
+              <SelectItem value="expense">💸 Money Out (Expense)</SelectItem>
+              <SelectItem value="transfer">💳 Transfer/Savings</SelectItem>
             </SelectContent>
           </Select>
           {errors.type && (
@@ -174,9 +175,11 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="amount">Amount ($)</Label>
+        {/* Amount - Most Important */}
+        <div>
+          <Label htmlFor="amount" className="text-base font-semibold">How much?</Label>
+          <div className="relative mt-2">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">$</span>
             <Input
               id="amount"
               type="number"
@@ -184,32 +187,21 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
               min="0"
               {...register("amount")}
               placeholder="0.00"
+              className="h-12 pl-8 text-lg"
               data-testid="input-transaction-amount"
             />
-            {errors.amount && (
-              <p className="text-sm text-destructive mt-1">{errors.amount.message}</p>
-            )}
           </div>
-
-          <div>
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              {...register("date")}
-              data-testid="input-transaction-date"
-            />
-            {errors.date && (
-              <p className="text-sm text-destructive mt-1">{errors.date.message}</p>
-            )}
-          </div>
+          {errors.amount && (
+            <p className="text-sm text-destructive mt-1">{errors.amount.message}</p>
+          )}
         </div>
 
+        {/* Category - Important for Tracking */}
         <div>
-          <Label htmlFor="category">Category</Label>
+          <Label htmlFor="category" className="text-base font-semibold">What category?</Label>
           <Select value={selectedCategory || ""} onValueChange={(value) => setValue("category", value)}>
-            <SelectTrigger data-testid="select-transaction-category">
-              <SelectValue placeholder="Select a category" />
+            <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-category">
+              <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
               {availableCategories.map((category) => (
@@ -224,41 +216,19 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           )}
         </div>
 
-        {((selectedType === "transfer" && selectedCategory === "goal_contribution") || 
-          (selectedType === "transfer" && selectedCategory === "savings") ||
-          (selectedType === "income")) && (
-          <div>
-            <Label htmlFor="goalId">Financial Goal (Optional)</Label>
-            <Select value={watch("goalId") || "none"} onValueChange={(value) => setValue("goalId", value === "none" ? undefined : value)}>
-              <SelectTrigger data-testid="select-transaction-goal">
-                <SelectValue placeholder="Select a goal (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No goal</SelectItem>
-                {activeGoals.map((goal: any) => (
-                  <SelectItem key={goal.id} value={goal.id}>
-                    {goal.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {watch("goalId") && (
-              <p className="text-xs text-muted-foreground mt-1">
-                This {selectedType === "income" ? "income" : "transfer"} will contribute to your selected goal
-              </p>
-            )}
-          </div>
-        )}
-
+        {/* Date - Secondary */}
         <div>
-          <Label htmlFor="description">Description (Optional)</Label>
-          <Textarea
-            id="description"
-            {...register("description")}
-            placeholder="Add a note about this transaction"
-            rows={3}
-            data-testid="input-transaction-description"
+          <Label htmlFor="date" className="text-sm font-medium">When? (optional)</Label>
+          <Input
+            id="date"
+            type="date"
+            {...register("date")}
+            className="mt-1.5 h-11"
+            data-testid="input-transaction-date"
           />
+          {errors.date && (
+            <p className="text-sm text-destructive mt-1">{errors.date.message}</p>
+          )}
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">

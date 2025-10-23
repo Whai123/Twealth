@@ -417,22 +417,22 @@ export default function FinancialGoals() {
       
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="flex items-center space-x-2" data-testid="tab-overview">
-              <Target className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
+          <TabsList className="grid w-full grid-cols-4 p-1">
+            <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-overview">
+              <Target className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center space-x-2" data-testid="tab-analytics">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
+            <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-analytics">
+              <BarChart3 className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center space-x-2" data-testid="tab-insights">
-              <Lightbulb className="h-4 w-4" />
-              <span className="hidden sm:inline">Insights</span>
+            <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-insights">
+              <Lightbulb className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Insights</span>
             </TabsTrigger>
-            <TabsTrigger value="achievements" className="flex items-center space-x-2" data-testid="tab-achievements">
-              <Award className="h-4 w-4" />
-              <span className="hidden sm:inline">Achievements</span>
+            <TabsTrigger value="achievements" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-achievements">
+              <Award className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline truncate">Awards</span>
             </TabsTrigger>
           </TabsList>
 
