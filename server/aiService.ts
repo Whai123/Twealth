@@ -5,6 +5,7 @@ import { marketDataService } from './marketDataService';
 import { taxService } from './taxService';
 import { spendingPatternService } from './spendingPatternService';
 import { systemPromptCache } from './services/systemPromptCache';
+import { detectLanguage, calculateInvestmentPlans, calculateRealisticTimeline } from './financialCalculations';
 
 // Using Groq with Llama 4 Scout for fast, powerful AI with function calling
 const groq = new Groq({ 
@@ -1871,7 +1872,103 @@ CRITICAL RULES:
 2. For goals: ALWAYS explain breakdown + expert analysis FIRST, ask confirmation, THEN create
 3. ALWAYS include educational insight - teach financial literacy with every response
 4. Apply compound interest math when relevant - show long-term impact
-5. Balance optimization with life enjoyment - not everything is about max returns`;
+5. Balance optimization with life enjoyment - not everything is about max returns
+
+💰 REAL FINANCIAL FORMULAS (USE THESE, NOT SIMPLE DIVISION!):
+
+**Compound Interest Formula (Future Value):**
+FV = PV × (1 + r)^n + PMT × [((1 + r)^n - 1) / r]
+Where:
+- FV = Future Value (target amount)
+- PV = Present Value (current savings)
+- PMT = Monthly payment/contribution
+- r = Monthly interest rate (annual rate ÷ 12)
+- n = Number of months
+
+**Example Calculation:**
+Goal: $100,000 in 10 years
+Current savings: $10,000
+Investment return: 8% annually
+Monthly rate: 0.08 ÷ 12 = 0.00667
+Months: 10 × 12 = 120
+
+FV from principal: $10,000 × (1.00667)^120 = $22,196
+Remaining needed: $100,000 - $22,196 = $77,804
+Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
+
+**NEVER USE SIMPLE DIVISION ($100k ÷ 120 months = $833) - This ignores compound growth!**
+
+**Investment Return Rates:**
+- Conservative (High-yield savings/Bonds): 4-5% annually
+- Balanced (Index funds like VOO/VTI): 7-8% annually  
+- Aggressive (Growth stocks/Tech): 10-12% annually
+
+🤝 EMPATHETIC COACHING FRAMEWORK (MANDATORY FOR UNREALISTIC GOALS):
+
+**CRITICAL: Detect impossible goals and respond with empathy + path forward**
+
+1. **Check Monthly Capacity:**
+   - Monthly capacity = Income - Expenses
+   - If required savings > monthly capacity → GOAL IS IMPOSSIBLE
+
+2. **NEVER say these phrases:**
+   ❌ "You can't afford this"
+   ❌ "This is unrealistic"
+   ❌ "You need to save $40,000/month" (when they earn $6,000/month)
+   ❌ "This is impossible"
+
+3. **ALWAYS provide empathetic alternatives:**
+   ✅ "I understand wanting the [item]! With your $X,XXX/month income, here's a realistic path..."
+   ✅ "Let's build a plan that gets you there. Start saving [realistic amount]/month, increase 10% every 6 months"
+   ✅ "In 2 years with [amount] saved, you could afford [stepping stone version]. Or continue for [realistic years] to reach the full goal"
+   ✅ "Show 3 plans: Conservative (safe), Balanced (recommended), Aggressive (faster but riskier)"
+
+4. **Stepping Stone Approach:**
+   - User wants $1M house in 2 years but earns $6k/month
+   - Calculate realistic capacity: $6,000 - expenses = ~$1,500/month
+   - Show what $1,500/month becomes:
+     * 2 years @ 7.5% = $38,630 (10% down payment on $380k house)
+     * 5 years @ 7.5% = $109,000 (starter home)
+     * 20 years @ 7.5% = $782,000 (close to goal!)
+   - Suggest: "Start with $380k property, build equity, upgrade in 5-7 years"
+
+5. **Always show 3 investment plans:**
+   - Conservative: Lower risk, slower growth (4-5%)
+   - Balanced: Moderate risk, good growth (7-8%) ⭐ RECOMMENDED
+   - Aggressive: Higher risk, faster growth (10-12%)
+
+6. **Regional Financial Products:**
+   - Detect currency/country context
+   - Thailand (THB/฿): Recommend RMF, SSF tax-advantaged funds
+   - USA (USD/$): Recommend 401k, IRA, HSA
+   - Include tax benefits: "RMF gives you 30% tax deduction in Thailand"
+
+**Example Empathetic Response (Thai user wants Lambo in 2 years):**
+
+"เข้าใจครับ Lamborghini SVJ สวยมาก! ($573,966)
+
+ด้วยรายได้ $6,333/เดือน และค่าใช้จ่าย จะเหลือเก็บได้ประมาณ $1,900/เดือน
+
+**แผน 3 ทาง:**
+
+📊 แบบระมัดระวัง (4.5% ต่อปี):
+- เก็บ $1,900/เดือน → 2 ปี = $47,200
+- ยังห่างจากเป้าหมาย → ต้องใช้เวลา ~20 ปี
+
+📈 แบบสมดุล (7.5% ต่อปี) ⭐ แนะนำ:
+- เก็บ $1,900/เดือน → 2 ปี = $48,800
+- 10 ปี = $333,000
+- 15 ปี = $626,000 ใกล้เป้าแล้ว!
+
+🚀 แบบรุกเชิงสูง (11% ต่อปี):
+- เก็บ $1,900/เดือน → 12 ปี = $573,000 🎯
+
+**ข้อเสนอของผม:**
+1. เริ่มที่ Porsche 911 ($230k) ใน 5-6 ปี
+2. หรือเพิ่มรายได้ → $15k/เดือน จะซื้อ Lambo ได้ภายใน 3 ปี
+3. ลงทุนใน VOO (S&P 500) หรือ กองทุน RMF ในไทย (ลดหย่อนภาษี 30%)
+
+อยากเห็นกราฟการเติบโตแบบไหนครับ? 📊"`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
     systemPromptCache.set(cacheKey, fullPrompt);
@@ -1883,6 +1980,19 @@ CRITICAL RULES:
     return Math.ceil(text.length / 4);
   }
 
+  private calculateSimilarity(str1: string, str2: string): number {
+    // Simple similarity check: count common words
+    const words1 = str1.toLowerCase().split(/\s+/);
+    const words2 = str2.toLowerCase().split(/\s+/);
+    const set1 = new Set(words1);
+    const set2 = new Set(words2);
+    
+    const intersection = new Set(Array.from(set1).filter(x => set2.has(x)));
+    const union = new Set([...Array.from(set1), ...Array.from(set2)]);
+    
+    return intersection.size / union.size;
+  }
+
   async generateAdvice(
     userMessage: string, 
     context: UserContext, 
@@ -1891,6 +2001,33 @@ CRITICAL RULES:
   ): Promise<{ response: string; toolCalls?: ToolCall[] }> {
     if (!process.env.GROQ_API_KEY) {
       throw new Error('Groq API key not configured');
+    }
+
+    // AUTO-DETECT LANGUAGE from user message (override profile setting)
+    const detectedLanguage = detectLanguage(userMessage);
+    if (detectedLanguage !== context.language) {
+      console.log(`🌍 Language auto-detected: ${detectedLanguage} (profile says: ${context.language})`);
+      context = { ...context, language: detectedLanguage };
+    }
+
+    // ANTI-LOOP PROTECTION: Check if AI is repeating itself
+    if (conversationHistory.length >= 2) {
+      const lastTwoAssistantMsgs = conversationHistory
+        .slice(-4)
+        .filter(m => m.role === 'assistant')
+        .map(m => m.content)
+        .slice(-2);
+      
+      if (lastTwoAssistantMsgs.length === 2) {
+        const [prevMsg, lastMsg] = lastTwoAssistantMsgs;
+        // Check if messages are very similar (>80% overlap)
+        const similarity = this.calculateSimilarity(prevMsg, lastMsg);
+        if (similarity > 0.8) {
+          console.warn('⚠️  AI LOOP DETECTED - Preventing repetition');
+          // Add context to break the loop
+          userMessage = `[IMPORTANT: Do NOT repeat your previous response. User's actual message: "${userMessage}". Provide a DIFFERENT, more specific answer with NEW details and actionable steps.]`;
+        }
+      }
     }
 
     // Check cache first (only for non-tool-using queries)
