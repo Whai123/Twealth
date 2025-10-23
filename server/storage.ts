@@ -74,6 +74,10 @@ import {
   type InsertCryptoPriceAlert,
   type CryptoTransaction,
   type InsertCryptoTransaction,
+  type InvestmentStrategy,
+  type InsertInvestmentStrategy,
+  type PassiveIncomeOpportunity,
+  type InsertPassiveIncomeOpportunity,
   users,
   groups,
   groupMembers,
@@ -110,7 +114,9 @@ import {
   bonusCredits,
   cryptoHoldings,
   cryptoPriceAlerts,
-  cryptoTransactions
+  cryptoTransactions,
+  investmentStrategies,
+  passiveIncomeOpportunities
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -3357,6 +3363,30 @@ export class DatabaseStorage implements IStorage {
 
     result.totalValue = result.holdings.reduce((sum, h) => sum + h.value, 0);
     return result;
+  }
+
+  // ===== Investment Intelligence Methods =====
+
+  async getInvestmentStrategies(): Promise<InvestmentStrategy[]> {
+    return await db.select().from(investmentStrategies).orderBy(investmentStrategies.category);
+  }
+
+  async getInvestmentStrategiesByCategory(category: string): Promise<InvestmentStrategy[]> {
+    return await db.select()
+      .from(investmentStrategies)
+      .where(eq(investmentStrategies.category, category))
+      .orderBy(investmentStrategies.expectedReturn);
+  }
+
+  async getPassiveIncomeOpportunities(): Promise<PassiveIncomeOpportunity[]> {
+    return await db.select().from(passiveIncomeOpportunities).orderBy(passiveIncomeOpportunities.category);
+  }
+
+  async getPassiveIncomeOpportunitiesByCategory(category: string): Promise<PassiveIncomeOpportunity[]> {
+    return await db.select()
+      .from(passiveIncomeOpportunities)
+      .where(eq(passiveIncomeOpportunities.category, category))
+      .orderBy(passiveIncomeOpportunities.monthlyEarningsMax);
   }
 }
 

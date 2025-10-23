@@ -3570,6 +3570,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== Investment Intelligence Routes =====
+  
+  // Get all investment strategies
+  app.get("/api/investments/strategies", isAuthenticated, async (req: any, res) => {
+    try {
+      const strategies = await storage.getInvestmentStrategies();
+      res.json(strategies);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get investment strategies by category
+  app.get("/api/investments/strategies/:category", isAuthenticated, async (req: any, res) => {
+    try {
+      const { category } = req.params;
+      const strategies = await storage.getInvestmentStrategiesByCategory(category);
+      res.json(strategies);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get all passive income opportunities
+  app.get("/api/investments/passive-income", isAuthenticated, async (req: any, res) => {
+    try {
+      const opportunities = await storage.getPassiveIncomeOpportunities();
+      res.json(opportunities);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get passive income opportunities by category
+  app.get("/api/investments/passive-income/:category", isAuthenticated, async (req: any, res) => {
+    try {
+      const { category } = req.params;
+      const opportunities = await storage.getPassiveIncomeOpportunitiesByCategory(category);
+      res.json(opportunities);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Initialize investment data (seed database) - Admin only for now
+  app.post("/api/investments/seed", isAuthenticated, async (req: any, res) => {
+    try {
+      // Import seed function dynamically
+      const { seedInvestments } = await import("./seed-investments");
+      await seedInvestments();
+      res.json({ success: true, message: "Investment data seeded successfully" });
+    } catch (error: any) {
+      console.error("Seeding error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // ===== Crypto Routes =====
   
   // Get user's crypto holdings
