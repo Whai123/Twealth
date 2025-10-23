@@ -222,26 +222,28 @@ export default function Planning() {
             <TabsTrigger 
               value="suggestions" 
               data-testid="tab-suggestions"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5 px-2 text-sm"
             >
-              <Sparkles className="w-4 h-4" />
-              💡 Smart Suggestions
+              <Sparkles className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Suggestions</span>
+              <span className="sm:hidden">Tips</span>
             </TabsTrigger>
             <TabsTrigger 
               value="insights" 
               data-testid="tab-insights"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5 px-2 text-sm"
             >
-              <BarChart3 className="w-4 h-4" />
-              📊 Financial Insights
+              <BarChart3 className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">Insights</span>
             </TabsTrigger>
             <TabsTrigger 
               value="projections" 
               data-testid="tab-projections"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center gap-2"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 flex items-center justify-center gap-1.5 px-2 text-sm"
             >
-              <Target className="w-4 h-4" />
-              🎯 Goal Projections
+              <Target className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Projections</span>
+              <span className="sm:hidden">Goals</span>
             </TabsTrigger>
           </TabsList>
 

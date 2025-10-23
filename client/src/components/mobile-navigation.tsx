@@ -145,10 +145,10 @@ export default function MobileNavigation() {
           <div className="p-4 pb-6">
             <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              {t('goals.createNew')}
+              Create New Goal
             </DrawerTitle>
             <DrawerDescription className="text-muted-foreground mb-4">
-              {t('goals.createNewDesc')}
+              Set a savings target and track your progress
             </DrawerDescription>
             <GoalForm onSuccess={() => setActiveAction(null)} />
           </div>

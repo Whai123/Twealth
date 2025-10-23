@@ -169,13 +169,15 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
         </DialogDescription>
       </DialogHeader>
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Goal Title - Most Important */}
         <div>
-          <Label htmlFor="title">Goal Title</Label>
+          <Label htmlFor="title" className="text-base font-semibold">What are you saving for?</Label>
           <Input
             id="title"
             {...register("title")}
-            placeholder="e.g., Emergency Fund, Vacation, House Down Payment"
+            placeholder="Emergency Fund"
+            className="mt-2 h-12 text-base"
             data-testid="input-goal-title"
           />
           {errors.title && (
@@ -183,57 +185,35 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
           )}
         </div>
 
+        {/* Target Amount - Critical */}
         <div>
-          <Label htmlFor="description">Description (Optional)</Label>
-          <Textarea
-            id="description"
-            {...register("description")}
-            placeholder="Describe your goal and why it's important to you"
-            rows={3}
-            data-testid="input-goal-description"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="targetAmount">Target Amount ($)</Label>
+          <Label htmlFor="targetAmount" className="text-base font-semibold">How much do you need?</Label>
+          <div className="relative mt-2">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">$</span>
             <Input
               id="targetAmount"
               type="number"
               step="0.01"
               min="0"
               {...register("targetAmount")}
-              placeholder="10000"
+              placeholder="10,000"
+              className="h-12 pl-8 text-lg"
               data-testid="input-goal-target-amount"
             />
-            {errors.targetAmount && (
-              <p className="text-sm text-destructive mt-1">{errors.targetAmount.message}</p>
-            )}
           </div>
-
-          <div>
-            <Label htmlFor="currentAmount">Current Amount ($)</Label>
-            <Input
-              id="currentAmount"
-              type="number"
-              step="0.01"
-              min="0"
-              {...register("currentAmount")}
-              placeholder="0"
-              data-testid="input-goal-current-amount"
-            />
-            {errors.currentAmount && (
-              <p className="text-sm text-destructive mt-1">{errors.currentAmount.message}</p>
-            )}
-          </div>
+          {errors.targetAmount && (
+            <p className="text-sm text-destructive mt-1">{errors.targetAmount.message}</p>
+          )}
         </div>
 
+        {/* Target Date - Important */}
         <div>
-          <Label htmlFor="targetDate">Target Date</Label>
+          <Label htmlFor="targetDate" className="text-base font-semibold">When do you need it by?</Label>
           <Input
             id="targetDate"
             type="date"
             {...register("targetDate")}
+            className="mt-2 h-12 text-base"
             data-testid="input-goal-target-date"
           />
           {errors.targetDate && (
@@ -241,36 +221,21 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="category">Category</Label>
-            <Select value={watch("category") || ""} onValueChange={(value) => setValue("category", value || undefined)}>
-              <SelectTrigger data-testid="select-goal-category">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {GOAL_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category.charAt(0).toUpperCase() + category.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="priority">Priority</Label>
-            <Select value={watch("priority")} onValueChange={(value) => setValue("priority", value as any)}>
-              <SelectTrigger data-testid="select-goal-priority">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Category - Helpful */}
+        <div>
+          <Label htmlFor="category" className="text-sm font-medium">Category</Label>
+          <Select value={watch("category") || ""} onValueChange={(value) => setValue("category", value || undefined)}>
+            <SelectTrigger className="mt-1.5 h-11" data-testid="select-goal-category">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              {GOAL_CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Group Sharing Section */}

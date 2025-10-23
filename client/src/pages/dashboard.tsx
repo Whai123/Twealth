@@ -121,9 +121,9 @@ export default function Dashboard() {
                 </DrawerTrigger>
                 <DrawerContent className="max-h-[90vh]">
                   <div className="p-4 pb-6">
-                    <DrawerTitle className="text-xl font-semibold mb-2">{t('goals.createNew')}</DrawerTitle>
+                    <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
                     <DrawerDescription className="text-muted-foreground mb-4">
-                      {t('goals.createNewDesc')}
+                      Set a savings target and track your progress
                     </DrawerDescription>
                     <GoalForm onSuccess={() => setIsCreateGoalOpen(false)} />
                   </div>
