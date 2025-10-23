@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -22,7 +24,10 @@ import {
   Zap,
   Settings as SettingsIcon,
   CheckCircle,
-  Loader2
+  Loader2,
+  DollarSign,
+  TrendingUp,
+  Wallet
 } from "lucide-react";
 
 interface UserPreferencesProps {}
@@ -30,10 +35,25 @@ interface UserPreferencesProps {}
 export default function UserPreferencesSettings({ }: UserPreferencesProps) {
   const { toast } = useToast();
   const { setTheme } = useTheme();
+  const [financialData, setFinancialData] = useState({
+    monthlyIncome: "",
+    monthlyExpenses: "",
+    currentSavings: ""
+  });
 
   const { data: preferences, isLoading } = useQuery<UserPreferences>({
     queryKey: ['/api/user-preferences'],
   });
+
+  useEffect(() => {
+    if (preferences) {
+      setFinancialData({
+        monthlyIncome: preferences.monthlyIncomeEstimate?.toString() || "",
+        monthlyExpenses: preferences.monthlyExpensesEstimate?.toString() || "",
+        currentSavings: preferences.currentSavingsEstimate?.toString() || ""
+      });
+    }
+  }, [preferences]);
 
   const updatePreferencesMutation = useMutation({
     mutationFn: (updates: Partial<UserPreferences>) =>
@@ -129,6 +149,34 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
 
   const handleCurrencyChange = (currency: string) => {
     updatePreferencesMutation.mutate({ currency });
+  };
+
+  const handleFinancialDataChange = (field: string, value: string) => {
+    setFinancialData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveFinancialData = () => {
+    const updates: Partial<UserPreferences> = {};
+    
+    if (financialData.monthlyIncome) {
+      updates.monthlyIncomeEstimate = financialData.monthlyIncome;
+    }
+    if (financialData.monthlyExpenses) {
+      updates.monthlyExpensesEstimate = financialData.monthlyExpenses;
+    }
+    if (financialData.currentSavings) {
+      updates.currentSavingsEstimate = financialData.currentSavings;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updatePreferencesMutation.mutate(updates);
+    } else {
+      toast({
+        title: "No changes",
+        description: "Please enter your financial information first.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveAll = async () => {
@@ -347,6 +395,137 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
               </Select>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Financial Profile - New Section */}
+      <Card className="border-2 border-green-200 dark:border-green-900/50 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+            Financial Profile
+          </CardTitle>
+          <CardDescription className="text-sm sm:text-base mt-1">
+            Set your income, expenses, and savings to unlock personalized AI insights
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <TrendingUp className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-900 dark:text-blue-200">
+                <p className="font-semibold mb-1">Why this matters</p>
+                <p className="text-xs sm:text-sm">
+                  Your financial data powers the AI Insights page, providing personalized budget recommendations and net worth projections based on your actual situation.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-green-600" />
+                Monthly Income
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
+                  {preferences?.currency === 'USD' ? '$' : 
+                   preferences?.currency === 'EUR' ? '€' : 
+                   preferences?.currency === 'GBP' ? '£' : 
+                   preferences?.currency === 'JPY' ? '¥' : '$'}
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={financialData.monthlyIncome}
+                  onChange={(e) => handleFinancialDataChange('monthlyIncome', e.target.value)}
+                  placeholder="5000"
+                  className="h-12 pl-8 text-base bg-white dark:bg-slate-900"
+                  data-testid="input-monthly-income"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-orange-600" />
+                Monthly Expenses
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
+                  {preferences?.currency === 'USD' ? '$' : 
+                   preferences?.currency === 'EUR' ? '€' : 
+                   preferences?.currency === 'GBP' ? '£' : 
+                   preferences?.currency === 'JPY' ? '¥' : '$'}
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={financialData.monthlyExpenses}
+                  onChange={(e) => handleFinancialDataChange('monthlyExpenses', e.target.value)}
+                  placeholder="3000"
+                  className="h-12 pl-8 text-base bg-white dark:bg-slate-900"
+                  data-testid="input-monthly-expenses"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-blue-600" />
+                Current Savings
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
+                  {preferences?.currency === 'USD' ? '$' : 
+                   preferences?.currency === 'EUR' ? '€' : 
+                   preferences?.currency === 'GBP' ? '£' : 
+                   preferences?.currency === 'JPY' ? '¥' : '$'}
+                </span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={financialData.currentSavings}
+                  onChange={(e) => handleFinancialDataChange('currentSavings', e.target.value)}
+                  placeholder="10000"
+                  className="h-12 pl-8 text-base bg-white dark:bg-slate-900"
+                  data-testid="input-current-savings"
+                />
+              </div>
+            </div>
+          </div>
+
+          <Button
+            onClick={handleSaveFinancialData}
+            disabled={updatePreferencesMutation.isPending}
+            className="w-full h-12 text-base bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+            data-testid="button-save-financial-profile"
+          >
+            {updatePreferencesMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 animate-spin w-5 h-5" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2 w-5 h-5" />
+                Save Financial Profile
+              </>
+            )}
+          </Button>
+
+          {(financialData.monthlyIncome && financialData.monthlyExpenses) && (
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
+              <p className="text-sm font-medium text-purple-900 dark:text-purple-200">
+                Monthly Surplus: {preferences?.currency === 'USD' ? '$' : ''}
+                {(parseFloat(financialData.monthlyIncome) - parseFloat(financialData.monthlyExpenses)).toFixed(2)}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
