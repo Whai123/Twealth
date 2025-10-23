@@ -2201,11 +2201,30 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
         throw new Error('No response from AI');
       }
 
+      // Helper to coerce tool parameters to correct types (fix Groq type mismatch)
+      const coerceToolParams = (toolName: string, args: any) => {
+        if (toolName === 'create_financial_goal') {
+          return {
+            ...args,
+            // Coerce "true"/"false" strings to boolean
+            userConfirmed: args.userConfirmed === 'true' || args.userConfirmed === true,
+            // Coerce numeric strings to numbers
+            targetAmount: typeof args.targetAmount === 'string' 
+              ? parseFloat(args.targetAmount.replace(/[$,]/g, '')) 
+              : args.targetAmount
+          };
+        }
+        return args;
+      };
+
       // Check if AI wants to use tools
-      const toolCalls = assistantMessage.tool_calls?.map(tc => ({
-        name: tc.function.name,
-        arguments: JSON.parse(tc.function.arguments)
-      }));
+      const toolCalls = assistantMessage.tool_calls?.map(tc => {
+        const rawArgs = JSON.parse(tc.function.arguments);
+        return {
+          name: tc.function.name,
+          arguments: coerceToolParams(tc.function.name, rawArgs)
+        };
+      });
 
       const text = assistantMessage.content || '';
       
