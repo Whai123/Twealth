@@ -2364,12 +2364,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.incrementUsage(userId, 'aiDeepAnalysisUsed');
       }
 
+      // 🚨 CODE-LEVEL IMPOSSIBILITY CHECK (Pre-AI Validation)
+      // Detect if user is discussing a purchase/goal and calculate feasibility BEFORE AI sees it
+      let impossibleGoalFlag: string | null = null;
+      
+      const msgLower = userMessage.toLowerCase();
+      const purchaseKeywords = ['buy', 'purchase', 'get', 'want', 'need', 'lambo', 'lamborghini', 'ferrari', 'house', 'car', 'yacht', 'ซื้อ', 'อยาก', 'comprar', 'quiero', '买', '想'];
+      const timeKeywords = ['year', 'years', 'month', 'months', 'ปี', 'เดือน', 'años', 'meses', '年', '月'];
+      
+      const hasPurchaseIntent = purchaseKeywords.some(kw => msgLower.includes(kw));
+      const hasTimeframe = timeKeywords.some(kw => msgLower.includes(kw));
+      
+      if (hasPurchaseIntent && hasTimeframe) {
+        // Extract potential price (look for common luxury items or dollar amounts)
+        const pricePatterns = [
+          /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g, // $573,966 or $1,000,000
+          /(\d{1,3}(?:,\d{3})+)/g, // 573966 or 1000000
+        ];
+        
+        // Extract timeframe in years
+        const yearMatch = msgLower.match(/(\d+)\s*(?:year|years|ปี|años|年)/);
+        const monthMatch = msgLower.match(/(\d+)\s*(?:month|months|เดือน|meses|月)/);
+        
+        let yearsExtracted = 0;
+        if (yearMatch) yearsExtracted = parseInt(yearMatch[1]);
+        else if (monthMatch) yearsExtracted = parseInt(monthMatch[1]) / 12;
+        
+        // Known luxury items with prices
+        const luxuryItems: Record<string, number> = {
+          'lambo': 573966, 'lamborghini': 573966,
+          'ferrari': 400000, 'mclaren': 350000,
+          'rolls royce': 450000, 'bentley': 300000,
+          'private jet': 5000000, 'jet': 5000000,
+          'yacht': 2000000, 'superyacht': 10000000,
+          'mansion': 2000000, 'villa': 1500000
+        };
+        
+        let goalAmount = 0;
+        
+        // Check for luxury items first
+        for (const [item, price] of Object.entries(luxuryItems)) {
+          if (msgLower.includes(item)) {
+            goalAmount = price;
+            break;
+          }
+        }
+        
+        // If no luxury item, try to extract price from message
+        if (goalAmount === 0) {
+          for (const pattern of pricePatterns) {
+            const matches = Array.from(userMessage.matchAll(pattern));
+            if (matches.length > 0) {
+              const amount = parseFloat(matches[0][1].replace(/,/g, ''));
+              if (amount > 10000) { // Reasonable goal amount
+                goalAmount = amount;
+                break;
+              }
+            }
+          }
+        }
+        
+        // If we found both goal amount and timeframe, check feasibility
+        if (goalAmount > 0 && yearsExtracted > 0 && yearsExtracted <= 30) {
+          const { checkGoalFeasibility } = await import('./financialCalculations');
+          const feasibility = checkGoalFeasibility(
+            goalAmount,
+            yearsExtracted,
+            userContext.monthlyIncome,
+            userContext.monthlyExpenses,
+            userContext.totalSavings
+          );
+          
+          if (!feasibility.isFeasible) {
+            console.log(`🚨 IMPOSSIBLE GOAL DETECTED: $${goalAmount.toLocaleString()} in ${yearsExtracted}y - ${feasibility.reason}`);
+            
+            impossibleGoalFlag = `
+⚠️⚠️⚠️ CRITICAL: IMPOSSIBLE GOAL DETECTED ⚠️⚠️⚠️
+
+BACKEND PRE-VALIDATION RESULTS:
+• Goal: $${goalAmount.toLocaleString()} in ${yearsExtracted} years
+• Required: $${Math.round(feasibility.monthlyNeeded).toLocaleString()}/month
+• User Capacity: $${Math.round(feasibility.monthlyCapacity).toLocaleString()}/month
+• Shortfall: $${Math.round(feasibility.shortfall).toLocaleString()}/month (${feasibility.multiplier.toFixed(1)}x OVER CAPACITY!)
+• Realistic Timeline: ${feasibility.realisticYears} years with compound interest
+
+🛑 MANDATORY RESPONSE PROTOCOL:
+1. DO NOT show the impossible monthly amount ($${Math.round(feasibility.monthlyNeeded).toLocaleString()}/month) as a suggestion
+2. IMMEDIATELY use empathetic coaching framework
+3. Show 3 investment plans with realistic ${feasibility.realisticYears}-year timeline
+4. Suggest stepping stones (cheaper alternatives to reach sooner)
+5. Respond in user's detected language
+
+This is CODE-LEVEL validation - you MUST follow this directive!`;
+          }
+        }
+      }
+
       try {
         // Get memory context from previous conversations
         const memoryContext = await getMemoryContext(storage, userId);
         
+        // Enhance userContext with impossibility flag if detected
+        const enhancedContext = impossibleGoalFlag 
+          ? { ...userContext, impossibleGoalWarning: impossibleGoalFlag }
+          : userContext;
+        
         // Generate AI response with potential tool calls
-        const aiResult = await aiService.generateAdvice(userMessage, userContext, conversationHistory, memoryContext);
+        const aiResult = await aiService.generateAdvice(userMessage, enhancedContext, conversationHistory, memoryContext);
         
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
