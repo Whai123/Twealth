@@ -1,6 +1,6 @@
 # Overview
 
-Twealth is a full-stack web application designed for comprehensive schedule management, financial tracking, and goal setting. It provides a unified platform for personal and collaborative financial organization, offering CFO-level AI financial advice with specialized cryptocurrency features and de-dollarization insights, all within an intuitive and globally accessible interface.
+Twealth is a full-stack web application designed for comprehensive schedule management, financial tracking, and goal setting. It provides a unified platform for personal and collaborative financial organization, offering CFO-level AI financial advice with specialized cryptocurrency features and de-dollarization insights, all within an intuitive and globally accessible interface. The project aims to provide an advanced, market-ready product with a "big tech company" aesthetic and professional user experience.
 
 # User Preferences
 
@@ -10,124 +10,24 @@ Preferred communication style: Simple, everyday language.
 
 ## UI/UX Decisions
 
-The frontend is a React 18 single-page application built with TypeScript, `shadcn/ui` (Radix UI), Tailwind CSS, and Wouter for routing. It emphasizes a mobile-first, responsive, and accessible design with dynamic navigation, PWA support, and responsive typography.
+The frontend is a React 18 single-page application built with TypeScript, `shadcn/ui` (Radix UI), Tailwind CSS, and Wouter for routing. It emphasizes a mobile-first, responsive, and accessible design with dynamic navigation, PWA support, responsive typography, and a full-width layout matching industry standards like Stripe/Robinhood. Key UI features include dynamic dashboard visualizations, interactive onboarding, a professional AI assistant interface (ChatGPT/Claude-style), and comprehensive UI polish for a production-ready feel.
 
 ## Technical Implementations
 
-The backend is an Express.js application in TypeScript, offering a RESTful API. It utilizes Drizzle ORM for type-safe PostgreSQL operations and employs a layered architecture for routes, storage, and external integrations with centralized error handling. Authentication uses Replit OAuth (OpenID Connect) with PostgreSQL for session management and role-based access control.
+The backend is an Express.js application in TypeScript, offering a RESTful API. It utilizes Drizzle ORM for type-safe PostgreSQL operations and employs a layered architecture for routes, storage, and external integrations with centralized error handling. Authentication uses Replit OAuth (OpenID Connect) with PostgreSQL for session management and role-based access control. The application supports 11 languages with `i18next` and `react-i18next` for internationalization.
 
 ## Feature Specifications
 
--   **AI Financial Advisor**: Powered by Groq AI (Llama 4 Scout), offering CFO-level advice with advanced intelligence for data validation, comprehensive luxury asset intelligence, live market intelligence, spending intelligence, and behavioral analysis.
-    -   **Data Intelligence**: Smart validation, critical thinking engine, logical consistency checks, and professional skepticism for financial inputs.
-    -   **AI Personalization & Memory** (Oct 2025): AI acts as personal CFO mentor, not chatbot - addresses users by name, remembers financial priorities, investment preferences, life events, spending habits, and risk tolerance. References past conversations naturally with phrases like "As you mentioned before..."
-    -   **Graceful Error Handling** (Oct 2025): Implements enterprise-grade error recovery like ChatGPT/Claude - extracts and returns valuable AI responses even when tool calls fail, eliminating "I apologize for confusion" errors. First message always works.
-    -   **Comprehensive Luxury Asset Intelligence** (Oct 2025): Extensive database covering 150+ luxury assets across 7 categories:
-        -   **Vehicles**: 25+ models (Lamborghini, Ferrari, McLaren, Porsche, Rolls-Royce, Bentley, Aston Martin) with pricing, insurance, maintenance, and depreciation data.
-        -   **Yachts**: 12+ models (65' to 364' superyachts) with purchase prices, docking, crew, fuel, and annual operating costs ($810k-$38.5M/year).
-        -   **Private Jets**: 12+ models (HondaJet to Gulfstream G700) with purchase prices ($7.2M-$75M), hourly operating costs ($1,200-$6,000/hour), and range specifications.
-        -   **Real Estate**: 15+ luxury markets globally (Manhattan, Monaco, Beverly Hills, Hong Kong, Aspen) with price ranges, property taxes, and HOA costs.
-        -   **Jewelry**: 10+ categories (Tiffany, Cartier, Harry Winston, Graff) with appreciation rates (investment-grade diamonds appreciate 3-12%/year).
-        -   **Designer Fashion**: 12+ brands (Hermès Birkin/Kelly, Chanel, Louis Vuitton, Louboutin) with appreciation analysis (Birkin appreciates 14%/year, beating S&P 500).
-        -   **Art & Collectibles**: 10+ categories (contemporary art, classic cars, rare whisky, vintage watches) with historical appreciation rates (rare whisky +15%/year).
-    -   **Live Market Intelligence**: Integration with Alpha Vantage, exchangerate-api, and public APIs for real-time market data, including country-specific tax calculations for 10+ countries.
-    -   **Spending Intelligence**: Pattern recognition, behavioral insights, smart recommendations, and unusual transaction detection.
-    -   **Imperative Command Detection** (Oct 2025): AI detects direct goal creation commands like "add it to my goal", "add this", "เพิ่ม" (Thai) and extracts context from conversation history to create goals immediately without asking for confirmation again.
-    -   **Robust Tool Parameter Handling** (Oct 2025): Automatic type coercion in aiService.ts handles Groq API sending strings instead of typed values - converts `"true"` → `true` (boolean) and `"573966"` → `573966` (number). Eliminates "tool_use_failed" errors across all languages, ensuring Thai/Spanish/Chinese commands work reliably.
-    -   **Empathetic Coaching Framework** (Oct 2025): AI reframes expensive goals with path-forward language (never says "can't afford"), suggests realistic stepping stones, and provides smart alternatives. Includes 50+ empathetic response templates.
-    -   **Language Auto-Detection** (Oct 2025): AI detects user's language from input and responds in same language, supporting 11 languages with contextual translation for technical terms.
+-   **AI Financial Advisor**: Powered by Groq AI (Llama 4 Scout), offering CFO-level advice with advanced intelligence for data validation, comprehensive luxury asset intelligence, live market intelligence, spending intelligence, and behavioral analysis. Features include AI personalization and memory, graceful error handling, imperative command detection, robust tool parameter handling, an empathetic coaching framework, and language auto-detection. AI responses are sanitized to ensure natural, conversational language without technical syntax.
 -   **Core Features**: Conversational data collection, luxury purchase analysis, smart budget recommendations, actionable advice in 11 languages, and tiered crypto experience.
--   **Financial Health**: Real-time comprehensive financial health score (0-100) with detailed component breakdown and actionable recommendations.
+-   **Financial Health**: Real-time comprehensive financial health score with detailed component breakdown and actionable recommendations.
 -   **Proactive Insights**: Automated spending anomaly detection, savings opportunity identification, goal deadline reminders, and budget warnings.
--   **Internationalization**: Full support for 11 languages with locale-aware formatting and RTL support via `i18next` and `react-i18next`.
+-   **Demo Mode**: Infrastructure for new user experience with realistic sample data.
+-   **Premium Features**: Clear comparison for Free vs. Pro plans, highlighting advanced AI and tracking capabilities.
 
 ## System Design Choices
 
-The architecture incorporates a comprehensive caching strategy for improved performance, including a system prompt cache, market data cache, and optimized React Query settings. Database indexes are implemented on frequently queried columns to enhance query performance.
-
-**Full-Width Responsive Layout**: Application uses big tech-style full-width layouts matching Stripe/Robinhood pattern with fixed sidebar (~256px) and content area using `flex-1` to fill remaining viewport width. Responsive padding (`w-full px-4 sm:px-6 lg:px-8 xl:px-12`) grows with screen size. Data/dashboard pages (Dashboard, Goals, Money, Crypto, Friends, Groups, Planning, Referrals, Calendar, AI) maximize available width; form/pricing pages (Settings, Subscription, Upgrade) use centered containers (`max-w-5xl`/`max-w-7xl`) for readability. Mobile-first responsive grids prevent horizontal overflow (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3/4`).
-
-**Authentication**: Fixed OIDC foreign key constraint violation by ensuring subscription initialization uses returned user ID rather than claims sub, preventing errors when existing users log in with different provider IDs.
-
-## Pre-Launch Improvements (Oct 2025)
-
-Following user feedback analysis, the following enhancements were made to transform Twealth from functional MVP to market-ready product:
-
-1. **Dynamic Dashboard Visualizations**: Replaced static stats with animated recharts - beautiful bar charts for Income vs Target with gradient fills, smooth animations, and professional tooltips. Charts now make users "feel" their financial progress visually.
-
-2. **AI Personalization Infrastructure**: Enhanced AI to act as personal CFO mentor:
-   - Addresses users by name throughout conversations
-   - Stores and references conversation memory (financial priorities, investment preferences, life events, spending habits, risk tolerance)
-   - Uses phrases like "As you mentioned before..." to maintain context
-   - System prompt dynamically builds personalized context section
-
-3. **Demo Mode Foundation**: Created infrastructure for new user experience:
-   - Added `demoMode` boolean to user preferences schema (defaults to true for new users)
-   - Built realistic sample data service with 6 months of transactions, 5 financial goals, crypto holdings
-   - Created demo data middleware for future route integration
-   - Generates authentic financial scenarios (salary, recurring expenses, random purchases)
-
-**Status**: All tasks complete ✅
-
-4. **Interactive Onboarding Wizard** (Oct 2025): New users see beautiful 4-step wizard:
-   - Welcome screen explaining Twealth benefits
-   - Financial basics collection (income/expenses)
-   - First goal creation with visual encouragement
-   - Completion screen with next steps
-   - Progress bar shows 0% → 100% completion
-   - Automatically appears for users with no financial data
-
-5. **Premium Comparison Page** (Oct 2025): Clear value proposition at `/pricing`:
-   - Side-by-side Free vs Pro comparison cards
-   - Detailed feature comparison table across 3 categories (AI, Tracking, Advanced)
-   - Highlights Pro features: 500 chats/month vs 10, unlimited goals, crypto tracking
-   - "Most Popular" badge on Pro plan
-   - Value emphasis: "$25/month vs $12,000/month real CFO"
-   - Current plan detection prevents redundant upgrades
-
-6. **Professional AI Assistant Redesign** (Oct 2025): Complete transformation to ChatGPT/Claude-style interface:
-   - **ConversationSidebar**: Left sidebar (250px) with conversation history, search, and "New Chat" button
-   - **Professional Message Bubbles**: User messages right-aligned with subtle background; AI messages left-aligned with gradient avatar icon
-   - **Markdown Support**: Full markdown rendering with react-markdown and remark-gfm for bold, italic, lists, blockquotes
-   - **Code Blocks**: CSS-based syntax highlighting with dark theme (Vite-friendly, no external highlighter bundling issues)
-   - **Message Actions**: Copy button, thumbs up/down feedback on hover
-   - **Conversation Management**: Rename and delete conversations via PATCH/DELETE endpoints
-   - **Clean Design**: Removed colorful gradients in favor of professional whites/grays/subtle accents
-   - **Mobile Responsive**: Collapsible sidebar with hamburger menu, full-screen chat on mobile
-   - **Empty State**: Professional welcome screen with example prompts
-   - **Auto-scroll**: Smooth scroll to latest message with typing indicator animation
-   - **Bug Fixes**: Fixed OIDC foreign key violation by using user.id from database record; removed react-syntax-highlighter to fix Vite refractor bundling errors
-
-7. **Production-Ready UI Polish** (Oct 24, 2025): Comprehensive design refinement to achieve "big tech company" aesthetic:
-   - **Navigation Excellence**: Enhanced sidebar with smooth transitions (`transition-all duration-200`), hover effects (`hover:scale-[1.02]`), icon animations (`group-hover:scale-110`), and shadow depth (`shadow-sm`)
-   - **Professional Loading States**: Upgraded PageLoader with dual-ring spinner animation and improved text hierarchy for enterprise-grade feel
-   - **Engaging Empty States**: Redesigned Financial Goals and Recent Transactions empty states with gradient icon backgrounds, compelling CTAs, and better visual hierarchy
-   - **Error Handling System**: Created reusable ErrorState component with retry functionality, professional messaging, and consistent styling across all data fetching failures
-   - **Button Consistency**: All buttons feature `transition-all duration-150`, `active:scale-[0.98]` press effects, `shadow-sm hover:shadow` depth changes, and `focus-visible:ring-2` accessibility states
-   - **Card Hover Effects**: Dashboard cards include `hover:shadow-md` with `transition-all duration-200` for subtle depth transitions on interaction
-   - **Input Focus States**: Professional focus indicators with `focus-visible:ring-2 focus-visible:ring-offset-2` for accessibility and visual clarity
-   - **Mobile Responsiveness**: Verified at 375px width with collapsible sidebar, no horizontal overflow, and appropriate touch targets
-   - **Settings Localization**: Fixed bug where page header remained in English - now properly uses `t('settings.title')` and `t('settings.subtitle')`
-   - **Page Transitions**: Created PageTransition wrapper with framer-motion for smooth fade-in effects (`opacity: 0→1`, `y: 10→0`, 300ms easing)
-   - **Performance**: Lazy loading verified for all pages, optimal bundle splitting, hot module replacement working smoothly
-   - **Testing**: Comprehensive end-to-end tests confirm all polish features work together beautifully across desktop and mobile
-
-**Status**: Production-ready ✅ - Application now matches Stripe/Robinhood/Coinbase design standards
-
-8. **Automatic Investment Data Seeding** (Oct 24, 2025): Fixed investment page showing no data on fresh deployments:
-   - Added automatic database seeding on server startup
-   - Checks if `investmentStrategies` table is empty
-   - If empty, automatically populates 15+ investment strategies and passive income opportunities
-   - Ensures investments page works across all devices and fresh database instances
-   - Seeding includes: S&P 500 Index Funds, REITs, Treasury Bonds, High-Yield Savings, Crypto strategies, and passive income opportunities (digital products, content creation, affiliate marketing, etc.)
-
-9. **AI Response Sanitization** (Oct 24, 2025): Eliminated all technical syntax leakage from AI responses:
-   - **Problem**: AI was occasionally outputting raw JSON tool call syntax (e.g., `{"name": "analyze_portfolio_allocation", "parameters": {...}}`) to users - unprofessional for a production financial app
-   - **Solution**: Implemented comprehensive response sanitization with `sanitizeResponse()` function
-   - **Filters Applied**: Removes JSON code blocks (```json), generic code blocks (```), inline code markers, raw JSON structures, "Tool Call" headers, and any technical programming syntax
-   - **System Prompt Update**: Added explicit rule forbidding JSON/code output: "🚨 NEVER output JSON, code blocks, or technical syntax to users! Tool calls are INTERNAL ONLY"
-   - **Result**: All AI responses are now in natural, conversational language only - matches ChatGPT/Claude professional standards
-   - **Testing**: Comprehensive E2E test confirms AI provides investment advice with keywords (stocks, bonds, portfolio, VTI, VOO) in plain language with zero technical leakage
+The architecture incorporates a comprehensive caching strategy (system prompt, market data, React Query optimization) and database indexing for performance. Authentication handles OIDC foreign key constraints. The system includes automatic investment data seeding for fresh deployments, populating 15+ investment strategies and passive income opportunities.
 
 # External Dependencies
 
