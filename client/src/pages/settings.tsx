@@ -142,10 +142,10 @@ function Settings() {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">
-                Settings
+                {t('settings.title', 'Settings')}
               </h1>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 truncate">
-                Manage your preferences
+                {t('settings.subtitle', 'Manage your preferences')}
               </p>
             </div>
           </div>
