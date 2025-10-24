@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { db } from "./db";
+import { investmentStrategies } from "@shared/schema";
 
 const app = express();
 app.use(express.json());
@@ -37,6 +39,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Auto-seed investment data if database is empty
+  try {
+    const existingStrategies = await db.select().from(investmentStrategies).limit(1);
+    if (existingStrategies.length === 0) {
+      log("📊 Investment data not found, seeding database...");
+      const { seedInvestments } = await import("./seed-investments");
+      await seedInvestments();
+      log("✅ Investment data seeded successfully");
+    }
+  } catch (error: any) {
+    log("⚠️ Failed to seed investment data:", error?.message || error);
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

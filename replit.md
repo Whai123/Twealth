@@ -114,6 +114,13 @@ Following user feedback analysis, the following enhancements were made to transf
 
 **Status**: Production-ready ✅ - Application now matches Stripe/Robinhood/Coinbase design standards
 
+8. **Automatic Investment Data Seeding** (Oct 24, 2025): Fixed investment page showing no data on fresh deployments:
+   - Added automatic database seeding on server startup
+   - Checks if `investmentStrategies` table is empty
+   - If empty, automatically populates 15+ investment strategies and passive income opportunities
+   - Ensures investments page works across all devices and fresh database instances
+   - Seeding includes: S&P 500 Index Funds, REITs, Treasury Bonds, High-Yield Savings, Crypto strategies, and passive income opportunities (digital products, content creation, affiliate marketing, etc.)
+
 # External Dependencies
 
 -   **React 18**: Frontend framework.
