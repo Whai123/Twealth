@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lightbulb, Target, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
+import { ErrorState } from "@/components/ui/error-state";
+import { queryClient } from "@/lib/queryClient";
 
 export default function FinancialGoalsProgress() {
-  const { data: goals, isLoading } = useQuery({
+  const { data: goals, isLoading, error } = useQuery({
     queryKey: ["/api/financial-goals"],
     queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
   });
@@ -26,6 +28,22 @@ export default function FinancialGoalsProgress() {
             ))}
           </div>
         </div>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6 shadow-sm">
+        <CardHeader className="p-0 mb-6">
+          <CardTitle className="text-lg font-semibold">Financial Goals Progress</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ErrorState 
+            message="Failed to load goals. Please try again."
+            onRetry={() => queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] })}
+          />
+        </CardContent>
       </Card>
     );
   }
