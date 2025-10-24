@@ -2212,6 +2212,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/chat/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const conversationId = req.params.id;
+      
+      // Verify ownership
+      const conversation = await storage.getChatConversation(conversationId);
+      if (!conversation || conversation.userId !== userId) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      // Update title
+      const { title } = req.body;
+      if (title && typeof title === 'string') {
+        await storage.updateChatConversation(conversationId, { title });
+        const updated = await storage.getChatConversation(conversationId);
+        res.json(updated);
+      } else {
+        res.status(400).json({ message: "Invalid title" });
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/chat/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const conversationId = req.params.id;
+      
+      // Verify ownership
+      const conversation = await storage.getChatConversation(conversationId);
+      if (!conversation || conversation.userId !== userId) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+
+      await storage.deleteChatConversation(conversationId);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/chat/conversations/:id/messages", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
