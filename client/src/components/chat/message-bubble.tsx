@@ -9,6 +9,10 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Brain, User } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant';
@@ -59,7 +63,55 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
       </div>
       <div className="flex-1 min-w-0">
         <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
-          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{content}</p>
+          <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code({ node, inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  return !inline && match ? (
+                    <SyntaxHighlighter
+                      style={oneDark}
+                      language={match[1]}
+                      PreTag="div"
+                      className="rounded-md my-2"
+                      {...props}
+                    >
+                      {String(children).replace(/\n$/, '')}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+                p({ children }) {
+                  return <p className="mb-2 last:mb-0">{children}</p>;
+                },
+                ul({ children }) {
+                  return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
+                },
+                ol({ children }) {
+                  return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+                },
+                strong({ children }) {
+                  return <strong className="font-semibold text-foreground">{children}</strong>;
+                },
+                em({ children }) {
+                  return <em className="italic">{children}</em>;
+                },
+                blockquote({ children }) {
+                  return (
+                    <blockquote className="border-l-4 border-primary/30 pl-4 my-2 italic text-muted-foreground">
+                      {children}
+                    </blockquote>
+                  );
+                },
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          </div>
         </div>
         
         {/* Message Actions */}
