@@ -1824,7 +1824,11 @@ CRITICAL RULES:
 2. For goals: ALWAYS explain breakdown + expert analysis FIRST, ask confirmation, THEN create
 3. ALWAYS include educational insight - teach financial literacy with every response
 4. Apply compound interest math when relevant - show long-term impact
-5. Balance optimization with life enjoyment - not everything is about max returns`;
+5. Balance optimization with life enjoyment - not everything is about max returns
+6. 🚨 NEVER output JSON, code blocks, or technical syntax to users! Tool calls are INTERNAL ONLY
+   - ❌ FORBIDDEN: Showing \`\`\`json, "name": "...", "parameters": {...}, or any programming language
+   - ✅ CORRECT: Natural language responses with calculations explained in plain text
+   - Example: Instead of showing JSON, say "I'll create that goal for you with a target of $10,000"`;
     
     // Cache the generated prompt for 1 hour (market data inside is already cached)
     const fullPrompt = `You are Twealth AI, an expert-level CFO and financial advisor worth $150/hour. Your advice must be SO GOOD that users think "$25/month is a steal!" Every response must demonstrate deep expertise with EXACT calculations using the user's actual data.
@@ -1948,6 +1952,10 @@ CRITICAL RULES:
 3. ALWAYS include educational insight - teach financial literacy with every response
 4. Apply compound interest math when relevant - show long-term impact
 5. Balance optimization with life enjoyment - not everything is about max returns
+6. 🚨 NEVER output JSON, code blocks, or technical syntax to users! Tool calls are INTERNAL ONLY
+   - ❌ FORBIDDEN: Showing \`\`\`json, "name": "...", "parameters": {...}, or any programming language
+   - ✅ CORRECT: Natural language responses with calculations explained in plain text
+   - Example: Instead of showing JSON, say "I'll create that goal for you with a target of $10,000"
 
 💰 REAL FINANCIAL FORMULAS (USE THESE, NOT SIMPLE DIVISION!):
 
@@ -2066,6 +2074,47 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
     const union = new Set([...Array.from(set1), ...Array.from(set2)]);
     
     return intersection.size / union.size;
+  }
+
+  private sanitizeResponse(text: string): string {
+    // CRITICAL: Remove any JSON code blocks, raw JSON, or technical syntax from AI responses
+    // Users should NEVER see internal tool call syntax or code
+    
+    let sanitized = text;
+    
+    // 1. Remove JSON code blocks (```json ... ```)
+    sanitized = sanitized.replace(/```json\s*\n[\s\S]*?\n```/gi, '');
+    
+    // 2. Remove generic code blocks (``` ... ```)
+    sanitized = sanitized.replace(/```[\s\S]*?```/g, '');
+    
+    // 3. Remove inline code markers (`...`)
+    sanitized = sanitized.replace(/`([^`]+)`/g, '$1');
+    
+    // 4. Remove raw JSON arrays that look like tool calls
+    // Pattern: [ { "name": "...", "parameters": { ... } } ]
+    sanitized = sanitized.replace(/\[\s*\{\s*"name":\s*"[^"]+"\s*,\s*"parameters":\s*\{[\s\S]*?\}\s*\}\s*\]/gi, '');
+    
+    // 5. Remove any remaining JSON-like structures with "name" and "parameters"
+    sanitized = sanitized.replace(/\{\s*"name":\s*"[^"]+"\s*,\s*"parameters":\s*\{[\s\S]*?\}\s*\}/gi, '');
+    
+    // 6. Remove "Tool Call" headers or mentions
+    sanitized = sanitized.replace(/###?\s*Tool Call.*?\n/gi, '');
+    sanitized = sanitized.replace(/To get a more detailed analysis.*?tool.*?:/gi, '');
+    sanitized = sanitized.replace(/I recommend calling the.*?tool.*?\./gi, '');
+    
+    // 7. Clean up multiple consecutive newlines (from removed blocks)
+    sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
+    
+    // 8. Trim whitespace
+    sanitized = sanitized.trim();
+    
+    // Log if we stripped anything significant
+    if (text.length - sanitized.length > 50) {
+      console.log(`🧹 Sanitized AI response: removed ${text.length - sanitized.length} chars of code/JSON`);
+    }
+    
+    return sanitized;
   }
 
   async generateAdvice(
@@ -2239,7 +2288,11 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
         };
       });
 
-      const text = assistantMessage.content || '';
+      let text = assistantMessage.content || '';
+      
+      // CRITICAL: Strip any JSON code blocks or raw tool calls from response
+      // Users should NEVER see technical JSON or code syntax
+      text = this.sanitizeResponse(text);
       
       // Cache only if no tools were used
       if (!toolCalls || toolCalls.length === 0) {
