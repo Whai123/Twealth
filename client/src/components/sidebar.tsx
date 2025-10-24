@@ -189,18 +189,21 @@ export default function Sidebar() {
                             <Link href={item.href}>
                               <div
                                 className={cn(
-                                  "flex items-center space-x-3 px-3 py-2 rounded-md transition-colors cursor-pointer",
+                                  "flex items-center space-x-3 px-3 py-2 rounded-md transition-all duration-200 cursor-pointer group",
                                   isActive
-                                    ? "bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm hover:scale-[1.02]"
                                 )}
                                 data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                                 role="link"
                                 aria-label={`Navigate to ${item.name}`}
                                 aria-current={isActive ? "page" : undefined}
                               >
-                                <item.icon size={20} aria-hidden="true" />
-                                <span className="text-sm">{item.name}</span>
+                                <item.icon size={20} aria-hidden="true" className={cn(
+                                  "transition-transform duration-200",
+                                  !isActive && "group-hover:scale-110"
+                                )} />
+                                <span className="text-sm font-medium">{item.name}</span>
                               </div>
                             </Link>
                           </TooltipTrigger>

@@ -36,9 +36,15 @@ const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligenc
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px] p-4">
-    <div className="flex items-center space-x-3">
-      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-      <span className="text-sm text-muted-foreground">Loading...</span>
+    <div className="flex flex-col items-center space-y-4">
+      <div className="relative">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20"></div>
+        <div className="absolute top-0 left-0 animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      </div>
+      <div className="text-center space-y-1">
+        <span className="text-sm font-medium text-foreground">Loading...</span>
+        <p className="text-xs text-muted-foreground">Please wait</p>
+      </div>
     </div>
   </div>
 );
