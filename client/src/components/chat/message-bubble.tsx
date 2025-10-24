@@ -11,8 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Brain, User } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MessageBubbleProps {
   role: 'user' | 'assistant';
@@ -69,16 +67,12 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               components={{
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
-                  return !inline && match ? (
-                    <SyntaxHighlighter
-                      style={oneDark}
-                      language={match[1]}
-                      PreTag="div"
-                      className="rounded-md my-2"
-                      {...props}
-                    >
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
+                  return !inline ? (
+                    <div className="my-2 rounded-md bg-slate-900 p-4 overflow-x-auto">
+                      <code className="text-xs font-mono text-slate-100 block whitespace-pre" {...props}>
+                        {String(children).replace(/\n$/, '')}
+                      </code>
+                    </div>
                   ) : (
                     <code className="bg-muted-foreground/10 px-1.5 py-0.5 rounded text-xs font-mono" {...props}>
                       {children}

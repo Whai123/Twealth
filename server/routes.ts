@@ -1725,11 +1725,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const preferences = await storage.getUserPreferences(userId);
+      // If we still don't have a user, return 404
+      if (!user) {
+        console.error('[/api/user-preferences] No user found and could not create from claims');
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const preferences = await storage.getUserPreferences(user.id);
       if (!preferences) {
-        // Create default preferences if they don't exist
+        // Create default preferences if they don't exist - use user.id to ensure FK constraint
         const defaultPrefs = { 
-          userId: userId,
+          userId: user.id,
           theme: "system" as const
         };
         const newPrefs = await storage.createUserPreferences(defaultPrefs);
