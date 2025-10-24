@@ -85,6 +85,19 @@ Following user feedback analysis, the following enhancements were made to transf
    - Value emphasis: "$25/month vs $12,000/month real CFO"
    - Current plan detection prevents redundant upgrades
 
+6. **Professional AI Assistant Redesign** (Oct 2025): Complete transformation to ChatGPT/Claude-style interface:
+   - **ConversationSidebar**: Left sidebar (250px) with conversation history, search, and "New Chat" button
+   - **Professional Message Bubbles**: User messages right-aligned with subtle background; AI messages left-aligned with gradient avatar icon
+   - **Markdown Support**: Full markdown rendering with react-markdown and remark-gfm for bold, italic, lists, blockquotes
+   - **Code Blocks**: CSS-based syntax highlighting with dark theme (Vite-friendly, no external highlighter bundling issues)
+   - **Message Actions**: Copy button, thumbs up/down feedback on hover
+   - **Conversation Management**: Rename and delete conversations via PATCH/DELETE endpoints
+   - **Clean Design**: Removed colorful gradients in favor of professional whites/grays/subtle accents
+   - **Mobile Responsive**: Collapsible sidebar with hamburger menu, full-screen chat on mobile
+   - **Empty State**: Professional welcome screen with example prompts
+   - **Auto-scroll**: Smooth scroll to latest message with typing indicator animation
+   - **Bug Fixes**: Fixed OIDC foreign key violation by using user.id from database record; removed react-syntax-highlighter to fix Vite refractor bundling errors
+
 # External Dependencies
 
 -   **React 18**: Frontend framework.
