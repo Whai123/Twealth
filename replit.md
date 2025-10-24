@@ -121,6 +121,14 @@ Following user feedback analysis, the following enhancements were made to transf
    - Ensures investments page works across all devices and fresh database instances
    - Seeding includes: S&P 500 Index Funds, REITs, Treasury Bonds, High-Yield Savings, Crypto strategies, and passive income opportunities (digital products, content creation, affiliate marketing, etc.)
 
+9. **AI Response Sanitization** (Oct 24, 2025): Eliminated all technical syntax leakage from AI responses:
+   - **Problem**: AI was occasionally outputting raw JSON tool call syntax (e.g., `{"name": "analyze_portfolio_allocation", "parameters": {...}}`) to users - unprofessional for a production financial app
+   - **Solution**: Implemented comprehensive response sanitization with `sanitizeResponse()` function
+   - **Filters Applied**: Removes JSON code blocks (```json), generic code blocks (```), inline code markers, raw JSON structures, "Tool Call" headers, and any technical programming syntax
+   - **System Prompt Update**: Added explicit rule forbidding JSON/code output: "🚨 NEVER output JSON, code blocks, or technical syntax to users! Tool calls are INTERNAL ONLY"
+   - **Result**: All AI responses are now in natural, conversational language only - matches ChatGPT/Claude professional standards
+   - **Testing**: Comprehensive E2E test confirms AI provides investment advice with keywords (stocks, bonds, portfolio, VTI, VOO) in plain language with zero technical leakage
+
 # External Dependencies
 
 -   **React 18**: Frontend framework.
