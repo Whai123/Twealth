@@ -4,11 +4,36 @@ Twealth is a full-stack web application designed for comprehensive schedule mana
 
 ## Recent Changes (October 25, 2025)
 
+### Morning Session
 -   **Logo & Branding**: Integrated official Twealth logo (gradient purple-pink hexagon design with transparent background) across landing page and all branding touchpoints
 -   **SEO Implementation**: Comprehensive search engine optimization with meta tags, Open Graph, Twitter Cards, JSON-LD structured data, sitemap.xml, and robots.txt
 -   **Favicon Suite**: Generated complete favicon package (16x16, 32x32, 192x192, 512x512, Apple Touch Icon)
 -   **AI Response Fix**: Enhanced sanitization to prevent system prompt echoing - AI now only speaks in natural, conversational language (no technical leakage)
 -   **Production Ready**: App verified with E2E testing, all SEO tags rendering correctly, logo loading properly
+
+### Afternoon Session - Dashboard Real Data Overhaul
+-   **Dashboard Metrics Replacement**: Completely replaced fake calculations with real Financial Health Score system
+    - Removed fake "financialScore" formula (was: 200 + totalSavings/100 + activeGoals*50)
+    - Removed fake "streak" calculation (was: pretending user created account 2 months ago)
+    - Integrated real Financial Health API endpoint (`/api/financial-health`) displaying 0-100 score with grade (Excellent/Good/Fair/Needs Improvement/Critical)
+    - Replaced fake growth metric with real Savings Rate (calculated from actual income vs expenses)
+    - Replaced fake streak with real Emergency Fund months (totalSavings / monthlyExpenses)
+    - All 4 dashboard stat cards now show REAL calculations with color-coded thresholds
+-   **QuickStats Real Data**: Removed time-tracking metrics (Time Value, Hourly Rate, Net Impact, Productivity) and replaced with core financial metrics:
+    - Total Savings: Real sum from goals or user estimate  
+    - Monthly Income: Real from last 30 days transactions or estimate
+    - Monthly Expenses: Real from last 30 days expense transactions or estimate
+    - Savings Capacity: Real calculation (monthlyIncome - monthlyExpenses) with savings rate %
+-   **TimeValueInsights Removed**: Eliminated irrelevant time-tracking widget from dashboard
+-   **Total Savings Calculation Fix**: Fixed critical bug in `server/storage.ts getUserStats()`
+    - Previous: Used ONLY goals total if > 0, ignoring initial savings estimate
+    - Fixed: Uses `Math.max(goalsTotal, savingsEstimate)` to never show less than user's declared savings
+    - Ensures dashboard reflects both unallocated savings AND goal contributions correctly
+-   **Goal Contributions Verified**: Tested and confirmed end-to-end goal contribution flow works correctly:
+    - Users add funds via AddFundsForm → Creates transaction with goalId
+    - Backend automatically updates goal.currentAmount and creates goal_contribution record
+    - Dashboard totalSavings updates immediately
+    - All data persists to PostgreSQL correctly
 
 # User Preferences
 
