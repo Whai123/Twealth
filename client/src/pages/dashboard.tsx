@@ -42,13 +42,8 @@ export default function Dashboard() {
     queryKey: ["/api/dashboard/stats"],
   });
   
-  const { data: timeStats, isLoading: timeStatsLoading } = useQuery({
-    queryKey: ["/api/dashboard/time-stats"],
-  });
-  
-  const { data: prevTimeStats } = useQuery({
-    queryKey: ["/api/dashboard/time-stats-previous"],
-    queryFn: () => fetch("/api/dashboard/time-stats?previous=true").then(res => res.json()),
+  const { data: financialHealth, isLoading: healthLoading } = useQuery({
+    queryKey: ["/api/financial-health"],
   });
   
   const { data: goals, isLoading: goalsLoading } = useQuery({
@@ -59,8 +54,16 @@ export default function Dashboard() {
     queryKey: ['/api/user-preferences'],
   });
   
+  // Real metrics from financial health calculation
+  const healthScore = (financialHealth as any)?.overall || 0;
+  const healthGrade = (financialHealth as any)?.grade || 'Building';
+  const savingsRate = (financialHealth as any)?.breakdown?.savingsRate?.value || 0;
+  const emergencyFundMonths = (financialHealth as any)?.breakdown?.emergencyFund?.months || 0;
+  const savingsRateLabel = (financialHealth as any)?.breakdown?.savingsRate?.label || 'No data';
+  const emergencyFundLabel = (financialHealth as any)?.breakdown?.emergencyFund?.label || 'No data';
+  
+  // Real goal tracking
   const activeGoalsCount = Array.isArray(goals) ? goals.filter((g: any) => g.status === "active").length : 0;
-  const totalGoalsCount = Array.isArray(goals) ? goals.length : 0;
   const goalsOnTrack = Array.isArray(goals) 
     ? goals.filter((g: any) => {
         if (g.status !== "active") return false;
@@ -72,17 +75,11 @@ export default function Dashboard() {
       }).length
     : 0;
   
-  const currentTimeValue = (timeStats as any)?.timeValue || 0;
-  const prevTimeValue = (prevTimeStats as any)?.timeValue || 0;
-  const growthPercent = prevTimeValue ? Math.round(((currentTimeValue - prevTimeValue) / prevTimeValue) * 100) : 0;
-  
+  // Real financial capacity
+  const monthlyIncome = (stats as any)?.monthlyIncome || 0;
   const totalSavings = (stats as any)?.totalSavings || 0;
-  const financialScore = Math.min(850, Math.round(200 + (totalSavings / 100) + (activeGoalsCount * 50) + (goalsOnTrack * 100)));
-  
-  const userCreatedAt = new Date();
-  userCreatedAt.setMonth(userCreatedAt.getMonth() - 2);
-  const daysActive = Math.floor((Date.now() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24));
-  const streak = Math.min(daysActive, 42);
+  const monthlyExpenses = parseFloat((preferences as any)?.monthlyExpensesEstimate || '0');
+  const monthlySavingsCapacity = monthlyIncome - monthlyExpenses;
   
   // Show onboarding wizard for new users
   if (showOnboarding) {
@@ -153,9 +150,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Key Metrics - Stripe-style stat cards */}
+        {/* Key Metrics - Real Financial Data */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {timeStatsLoading ? (
+          {/* Financial Health Score - REAL calculation */}
+          {healthLoading ? (
             <Card className="p-6">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
@@ -164,18 +162,63 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6" data-testid="stat-growth">
+            <Card className="p-6" data-testid="stat-health-score">
               <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className={`w-4 h-4 ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.growth')}</span>
+                <Award className={`w-4 h-4 ${healthScore >= 75 ? 'text-green-600' : healthScore >= 60 ? 'text-blue-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600'}`} aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">Financial Health</span>
               </div>
-              <div className={`text-3xl font-semibold ${growthPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="value-growth">
-                {growthPercent >= 0 ? '+' : ''}{growthPercent}%
+              <div className={`text-3xl font-semibold ${healthScore >= 75 ? 'text-green-600' : healthScore >= 60 ? 'text-blue-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600'}`} data-testid="value-health-score">
+                {healthScore}/100
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.stats.thisPeriod')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{healthGrade}</p>
             </Card>
           )}
           
+          {/* Savings Rate - REAL from transactions */}
+          {healthLoading ? (
+            <Card className="p-6">
+              <div className="space-y-3">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-6" data-testid="stat-savings-rate">
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className={`w-4 h-4 ${savingsRate >= 20 ? 'text-green-600' : savingsRate >= 10 ? 'text-blue-600' : savingsRate >= 5 ? 'text-orange-600' : 'text-red-600'}`} aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">Savings Rate</span>
+              </div>
+              <div className={`text-3xl font-semibold ${savingsRate >= 20 ? 'text-green-600' : savingsRate >= 10 ? 'text-blue-600' : savingsRate >= 5 ? 'text-orange-600' : 'text-red-600'}`} data-testid="value-savings-rate">
+                {savingsRate.toFixed(1)}%
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{savingsRateLabel}</p>
+            </Card>
+          )}
+          
+          {/* Emergency Fund - REAL months of expenses */}
+          {healthLoading ? (
+            <Card className="p-6">
+              <div className="space-y-3">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
+                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
+                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+              </div>
+            </Card>
+          ) : (
+            <Card className="p-6" data-testid="stat-emergency-fund">
+              <div className="flex items-center gap-2 mb-3">
+                <Star className={`w-4 h-4 ${emergencyFundMonths >= 6 ? 'text-green-600' : emergencyFundMonths >= 3 ? 'text-blue-600' : emergencyFundMonths >= 1 ? 'text-orange-600' : 'text-red-600'}`} aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">Emergency Fund</span>
+              </div>
+              <div className={`text-3xl font-semibold ${emergencyFundMonths >= 6 ? 'text-green-600' : emergencyFundMonths >= 3 ? 'text-blue-600' : emergencyFundMonths >= 1 ? 'text-orange-600' : 'text-red-600'}`} data-testid="value-emergency-fund">
+                {emergencyFundMonths.toFixed(1)}mo
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{emergencyFundLabel}</p>
+            </Card>
+          )}
+          
+          {/* Goals Tracking - REAL progress */}
           {goalsLoading ? (
             <Card className="p-6">
               <div className="space-y-3">
@@ -187,49 +230,15 @@ export default function Dashboard() {
           ) : (
             <Card className="p-6" data-testid="stat-goals">
               <div className="flex items-center gap-2 mb-3">
-                <Target className="w-4 h-4 text-blue-600" aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.goals')}</span>
+                <Target className="w-4 h-4 text-purple-600" aria-hidden="true" />
+                <span className="text-sm font-medium text-muted-foreground">Goals</span>
               </div>
-              <div className="text-3xl font-semibold text-blue-600" data-testid="value-goals">
+              <div className="text-3xl font-semibold text-purple-600" data-testid="value-goals">
                 {goalsOnTrack}/{activeGoalsCount}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{t('dashboard.stats.onTrack')}</p>
+              <p className="text-xs text-muted-foreground mt-1">On Track</p>
             </Card>
           )}
-          
-          {statsLoading ? (
-            <Card className="p-6">
-              <div className="space-y-3">
-                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
-                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
-                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
-              </div>
-            </Card>
-          ) : (
-            <Card className="p-6" data-testid="stat-score">
-              <div className="flex items-center gap-2 mb-3">
-                <Award className="w-4 h-4 text-orange-600" aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.score')}</span>
-              </div>
-              <div className="text-3xl font-semibold text-orange-600" data-testid="value-score">
-                {financialScore}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {financialScore >= 800 ? t('dashboard.stats.excellent') : financialScore >= 600 ? t('dashboard.stats.good') : financialScore >= 400 ? t('dashboard.stats.fair') : t('dashboard.stats.building')}
-              </p>
-            </Card>
-          )}
-          
-          <Card className="p-6" data-testid="stat-streak">
-            <div className="flex items-center gap-2 mb-3">
-              <Crown className="w-4 h-4 text-purple-600" aria-hidden="true" />
-              <span className="text-sm font-medium text-muted-foreground">{t('dashboard.stats.streak')}</span>
-            </div>
-            <div className="text-3xl font-semibold text-purple-600" data-testid="value-streak">
-              {streak}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">{t('dashboard.stats.daysActive')}</p>
-          </Card>
         </div>
 
         {/* Quick Stats Cards */}
@@ -237,9 +246,6 @@ export default function Dashboard() {
 
         {/* Quick Actions - Modern fintech-style action center */}
         <QuickActions />
-
-        {/* Time-Value Insights */}
-        <TimeValueInsights />
 
         {/* Enhanced Financial Trends */}
         <EnhancedFinancialTrends />
