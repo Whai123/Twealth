@@ -4,9 +4,10 @@ Twealth is a full-stack web application designed for comprehensive schedule mana
 
 ## Recent Changes (October 25, 2025)
 
--   **Logo & Branding**: Integrated official Twealth logo (gradient purple-pink hexagon design) across landing page and all branding touchpoints
+-   **Logo & Branding**: Integrated official Twealth logo (gradient purple-pink hexagon design with transparent background) across landing page and all branding touchpoints
 -   **SEO Implementation**: Comprehensive search engine optimization with meta tags, Open Graph, Twitter Cards, JSON-LD structured data, sitemap.xml, and robots.txt
 -   **Favicon Suite**: Generated complete favicon package (16x16, 32x32, 192x192, 512x512, Apple Touch Icon)
+-   **AI Response Fix**: Enhanced sanitization to prevent system prompt echoing - AI now only speaks in natural, conversational language (no technical leakage)
 -   **Production Ready**: App verified with E2E testing, all SEO tags rendering correctly, logo loading properly
 
 # User Preferences
