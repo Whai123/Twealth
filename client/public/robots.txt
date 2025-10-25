@@ -1,0 +1,8 @@
+# Robots.txt for Twealth
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://twealth.ltd/sitemap.xml

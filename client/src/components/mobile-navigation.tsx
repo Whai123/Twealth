@@ -11,12 +11,12 @@ import {
   Brain,
   Crown,
   Gift,
-  Clock,
   Bitcoin,
   BarChart3
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
+import logoUrl from "@assets/twealth-logo.png";
 import {
   Drawer,
   DrawerContent,
