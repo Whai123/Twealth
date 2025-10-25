@@ -962,10 +962,15 @@ export class DatabaseStorage implements IStorage {
 
     // Use actual transaction data if available, otherwise fall back to user estimates
     const actualIncome = parseFloat(incomeData?.monthlyIncome?.toString() || "0");
-    const actualSavings = parseFloat(userGoals?.totalSavings?.toString() || "0");
+    const goalsTotal = parseFloat(userGoals?.totalSavings?.toString() || "0");
+    const savingsEstimate = parseFloat(prefs?.currentSavingsEstimate?.toString() || "0");
     
+    // Monthly income: use actual transactions if available, otherwise estimate
     const monthlyIncome = actualIncome > 0 ? actualIncome : parseFloat(prefs?.monthlyIncomeEstimate?.toString() || "0");
-    const totalSavings = actualSavings > 0 ? actualSavings : parseFloat(prefs?.currentSavingsEstimate?.toString() || "0");
+    
+    // Total savings: use MAX of (goals total, initial estimate) to account for savings not yet allocated to goals
+    // This ensures we never show less than what the user said they have saved
+    const totalSavings = Math.max(goalsTotal, savingsEstimate);
 
     return {
       totalSavings,
