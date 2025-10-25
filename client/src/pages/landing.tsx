@@ -1,6 +1,7 @@
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Brain, Calendar, Target, TrendingUp, Zap, Shield, Users, BarChart3, Clock, DollarSign, Sparkles, ArrowRight } from "lucide-react";
+import { Brain, Calendar, Target, TrendingUp, Zap, Shield, Users, BarChart3, Sparkles, ArrowRight } from "lucide-react";
+import logoUrl from "@assets/twealth-logo.png";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -12,11 +13,8 @@ export default function Landing() {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-3xl mb-6 shadow-2xl transform hover:scale-105 transition-transform duration-300" aria-label="Twealth Logo">
-            <div className="relative">
-              <Clock className="w-10 h-10 text-white" />
-              <DollarSign className="w-6 h-6 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
-            </div>
+          <div className="inline-flex items-center justify-center mb-6 transform hover:scale-105 transition-transform duration-300" aria-label="Twealth Logo">
+            <img src={logoUrl} alt="Twealth Logo" className="w-32 h-32 md:w-40 md:h-40" />
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
