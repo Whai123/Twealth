@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
+import { Loader2 } from "lucide-react";
 
 const transactionFormSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be a valid positive number"),
@@ -323,9 +324,17 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           <Button
             type="submit"
             disabled={isSubmitting}
+            className="min-w-[160px]"
             data-testid="button-submit-transaction"
           >
-            {isSubmitting ? "Adding..." : "Add Transaction"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              "Add Transaction"
+            )}
           </Button>
         </div>
       </form>

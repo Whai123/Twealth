@@ -11,6 +11,7 @@ import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/di
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
+import { Loader2 } from "lucide-react";
 
 const addFundsFormSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be a valid positive number"),
@@ -189,6 +190,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
               type="button"
               variant="outline"
               onClick={onSuccess}
+              disabled={isSubmitting}
               data-testid="button-cancel-add-funds"
             >
               Cancel
@@ -196,9 +198,17 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
             <Button
               type="submit"
               disabled={isSubmitting}
+              className="min-w-[140px]"
               data-testid="button-confirm-add-funds"
             >
-              {isSubmitting ? "Adding..." : "Add Funds"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Funds"
+              )}
             </Button>
           </div>
         </form>

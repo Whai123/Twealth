@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
-import { Users } from "lucide-react";
+import { Users, Loader2 } from "lucide-react";
 
 const goalFormSchema = z.object({
   title: z.string().min(1, "Goal title is required"),
@@ -217,7 +217,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
             data-testid="input-goal-target-date"
           />
           {errors.targetDate && (
-            <p className="text-sm text-destructive mt-1">{errors.targetDate.message}</p>
+            <p className="text-sm text-destructive mt-1">{String(errors.targetDate.message)}</p>
           )}
         </div>
 
@@ -239,7 +239,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
         </div>
 
         {/* Group Sharing Section */}
-        {groups && groups.length > 0 && (
+        {Array.isArray(groups) && groups.length > 0 && (
           <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -298,9 +298,17 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
           <Button
             type="submit"
             disabled={isSubmitting}
+            className="min-w-[140px]"
             data-testid="button-submit-goal"
           >
-            {isSubmitting ? "Creating..." : "Create Goal"}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              "Create Goal"
+            )}
           </Button>
         </div>
       </form>
