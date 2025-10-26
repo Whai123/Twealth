@@ -93,6 +93,34 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
         amount: parseFloat(data.amount),
         date: new Date(data.date).toISOString(),
       }),
+    onMutate: async (newTransaction: TransactionFormData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/transactions"] });
+      
+      // Snapshot previous data
+      const previousTransactions = queryClient.getQueryData(["/api/transactions"]);
+      
+      // Create optimistic transaction with temporary ID
+      const optimisticTransaction = {
+        id: `temp-${Date.now()}`,
+        userId: user?.id,
+        type: newTransaction.type,
+        amount: parseFloat(newTransaction.amount),
+        category: newTransaction.category,
+        description: newTransaction.description || "",
+        date: new Date(newTransaction.date).toISOString(),
+        destination: newTransaction.destination,
+        goalId: newTransaction.goalId,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Optimistically update cache
+      queryClient.setQueryData(["/api/transactions"], (old: any) => 
+        Array.isArray(old) ? [optimisticTransaction, ...old] : [optimisticTransaction]
+      );
+      
+      return { previousTransactions };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
@@ -103,7 +131,12 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
       });
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback on error
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(["/api/transactions"], context.previousTransactions);
+      }
+      
       const isValidationError = error.message?.includes('validation') || error.message?.includes('required');
       const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
       

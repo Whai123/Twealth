@@ -58,6 +58,46 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
         goalId: goalId,
         date: new Date(data.date).toISOString(),
       }),
+    onMutate: async (newFunds: AddFundsFormData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/financial-goals"] });
+      await queryClient.cancelQueries({ queryKey: ["/api/transactions"] });
+      
+      // Snapshot previous data
+      const previousGoals = queryClient.getQueryData(["/api/financial-goals"]);
+      const previousTransactions = queryClient.getQueryData(["/api/transactions"]);
+      
+      const amountToAdd = parseFloat(newFunds.amount);
+      
+      // Optimistically update goal's current amount
+      queryClient.setQueryData(["/api/financial-goals"], (old: any) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((goal: any) => 
+          goal.id === goalId 
+            ? { ...goal, currentAmount: (parseFloat(goal.currentAmount) + amountToAdd).toString() }
+            : goal
+        );
+      });
+      
+      // Optimistically add transaction
+      const optimisticTransaction = {
+        id: `temp-${Date.now()}`,
+        userId: user?.id,
+        type: "transfer",
+        amount: amountToAdd,
+        category: "savings",
+        description: newFunds.description || `Added funds to ${goalTitle}`,
+        goalId: goalId,
+        date: new Date(newFunds.date).toISOString(),
+        createdAt: new Date().toISOString(),
+      };
+      
+      queryClient.setQueryData(["/api/transactions"], (old: any) => 
+        Array.isArray(old) ? [optimisticTransaction, ...old] : [optimisticTransaction]
+      );
+      
+      return { previousGoals, previousTransactions };
+    },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -69,7 +109,15 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
       reset();
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback on error
+      if (context?.previousGoals) {
+        queryClient.setQueryData(["/api/financial-goals"], context.previousGoals);
+      }
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(["/api/transactions"], context.previousTransactions);
+      }
+      
       const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
       const isAmountError = error.message?.includes('amount') || error.message?.includes('number');
       

@@ -82,6 +82,35 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
       });
       return await response.json();
     },
+    onMutate: async (newGoal: GoalFormData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/financial-goals"] });
+      
+      // Snapshot previous data
+      const previousGoals = queryClient.getQueryData(["/api/financial-goals"]);
+      
+      // Create optimistic goal with temporary ID
+      const optimisticGoal = {
+        id: `temp-${Date.now()}`,
+        userId: user?.id,
+        title: newGoal.title,
+        targetAmount: newGoal.targetAmount,
+        currentAmount: newGoal.currentAmount || "0",
+        targetDate: new Date(newGoal.targetDate).toISOString(),
+        priority: newGoal.priority,
+        category: newGoal.category,
+        description: newGoal.description,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Optimistically update cache
+      queryClient.setQueryData(["/api/financial-goals"], (old: any) => 
+        Array.isArray(old) ? [optimisticGoal, ...old] : [optimisticGoal]
+      );
+      
+      return { previousGoals };
+    },
     onSuccess: async (createdGoal: any) => {
       // If sharing with group, call the share API
       if (shareWithGroup && selectedGroupId) {
@@ -112,7 +141,12 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       onSuccess?.();
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback on error
+      if (context?.previousGoals) {
+        queryClient.setQueryData(["/api/financial-goals"], context.previousGoals);
+      }
+      
       const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
       toast({
         title: "Couldn't Create Goal",
