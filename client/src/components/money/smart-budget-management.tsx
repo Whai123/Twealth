@@ -67,7 +67,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
   });
 
   const categorySpending = currentMonthTransactions.reduce((acc: any, transaction) => {
-    const category = transaction.category || 'other';
+    const category = (transaction.category || 'other').toLowerCase();
     acc[category] = (acc[category] || 0) + parseFloat(transaction.amount);
     return acc;
   }, {});
@@ -97,10 +97,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
   // Mutations
   const createBudgetMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/budgets", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("POST", "/api/budgets", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
@@ -115,10 +112,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
 
   const updateBudgetMutation = useMutation({
     mutationFn: async ({ id, data }: any) => {
-      return await apiRequest(`/api/budgets/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("PUT", `/api/budgets/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
@@ -132,9 +126,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
 
   const deleteBudgetMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/budgets/${id}`, {
-        method: "DELETE",
-      });
+      return await apiRequest("DELETE", `/api/budgets/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
@@ -147,6 +139,17 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form data
+    if (!formData.category || !formData.monthlyLimit) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Please fill in all fields", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
     if (editingBudget) {
       updateBudgetMutation.mutate({ id: editingBudget.id, data: { monthlyLimit: formData.monthlyLimit } });
     } else {
@@ -275,9 +278,9 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label>Category</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                    <SelectTrigger data-testid="select-budget-category">
+                  <Label htmlFor="budget-category">Category</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})} required>
+                    <SelectTrigger id="budget-category" data-testid="select-budget-category">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -288,14 +291,17 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
                   </Select>
                 </div>
                 <div>
-                  <Label>Monthly Limit</Label>
+                  <Label htmlFor="budget-limit">Monthly Limit ($)</Label>
                   <Input
+                    id="budget-limit"
                     type="number"
                     step="0.01"
+                    min="0"
                     placeholder="500.00"
                     value={formData.monthlyLimit}
                     onChange={(e) => setFormData({...formData, monthlyLimit: e.target.value})}
                     data-testid="input-budget-limit"
+                    required
                   />
                 </div>
                 <Button type="submit" disabled={createBudgetMutation.isPending} data-testid="button-submit-budget">
