@@ -57,7 +57,7 @@ export function ConversationSidebar({
   // Fetch conversations
   const { data: conversations = [] } = useQuery<ChatConversation[]>({
     queryKey: ["/api/chat/conversations"],
-    refetchInterval: 10000,
+    refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes
   });
 
   // Delete conversation mutation

@@ -45,13 +45,13 @@ export default function NotificationsBell() {
     queryFn: () => 
       fetch("/api/notifications?includeRead=true&limit=20")
         .then(res => res.json()),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
   // Fetch unread count
   const { data: unreadData } = useQuery<{count: number}>({
     queryKey: ["/api/notifications/unread-count"],
-    refetchInterval: 15000, // Check unread count every 15 seconds
+    refetchInterval: 2 * 60 * 1000, // Check unread count every 2 minutes
   });
 
   const unreadCount = unreadData?.count || 0;
@@ -59,9 +59,7 @@ export default function NotificationsBell() {
   // Mark notification as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: (notificationId: string) =>
-      apiRequest(`/api/notifications/${notificationId}/read`, {
-        method: "PUT",
-      }),
+      apiRequest("PUT", `/api/notifications/${notificationId}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
@@ -71,9 +69,7 @@ export default function NotificationsBell() {
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: () =>
-      apiRequest("/api/notifications/mark-all-read", {
-        method: "PUT",
-      }),
+      apiRequest("PUT", "/api/notifications/mark-all-read"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
@@ -84,9 +80,7 @@ export default function NotificationsBell() {
   // Delete notification mutation
   const deleteNotificationMutation = useMutation({
     mutationFn: (notificationId: string) =>
-      apiRequest(`/api/notifications/${notificationId}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/notifications/${notificationId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
@@ -96,9 +90,7 @@ export default function NotificationsBell() {
   // Generate smart notifications mutation
   const generateNotificationsMutation = useMutation({
     mutationFn: () =>
-      apiRequest("/api/notifications/generate", {
-        method: "POST",
-      }),
+      apiRequest("POST", "/api/notifications/generate"),
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });

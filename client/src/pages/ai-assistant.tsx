@@ -81,14 +81,14 @@ export default function AIAssistantPage() {
   // Fetch usage data
   const { data: usage } = useQuery<UsageInfo>({
     queryKey: ["/api/subscription/usage"],
-    refetchInterval: 30000
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
   // Fetch current conversation with messages
   const { data: currentConversation, isLoading: messagesLoading } = useQuery<ChatConversation>({
     queryKey: ["/api/chat/conversations", currentConversationId],
     enabled: !!currentConversationId,
-    refetchInterval: 2000,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   // Auto-scroll to bottom when new messages arrive

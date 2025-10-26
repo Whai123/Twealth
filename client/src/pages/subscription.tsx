@@ -95,7 +95,7 @@ export default function SubscriptionPage() {
 
   const { data: usage } = useQuery<UsageInfo>({
     queryKey: ["/api/subscription/usage"],
-    refetchInterval: 30 * 1000
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
 
   const { data: userPreferences } = useQuery<{ currency?: string }>({
