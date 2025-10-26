@@ -50,6 +50,7 @@ import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
 import { generateProactiveInsights } from './proactiveInsightsService';
 import Stripe from "stripe";
+import { log } from "./vite";
 
 // Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
 function parseAmount(value: string | number): string {
@@ -78,12 +79,12 @@ try {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2024-12-18.acacia" as any,
     });
-    console.log('✅ Stripe initialized successfully');
+    log('✅ Stripe initialized successfully');
   } else {
-    console.log("⚠️  Stripe not initialized - API key not provided");
+    log("⚠️  Stripe not initialized - API key not provided");
   }
-} catch (error) {
-  console.error("❌ Stripe initialization failed:", error);
+} catch (error: any) {
+  log("❌ Stripe initialization failed:", error.message);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
