@@ -5,15 +5,19 @@ import { PiggyBank, TrendingUp, DollarSign, Wallet, ArrowUpCircle, ArrowDownCirc
 import { UserPreferences } from "@shared/schema";
 
 function QuickStats() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
   });
 
-  const { data: preferences } = useQuery<UserPreferences>({
-    queryKey: ['/api/user-preferences'],
+  const { data: financialHealth, isLoading: healthLoading } = useQuery({
+    queryKey: ["/api/financial-health"],
+  });
+  
+  const { data: transactions } = useQuery({
+    queryKey: ["/api/transactions"],
   });
 
-  if (isLoading) {
+  if (statsLoading || healthLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[...Array(4)].map((_, i) => (
@@ -29,10 +33,18 @@ function QuickStats() {
     );
   }
 
-  // Real financial data
+  // Real financial data - use same calculation as Financial Health Service
   const totalSavings = (stats as any)?.totalSavings || 0;
   const monthlyIncome = (stats as any)?.monthlyIncome || 0;
-  const monthlyExpenses = parseFloat((preferences as any)?.monthlyExpensesEstimate || '0');
+  
+  // Calculate actual monthly expenses from last 30 days of transactions (same as financialHealthService.ts)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const transactionList = Array.isArray(transactions) ? transactions : [];
+  const recentExpenses = transactionList
+    .filter((t: any) => t.type === 'expense' && new Date(t.date) >= thirtyDaysAgo)
+    .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
+  
+  const monthlyExpenses = recentExpenses;
   const monthlySavingsCapacity = monthlyIncome - monthlyExpenses;
   const savingsRate = monthlyIncome > 0 ? ((monthlySavingsCapacity / monthlyIncome) * 100) : 0;
   
