@@ -1,81 +1,158 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { 
   Target, 
-  PiggyBank, 
-  TrendingUp, 
+  PiggyBank,
   AlertTriangle, 
   CheckCircle,
   Zap,
+  Plus,
+  Pencil,
+  Trash2,
+  TrendingUp,
   Brain,
-  Calculator,
-  ArrowRight,
-  DollarSign,
-  Calendar,
   Award
 } from "lucide-react";
-import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 
 interface SmartBudgetManagementProps {
   transactions: any[];
   timeRange: string;
 }
 
-export default function SmartBudgetManagement({ transactions, timeRange }: SmartBudgetManagementProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+const availableCategories = [
+  { value: "dining", label: "🍽️ Dining Out" },
+  { value: "groceries", label: "🛒 Groceries" },
+  { value: "transport", label: "🚗 Transportation" },
+  { value: "utilities", label: "⚡ Utilities" },
+  { value: "entertainment", label: "🎬 Entertainment" },
+  { value: "shopping", label: "🛍️ Shopping" },
+  { value: "healthcare", label: "🏥 Healthcare" },
+  { value: "education", label: "📚 Education" },
+  { value: "insurance", label: "🛡️ Insurance" },
+  { value: "rent", label: "🏠 Rent/Mortgage" },
+  { value: "subscriptions", label: "📱 Subscriptions" },
+  { value: "other", label: "💰 Other" },
+];
 
-  // Calculate current spending by category
-  const expenseTransactions = transactions.filter(t => t.type === 'expense');
-  const categorySpending = expenseTransactions.reduce((acc: any, transaction) => {
+export default function SmartBudgetManagement({ transactions, timeRange }: SmartBudgetManagementProps) {
+  const { toast } = useToast();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<any>(null);
+  const [formData, setFormData] = useState({ category: "", monthlyLimit: "" });
+
+  // Fetch budgets
+  const { data: budgets = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/budgets"],
+  });
+
+  // Calculate current month spending by category
+  const now = new Date();
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
+  
+  const currentMonthTransactions = transactions.filter(t => {
+    const tDate = new Date(t.date);
+    return t.type === 'expense' && tDate >= monthStart && tDate <= monthEnd;
+  });
+
+  const categorySpending = currentMonthTransactions.reduce((acc: any, transaction) => {
     const category = transaction.category || 'other';
     acc[category] = (acc[category] || 0) + parseFloat(transaction.amount);
     return acc;
   }, {});
 
-  // Smart budget recommendations based on 50/30/20 rule and spending patterns
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-
-  const totalExpenses = Object.values(categorySpending).reduce((sum: number, amount: any) => sum + amount, 0);
-
-  // Recommended budgets
-  const recommendedBudgets = {
-    rent: Math.max(totalIncome * 0.25, categorySpending.rent * 1.1 || 0),
-    utilities: Math.max(totalIncome * 0.05, categorySpending.utilities * 1.1 || 0),
-    groceries: Math.max(totalIncome * 0.10, categorySpending.groceries * 1.1 || 0),
-    dining: Math.max(totalIncome * 0.05, categorySpending.dining * 0.8 || 0),
-    transport: Math.max(totalIncome * 0.08, categorySpending.transport * 1.1 || 0),
-    entertainment: Math.max(totalIncome * 0.05, categorySpending.entertainment * 0.9 || 0),
-    shopping: Math.max(totalIncome * 0.08, categorySpending.shopping * 0.7 || 0),
-    healthcare: Math.max(totalIncome * 0.03, categorySpending.healthcare * 1.2 || 0),
-    other: Math.max(totalIncome * 0.05, categorySpending.other * 0.9 || 0)
-  };
-
-  const totalRecommendedBudget = Object.values(recommendedBudgets).reduce((sum: number, amount: any) => sum + amount, 0);
-  
-  // Guard against division by zero
-  const safeTotalIncome = Math.max(totalIncome, 0.01);
-  const safeTotalRecommendedBudget = Math.max(totalRecommendedBudget, 0.01);
-
-  // Budget insights
-  const budgetCategories = Object.entries(recommendedBudgets).map(([category, recommended]) => {
-    const spent = categorySpending[category] || 0;
-    const percentage = recommended > 0 ? (spent / recommended) * 100 : 0;
+  // Merge budgets with spending
+  const budgetData = budgets.map(budget => {
+    const spent = categorySpending[budget.category] || 0;
+    const limit = parseFloat(budget.monthlyLimit);
+    const percentage = limit > 0 ? (spent / limit) * 100 : 0;
     const status = percentage > 100 ? 'over' : percentage > 80 ? 'warning' : 'good';
     
     return {
-      category,
+      ...budget,
       spent,
-      recommended,
+      limit,
       percentage,
       status,
-      remaining: Math.max(0, recommended - spent)
+      remaining: Math.max(0, limit - spent)
     };
   }).sort((a, b) => b.percentage - a.percentage);
+
+  // Calculate totals
+  const totalBudget = budgetData.reduce((sum, b) => sum + b.limit, 0);
+  const totalSpent = budgetData.reduce((sum, b) => sum + b.spent, 0);
+  const budgetUsedPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+  // Mutations
+  const createBudgetMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("/api/budgets", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
+      toast({ title: "✅ Budget Created", description: "Your budget has been added successfully." });
+      setIsAddDialogOpen(false);
+      setFormData({ category: "", monthlyLimit: "" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const updateBudgetMutation = useMutation({
+    mutationFn: async ({ id, data }: any) => {
+      return await apiRequest(`/api/budgets/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
+      toast({ title: "✅ Budget Updated", description: "Your budget has been updated successfully." });
+      setEditingBudget(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const deleteBudgetMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/budgets/${id}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
+      toast({ title: "✅ Budget Deleted", description: "Budget has been removed." });
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingBudget) {
+      updateBudgetMutation.mutate({ id: editingBudget.id, data: { monthlyLimit: formData.monthlyLimit } });
+    } else {
+      createBudgetMutation.mutate(formData);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,65 +170,34 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    const icons: any = {
-      rent: '🏠',
-      utilities: '⚡',
-      groceries: '🛒',
-      dining: '🍽️',
-      transport: '🚗',
-      healthcare: '🏥',
-      entertainment: '🎬',
-      shopping: '🛍️',
-      other: '💰'
-    };
-    return icons[category] || '💰';
+  const getCategoryLabel = (category: string) => {
+    const cat = availableCategories.find(c => c.value === category);
+    return cat ? cat.label : `💰 ${category}`;
   };
 
   // Smart recommendations
-  const generateRecommendations = () => {
-    const recommendations = [];
-    
-    // Check for overspending
-    const overspentCategories = budgetCategories.filter(cat => cat.status === 'over');
-    if (overspentCategories.length > 0) {
-      recommendations.push({
-        type: 'warning',
-        title: 'Reduce Overspending',
-        description: `Cut back on ${overspentCategories[0].category} by $${(overspentCategories[0].spent - overspentCategories[0].recommended).toFixed(0)}`,
-        action: 'Review expenses',
-        impact: 'Save $200-500/month'
-      });
-    }
+  const recommendations = [];
+  const overspent = budgetData.filter(b => b.status === 'over');
+  if (overspent.length > 0) {
+    recommendations.push({
+      type: 'warning',
+      title: 'Reduce Overspending',
+      description: `Cut back on ${overspent[0].category} by $${(overspent[0].spent - overspent[0].limit).toFixed(0)}`,
+      impact: `Get back on track this month`
+    });
+  }
 
-    // Savings opportunity
-    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
-    if (savingsRate < 20 && totalIncome > 0) {
-      recommendations.push({
-        type: 'opportunity',
-        title: 'Increase Savings Rate',
-        description: `Current rate: ${savingsRate.toFixed(1)}%. Aim for 20%+`,
-        action: 'Optimize spending',
-        impact: 'Build emergency fund faster'
-      });
-    }
+  if (budgets.length === 0) {
+    recommendations.push({
+      type: 'opportunity',
+      title: 'Start Budget Tracking',
+      description: 'Create budgets for your top spending categories',
+      impact: 'Take control of your finances'
+    });
+  }
 
-    // Budget optimization
-    const highestSpendingCategory = budgetCategories[0];
-    if (highestSpendingCategory.percentage > 50) {
-      recommendations.push({
-        type: 'optimization',
-        title: 'Balance Your Budget',
-        description: `${highestSpendingCategory.category} takes up ${highestSpendingCategory.percentage.toFixed(0)}% of budget`,
-        action: 'Diversify expenses',
-        impact: 'Better financial balance'
-      });
-    }
-
-    return recommendations.slice(0, 3);
-  };
-
-  const recommendations = generateRecommendations();
+  const onTrack = budgetData.filter(b => b.status === 'good').length;
+  const totalCategories = budgetData.length;
 
   return (
     <div className="space-y-6">
@@ -160,12 +206,12 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Monthly Budget</p>
+              <p className="text-sm text-muted-foreground">Total Budget</p>
               <p className="text-2xl font-bold text-blue-600">
-                ${totalRecommendedBudget.toLocaleString()}
+                ${totalBudget.toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                AI-optimized
+                {budgets.length} {budgets.length === 1 ? 'category' : 'categories'}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
@@ -179,14 +225,14 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
             <div>
               <p className="text-sm text-muted-foreground">Budget Used</p>
               <p className="text-2xl font-bold text-orange-600">
-                {totalRecommendedBudget > 0 ? ((totalExpenses / totalRecommendedBudget) * 100).toFixed(0) : 0}%
+                {budgetUsedPercentage.toFixed(0)}%
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                of recommended
+                ${totalSpent.toLocaleString()} spent
               </p>
             </div>
             <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-              <Calculator className="text-orange-600" size={24} />
+              <TrendingUp className="text-orange-600" size={24} />
             </div>
           </div>
         </Card>
@@ -194,12 +240,12 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Savings Rate</p>
+              <p className="text-sm text-muted-foreground">Remaining</p>
               <p className="text-2xl font-bold text-green-600">
-                {totalIncome > 0 ? (((totalIncome - totalExpenses) / totalIncome) * 100).toFixed(0) : 0}%
+                ${(totalBudget - totalSpent).toLocaleString()}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                of income saved
+                for this month
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
@@ -209,63 +255,166 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
         </Card>
       </div>
 
-      {/* Category Budgets */}
+      {/* Budgets List */}
       <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
+        <CardHeader className="px-0 pt-0 flex flex-row items-center justify-between">
           <CardTitle className="flex items-center">
             <Brain className="mr-2" size={20} />
-            Smart Budget Tracking
+            Your Budgets
           </CardTitle>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" data-testid="button-add-budget">
+                <Plus className="mr-1" size={16} />
+                Add Budget
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Budget</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label>Category</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                    <SelectTrigger data-testid="select-budget-category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCategories.map(cat => (
+                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Monthly Limit</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="500.00"
+                    value={formData.monthlyLimit}
+                    onChange={(e) => setFormData({...formData, monthlyLimit: e.target.value})}
+                    data-testid="input-budget-limit"
+                  />
+                </div>
+                <Button type="submit" disabled={createBudgetMutation.isPending} data-testid="button-submit-budget">
+                  {createBudgetMutation.isPending ? "Creating..." : "Create Budget"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent className="px-0">
-          <div className="space-y-4">
-            {budgetCategories.map((budget) => (
-              <div key={budget.category} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="text-lg mr-2">{getCategoryIcon(budget.category)}</span>
-                    <div>
-                      <p className="font-medium capitalize">{budget.category.replace('_', ' ')}</p>
-                      <p className="text-xs text-muted-foreground">
-                        ${budget.spent.toLocaleString()} of ${budget.recommended.toLocaleString()}
-                      </p>
+          {isLoading ? (
+            <p className="text-muted-foreground">Loading budgets...</p>
+          ) : budgetData.length === 0 ? (
+            <div className="text-center py-8">
+              <PiggyBank className="mx-auto mb-4 text-muted-foreground" size={48} />
+              <p className="text-muted-foreground mb-4">No budgets created yet</p>
+              <Button onClick={() => setIsAddDialogOpen(true)} data-testid="button-create-first-budget">
+                <Plus className="mr-2" size={16} />
+                Create Your First Budget
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {budgetData.map((budget) => (
+                <div key={budget.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center flex-1">
+                      <div className="flex-1">
+                        <p className="font-medium">{getCategoryLabel(budget.category)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          ${budget.spent.toLocaleString()} of ${budget.limit.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right mr-2">
+                        <p className={`font-bold ${getStatusColor(budget.status)}`}>
+                          {budget.percentage.toFixed(0)}%
+                        </p>
+                        {getStatusBadge(budget.status)}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setEditingBudget(budget);
+                          setFormData({ category: budget.category, monthlyLimit: budget.monthlyLimit });
+                        }}
+                        data-testid={`button-edit-budget-${budget.id}`}
+                      >
+                        <Pencil size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteBudgetMutation.mutate(budget.id)}
+                        data-testid={`button-delete-budget-${budget.id}`}
+                      >
+                        <Trash2 size={16} className="text-red-600" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-bold ${getStatusColor(budget.status)}`}>
-                      {budget.percentage.toFixed(0)}%
+                  <Progress value={Math.min(budget.percentage, 100)} className="h-2" />
+                  {budget.status === 'good' && budget.remaining > 0 && (
+                    <p className="text-xs text-green-600">
+                      ${budget.remaining.toFixed(0)} remaining this month
                     </p>
-                    {getStatusBadge(budget.status)}
-                  </div>
+                  )}
+                  {budget.status === 'over' && (
+                    <p className="text-xs text-red-600">
+                      Over budget by ${(budget.spent - budget.limit).toFixed(0)}
+                    </p>
+                  )}
                 </div>
-                <Progress 
-                  value={Math.min(budget.percentage, 100)} 
-                  className="h-2"
-                />
-                {budget.status === 'good' && budget.remaining > 0 && (
-                  <p className="text-xs text-green-600">
-                    ${budget.remaining.toFixed(0)} remaining this month
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
+      {/* Edit Budget Dialog */}
+      {editingBudget && (
+        <Dialog open={!!editingBudget} onOpenChange={() => setEditingBudget(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Budget - {getCategoryLabel(editingBudget.category)}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label>Monthly Limit</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.monthlyLimit}
+                  onChange={(e) => setFormData({...formData, monthlyLimit: e.target.value})}
+                  data-testid="input-edit-budget-limit"
+                />
+              </div>
+              <Button type="submit" disabled={updateBudgetMutation.isPending} data-testid="button-update-budget">
+                {updateBudgetMutation.isPending ? "Updating..." : "Update Budget"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Smart Recommendations */}
-      <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex items-center">
-            <Zap className="mr-2" size={20} />
-            Smart Budget Recommendations
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <div className="space-y-4">
-            {recommendations.map((rec, index) => (
-              <div key={index} className="flex items-start justify-between p-4 bg-muted/30 rounded-lg">
-                <div className="flex items-start">
+      {recommendations.length > 0 && (
+        <Card className="p-6">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="flex items-center">
+              <Zap className="mr-2" size={20} />
+              Smart Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-0">
+            <div className="space-y-4">
+              {recommendations.map((rec, index) => (
+                <div key={index} className="flex items-start p-4 bg-muted/30 rounded-lg">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${
                     rec.type === 'warning' ? 'bg-red-100 dark:bg-red-900/20' :
                     rec.type === 'opportunity' ? 'bg-green-100 dark:bg-green-900/20' :
@@ -285,52 +434,54 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
                     <p className="text-xs text-green-600 font-medium mt-1">{rec.impact}</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm">
-                  {rec.action}
-                  <ArrowRight className="ml-1" size={14} />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Budget Health Score */}
-      <Card className="p-6">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex items-center">
-            <CheckCircle className="mr-2" size={20} />
-            Budget Health Score
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-3xl font-bold text-green-600">85</div>
-              <p className="text-sm text-muted-foreground">Budget Score</p>
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/20 mt-2">
-                Excellent
-              </Badge>
+      {/* Budget Health */}
+      {budgetData.length > 0 && (
+        <Card className="p-6">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="flex items-center">
+              <CheckCircle className="mr-2" size={20} />
+              Budget Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div className="text-3xl font-bold text-green-600">
+                  {totalCategories > 0 ? Math.round((onTrack / totalCategories) * 100) : 0}%
+                </div>
+                <p className="text-sm text-muted-foreground">On Track</p>
+                <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/20 mt-2">
+                  {onTrack}/{totalCategories} Categories
+                </Badge>
+              </div>
+              
+              <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="text-3xl font-bold text-blue-600">{totalCategories}</div>
+                <p className="text-sm text-muted-foreground">Active Budgets</p>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 mt-2">
+                  Tracking
+                </Badge>
+              </div>
+              
+              <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <div className="text-3xl font-bold text-purple-600">
+                  ${(totalBudget - totalSpent > 0 ? totalBudget - totalSpent : 0).toLocaleString()}
+                </div>
+                <p className="text-sm text-muted-foreground">Left to Spend</p>
+                <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 mt-2">
+                  This Month
+                </Badge>
+              </div>
             </div>
-            
-            <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600">7/9</div>
-              <p className="text-sm text-muted-foreground">Categories On Track</p>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 mt-2">
-                Good Control
-              </Badge>
-            </div>
-            
-            <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-3xl font-bold text-purple-600">18%</div>
-              <p className="text-sm text-muted-foreground">Savings Rate</p>
-              <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 mt-2">
-                Strong Saver
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
