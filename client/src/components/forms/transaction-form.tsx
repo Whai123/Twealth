@@ -104,9 +104,16 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
       onSuccess?.();
     },
     onError: (error: any) => {
+      const isValidationError = error.message?.includes('validation') || error.message?.includes('required');
+      const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
+      
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Couldn't Add Transaction",
+        description: isNetworkError 
+          ? "Check your internet connection and try again."
+          : isValidationError
+          ? "Please check that all required fields are filled correctly."
+          : error.message || "Something went wrong. Please try again in a moment.",
         variant: "destructive",
       });
     },
@@ -118,8 +125,8 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
   const onSubmit = (data: TransactionFormData) => {
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be logged in to add a transaction.",
+        title: "Sign In Required",
+        description: "Please sign in to track your income and expenses.",
         variant: "destructive",
       });
       return;

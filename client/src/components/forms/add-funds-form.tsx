@@ -70,9 +70,16 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
       onSuccess?.();
     },
     onError: (error: any) => {
+      const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
+      const isAmountError = error.message?.includes('amount') || error.message?.includes('number');
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to add funds. Please try again.",
+        title: "Couldn't Add Funds",
+        description: isNetworkError 
+          ? "Check your internet connection and try again."
+          : isAmountError
+          ? "Please enter a valid amount (numbers only, no symbols)."
+          : error.message || "Something went wrong. Your contribution wasn't saved - please try again.",
         variant: "destructive",
       });
     },
@@ -84,8 +91,8 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
   const onSubmit = (data: AddFundsFormData) => {
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be logged in to add funds.",
+        title: "Sign In Required",
+        description: "Please sign in to contribute to your financial goals.",
         variant: "destructive",
       });
       return;

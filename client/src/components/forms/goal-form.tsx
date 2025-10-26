@@ -113,9 +113,12 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
       onSuccess?.();
     },
     onError: (error: any) => {
+      const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Couldn't Create Goal",
+        description: isNetworkError 
+          ? "Check your internet connection and try again."
+          : error.message || "Please check your goal details and try again.",
         variant: "destructive",
       });
     },
@@ -149,8 +152,8 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
 
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be logged in to create a goal.",
+        title: "Sign In Required",
+        description: "Please sign in to create financial goals and track your progress.",
         variant: "destructive",
       });
       return;
