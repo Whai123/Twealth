@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings, Share2 } from "lucide-react";
+import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings, Share2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -139,13 +139,15 @@ export default function FinancialGoals() {
       toast({
         title: "Goal deleted",
         description: "The financial goal has been successfully deleted.",
+        icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Couldn't Delete Goal",
+        description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
     },
   });

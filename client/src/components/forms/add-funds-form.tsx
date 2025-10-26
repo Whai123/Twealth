@@ -11,7 +11,7 @@ import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/di
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 const addFundsFormSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be a valid positive number"),
@@ -105,6 +105,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
       toast({
         title: "Funds added successfully",
         description: `$${parseFloat(variables.amount).toLocaleString()} has been added to your ${goalTitle} goal.`,
+        icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
       });
       reset();
       onSuccess?.();
@@ -129,6 +130,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
           ? "Please enter a valid amount (numbers only, no symbols)."
           : error.message || "Something went wrong. Your contribution wasn't saved - please try again.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
     },
     onSettled: () => {
@@ -142,6 +144,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
         title: "Sign In Required",
         description: "Please sign in to contribute to your financial goals.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
       return;
     }
@@ -152,6 +155,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
         title: "Invalid date",
         description: "Transaction date cannot be in the future.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
       return;
     }

@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 const transactionFormSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be a valid positive number"),
@@ -128,6 +128,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
       toast({
         title: "Transaction added",
         description: "Your transaction has been recorded successfully.",
+        icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
       });
       onSuccess?.();
     },
@@ -148,6 +149,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           ? "Please check that all required fields are filled correctly."
           : error.message || "Something went wrong. Please try again in a moment.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
     },
     onSettled: () => {
@@ -161,6 +163,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
         title: "Sign In Required",
         description: "Please sign in to track your income and expenses.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
       return;
     }
@@ -171,6 +174,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
         title: "Invalid date",
         description: "Transaction date cannot be in the future.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
       return;
     }

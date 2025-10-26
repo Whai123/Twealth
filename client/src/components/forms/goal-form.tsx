@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
-import { Users, Loader2 } from "lucide-react";
+import { Users, Loader2, Target, AlertCircle } from "lucide-react";
 
 const goalFormSchema = z.object({
   title: z.string().min(1, "Goal title is required"),
@@ -122,18 +122,21 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
           toast({
             title: "Goal created and shared",
             description: "Your goal has been created and shared with the group.",
+            icon: <Target className="h-5 w-5 text-green-600 dark:text-green-400" />,
           });
         } catch (error: any) {
           toast({
             title: "Goal created but sharing failed",
             description: error.message,
             variant: "destructive",
+            icon: <AlertCircle className="h-5 w-5" />,
           });
         }
       } else {
         toast({
           title: "Goal created",
           description: "Your financial goal has been created successfully.",
+          icon: <Target className="h-5 w-5 text-green-600 dark:text-green-400" />,
         });
       }
       
@@ -154,6 +157,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
           ? "Check your internet connection and try again."
           : error.message || "Please check your goal details and try again.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
     },
     onSettled: () => {

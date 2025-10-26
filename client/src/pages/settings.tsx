@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database, Sparkles, Lock, CreditCard, Brain, Zap, Cog } from "lucide-react";
+import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database, Sparkles, Lock, CreditCard, Brain, Zap, Cog, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -79,8 +79,9 @@ function Settings() {
       queryClient.invalidateQueries({ queryKey: ["/api/insights/time-value"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/time-stats"] });
       toast({
-        title: "Settings Updated! 🎉",
+        title: "Settings Updated!",
         description: "Your time-value preferences have been saved successfully.",
+        icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
       });
       setIsSaving(false);
     },
@@ -89,6 +90,7 @@ function Settings() {
         title: "Update Failed",
         description: "Failed to save your settings. Please try again.",
         variant: "destructive",
+        icon: <AlertCircle className="h-5 w-5" />,
       });
       setIsSaving(false);
     },
