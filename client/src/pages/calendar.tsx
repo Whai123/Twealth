@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Users, Globe, Clock, DollarSign, TrendingUp, Edit, Trash2, BarChart3, Filter, ChevronDown } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Users, Globe, Clock, DollarSign, TrendingUp, Edit, Trash2, BarChart3, Filter, ChevronDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -807,15 +807,54 @@ export default function Calendar() {
                     date.setDate(date.getDate() + i);
                     return getEventsForDate(date);
                   }).flat().length === 0 && (
-                    <div className="col-span-full text-center py-12">
-                      <CalendarIcon className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground text-lg">No events this week</p>
+                    <div className="col-span-full text-center py-16">
+                      <div className="relative mb-10">
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl"></div>
+                        <div className="relative bg-gradient-to-br from-blue-500 via-purple-500 to-pink-600 rounded-3xl p-6 w-32 h-32 mx-auto flex items-center justify-center shadow-2xl">
+                          <CalendarIcon className="h-16 w-16 text-white" />
+                        </div>
+                      </div>
+                      
+                      <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
+                        Master Your Time
+                      </h3>
+                      <p className="text-muted-foreground text-lg mb-4 max-w-lg mx-auto">
+                        Plan, track, and optimize every moment with AI-powered scheduling
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                            <Clock className="h-6 w-6 text-white" />
+                          </div>
+                          <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Time Tracking</h4>
+                          <p className="text-sm text-blue-600 dark:text-blue-300">Log actual vs planned time</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                            <BarChart3 className="h-6 w-6 text-white" />
+                          </div>
+                          <h4 className="font-bold mb-2 text-purple-800 dark:text-purple-200">Event Analytics</h4>
+                          <p className="text-sm text-purple-600 dark:text-purple-300">Productivity insights & trends</p>
+                        </div>
+                        
+                        <div className="bg-gradient-to-br from-pink-50 to-pink-100/50 dark:from-pink-900/20 dark:to-pink-800/10 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
+                          <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                            <Sparkles className="h-6 w-6 text-white" />
+                          </div>
+                          <h4 className="font-bold mb-2 text-pink-800 dark:text-pink-200">Smart Scheduling</h4>
+                          <p className="text-sm text-pink-600 dark:text-pink-300">AI optimizes your calendar</p>
+                        </div>
+                      </div>
+                      
                       <Button 
                         onClick={() => setShowEventForm(true)}
-                        className="mt-4 h-12"
+                        size="lg"
+                        className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-600 hover:from-blue-600 hover:via-purple-600 hover:to-pink-700 text-white font-semibold px-8 h-14 text-lg shadow-lg hover:shadow-xl transition-all"
                         data-testid="button-create-first-event"
                       >
-                        <Plus size={18} className="mr-2" />
+                        <Plus size={20} className="mr-2" />
                         Create Your First Event
                       </Button>
                     </div>

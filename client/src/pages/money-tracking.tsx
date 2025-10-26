@@ -501,23 +501,67 @@ export default function MoneyTracking() {
         
         <CardContent className="p-0">
           {filteredTransactions.length === 0 ? (
-            <div className="text-center py-12">
-              <DollarSign className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No transactions found</h3>
-              <p className="text-muted-foreground mb-6">
-                {transactions?.length === 0 
-                  ? "Start tracking your money by adding your first transaction"
-                  : "Try adjusting your filters to see more transactions"
-                }
-              </p>
-              <Button 
-                data-testid="button-add-first-transaction"
-                onClick={() => setIsCreateDialogOpen(true)}
-              >
-                <Plus size={16} className="mr-2" />
-                Add Transaction
-              </Button>
-            </div>
+            transactions?.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="relative mb-10">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-green-500/20 rounded-full blur-3xl"></div>
+                  <div className="relative bg-gradient-to-br from-blue-500 via-cyan-500 to-green-600 rounded-3xl p-6 w-32 h-32 mx-auto flex items-center justify-center shadow-2xl">
+                    <DollarSign className="h-16 w-16 text-white" />
+                  </div>
+                </div>
+                
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-green-600 bg-clip-text text-transparent mb-3">
+                  Start Your Financial Journey
+                </h3>
+                <p className="text-muted-foreground text-lg mb-4 max-w-lg mx-auto">
+                  Track every dollar and watch your wealth grow with AI-powered insights
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                      <BarChart3 className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Smart Insights</h4>
+                    <p className="text-sm text-blue-600 dark:text-blue-300">AI analyzes spending patterns</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 dark:from-cyan-900/20 dark:to-cyan-800/10 rounded-xl p-6 border border-cyan-200/50 dark:border-cyan-700/50">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-bold mb-2 text-cyan-800 dark:text-cyan-200">Budget Tracking</h4>
+                    <p className="text-sm text-cyan-600 dark:text-cyan-300">Stay on top of spending goals</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-6 border border-green-200/50 dark:border-green-700/50">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
+                    <h4 className="font-bold mb-2 text-green-800 dark:text-green-200">Cash Flow</h4>
+                    <p className="text-sm text-green-600 dark:text-green-300">Visualize income vs expenses</p>
+                  </div>
+                </div>
+                
+                <Button 
+                  data-testid="button-add-first-transaction"
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-500 via-cyan-500 to-green-600 hover:from-blue-600 hover:via-cyan-600 hover:to-green-700 text-white font-semibold px-8 h-14 text-lg shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Plus size={20} className="mr-2" />
+                  Add Your First Transaction
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <DollarSign className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No transactions match your filters</h3>
+                <p className="text-muted-foreground mb-6">
+                  Try adjusting your date range or category filters to see more transactions
+                </p>
+              </div>
+            )
           ) : (
             <div style={{ gap: 'var(--space-3)' }} className="flex flex-col">
               {filteredTransactions.map((transaction: any) => (
