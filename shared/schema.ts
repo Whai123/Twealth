@@ -104,6 +104,18 @@ export const transactions = pgTable("transactions", {
   index("idx_transactions_type").on(table.type),
 ]);
 
+export const budgets = pgTable("budgets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  category: text("category").notNull(),
+  monthlyLimit: decimal("monthly_limit", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_budgets_user_id").on(table.userId),
+  unique("unique_user_category").on(table.userId, table.category),
+]);
+
 export const goalContributions = pgTable("goal_contributions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   goalId: varchar("goal_id").notNull().references(() => financialGoals.id, { onDelete: "cascade" }),
@@ -476,6 +488,19 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   }, z.date()),
 });
 
+export const insertBudgetSchema = createInsertSchema(budgets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  userId: z.string().optional(), // Will be set from session
+  monthlyLimit: z.preprocess((val) => {
+    if (typeof val === 'number') return val.toFixed(2);
+    if (typeof val === 'string') return val;
+    return val;
+  }, z.string()),
+});
+
 export const insertGoalContributionSchema = createInsertSchema(goalContributions).omit({
   id: true,
   createdAt: true,
@@ -677,6 +702,9 @@ export type InsertFinancialGoal = z.infer<typeof insertFinancialGoalSchema>;
 
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+
+export type Budget = typeof budgets.$inferSelect;
+export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 
 export type GoalContribution = typeof goalContributions.$inferSelect;
 export type InsertGoalContribution = z.infer<typeof insertGoalContributionSchema>;

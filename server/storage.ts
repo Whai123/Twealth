@@ -12,6 +12,8 @@ import {
   type InsertFinancialGoal,
   type Transaction,
   type InsertTransaction,
+  type Budget,
+  type InsertBudget,
   type GoalContribution,
   type InsertGoalContribution,
   type GroupInvite,
@@ -84,6 +86,7 @@ import {
   events,
   financialGoals,
   transactions,
+  budgets,
   goalContributions,
   groupInvites,
   calendarShares,
@@ -192,6 +195,14 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   updateTransaction(id: string, updates: Partial<Transaction>): Promise<Transaction>;
   deleteTransaction(id: string): Promise<void>;
+
+  // Budget methods
+  getBudget(id: string): Promise<Budget | undefined>;
+  getBudgetsByUserId(userId: string): Promise<Budget[]>;
+  getBudgetByUserAndCategory(userId: string, category: string): Promise<Budget | undefined>;
+  createBudget(budget: InsertBudget): Promise<Budget>;
+  updateBudget(id: string, updates: Partial<Budget>): Promise<Budget>;
+  deleteBudget(id: string): Promise<void>;
 
   // Goal contribution methods
   getGoalContributions(goalId: string): Promise<GoalContribution[]>;
@@ -897,6 +908,45 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTransaction(id: string): Promise<void> {
     await db.delete(transactions).where(eq(transactions.id, id));
+  }
+
+  // Budget methods
+  async getBudget(id: string): Promise<Budget | undefined> {
+    const result = await db.select().from(budgets).where(eq(budgets.id, id));
+    return result[0];
+  }
+
+  async getBudgetsByUserId(userId: string): Promise<Budget[]> {
+    return await db.select().from(budgets).where(eq(budgets.userId, userId));
+  }
+
+  async getBudgetByUserAndCategory(userId: string, category: string): Promise<Budget | undefined> {
+    const result = await db
+      .select()
+      .from(budgets)
+      .where(and(eq(budgets.userId, userId), eq(budgets.category, category)));
+    return result[0];
+  }
+
+  async createBudget(insertBudget: InsertBudget): Promise<Budget> {
+    const [budget] = await db
+      .insert(budgets)
+      .values(insertBudget)
+      .returning();
+    return budget;
+  }
+
+  async updateBudget(id: string, updates: Partial<Budget>): Promise<Budget> {
+    const [budget] = await db
+      .update(budgets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(budgets.id, id))
+      .returning();
+    return budget;
+  }
+
+  async deleteBudget(id: string): Promise<void> {
+    await db.delete(budgets).where(eq(budgets.id, id));
   }
 
   // Goal contribution methods

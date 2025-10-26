@@ -13,6 +13,7 @@ import {
   insertEventSchema,
   insertFinancialGoalSchema,
   insertTransactionSchema,
+  insertBudgetSchema,
   insertGroupInviteSchema,
   insertCalendarShareSchema,
   insertFriendRequestSchema,
@@ -1403,6 +1404,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: transactionIds.length,
         transactions: updated 
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Budget routes
+  app.get("/api/budgets", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budgets = await storage.getBudgetsByUserId(userId);
+      res.json(budgets);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/budgets", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Parse and validate request body
+      let validatedData = insertBudgetSchema.parse(req.body);
+      
+      // Set userId from session
+      validatedData = { ...validatedData, userId };
+      
+      // Check if budget already exists for this category
+      const existing = await storage.getBudgetByUserAndCategory(userId, validatedData.category);
+      if (existing) {
+        return res.status(409).json({ 
+          message: `Budget already exists for category "${validatedData.category}". Please update it instead.` 
+        });
+      }
+      
+      const budget = await storage.createBudget(validatedData);
+      res.status(201).json(budget);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/budgets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budget = await storage.getBudget(req.params.id);
+      
+      if (!budget || budget.userId !== userId) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      const updated = await storage.updateBudget(req.params.id, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/budgets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const budget = await storage.getBudget(req.params.id);
+      
+      if (!budget || budget.userId !== userId) {
+        return res.status(404).json({ message: "Budget not found" });
+      }
+      
+      await storage.deleteBudget(req.params.id);
+      res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
