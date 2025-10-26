@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { SkeletonPage } from "@/components/ui/skeleton";
 
 export default function InvitePage() {
   const [, params] = useRoute("/invite/:token");
@@ -50,14 +51,7 @@ export default function InvitePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading invite...</p>
-        </div>
-      </div>
-    );
+    return <SkeletonPage />;
   }
 
   if (error || !invite) {

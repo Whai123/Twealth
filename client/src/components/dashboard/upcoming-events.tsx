@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Calendar } from "lucide-react";
 import { Link } from "wouter";
+import { SkeletonEvent } from "@/components/ui/skeleton";
 
 // Helper function to get user initials
 const getUserInitials = (user: any): string => {
@@ -28,16 +29,10 @@ export default function UpcomingEvents() {
   if (isLoading) {
     return (
       <Card className="p-6 shadow-sm">
-        <div className="animate-pulse">
-          <div className="h-6 bg-muted rounded w-1/2 mb-6"></div>
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="p-3 border rounded-lg">
-                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-muted rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <SkeletonEvent key={i} />
+          ))}
         </div>
       </Card>
     );

@@ -20,6 +20,7 @@ import {
   CheckCircle,
   Loader2
 } from "lucide-react";
+import { SkeletonCard } from "@/components/ui/skeleton";
 
 interface DataPrivacyProps {}
 
@@ -169,9 +170,10 @@ export default function DataPrivacy({ }: DataPrivacyProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8 sm:p-12">
-        <Loader2 className="animate-spin mr-2 w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
-        <span className="text-base sm:text-lg text-slate-600 dark:text-slate-400">Loading privacy settings...</span>
+      <div className="space-y-4 sm:space-y-6">
+        {[...Array(3)].map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
     );
   }
