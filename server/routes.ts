@@ -1271,12 +1271,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/transactions", async (req, res) => {
+  app.post("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
+      // Get userId from authenticated session
+      const userId = getUserIdFromRequest(req);
+      
+      // Parse and validate request body
       let validatedData = insertTransactionSchema.parse(req.body);
       
-      // Auto-categorize if category is "Other" or empty
-      if (!validatedData.category || validatedData.category === 'Other') {
+      // Set userId from session
+      validatedData = { ...validatedData, userId };
+      
+      // Auto-categorize if category is not provided or is "Other"
+      if (!validatedData.category || validatedData.category === 'Other' || validatedData.category === 'other') {
         const description = validatedData.description || '';
         const amount = parseFloat(validatedData.amount.toString());
         const type = validatedData.type as 'income' | 'expense' | 'transfer';
@@ -1285,13 +1292,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (autoCategory !== 'Other') {
           validatedData = { ...validatedData, category: autoCategory };
           console.log(`[AUTO-CATEGORIZE] "${description}" → ${autoCategory}`);
+        } else {
+          // Set to "other" if no category could be detected
+          validatedData = { ...validatedData, category: 'other' };
         }
       }
       
       const transaction = await storage.createTransaction(validatedData);
       res.status(201).json(transaction);
     } catch (error: any) {
+      console.error('[POST /api/transactions] Error:', error);
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Transaction categorization routes - MUST be before /:id routes
+  app.get("/api/transactions/categories", async (req, res) => {
+    try {
+      const type = req.query.type as 'income' | 'expense' | 'transfer' | undefined;
+      const categories = type ? getAvailableCategories(type) : getAvailableCategories('expense');
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/transactions/categorize-suggestions", async (req, res) => {
+    try {
+      const { description, type } = req.body;
+      if (!description) {
+        return res.status(400).json({ message: "Description is required" });
+      }
+      const suggestions = getCategorySuggestions(description, type || 'expense');
+      res.json(suggestions);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
@@ -1327,30 +1362,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.deleteTransaction(req.params.id);
       res.status(204).send();
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Transaction categorization routes
-  app.get("/api/transactions/categories", async (req, res) => {
-    try {
-      const type = req.query.type as 'income' | 'expense' | 'transfer' | undefined;
-      const categories = type ? getAvailableCategories(type) : getAvailableCategories('expense');
-      res.json(categories);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.post("/api/transactions/categorize-suggestions", async (req, res) => {
-    try {
-      const { description, type } = req.body;
-      if (!description) {
-        return res.status(400).json({ message: "Description is required" });
-      }
-      const suggestions = getCategorySuggestions(description, type || 'expense');
-      res.json(suggestions);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

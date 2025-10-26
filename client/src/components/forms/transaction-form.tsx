@@ -16,7 +16,7 @@ import { useUser } from "@/lib/userContext";
 const transactionFormSchema = z.object({
   amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be a valid positive number"),
   type: z.enum(["income", "expense", "transfer"]),
-  category: z.string().min(1, "Category is required"),
+  category: z.string().optional(), // Optional - backend will auto-categorize if not provided
   description: z.string().optional(),
   goalId: z.string().optional(),
   destination: z.string().optional(),
@@ -205,12 +205,31 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           )}
         </div>
 
-        {/* Category - Important for Tracking */}
+        {/* Description/Merchant - For auto-categorization */}
         <div>
-          <Label htmlFor="category" className="text-base font-semibold">What category?</Label>
+          <Label htmlFor="description" className="text-base font-semibold">
+            What's this for? <span className="text-sm font-normal text-muted-foreground">(helps AI categorize)</span>
+          </Label>
+          <Input
+            id="description"
+            {...register("description")}
+            placeholder="e.g., Starbucks, Gas station, Netflix..."
+            className="mt-2 h-12 text-base"
+            data-testid="input-transaction-description"
+          />
+          {errors.description && (
+            <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
+          )}
+        </div>
+
+        {/* Category - Optional, AI will auto-categorize */}
+        <div>
+          <Label htmlFor="category" className="text-base font-semibold">
+            What category? <span className="text-sm font-normal text-muted-foreground">(optional - AI will detect)</span>
+          </Label>
           <Select value={selectedCategory || ""} onValueChange={handleCategoryChange}>
             <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-category">
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder="Leave blank for auto-categorization ✨" />
             </SelectTrigger>
             <SelectContent>
               {availableCategories.map((category) => (

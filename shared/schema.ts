@@ -463,6 +463,8 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
 }).extend({
+  userId: z.string().optional(), // Optional - will be set from session on backend
+  category: z.string().optional(), // Optional - backend will auto-categorize if not provided
   amount: z.preprocess((val) => {
     if (typeof val === 'number') return val.toFixed(2);
     if (typeof val === 'string') return val;
