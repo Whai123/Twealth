@@ -21,7 +21,8 @@ import {
   Trash2,
   TrendingUp,
   Brain,
-  Award
+  Award,
+  Loader2
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
@@ -305,6 +306,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
                   />
                 </div>
                 <Button type="submit" disabled={createBudgetMutation.isPending} data-testid="button-submit-budget">
+                  {createBudgetMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {createBudgetMutation.isPending ? "Creating..." : "Create Budget"}
                 </Button>
               </form>
@@ -401,6 +403,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
                 />
               </div>
               <Button type="submit" disabled={updateBudgetMutation.isPending} data-testid="button-update-budget">
+                {updateBudgetMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {updateBudgetMutation.isPending ? "Updating..." : "Update Budget"}
               </Button>
             </form>

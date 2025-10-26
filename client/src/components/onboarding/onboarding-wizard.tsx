@@ -13,7 +13,8 @@ import {
   ArrowLeft,
   TrendingUp,
   PiggyBank,
-  Rocket
+  Rocket,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -278,8 +279,9 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
                       className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                       data-testid="button-continue-step2"
                     >
+                      {saveEstimates.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {saveEstimates.isPending ? "Saving..." : "Continue"}
-                      <ArrowRight className="ml-2 w-4 h-4" />
+                      {!saveEstimates.isPending && <ArrowRight className="ml-2 w-4 h-4" />}
                     </Button>
                   </div>
                 </form>
@@ -410,8 +412,9 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
                       className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
                       data-testid="button-create-goal"
                     >
+                      {createGoal.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       {createGoal.isPending ? "Creating..." : "Create Goal"}
-                      <ArrowRight className="ml-2 w-4 h-4" />
+                      {!createGoal.isPending && <ArrowRight className="ml-2 w-4 h-4" />}
                     </Button>
                   </div>
                 </form>
