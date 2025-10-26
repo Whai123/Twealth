@@ -106,12 +106,20 @@ function Router() {
   return (
     <OnboardingRedirect>
       <SidebarProvider>
+        {/* Skip to main content link for keyboard navigation */}
+        <a 
+          href="#main-content" 
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-4 focus:left-4 focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          data-testid="link-skip-to-main"
+        >
+          Skip to main content
+        </a>
         <div className="flex min-h-screen bg-background w-full max-w-full overflow-x-hidden">
           {/* Sidebar - uses Sheet on mobile, fixed sidebar on desktop */}
           {location !== "/welcome" && <Sidebar />}
           
           {/* Main Content Area */}
-          <main className={`flex-1 overflow-auto ${location !== "/welcome" ? "pt-16 md:pt-0 pb-20 md:pb-0" : ""}`}>
+          <main id="main-content" className={`flex-1 overflow-auto ${location !== "/welcome" ? "pt-16 md:pt-0 pb-20 md:pb-0" : ""}`}>
             {/* Mobile Header - sticky at top on mobile only */}
             {location !== "/welcome" && <MobileHeader />}
             

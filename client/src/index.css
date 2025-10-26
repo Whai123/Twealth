@@ -81,6 +81,25 @@
     border-radius: var(--radius);
   }
   
+  /* Enhanced global focus styles for better keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Skip to main content link styles */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
   /* Modern gradient backgrounds */
   .bg-gradient-primary {
     background: var(--gradient-primary);
