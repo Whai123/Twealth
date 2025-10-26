@@ -43,6 +43,7 @@ import { aiService, type UserContext } from "./aiService";
 import { extractAndUpdateMemory, getMemoryContext } from './conversationMemoryService';
 import { cryptoService } from "./cryptoService";
 import { taxService } from "./taxService";
+import { autoCategorizeTransaction, getCategorySuggestions, getAvailableCategories } from "./categorizationService";
 import { spendingPatternService } from "./spendingPatternService";
 import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
@@ -1272,7 +1273,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/transactions", async (req, res) => {
     try {
-      const validatedData = insertTransactionSchema.parse(req.body);
+      let validatedData = insertTransactionSchema.parse(req.body);
+      
+      // Auto-categorize if category is "Other" or empty
+      if (!validatedData.category || validatedData.category === 'Other') {
+        const description = validatedData.description || '';
+        const amount = parseFloat(validatedData.amount.toString());
+        const type = validatedData.type as 'income' | 'expense' | 'transfer';
+        const autoCategory = autoCategorizeTransaction(description, amount, type);
+        
+        if (autoCategory !== 'Other') {
+          validatedData = { ...validatedData, category: autoCategory };
+          console.log(`[AUTO-CATEGORIZE] "${description}" → ${autoCategory}`);
+        }
+      }
+      
       const transaction = await storage.createTransaction(validatedData);
       res.status(201).json(transaction);
     } catch (error: any) {
@@ -1312,6 +1327,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       await storage.deleteTransaction(req.params.id);
       res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Transaction categorization routes
+  app.get("/api/transactions/categories", async (req, res) => {
+    try {
+      const type = req.query.type as 'income' | 'expense' | 'transfer' | undefined;
+      const categories = type ? getAvailableCategories(type) : getAvailableCategories('expense');
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/transactions/categorize-suggestions", async (req, res) => {
+    try {
+      const { description, type } = req.body;
+      if (!description) {
+        return res.status(400).json({ message: "Description is required" });
+      }
+      const suggestions = getCategorySuggestions(description, type || 'expense');
+      res.json(suggestions);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/transactions/bulk-categorize", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { transactionIds } = req.body;
+      
+      if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+        return res.status(400).json({ message: "transactionIds array is required" });
+      }
+      
+      // Get all transactions and auto-categorize them
+      const updated = [];
+      for (const txId of transactionIds) {
+        const transaction = await storage.getTransaction(txId);
+        if (!transaction || transaction.userId !== userId) {
+          continue; // Skip transactions that don't exist or don't belong to user
+        }
+        
+        // Auto-categorize
+        const description = transaction.description || '';
+        const amount = parseFloat(transaction.amount.toString());
+        const type = transaction.type as 'income' | 'expense' | 'transfer';
+        const autoCategory = autoCategorizeTransaction(description, amount, type);
+        
+        if (autoCategory !== 'Other' && autoCategory !== transaction.category) {
+          const updatedTx = await storage.updateTransaction(txId, { category: autoCategory });
+          updated.push(updatedTx);
+          console.log(`[BULK-CATEGORIZE] "${description}" → ${autoCategory}`);
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        updated: updated.length,
+        total: transactionIds.length,
+        transactions: updated 
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

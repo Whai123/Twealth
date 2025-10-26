@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient as globalQueryClient } from "@/lib/queryClient";
 import TransactionForm from "@/components/forms/transaction-form";
 import AdvancedSpendingAnalytics from "@/components/money/advanced-spending-analytics";
 import SmartBudgetManagement from "@/components/money/smart-budget-management";
@@ -21,6 +23,8 @@ const TRANSACTION_CATEGORIES = {
 
 export default function MoneyTracking() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   
@@ -44,6 +48,37 @@ export default function MoneyTracking() {
 
   const { data: stats } = useQuery({
     queryKey: ["/api/dashboard/stats"],
+  });
+
+  // Bulk categorization mutation
+  const bulkCategorizeMutation = useMutation({
+    mutationFn: async () => {
+      const uncategorizedIds = transactions
+        ?.filter((t: any) => t.category === 'Other' || t.category === 'other')
+        .map((t: any) => t.id) || [];
+      
+      if (uncategorizedIds.length === 0) {
+        throw new Error("No uncategorized transactions to fix");
+      }
+      
+      const response = await apiRequest('POST', '/api/transactions/bulk-categorize', { transactionIds: uncategorizedIds });
+      return await response.json();
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      toast({
+        title: "✨ Categories Fixed!",
+        description: `Successfully categorized ${data.updated} of ${data.total} transactions using AI detection.`,
+        variant: "default",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to categorize transactions",
+        variant: "destructive",
+      });
+    },
   });
 
   const filteredTransactions = transactions?.filter((transaction: any) => {
@@ -418,6 +453,45 @@ export default function MoneyTracking() {
           </div>
         </div>
       </Card>
+
+      {/* Smart Categorization Banner */}
+      {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length > 0 && (
+        <Card className="p-4 mb-6 bg-gradient-to-r from-purple-50 via-blue-50 to-cyan-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-cyan-900/20 border-purple-200 dark:border-purple-800">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2">
+                  <span>✨ AI Smart Categorization</span>
+                </h4>
+                <p className="text-sm text-purple-700 dark:text-purple-300">
+                  {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length} uncategorized transactions detected. Let AI categorize them automatically!
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => bulkCategorizeMutation.mutate()}
+              disabled={bulkCategorizeMutation.isPending}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold flex-shrink-0"
+              data-testid="button-fix-categories"
+            >
+              {bulkCategorizeMutation.isPending ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
+                  Categorizing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Fix Categories
+                </>
+              )}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Transactions List */}
       <Card className="p-6">
