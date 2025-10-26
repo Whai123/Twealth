@@ -12,6 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 The frontend is a React 18 single-page application built with TypeScript, `shadcn/ui` (Radix UI), Tailwind CSS, and Wouter for routing. It features a mobile-first, responsive, and accessible design with dynamic navigation, PWA support, responsive typography, and a full-width layout. Key UI elements include dynamic dashboard visualizations, interactive onboarding, a professional AI assistant interface (ChatGPT/Claude-style), and comprehensive UI polish.
 
+**Premium UX/UI Polish (October 2025):**
+- **Skeleton Loaders**: Professional loading states across all pages with 10+ specialized components (cards, charts, lists)
+- **Loading Indicators**: All async buttons show Loader2 spinners with smart icon swapping and disabled states
+- **Toast Notifications**: Enhanced with optional icons (CheckCircle2, Target, AlertCircle) and WCAG-compliant aria-live announcements
+- **Optimistic Updates**: Instant UI feedback in forms (transaction, goal, add-funds) with automatic rollback on error
+- **Animations**: Performance-optimized transitions (transform, opacity, box-shadow), card hover effects, fade-in/slide-up, prefers-reduced-motion support
+- **Empty States**: Premium gradient designs with engaging headlines, feature grids, clear CTAs on money-tracking, calendar, friends pages
+- **Error Handling**: Context-aware error messages with specific titles, smart error detection (network, validation, amount), actionable guidance
+- **Accessibility**: WCAG 2.1 AA compliant with skip-to-main-content link, enhanced focus styles, aria-live toasts, keyboard shortcuts (G, T, E), comprehensive ARIA attributes
+- **Form Validation**: shadcn forms with aria-describedby, aria-invalid, clear visual feedback, loading spinners on submit buttons
+
 ## Technical Implementations
 
 The backend is an Express.js application in TypeScript, providing a RESTful API. It uses Drizzle ORM for type-safe PostgreSQL operations and employs a layered architecture for routes, storage, and external integrations with centralized error handling. Authentication leverages Replit OAuth (OpenID Connect) with PostgreSQL for session management and role-based access control. The application supports 11 languages via `i18next` and `react-i18next`.

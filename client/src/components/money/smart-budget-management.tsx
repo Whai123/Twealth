@@ -207,7 +207,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
     <div className="space-y-6">
       {/* Budget Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Total Budget</p>
@@ -224,7 +224,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Budget Used</p>
@@ -241,7 +241,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Remaining</p>
@@ -328,7 +328,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
           ) : (
             <div className="space-y-4">
               {budgetData.map((budget) => (
-                <div key={budget.id} className="space-y-2">
+                <div key={budget.id} className="space-y-2 p-4 rounded-lg border border-transparent transition-all duration-200 hover:border-border hover:bg-muted/50 hover:shadow-md">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center flex-1">
                       <div className="flex-1">

@@ -186,7 +186,7 @@ export default function Sidebar() {
                       <li key={item.name}>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Link href={item.href}>
+                            <Link href={item.href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:rounded-md">
                               <div
                                 className={cn(
                                   "flex items-center space-x-3 px-3 py-2 rounded-md transition-all duration-200 cursor-pointer group",
