@@ -142,6 +142,7 @@
 
   /* Respect user motion preferences */
   @media (prefers-reduced-motion: reduce) {
+    *,
     .fade-in,
     .slide-up,
     .shimmer,
@@ -152,7 +153,8 @@
     .progress-ring,
     .interactive-scale {
       animation: none !important;
-      transition: none !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
@@ -340,6 +342,30 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     line-height: 1.6;
+  }
+  
+  /* Premium smooth transitions for all interactive elements */
+  button, a, [role="button"], input, textarea, select {
+    transition: transform var(--transition-fast), 
+                box-shadow var(--transition-fast), 
+                color var(--transition-fast), 
+                background-color var(--transition-fast),
+                border-color var(--transition-fast),
+                opacity var(--transition-fast);
+  }
+  
+  /* Smooth card transitions */
+  [class*="card"], [class*="Card"] {
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+  
+  [class*="card"]:hover, [class*="Card"]:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Button press effect */
+  button:active, [role="button"]:active {
+    transform: scale(0.98);
   }
   
   /* Modern Typography */

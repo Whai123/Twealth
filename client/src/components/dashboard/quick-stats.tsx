@@ -91,7 +91,8 @@ function QuickStats() {
       {statCards.map((stat, index) => (
         <Card 
           key={index} 
-          className="group transition-all duration-300 hover:shadow-lg p-4 md:p-6" 
+          className="group transition-all duration-300 hover:shadow-lg p-4 md:p-6 fade-in" 
+          style={{ animationDelay: `${index * 50}ms` }}
           data-testid={`card-${stat.title.toLowerCase().replace(/\s+/g, '-')}`}
         >
           <CardContent className="p-0">

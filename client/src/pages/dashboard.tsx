@@ -133,10 +133,10 @@ export default function Dashboard() {
       </header>
 
       <div 
-        className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8"
+        className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 fade-in"
       >
         {/* Welcome Message */}
-        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 sm:p-5" role="banner">
+        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 sm:p-5 slide-up" role="banner">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
