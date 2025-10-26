@@ -100,13 +100,24 @@ export class MarketDataService {
    */
   async getMultipleStocks(symbols: string[]): Promise<Map<string, StockQuote>> {
     const results = new Map<string, StockQuote>();
-    const promises = symbols.map(async (symbol) => {
-      const quote = await this.getStockQuote(symbol);
-      if (quote) results.set(symbol.toUpperCase(), quote);
-    });
     
-    await Promise.all(promises);
-    return results;
+    try {
+      const promises = symbols.map(async (symbol) => {
+        try {
+          const quote = await this.getStockQuote(symbol);
+          if (quote) results.set(symbol.toUpperCase(), quote);
+        } catch (error) {
+          console.error(`[MarketData] Error fetching stock ${symbol}:`, error);
+          // Continue with other stocks even if one fails
+        }
+      });
+      
+      await Promise.all(promises);
+      return results;
+    } catch (error) {
+      console.error('[MarketData] Error fetching multiple stocks:', error);
+      return results; // Return whatever we managed to fetch
+    }
   }
 
   /**
@@ -272,17 +283,39 @@ export class MarketDataService {
     inflation: InflationData | null;
     indicators: Map<string, EconomicIndicator>;
   }> {
-    // Fetch major indices
-    const majorIndices = ['SPY', 'QQQ', 'DIA']; // S&P 500, NASDAQ, Dow Jones ETFs
-    const stocks = await this.getMultipleStocks(majorIndices);
-    const inflation = await this.getInflationRate('US');
-    const indicators = await this.getEconomicIndicators('US');
+    try {
+      // Fetch major indices in parallel with error handling
+      const majorIndices = ['SPY', 'QQQ', 'DIA']; // S&P 500, NASDAQ, Dow Jones ETFs
+      
+      const [stocks, inflation, indicators] = await Promise.all([
+        this.getMultipleStocks(majorIndices).catch(err => {
+          console.error('[MarketData] Error fetching stocks in overview:', err);
+          return new Map<string, StockQuote>();
+        }),
+        this.getInflationRate('US').catch(err => {
+          console.error('[MarketData] Error fetching inflation in overview:', err);
+          return null;
+        }),
+        this.getEconomicIndicators('US').catch(err => {
+          console.error('[MarketData] Error fetching indicators in overview:', err);
+          return new Map<string, EconomicIndicator>();
+        })
+      ]);
 
-    return {
-      stocks,
-      inflation,
-      indicators
-    };
+      return {
+        stocks,
+        inflation,
+        indicators
+      };
+    } catch (error) {
+      console.error('[MarketData] Critical error in market overview:', error);
+      // Return safe defaults if everything fails
+      return {
+        stocks: new Map(),
+        inflation: null,
+        indicators: new Map()
+      };
+    }
   }
 
   /**
