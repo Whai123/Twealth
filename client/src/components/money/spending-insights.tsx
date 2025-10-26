@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,36 +28,58 @@ interface SpendingInsightsProps {
 export default function SpendingInsights({ transactions, timeRange }: SpendingInsightsProps) {
   const [selectedInsight, setSelectedInsight] = useState<string>('all');
 
-  // Analyze spending patterns
-  const expenseTransactions = transactions.filter(t => t.type === 'expense');
-  const incomeTransactions = transactions.filter(t => t.type === 'income');
-
-  // Calculate various insights
-  const totalExpenses = expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-  const totalIncome = incomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-
-  // Weekly spending pattern
-  const now = new Date();
-  const lastWeek = subWeeks(now, 1);
-  const thisWeekExpenses = expenseTransactions
-    .filter(t => new Date(t.date) >= startOfWeek(now))
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  // Memoize filtered transactions to prevent recreation on each render
+  const expenseTransactions = useMemo(() => 
+    transactions.filter(t => t.type === 'expense'), 
+    [transactions]
+  );
   
-  const lastWeekExpenses = expenseTransactions
-    .filter(t => {
-      const date = new Date(t.date);
-      return date >= startOfWeek(lastWeek) && date < endOfWeek(lastWeek);
-    })
-    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const incomeTransactions = useMemo(() => 
+    transactions.filter(t => t.type === 'income'), 
+    [transactions]
+  );
 
-  // Spending by day of week
-  const dayOfWeekSpending = expenseTransactions.reduce((acc: any, transaction) => {
-    const dayOfWeek = new Date(transaction.date).getDay();
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const dayName = dayNames[dayOfWeek];
-    acc[dayName] = (acc[dayName] || 0) + parseFloat(transaction.amount);
-    return acc;
-  }, {});
+  // Memoize calculated totals
+  const totalExpenses = useMemo(() => 
+    expenseTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0),
+    [expenseTransactions]
+  );
+  
+  const totalIncome = useMemo(() => 
+    incomeTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0),
+    [incomeTransactions]
+  );
+
+  // Memoize weekly spending pattern calculations
+  const { thisWeekExpenses, lastWeekExpenses } = useMemo(() => {
+    const now = new Date();
+    const lastWeek = subWeeks(now, 1);
+    
+    const thisWeek = expenseTransactions
+      .filter(t => new Date(t.date) >= startOfWeek(now))
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    
+    const lastWeek_expenses = expenseTransactions
+      .filter(t => {
+        const date = new Date(t.date);
+        return date >= startOfWeek(lastWeek) && date < endOfWeek(lastWeek);
+      })
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    
+    return { thisWeekExpenses: thisWeek, lastWeekExpenses: lastWeek_expenses };
+  }, [expenseTransactions]);
+
+  // Memoize spending by day of week
+  const dayOfWeekSpending = useMemo(() => 
+    expenseTransactions.reduce((acc: any, transaction) => {
+      const dayOfWeek = new Date(transaction.date).getDay();
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayName = dayNames[dayOfWeek];
+      acc[dayName] = (acc[dayName] || 0) + parseFloat(transaction.amount);
+      return acc;
+    }, {}),
+    [expenseTransactions]
+  );
 
   // Generate AI-powered insights
   const generateSpendingInsights = () => {
@@ -151,7 +173,15 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
     });
   };
 
-  const insights = generateSpendingInsights();
+  const insights = useMemo(() => generateSpendingInsights(), [
+    transactions,
+    expenseTransactions,
+    totalExpenses,
+    totalIncome,
+    dayOfWeekSpending,
+    thisWeekExpenses,
+    lastWeekExpenses
+  ]);
 
   // Smart recommendations
   const generateRecommendations = () => {
@@ -209,7 +239,12 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
     return recommendations.slice(0, 3);
   };
 
-  const recommendations = generateRecommendations();
+  const recommendations = useMemo(() => generateRecommendations(), [
+    expenseTransactions,
+    totalExpenses,
+    totalIncome,
+    transactions
+  ]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

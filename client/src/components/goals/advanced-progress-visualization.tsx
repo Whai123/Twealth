@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -38,13 +39,24 @@ export default function AdvancedProgressVisualization({
   goals, 
   onGoalClick 
 }: AdvancedProgressVisualizationProps) {
-  const activeGoals = goals.filter(goal => goal.status === 'active');
-  const completedGoals = goals.filter(goal => goal.status === 'completed');
+  // Memoize filtered goals to prevent recreation on each render
+  const activeGoals = useMemo(() => 
+    goals.filter(goal => goal.status === 'active'),
+    [goals]
+  );
   
-  // Calculate advanced metrics
-  const totalSaved = goals.reduce((sum, goal) => sum + parseFloat(goal.currentAmount), 0);
-  const totalTargets = goals.reduce((sum, goal) => sum + parseFloat(goal.targetAmount), 0);
-  const overallProgress = totalTargets > 0 ? (totalSaved / totalTargets) * 100 : 0;
+  const completedGoals = useMemo(() => 
+    goals.filter(goal => goal.status === 'completed'),
+    [goals]
+  );
+  
+  // Memoize calculated totals
+  const { totalSaved, totalTargets, overallProgress } = useMemo(() => {
+    const saved = goals.reduce((sum, goal) => sum + parseFloat(goal.currentAmount), 0);
+    const targets = goals.reduce((sum, goal) => sum + parseFloat(goal.targetAmount), 0);
+    const progress = targets > 0 ? (saved / targets) * 100 : 0;
+    return { totalSaved: saved, totalTargets: targets, overallProgress: progress };
+  }, [goals]);
   
   // Calculate velocity (savings rate)
   const calculateVelocity = (goal: Goal) => {
@@ -119,7 +131,7 @@ export default function AdvancedProgressVisualization({
     }));
   };
 
-  const categoryData = categoryAnalysis();
+  const categoryData = useMemo(() => categoryAnalysis(), [activeGoals]);
 
   return (
     <div className="space-y-6">
