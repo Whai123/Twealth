@@ -7,7 +7,6 @@ import {
   Target, 
   TrendingUp, 
   Lightbulb,
-  CalendarX2,
   Settings,
   User,
   Crown,
@@ -20,6 +19,7 @@ import {
   Wallet,
   BarChart3
 } from "lucide-react";
+import logoUrl from "@assets/5-removebg-preview_1761531310853.png";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
 import { useTheme } from "@/components/theme-provider";
@@ -163,12 +163,18 @@ export default function Sidebar() {
   return (
     <SidebarWrapper className="bg-card border-r border-border shadow-sm">
       <SidebarHeader className="p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <CalendarX2 className="text-primary-foreground" size={16} />
+        <Link href="/">
+          <div className="flex items-center gap-3 cursor-pointer group" data-testid="link-logo">
+            <img 
+              src={logoUrl} 
+              alt="Twealth Logo" 
+              className="w-10 h-10 transition-transform duration-200 group-hover:scale-105"
+            />
+            <span className="font-bold text-xl text-foreground bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Twealth
+            </span>
           </div>
-          <span className="font-bold text-lg text-foreground">Twealth</span>
-        </div>
+        </Link>
       </SidebarHeader>
       
       <SidebarContent>

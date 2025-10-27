@@ -1,5 +1,5 @@
 import { Menu, User } from "lucide-react";
-import { CalendarX2 } from "lucide-react";
+import logoUrl from "@assets/5-removebg-preview_1761531310853.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -47,11 +47,13 @@ export default function MobileHeader() {
 
         {/* Center: Logo */}
         <Link href="/">
-          <div className="flex items-center space-x-2 cursor-pointer" data-testid="link-logo">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <CalendarX2 className="text-primary-foreground" size={16} />
-            </div>
-            <span className="font-bold text-lg text-foreground">Twealth</span>
+          <div className="flex items-center gap-2 cursor-pointer" data-testid="link-logo">
+            <img 
+              src={logoUrl} 
+              alt="Twealth Logo" 
+              className="w-8 h-8"
+            />
+            <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Twealth</span>
           </div>
         </Link>
 
