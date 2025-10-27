@@ -152,13 +152,13 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal when user confirms OR gives imperative command. TRIGGERS: (1) User confirms after being asked: 'yes', 'add it', 'create it', 'sure', OR (2) User gives IMPERATIVE COMMAND after discussion: 'add goal', 'add to goal', 'add it to my goal', 'make it a goal', 'เพิ่ม' (Thai), etc. CRITICAL FOR IMPERATIVE COMMANDS: Look back 2-5 messages in conversation history to extract: item name (e.g., 'Lamborghini SVJ'), price (e.g., 573966), and user's financial situation. Calculate realistic target date based on their savings capacity. Set userConfirmed=true and create immediately. Example: After discussing $573,966 Lamborghini with $2k/month income, user says 'add it to my goal' → MUST call this tool with name='Buy Lamborghini SVJ', targetAmount='573966', targetDate=10 years from now.",
+      description: "Create a financial goal when user gives a direct command or confirms. IMMEDIATE EXECUTION: When user says imperative commands like 'Create a goal to save...', 'Add a goal for...', 'Make a goal for...', 'Set a goal to...', call this tool IMMEDIATELY with all details. NO confirmation needed for imperative commands - they ARE the confirmation! Extract: name (e.g., 'Vacation Savings'), targetAmount (e.g., '5000'), targetDate (e.g., '2025-12-31'), description. For imperative commands: Set userConfirmed=true automatically.",
       parameters: {
         type: "object",
         properties: {
           userConfirmed: {
             type: "boolean",
-            description: "REQUIRED: Must be true. Can ONLY be true when user explicitly confirmed with words like 'yes', 'add it', 'create it', 'sure'. If user just mentioned wanting something without confirming, this MUST be false (which means DON'T call this tool yet)."
+            description: "REQUIRED: Set to true. TRUE when: (1) User explicitly confirms with 'yes', 'add it', 'sure', OR (2) User gives IMPERATIVE COMMAND like 'Create a goal to...', 'Add a goal for...', 'Make a goal for...'. Imperative commands ARE confirmations! Only false if user just casually mentions wanting something without commanding or confirming."
           },
           name: {
             type: "string",
@@ -185,13 +185,13 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_calendar_event",
-      description: "Create a calendar event ONLY after user explicitly confirms. CRITICAL: userConfirmed parameter MUST be true. WORKFLOW: (1) User mentions date/reminder → (2) You explain WHY tracking is important WITHOUT calling this tool → (3) You ask 'Want me to set a reminder for this?' → (4) User confirms → (5) THEN call with userConfirmed=true. Calculate dates properly: 'next week' = 7 days from now, 'next month' = 30 days from now.",
+      description: "Create a calendar event when user gives direct command or confirms. IMMEDIATE EXECUTION: When user says 'Create a reminder for...', 'Add calendar event for...', 'Set a reminder to...', call this tool IMMEDIATELY. NO confirmation needed for imperative commands - they ARE the confirmation! Extract title, date (YYYY-MM-DD), description. Calculate dates: 'next week' = 7 days from now, 'next month' = 30 days from now, 'tomorrow' = 1 day from now.",
       parameters: {
         type: "object",
         properties: {
           userConfirmed: {
             type: "boolean",
-            description: "REQUIRED: Must be true. Can ONLY be true when user explicitly confirmed with words like 'yes', 'set it', 'create it', 'sure'. If user just mentioned a date without confirming, DON'T call this tool."
+            description: "REQUIRED: Set to true. TRUE when: (1) User explicitly confirms with 'yes', 'set it', 'sure', OR (2) User gives IMPERATIVE COMMAND like 'Create a reminder for...', 'Add event for...', 'Set reminder to...'. Imperative commands ARE confirmations! Only false if user casually mentions a date without commanding or confirming."
           },
           title: {
             type: "string",
@@ -2773,7 +2773,7 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
       );
 
       const response = await groq.chat.completions.create({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "llama-3.3-70b-versatile",  // Recommended for tool calling (Oct 2025) - native tool-use support
         messages: messages,
         tools: availableTools,
         tool_choice: needsImmediateAction ? "required" : "auto",
