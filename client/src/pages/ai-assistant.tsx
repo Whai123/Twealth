@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, RateLimitError } from "@/lib/queryClient";
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar";
 import { MessageBubble, TypingIndicator } from "@/components/chat/message-bubble";
 
@@ -75,8 +75,19 @@ export default function AIAssistantPage() {
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [analysisMode, setAnalysisMode] = useState<'quick' | 'deep'>('quick');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [rateLimitRetryAfter, setRateLimitRetryAfter] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Countdown timer for rate limit
+  useEffect(() => {
+    if (rateLimitRetryAfter > 0) {
+      const timer = setInterval(() => {
+        setRateLimitRetryAfter(prev => Math.max(0, prev - 1));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [rateLimitRetryAfter]);
 
   // Fetch usage data
   const { data: usage } = useQuery<UsageInfo>({
@@ -139,7 +150,15 @@ export default function AIAssistantPage() {
       setCurrentMessage("");
     },
     onError: (error: any) => {
-      if (error.message.includes("limit exceeded") || error.message.includes("Quota")) {
+      if (error instanceof RateLimitError) {
+        setRateLimitRetryAfter(error.retryAfter);
+        toast({
+          title: "Rate Limit Exceeded",
+          description: `Too many requests. Please wait ${error.retryAfter} seconds before trying again.`,
+          variant: "destructive",
+          duration: error.retryAfter * 1000,
+        });
+      } else if (error.message.includes("limit exceeded") || error.message.includes("Quota")) {
         toast({
           title: "Upgrade Required",
           description: "You've reached your AI chat limit. Upgrade to continue.",
@@ -166,7 +185,7 @@ export default function AIAssistantPage() {
   });
 
   const handleSendMessage = () => {
-    if (!currentMessage.trim() || sendMessageMutation.isPending) return;
+    if (!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0) return;
     
     const isLimitExceeded = usage && usage.chatUsage.used >= usage.chatUsage.limit;
     
@@ -371,12 +390,17 @@ export default function AIAssistantPage() {
               />
               <Button
                 onClick={handleSendMessage}
-                disabled={!currentMessage.trim() || sendMessageMutation.isPending}
+                disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
                 size="icon"
                 className="absolute right-2 bottom-2 h-8 w-8"
                 data-testid="button-send-message"
+                title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
               >
-                <Send className="w-4 h-4" />
+                {rateLimitRetryAfter > 0 ? (
+                  <span className="text-xs font-medium">{rateLimitRetryAfter}s</span>
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2 text-center">

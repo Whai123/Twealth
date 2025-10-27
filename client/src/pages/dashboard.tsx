@@ -135,17 +135,18 @@ export default function Dashboard() {
       <div 
         className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 fade-in"
       >
-        {/* Welcome Message */}
-        <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 sm:p-5 slide-up" role="banner">
-          <div className="flex items-start gap-3">
+        {/* Welcome Message - Premium big tech design */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50/30 to-purple-50/20 dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-purple-950/5 border border-blue-200/40 dark:border-blue-800/30 rounded-2xl p-5 sm:p-6 slide-up shadow-sm hover:shadow-md transition-all duration-200" role="banner">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 pointer-events-none"></div>
+          <div className="relative flex items-start gap-4">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary" aria-hidden="true" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 shadow-lg shadow-blue-500/25 flex items-center justify-center transform hover:scale-105 transition-transform duration-200">
+                <Sparkles className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-base font-semibold text-foreground mb-1">{t('dashboard.welcome')}</h2>
-              <p className="text-sm text-muted-foreground">{t('dashboard.welcomeMessage')}</p>
+              <h2 className="text-lg font-semibold text-foreground mb-1.5 tracking-tight">{t('dashboard.welcome')}</h2>
+              <p className="text-sm text-muted-foreground/90 leading-relaxed">{t('dashboard.welcomeMessage')}</p>
             </div>
           </div>
         </div>
@@ -154,7 +155,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Financial Health Score - REAL calculation */}
           {healthLoading ? (
-            <Card className="p-6">
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -162,21 +163,26 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6" data-testid="stat-health-score">
-              <div className="flex items-center gap-2 mb-3">
-                <Award className={`w-4 h-4 ${healthScore >= 75 ? 'text-green-600' : healthScore >= 60 ? 'text-blue-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600'}`} aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">Financial Health</span>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-health-score">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className={`p-2 rounded-lg ${healthScore >= 75 ? 'bg-green-100 dark:bg-green-950/30' : healthScore >= 60 ? 'bg-blue-100 dark:bg-blue-950/30' : healthScore >= 40 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                    <Award className={`w-4 h-4 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Financial Health</span>
+                </div>
+                <div className={`text-4xl font-bold tracking-tight mb-2 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-health-score">
+                  {healthScore}<span className="text-2xl text-muted-foreground/60">/100</span>
+                </div>
+                <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{healthGrade}</p>
               </div>
-              <div className={`text-3xl font-semibold ${healthScore >= 75 ? 'text-green-600' : healthScore >= 60 ? 'text-blue-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600'}`} data-testid="value-health-score">
-                {healthScore}/100
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{healthGrade}</p>
             </Card>
           )}
           
           {/* Savings Rate - REAL from transactions */}
           {healthLoading ? (
-            <Card className="p-6">
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -184,21 +190,26 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6" data-testid="stat-savings-rate">
-              <div className="flex items-center gap-2 mb-3">
-                <TrendingUp className={`w-4 h-4 ${savingsRate >= 20 ? 'text-green-600' : savingsRate >= 10 ? 'text-blue-600' : savingsRate >= 5 ? 'text-orange-600' : 'text-red-600'}`} aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">Savings Rate</span>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-savings-rate">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className={`p-2 rounded-lg ${savingsRate >= 20 ? 'bg-green-100 dark:bg-green-950/30' : savingsRate >= 10 ? 'bg-blue-100 dark:bg-blue-950/30' : savingsRate >= 5 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                    <TrendingUp className={`w-4 h-4 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Savings Rate</span>
+                </div>
+                <div className={`text-4xl font-bold tracking-tight mb-2 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-savings-rate">
+                  {savingsRate.toFixed(1)}<span className="text-2xl text-muted-foreground/60">%</span>
+                </div>
+                <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{savingsRateLabel}</p>
               </div>
-              <div className={`text-3xl font-semibold ${savingsRate >= 20 ? 'text-green-600' : savingsRate >= 10 ? 'text-blue-600' : savingsRate >= 5 ? 'text-orange-600' : 'text-red-600'}`} data-testid="value-savings-rate">
-                {savingsRate.toFixed(1)}%
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{savingsRateLabel}</p>
             </Card>
           )}
           
           {/* Emergency Fund - REAL months of expenses */}
           {healthLoading ? (
-            <Card className="p-6">
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -206,21 +217,26 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6" data-testid="stat-emergency-fund">
-              <div className="flex items-center gap-2 mb-3">
-                <Star className={`w-4 h-4 ${emergencyFundMonths >= 6 ? 'text-green-600' : emergencyFundMonths >= 3 ? 'text-blue-600' : emergencyFundMonths >= 1 ? 'text-orange-600' : 'text-red-600'}`} aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">Emergency Fund</span>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-emergency-fund">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className={`p-2 rounded-lg ${emergencyFundMonths >= 6 ? 'bg-green-100 dark:bg-green-950/30' : emergencyFundMonths >= 3 ? 'bg-blue-100 dark:bg-blue-950/30' : emergencyFundMonths >= 1 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                    <Star className={`w-4 h-4 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Emergency Fund</span>
+                </div>
+                <div className={`text-4xl font-bold tracking-tight mb-2 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-emergency-fund">
+                  {emergencyFundMonths.toFixed(1)}<span className="text-xl text-muted-foreground/60">mo</span>
+                </div>
+                <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{emergencyFundLabel}</p>
               </div>
-              <div className={`text-3xl font-semibold ${emergencyFundMonths >= 6 ? 'text-green-600' : emergencyFundMonths >= 3 ? 'text-blue-600' : emergencyFundMonths >= 1 ? 'text-orange-600' : 'text-red-600'}`} data-testid="value-emergency-fund">
-                {emergencyFundMonths.toFixed(1)}mo
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">{emergencyFundLabel}</p>
             </Card>
           )}
           
           {/* Goals Tracking - REAL progress */}
           {goalsLoading ? (
-            <Card className="p-6">
+            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -228,15 +244,20 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6" data-testid="stat-goals">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="w-4 h-4 text-purple-600" aria-hidden="true" />
-                <span className="text-sm font-medium text-muted-foreground">Goals</span>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-goals">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
+                    <Target className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Goals</span>
+                </div>
+                <div className="text-4xl font-bold tracking-tight mb-2 text-purple-600 dark:text-purple-400" data-testid="value-goals">
+                  {goalsOnTrack}<span className="text-2xl text-muted-foreground/60">/{activeGoalsCount}</span>
+                </div>
+                <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">On Track</p>
               </div>
-              <div className="text-3xl font-semibold text-purple-600" data-testid="value-goals">
-                {goalsOnTrack}/{activeGoalsCount}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">On Track</p>
             </Card>
           )}
         </div>
@@ -258,30 +279,36 @@ export default function Dashboard() {
           <MultiCurrencyCalculator />
         )}
 
-        {/* AI Assistant CTA Banner */}
-        <Card className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-blue-950/20 dark:via-purple-950/20 dark:to-blue-950/20 border-blue-200 dark:border-blue-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
+        {/* AI Assistant CTA Banner - Premium design */}
+        <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50/50 to-pink-50/30 dark:from-blue-950/30 dark:via-purple-950/20 dark:to-pink-950/10 border-blue-200/50 dark:border-blue-800/30 hover:shadow-xl transition-all duration-300 group">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-300/20 to-transparent dark:from-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <CardContent className="relative p-6 md:p-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-start space-x-4 flex-1">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                  <div className="relative w-14 h-14 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Brain className="w-7 h-7 text-white" />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{t('dashboard.aiAssistant.title')}</h3>
-                  <p className="text-muted-foreground text-sm">{t('dashboard.aiAssistant.description')}</p>
+                <div className="flex-1">
+                  <h3 className="font-bold text-xl mb-1.5 tracking-tight text-foreground">{t('dashboard.aiAssistant.title')}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">{t('dashboard.aiAssistant.description')}</p>
                 </div>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                 <Button 
                   variant="outline" 
                   onClick={() => setIsChatOpen(true)}
+                  className="border-border/60 hover:bg-muted/50 min-h-[44px]"
                   data-testid="button-try-ai-chat"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   {t('dashboard.aiAssistant.tryChat')}
                 </Button>
                 <Link href="/ai-assistant">
-                  <Button data-testid="button-explore-ai">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 min-h-[44px]" data-testid="button-explore-ai">
                     <Zap className="w-4 h-4 mr-2" />
                     {t('dashboard.aiAssistant.exploreFeatures')}
                   </Button>

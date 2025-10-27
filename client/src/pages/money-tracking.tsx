@@ -319,31 +319,33 @@ export default function MoneyTracking() {
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
             {/* Mobile-First Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:scale-[1.01] cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Income</p>
-              <p className="text-2xl font-bold text-green-600" data-testid="text-total-income">
-                ${totalIncome.toLocaleString()}
-              </p>
+        <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-green-500/5 pointer-events-none"></div>
+          <div className="relative">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950/30">
+                <TrendingUp className="text-green-600 dark:text-green-400" size={20} />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Total Income</span>
             </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="text-green-600" size={24} />
-            </div>
+            <p className="text-4xl font-bold tracking-tight text-green-600 dark:text-green-400" data-testid="text-total-income">
+              ${totalIncome.toLocaleString()}
+            </p>
           </div>
         </Card>
 
-        <Card className="p-6 transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:scale-[1.01] cursor-pointer">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Expenses</p>
-              <p className="text-2xl font-bold text-red-600" data-testid="text-total-expenses">
-                ${totalExpenses.toLocaleString()}
-              </p>
+        <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-red-500/5 pointer-events-none"></div>
+          <div className="relative">
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-950/30">
+                <TrendingDown className="text-red-600 dark:text-red-400" size={20} />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Total Expenses</span>
             </div>
-            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-              <TrendingDown className="text-red-600" size={24} />
-            </div>
+            <p className="text-4xl font-bold tracking-tight text-red-600 dark:text-red-400" data-testid="text-total-expenses">
+              ${totalExpenses.toLocaleString()}
+            </p>
           </div>
         </Card>
 
