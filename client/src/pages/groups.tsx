@@ -339,7 +339,7 @@ export default function Groups() {
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    🚀 {t('groups.title')}
+                    {t('groups.title')}
                   </h1>
                   <p className="text-xl text-muted-foreground">{t('groups.subtitle')}</p>
                 </div>
@@ -395,7 +395,7 @@ export default function Groups() {
                     data-testid="button-create-group"
                   >
                     <Sparkles size={18} className="mr-2" />
-                    🎯 {t('groups.createGroup')}
+                    {t('groups.createGroup')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -410,7 +410,7 @@ export default function Groups() {
             <div className="flex items-center gap-3">
               <Brain className="w-6 h-6 text-emerald-500" />
               <div>
-                <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Smart Team Management 🤝</h2>
+                <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Smart Team Management</h2>
                 <p className="text-emerald-600 dark:text-emerald-300">AI analyzes your group dynamics and suggests optimal planning strategies for maximum success.</p>
               </div>
             </div>
@@ -436,13 +436,13 @@ export default function Groups() {
           </div>
           
           <h3 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            🚀 Ready to Build Teams?
+            Ready to Build Teams?
           </h3>
           <p className="text-muted-foreground text-xl mb-4 max-w-2xl mx-auto">
             Create collaborative groups where amazing things happen together
           </p>
           <p className="text-base text-muted-foreground mb-12 max-w-xl mx-auto">
-            🤖 Our AI analyzes team dynamics and provides insights to maximize collaboration success
+            Our AI analyzes team dynamics and provides insights to maximize collaboration success
           </p>
           
           {/* Feature Grid */}
@@ -451,7 +451,7 @@ export default function Groups() {
               <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Users className="h-7 w-7 text-white" />
               </div>
-              <h4 className="font-bold text-lg mb-3 text-emerald-800 dark:text-emerald-200">🤝 Team Building</h4>
+              <h4 className="font-bold text-lg mb-3 text-emerald-800 dark:text-emerald-200">Team Building</h4>
               <p className="text-sm text-emerald-600 dark:text-emerald-300">Invite members, assign roles, and build amazing teams</p>
             </div>
             
@@ -459,7 +459,7 @@ export default function Groups() {
               <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <Calendar className="h-7 w-7 text-white" />
               </div>
-              <h4 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-200">📅 Smart Planning</h4>
+              <h4 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-200">Smart Planning</h4>
               <p className="text-sm text-blue-600 dark:text-blue-300">AI-powered event scheduling with optimal timing suggestions</p>
             </div>
             
@@ -467,7 +467,7 @@ export default function Groups() {
               <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <TrendingUp className="h-7 w-7 text-white" />
               </div>
-              <h4 className="font-bold text-lg mb-3 text-purple-800 dark:text-purple-200">📊 Success Analytics</h4>
+              <h4 className="font-bold text-lg mb-3 text-purple-800 dark:text-purple-200">Success Analytics</h4>
               <p className="text-sm text-purple-600 dark:text-purple-300">Track engagement and optimize group performance</p>
             </div>
           </div>
@@ -480,7 +480,7 @@ export default function Groups() {
                 data-testid="button-create-first-group"
               >
                 <Sparkles size={24} className="mr-3" />
-                🚀 Create Your First Team
+                Create Your First Team
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

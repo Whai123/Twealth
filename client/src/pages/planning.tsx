@@ -173,7 +173,7 @@ export default function Planning() {
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    🧠 Smart Financial Planning
+                    Smart Financial Planning
                   </h1>
                   <p className="text-muted-foreground text-lg">AI-powered insights to accelerate your financial success</p>
                 </div>
@@ -253,7 +253,7 @@ export default function Planning() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
                   <Rocket className="w-6 h-6 text-indigo-600" />
-                  🚀 Quick Actions to Boost Your Wealth
+                  Quick Actions to Boost Your Wealth
                 </CardTitle>
                 <p className="text-muted-foreground">Take immediate action to improve your financial position</p>
               </CardHeader>
@@ -262,25 +262,25 @@ export default function Planning() {
                   <Link href="/money-tracking?budget=1" className="group">
                     <div className="bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-create-budget">
                       <Target className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
-                      <span className="font-semibold">💰 Create Budget</span>
+                      <span className="font-semibold">Create Budget</span>
                     </div>
                   </Link>
                   <Link href="/financial-goals" className="group">
                     <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-review-goals">
                       <TrendingUp className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
-                      <span className="font-semibold">📈 Review Goals</span>
+                      <span className="font-semibold">Review Goals</span>
                     </div>
                   </Link>
                   <Link href="/calendar?create=1" className="group">
                     <div className="bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-schedule-review">
                       <Calendar className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
-                      <span className="font-semibold">📅 Schedule Review</span>
+                      <span className="font-semibold">Schedule Review</span>
                     </div>
                   </Link>
                   <Link href="/financial-goals" className="group">
                     <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center hover:scale-105 hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer" data-testid="button-optimize-savings">
                       <Lightbulb className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
-                      <span className="font-semibold">⚡ Optimize Savings</span>
+                      <span className="font-semibold">Optimize Savings</span>
                     </div>
                   </Link>
                 </div>
@@ -292,7 +292,7 @@ export default function Planning() {
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
                   <Brain className="w-6 h-6 text-purple-600" />
-                  🤖 AI-Powered Recommendations
+                  AI-Powered Recommendations
                 </CardTitle>
                 <p className="text-muted-foreground">Smart insights tailored to your financial behavior and goals</p>
               </CardHeader>

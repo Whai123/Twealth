@@ -160,11 +160,11 @@ export default function ReferralsPage() {
   const levelProgress = ((referrals.length % 5) / 5) * 100;
 
   const getLevelBadge = (level: number) => {
-    if (level >= 10) return { icon: Crown, color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/20", title: "👑 Referral Royalty" };
-    if (level >= 7) return { icon: Trophy, color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", title: "🏆 Referral Champion" };
-    if (level >= 4) return { icon: Star, color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", title: "⭐ Referral Expert" };
-    if (level >= 2) return { icon: Award, color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", title: "🎖️ Referral Pro" };
-    return { icon: Target, color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", title: "🎯 Referral Starter" };
+    if (level >= 10) return { icon: Crown, color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/20", title: "Referral Royalty" };
+    if (level >= 7) return { icon: Trophy, color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", title: "Referral Champion" };
+    if (level >= 4) return { icon: Star, color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", title: "Referral Expert" };
+    if (level >= 2) return { icon: Award, color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", title: "Referral Pro" };
+    return { icon: Target, color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", title: "Referral Starter" };
   };
 
   const levelBadge = getLevelBadge(referralLevel);
@@ -182,7 +182,7 @@ export default function ReferralsPage() {
                 </div>
                 <div>
                   <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent" data-testid="heading-referrals">
-                    🎁 Referral Rewards
+                    Referral Rewards
                   </h1>
                   <p className="text-xl text-muted-foreground">Share the wealth, grow together!</p>
                 </div>
@@ -261,7 +261,7 @@ export default function ReferralsPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                   <Gift className="h-5 w-5 text-white" />
                 </div>
-                💎 Your Treasure Chest
+                Your Treasure Chest
               </CardTitle>
               <p className="text-muted-foreground">Credits earned through referrals</p>
             </CardHeader>
@@ -271,14 +271,14 @@ export default function ReferralsPage() {
                   <div className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2" data-testid="text-available-credits">
                     {bonusData.availableAmount}
                   </div>
-                  <p className="text-lg font-semibold text-green-700 dark:text-green-300">💰 Available Credits</p>
+                  <p className="text-lg font-semibold text-green-700 dark:text-green-300">Available Credits</p>
                   <p className="text-sm text-muted-foreground">Ready to spend!</p>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-emerald-600 mb-2">
                     {bonusData.credits.reduce((sum, credit) => sum + credit.amount, 0)}
                   </div>
-                  <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">🏆 Total Earned</p>
+                  <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">Total Earned</p>
                   <p className="text-sm text-muted-foreground">All time rewards</p>
                 </div>
               </div>
@@ -294,7 +294,7 @@ export default function ReferralsPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Share2 className="h-5 w-5 text-white" />
                 </div>
-                🔗 Your Magic Code
+                Your Magic Code
               </CardTitle>
               <CardDescription className="text-base">
                 Share this special code and earn rewards together!
@@ -327,7 +327,7 @@ export default function ReferralsPage() {
                       <span className="text-sm font-medium" data-testid="text-uses">Used: {referralCode.currentUses}/{referralCode.maxUses}</span>
                     </div>
                     <Badge variant={referralCode.isActive ? "default" : "secondary"} className="bg-green-100 text-green-800 border-green-300">
-                      {referralCode.isActive ? '✅ Active' : '❌ Inactive'}
+                      {referralCode.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </div>
 
@@ -337,7 +337,7 @@ export default function ReferralsPage() {
                     data-testid="button-share-code"
                   >
                     <Share2 className="h-5 w-5 mr-2" />
-                    📤 Share & Earn Together
+                    Share & Earn Together
                   </Button>
                 </>
               )}
@@ -351,7 +351,7 @@ export default function ReferralsPage() {
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-600 rounded-lg flex items-center justify-center">
                   <Gift className="h-5 w-5 text-white" />
                 </div>
-                🎫 Redeem Invitation
+                Redeem Invitation
               </CardTitle>
               <CardDescription className="text-base">
                 Got a friend's code? Claim your bonus here!
@@ -379,12 +379,12 @@ export default function ReferralsPage() {
                 {useCodeMutation.isPending ? (
                   <>
                     <Sparkles className="h-5 w-5 mr-2 animate-spin" />
-                    ⏳ Processing Magic...
+                    Processing...
                   </>
                 ) : (
                   <>
                     <Gift className="h-5 w-5 mr-2" />
-                    🎁 Claim Bonus Now
+                    Claim Bonus Now
                   </>
                 )}
               </Button>
@@ -394,9 +394,9 @@ export default function ReferralsPage() {
                   <AlertCircle className="h-3 w-3 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-orange-800 dark:text-orange-200 mb-1">💰 Free Bonus Waiting!</p>
+                  <p className="text-sm font-semibold text-orange-800 dark:text-orange-200 mb-1">Free Bonus Waiting!</p>
                   <p className="text-xs text-orange-700 dark:text-orange-300">
-                    Use a friend's code to get instant bonus credits - completely free! 🎉
+                    Use a friend's code to get instant bonus credits - completely free!
                   </p>
                 </div>
               </div>

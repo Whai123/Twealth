@@ -325,7 +325,7 @@ export default function SubscriptionPage() {
                     </CardTitle>
                     {isCurrentPlan && (
                       <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-3 py-1 text-xs font-bold animate-pulse">
-                        ✓ Active
+                        Active
                       </Badge>
                     )}
                   </div>
