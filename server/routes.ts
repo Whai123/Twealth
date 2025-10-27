@@ -2691,21 +2691,36 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         // Generate AI response with potential tool calls
         const aiResult = await aiService.generateAdvice(userMessage, enhancedContext, conversationHistory, memoryContext);
         
+        // HALLUCINATION CHECK: Warn if AI claims action but no tools called
+        const lowerResponse = aiResult.response.toLowerCase();
+        const claimsAction = lowerResponse.includes('goal created') || lowerResponse.includes('added to your goals') || 
+                             lowerResponse.includes('i\'ve created') || lowerResponse.includes('i\'ve added') ||
+                             lowerResponse.includes('i added') || lowerResponse.includes('i created');
+        if (claimsAction && (!aiResult.toolCalls || aiResult.toolCalls.length === 0)) {
+          console.warn('⚠️  WARNING: AI claims to have performed action but NO TOOL CALLS made!');
+          console.warn('   Response:', aiResult.response.substring(0, 200));
+        }
+        
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
         if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
+          console.log(`🔧 Processing ${aiResult.toolCalls.length} tool call(s):`, aiResult.toolCalls.map(t => t.name).join(', '));
           for (const toolCall of aiResult.toolCalls) {
             try {
               if (toolCall.name === 'create_financial_goal') {
+                console.log(`🎯 create_financial_goal tool called with args:`, JSON.stringify(toolCall.arguments, null, 2));
+                
                 // CRITICAL: Validate user confirmation before creating goal
                 if (toolCall.arguments.userConfirmed !== true) {
-                  console.log('⚠️  Blocked create_financial_goal: userConfirmed not true');
+                  console.log(`⚠️  BLOCKED create_financial_goal: userConfirmed=${toolCall.arguments.userConfirmed} (not true)`);
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_financial_goal' }
                   });
                   continue;
                 }
+                
+                console.log(`✅ Creating goal for userId=${userId}: "${toolCall.arguments.name}"`);
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
                   title: toolCall.arguments.name,
@@ -2715,6 +2730,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   description: toolCall.arguments.description || null,
                   category: 'savings'
                 });
+                console.log(`🎉 Goal created successfully! ID=${goal.id}, Title="${goal.title}"`);
                 actionsPerformed.push({
                   type: 'goal_created',
                   data: goal
