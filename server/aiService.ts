@@ -2709,18 +2709,22 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
       
       // Imperative action phrases (commands that implicitly include confirmation)
       const imperativeGoalPhrases = [
-        'add goal', 'add this goal', 'add to goal', 'add it to goal', 'add to my goal',
-        'add it', 'create goal', 'create this goal', 'make goal', 'set goal',
-        'add as goal', 'save as goal', 'track this', 'add this to', 'make it a goal',
-        'set as goal', 'track as goal', 'save it as', 'add that', 'make that',
+        // Natural English variations with articles
+        'create a goal', 'create the goal', 'create goal', 'create this goal', 'create my goal',
+        'add a goal', 'add the goal', 'add goal', 'add this goal', 'add to goal', 'add it to goal', 'add to my goal',
+        'make a goal', 'make the goal', 'make goal', 'make it a goal', 'make that a goal',
+        'set a goal', 'set the goal', 'set goal', 'set as goal', 'set this goal',
+        'save as goal', 'save a goal', 'track this', 'add this to', 'add that',
+        'add it', 'make that', 'do it', 'go ahead',
+        // Multilingual support
         'เพิ่ม', 'เพิ่มเป้าหมาย', // Thai: add/add goal
-        'añadir', 'agregar', // Spanish: add
-        'adicionar', 'adicione', // Portuguese: add
-        'tambah', 'tambahkan', // Indonesian/Malay: add
-        'thêm', 'thêm mục tiêu', // Vietnamese: add/add goal
-        'magdagdag', 'idagdag', // Tagalog: add
-        'ekle', 'hedef ekle', // Turkish: add/add goal
-        'أضف', 'اضف', 'أضف هدف' // Arabic: add/add goal
+        'añadir', 'agregar', 'crear', // Spanish: add/create
+        'adicionar', 'adicione', 'criar', // Portuguese: add/create
+        'tambah', 'tambahkan', 'buat', // Indonesian/Malay: add/create
+        'thêm', 'thêm mục tiêu', 'tạo', // Vietnamese: add/create
+        'magdagdag', 'idagdag', 'gumawa', // Tagalog: add/create
+        'ekle', 'hedef ekle', 'oluştur', // Turkish: add/create
+        'أضف', 'اضف', 'أضف هدف', 'انشئ' // Arabic: add/create
       ];
       const isImperativeAction = imperativeGoalPhrases.some(phrase => lowerMsg.includes(phrase));
       
