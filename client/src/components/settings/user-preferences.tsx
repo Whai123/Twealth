@@ -97,34 +97,34 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
   ];
 
   const languages = [
-    { value: "en", label: "English", flag: "🇺🇸" },
-    { value: "es", label: "Español", flag: "🇪🇸" },
-    { value: "th", label: "ไทย", flag: "🇹🇭" },
-    { value: "id", label: "Bahasa Indonesia", flag: "🇮🇩" },
-    { value: "pt", label: "Português", flag: "🇧🇷" },
-    { value: "hi", label: "हिन्दी", flag: "🇮🇳" },
-    { value: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
-    { value: "tl", label: "Filipino", flag: "🇵🇭" },
-    { value: "ms", label: "Bahasa Melayu", flag: "🇲🇾" },
-    { value: "tr", label: "Türkçe", flag: "🇹🇷" }
+    { value: "en", label: "English" },
+    { value: "es", label: "Español" },
+    { value: "th", label: "ไทย" },
+    { value: "id", label: "Bahasa Indonesia" },
+    { value: "pt", label: "Português" },
+    { value: "hi", label: "हिन्दी" },
+    { value: "vi", label: "Tiếng Việt" },
+    { value: "tl", label: "Filipino" },
+    { value: "ms", label: "Bahasa Melayu" },
+    { value: "tr", label: "Türkçe" }
   ];
 
   const currencies = [
-    { value: "USD", label: "US Dollar", symbol: "$", flag: "🇺🇸" },
-    { value: "THB", label: "Thai Baht", symbol: "฿", flag: "🇹🇭" },
-    { value: "EUR", label: "Euro", symbol: "€", flag: "🇪🇺" },
-    { value: "IDR", label: "Indonesian Rupiah", symbol: "Rp", flag: "🇮🇩" },
-    { value: "VND", label: "Vietnamese Dong", symbol: "₫", flag: "🇻🇳" },
-    { value: "INR", label: "Indian Rupee", symbol: "₹", flag: "🇮🇳" },
-    { value: "PHP", label: "Philippine Peso", symbol: "₱", flag: "🇵🇭" },
-    { value: "BRL", label: "Brazilian Real", symbol: "R$", flag: "🇧🇷" },
-    { value: "MYR", label: "Malaysian Ringgit", symbol: "RM", flag: "🇲🇾" },
-    { value: "MXN", label: "Mexican Peso", symbol: "$", flag: "🇲🇽" },
-    { value: "TRY", label: "Turkish Lira", symbol: "₺", flag: "🇹🇷" },
-    { value: "GBP", label: "British Pound", symbol: "£", flag: "🇬🇧" },
-    { value: "JPY", label: "Japanese Yen", symbol: "¥", flag: "🇯🇵" },
-    { value: "CAD", label: "Canadian Dollar", symbol: "C$", flag: "🇨🇦" },
-    { value: "AUD", label: "Australian Dollar", symbol: "A$", flag: "🇦🇺" }
+    { value: "USD", label: "US Dollar", symbol: "$" },
+    { value: "THB", label: "Thai Baht", symbol: "฿" },
+    { value: "EUR", label: "Euro", symbol: "€" },
+    { value: "IDR", label: "Indonesian Rupiah", symbol: "Rp" },
+    { value: "VND", label: "Vietnamese Dong", symbol: "₫" },
+    { value: "INR", label: "Indian Rupee", symbol: "₹" },
+    { value: "PHP", label: "Philippine Peso", symbol: "₱" },
+    { value: "BRL", label: "Brazilian Real", symbol: "R$" },
+    { value: "MYR", label: "Malaysian Ringgit", symbol: "RM" },
+    { value: "MXN", label: "Mexican Peso", symbol: "$" },
+    { value: "TRY", label: "Turkish Lira", symbol: "₺" },
+    { value: "GBP", label: "British Pound", symbol: "£" },
+    { value: "JPY", label: "Japanese Yen", symbol: "¥" },
+    { value: "CAD", label: "Canadian Dollar", symbol: "C$" },
+    { value: "AUD", label: "Australian Dollar", symbol: "A$" }
   ];
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -361,10 +361,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
                 <SelectContent>
                   {languages.map((lang) => (
                     <SelectItem key={lang.value} value={lang.value}>
-                      <div className="flex items-center gap-2 py-1">
-                        <span className="text-lg">{lang.flag}</span>
-                        <span className="text-sm sm:text-base">{lang.label}</span>
-                      </div>
+                      <span className="text-sm sm:text-base">{lang.label}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -385,7 +382,6 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
                   {currencies.map((curr) => (
                     <SelectItem key={curr.value} value={curr.value}>
                       <div className="flex items-center gap-2 py-1">
-                        <span className="text-lg">{curr.flag}</span>
                         <span className="text-sm sm:text-base">{curr.label}</span>
                         <span className="text-xs sm:text-sm text-slate-500">({curr.symbol})</span>
                       </div>

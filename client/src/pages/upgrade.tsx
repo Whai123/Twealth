@@ -233,7 +233,7 @@ export default function UpgradePage() {
               </div>
               <div>
                 <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                  🚀 Choose Your Plan
+                  Choose Your Plan
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <Zap className="w-5 h-5 text-yellow-500 animate-bounce" />
@@ -284,7 +284,7 @@ export default function UpgradePage() {
                   <span className="text-sm font-medium">Secure</span>
                 </div>
                 <div className="text-2xl font-bold text-teal-600">
-                  🔒
+                  100%
                 </div>
                 <div className="text-xs text-muted-foreground">Stripe payments</div>
               </div>
@@ -295,7 +295,7 @@ export default function UpgradePage() {
               <div className="flex items-center gap-3">
                 <Crown className="w-6 h-6 text-emerald-500" />
                 <div>
-                  <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Premium Upgrade Experience ⚡</h2>
+                  <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">Premium Upgrade Experience</h2>
                   <p className="text-emerald-600 dark:text-emerald-300">Join thousands who've transformed their financial future with AI-powered insights and advanced features.</p>
                 </div>
               </div>
@@ -413,7 +413,7 @@ export default function UpgradePage() {
 
         <div className="text-center mt-12">
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            🔒 Secure payments powered by Stripe • Cancel anytime • 30-day money-back guarantee
+            Secure payments powered by Stripe • Cancel anytime • 30-day money-back guarantee
           </p>
         </div>
       </div>

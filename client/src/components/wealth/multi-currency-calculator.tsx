@@ -17,13 +17,13 @@ interface CurrencyRate {
 }
 
 const currencies = [
-  { code: "USD", name: "US Dollar", flag: "🇺🇸", symbol: "$" },
-  { code: "EUR", name: "Euro", flag: "🇪🇺", symbol: "€" },
-  { code: "CNY", name: "Chinese Yuan", flag: "🇨🇳", symbol: "¥" },
-  { code: "BTC", name: "Bitcoin", flag: "₿", symbol: "₿" },
-  { code: "GBP", name: "British Pound", flag: "🇬🇧", symbol: "£" },
-  { code: "JPY", name: "Japanese Yen", flag: "🇯🇵", symbol: "¥" },
-  { code: "GOLD", name: "Gold (oz)", flag: "🥇", symbol: "Au" },
+  { code: "USD", name: "US Dollar", symbol: "$" },
+  { code: "EUR", name: "Euro", symbol: "€" },
+  { code: "CNY", name: "Chinese Yuan", symbol: "¥" },
+  { code: "BTC", name: "Bitcoin", symbol: "₿" },
+  { code: "GBP", name: "British Pound", symbol: "£" },
+  { code: "JPY", name: "Japanese Yen", symbol: "¥" },
+  { code: "GOLD", name: "Gold (oz)", symbol: "Au" },
 ];
 
 export default function MultiCurrencyCalculator() {
@@ -146,7 +146,6 @@ export default function MultiCurrencyCalculator() {
               {currencies.map((curr) => (
                 <SelectItem key={curr.code} value={curr.code}>
                   <div className="flex items-center">
-                    <span className="mr-2">{curr.flag}</span>
                     <span className="mr-2">{curr.name}</span>
                     <span className="text-muted-foreground">({curr.symbol})</span>
                   </div>
@@ -184,7 +183,6 @@ export default function MultiCurrencyCalculator() {
               {currencies.map((curr) => (
                 <SelectItem key={curr.code} value={curr.code}>
                   <div className="flex items-center">
-                    <span className="mr-2">{curr.flag}</span>
                     <span className="mr-2">{curr.name}</span>
                     <span className="text-muted-foreground">({curr.symbol})</span>
                   </div>

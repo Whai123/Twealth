@@ -9,17 +9,17 @@ import {
 } from "@/components/ui/select";
 
 const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-  { code: 'th', name: 'ไทย', flag: '🇹🇭' },
-  { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
-  { code: 'pt', name: 'Português', flag: '🇧🇷' },
-  { code: 'hi', name: 'हिंदी', flag: '🇮🇳' },
-  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
-  { code: 'tl', name: 'Filipino', flag: '🇵🇭' },
-  { code: 'ms', name: 'Bahasa Melayu', flag: '🇲🇾' },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Español' },
+  { code: 'ar', name: 'العربية' },
+  { code: 'th', name: 'ไทย' },
+  { code: 'id', name: 'Bahasa Indonesia' },
+  { code: 'pt', name: 'Português' },
+  { code: 'hi', name: 'हिंदी' },
+  { code: 'vi', name: 'Tiếng Việt' },
+  { code: 'tl', name: 'Filipino' },
+  { code: 'ms', name: 'Bahasa Melayu' },
+  { code: 'tr', name: 'Türkçe' },
 ];
 
 export default function LanguageSwitcher() {
@@ -36,19 +36,13 @@ export default function LanguageSwitcher() {
       <SelectTrigger className="w-40 h-9 text-sm" data-testid="language-switcher">
         <div className="flex items-center gap-2">
           <Globe className="w-4 h-4" />
-          <span className="flex items-center gap-1">
-            <span>{currentLanguage.flag}</span>
-            <span className="hidden sm:inline">{currentLanguage.name}</span>
-          </span>
+          <span className="hidden sm:inline">{currentLanguage.name}</span>
         </div>
       </SelectTrigger>
       <SelectContent>
         {languages.map((language) => (
           <SelectItem key={language.code} value={language.code}>
-            <div className="flex items-center gap-2">
-              <span>{language.flag}</span>
-              <span>{language.name}</span>
-            </div>
+            {language.name}
           </SelectItem>
         ))}
       </SelectContent>

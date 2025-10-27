@@ -135,7 +135,7 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div className="space-y-2" data-testid="stat-time-value">
               <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ⏱️ Time = Money
+                Time = Money
               </div>
               <p className="text-muted-foreground text-lg">Track your time value and optimize earnings</p>
             </div>

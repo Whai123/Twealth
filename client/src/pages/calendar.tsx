@@ -886,7 +886,7 @@ export default function Calendar() {
                       <p className="text-sm text-muted-foreground">{selectedEvent.description}</p>
                     )}
                     {selectedEvent.location && (
-                      <p className="text-sm text-muted-foreground">📍 {selectedEvent.location}</p>
+                      <p className="text-sm text-muted-foreground">{selectedEvent.location}</p>
                     )}
                   </CardContent>
                 </Card>

@@ -4,26 +4,25 @@ export interface Currency {
   code: string;
   name: string;
   symbol: string;
-  flag: string;
   decimals: number;
 }
 
 export const CURRENCIES: Record<string, Currency> = {
-  USD: { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸', decimals: 2 },
-  THB: { code: 'THB', name: 'Thai Baht', symbol: '฿', flag: '🇹🇭', decimals: 2 },
-  EUR: { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺', decimals: 2 },
-  IDR: { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', flag: '🇮🇩', decimals: 0 },
-  INR: { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳', decimals: 2 },
-  BRL: { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', flag: '🇧🇷', decimals: 2 },
-  MXN: { code: 'MXN', name: 'Mexican Peso', symbol: '$', flag: '🇲🇽', decimals: 2 },
-  GBP: { code: 'GBP', name: 'British Pound', symbol: '£', flag: '🇬🇧', decimals: 2 },
-  JPY: { code: 'JPY', name: 'Japanese Yen', symbol: '¥', flag: '🇯🇵', decimals: 0 },
-  CAD: { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', flag: '🇨🇦', decimals: 2 },
-  AUD: { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', flag: '🇦🇺', decimals: 2 },
-  VND: { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', flag: '🇻🇳', decimals: 0 },
-  PHP: { code: 'PHP', name: 'Philippine Peso', symbol: '₱', flag: '🇵🇭', decimals: 2 },
-  MYR: { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', flag: '🇲🇾', decimals: 2 },
-  TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', flag: '🇹🇷', decimals: 2 },
+  USD: { code: 'USD', name: 'US Dollar', symbol: '$', decimals: 2 },
+  THB: { code: 'THB', name: 'Thai Baht', symbol: '฿', decimals: 2 },
+  EUR: { code: 'EUR', name: 'Euro', symbol: '€', decimals: 2 },
+  IDR: { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', decimals: 0 },
+  INR: { code: 'INR', name: 'Indian Rupee', symbol: '₹', decimals: 2 },
+  BRL: { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', decimals: 2 },
+  MXN: { code: 'MXN', name: 'Mexican Peso', symbol: '$', decimals: 2 },
+  GBP: { code: 'GBP', name: 'British Pound', symbol: '£', decimals: 2 },
+  JPY: { code: 'JPY', name: 'Japanese Yen', symbol: '¥', decimals: 0 },
+  CAD: { code: 'CAD', name: 'Canadian Dollar', symbol: 'C$', decimals: 2 },
+  AUD: { code: 'AUD', name: 'Australian Dollar', symbol: 'A$', decimals: 2 },
+  VND: { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', decimals: 0 },
+  PHP: { code: 'PHP', name: 'Philippine Peso', symbol: '₱', decimals: 2 },
+  MYR: { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', decimals: 2 },
+  TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', decimals: 2 },
 };
 
 // Exchange rates - fetched from backend API with fallback to static rates

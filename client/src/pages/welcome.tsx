@@ -16,7 +16,9 @@ import {
   Globe,
   Zap,
   DollarSign,
-  MessageCircle
+  MessageCircle,
+  Brain,
+  Smartphone
 } from "lucide-react";
 import { getLocalizedPrice, CURRENCIES } from "@/lib/currency";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -241,7 +243,7 @@ export default function WelcomePage() {
                   </div>
                   <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20 shadow-lg">
                     <span className="text-lg font-semibold flex items-center gap-2">
-                      {currencyData.flag} {currencyData.name}
+                      {currencyData.name}
                     </span>
                   </div>
                 </div>
@@ -396,7 +398,7 @@ export default function WelcomePage() {
                 <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <span className="text-2xl">🤖</span>
+                      <Brain className="w-6 h-6 text-green-600" />
                       {t('onboarding.aiProTip.title')}
                     </CardTitle>
                   </CardHeader>
@@ -412,7 +414,7 @@ export default function WelcomePage() {
                 <Card className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <span className="text-2xl">📱</span>
+                      <Smartphone className="w-6 h-6 text-orange-600" />
                       Mobile Users
                     </CardTitle>
                   </CardHeader>
