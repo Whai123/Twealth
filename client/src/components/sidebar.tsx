@@ -19,7 +19,7 @@ import {
   Wallet,
   BarChart3
 } from "lucide-react";
-import logoUrl from "@assets/5-removebg-preview_1761531310853.png";
+import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
 import { cn } from "@/lib/utils";
 import LanguageSwitcher from "@/components/language-switcher";
 import { useTheme } from "@/components/theme-provider";

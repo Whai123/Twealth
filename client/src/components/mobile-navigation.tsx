@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./ui/button";
-import logoUrl from "@assets/twealth-logo.png";
+import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
 import {
   Drawer,
   DrawerContent,

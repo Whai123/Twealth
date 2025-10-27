@@ -1,7 +1,7 @@
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Brain, Calendar, Target, TrendingUp, Zap, Shield, Users, BarChart3, Sparkles, ArrowRight } from "lucide-react";
-import logoUrl from "@assets/5-removebg-preview_1761531310853.png";
+import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
 
 export default function Landing() {
   const handleLogin = () => {
