@@ -214,7 +214,7 @@ export default function FinancialGoals() {
 
   const handleCelebrateMilestone = (milestone: any) => {
     toast({
-      title: "🎉 Congratulations!",
+      title: "Congratulations!",
       description: `You've unlocked: ${milestone.title}`,
     });
   };

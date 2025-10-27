@@ -151,103 +151,29 @@ export default function SubscriptionPage() {
       {/* Clean Professional Header */}
       <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-                Premium Plans
-              </h1>
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
-                  <span className="text-lg text-muted-foreground">Unlock AI-powered financial success</span>
-                  <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
-                </div>
-              </div>
-            </div>
-            
-            {/* Subscription Benefits Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-green-500" />
-                  <span className="text-sm font-medium">Cost Effective</span>
-                </div>
-                <div className="text-2xl font-bold text-green-600">
-                  25x
-                </div>
-                <div className="text-xs text-muted-foreground">More value</div>
-              </div>
-              
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-5 h-5 text-blue-500" />
-                  <span className="text-sm font-medium">AI Power</span>
-                </div>
-                <div className="text-2xl font-bold text-blue-600">
-                  Llama 4 Scout
-                </div>
-                <div className="text-xs text-muted-foreground">Groq AI</div>
-              </div>
-              
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Check className="w-5 h-5 text-purple-500" />
-                  <span className="text-sm font-medium">Flexible</span>
-                </div>
-                <div className="text-2xl font-bold text-purple-600">
-                  ✅
-                </div>
-                <div className="text-xs text-muted-foreground">Cancel anytime</div>
-              </div>
-              
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-5 h-5 text-yellow-500" />
-                  <span className="text-sm font-medium">Instant</span>
-                </div>
-                <div className="text-2xl font-bold text-yellow-600">
-                  ⚡
-                </div>
-                <div className="text-xs text-muted-foreground">Activation</div>
-              </div>
-            </div>
-            
-            {/* Welcome Message */}
-            <div className="bg-gradient-to-r from-white/80 to-orange-50/80 dark:from-gray-800/80 dark:to-orange-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="flex items-center gap-3">
-                <Crown className="w-6 h-6 text-orange-500" />
-                <div>
-                  <h2 className="text-lg font-semibold text-orange-800 dark:text-orange-200">Premium Financial Experience 🚀</h2>
-                  <p className="text-orange-600 dark:text-orange-300">Transform your financial future with AI-powered insights, smart budget optimization, and accelerated goal achievement.</p>
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Premium Plans
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">Upgrade your account to unlock advanced features</p>
           </div>
         </div>
       </header>
       
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-10">
 
-      {/* Enhanced Current Plan Status */}
+      {/* Current Plan Status */}
       {currentPlan && (
-        <Card className="relative overflow-hidden border-0 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-green-500/10" />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 backdrop-blur-3xl" />
-          <CardHeader className="relative">
+        <Card>
+          <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-primary to-purple-600 rounded-xl shadow-lg">
-                  <Crown className="h-6 w-6 text-white" />
-                </div>
                 <div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                    Your Current Plan
-                  </h2>
-                  <p className="text-lg font-semibold text-foreground">{currentPlan.displayName}</p>
+                  <h2 className="text-xl font-semibold">Your Current Plan</h2>
+                  <p className="text-base text-muted-foreground">{currentPlan.displayName}</p>
                 </div>
               </div>
-              <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 py-2 text-sm font-semibold animate-pulse">
-                Active
-              </Badge>
+              <Badge variant="secondary">Active</Badge>
             </CardTitle>
             <CardDescription className="text-base leading-relaxed">
               {currentPlan.description}
@@ -379,8 +305,8 @@ export default function SubscriptionPage() {
                 {isMostPopular && (
                   <>
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-50 animate-pulse" />
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-purple-600 text-white px-4 py-1 text-sm font-bold shadow-lg animate-bounce z-10">
-                      🔥 MOST POPULAR 🔥
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold shadow-sm z-10">
+                      MOST POPULAR
                     </Badge>
                   </>
                 )}
@@ -546,7 +472,7 @@ export default function SubscriptionPage() {
                   {isMostPopular && (
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground">
-                        🔥 Save 60% compared to competitors
+                        Save 60% compared to competitors
                       </p>
                     </div>
                   )}

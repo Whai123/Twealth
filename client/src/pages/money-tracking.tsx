@@ -67,7 +67,7 @@ export default function MoneyTracking() {
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
       toast({
-        title: "✨ Categories Fixed!",
+        title: "Categories Fixed",
         description: `Successfully categorized ${data.updated} of ${data.total} transactions using AI detection.`,
         variant: "default",
       });
@@ -398,7 +398,7 @@ export default function MoneyTracking() {
               </div>
               <div className="min-w-0 flex-1">
                 <h4 className="font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2">
-                  <span>✨ AI Smart Categorization</span>
+                  <span>AI Smart Categorization</span>
                 </h4>
                 <p className="text-sm text-purple-700 dark:text-purple-300">
                   {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length} uncategorized transactions detected. Let AI categorize them automatically!
