@@ -174,24 +174,15 @@ export default function WelcomePage() {
   const currentStepData = onboardingSteps[currentStep];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 right-1/3 w-24 h-24 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-full blur-xl animate-pulse delay-2000"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50/30 to-purple-50/20 dark:from-purple-900/20 dark:via-pink-900/10 dark:to-purple-900/5 relative overflow-hidden">
       
       <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* Enhanced Header with Skip */}
+        {/* Clean Professional Header with Skip */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
-              <Crown className="w-8 h-8 text-white" />
-            </div>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                💎 Twealth
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Twealth
               </h1>
               <p className="text-sm text-muted-foreground">Your AI Financial Assistant</p>
             </div>
@@ -203,35 +194,35 @@ export default function WelcomePage() {
             className="hover:bg-white/50 dark:hover:bg-gray-800/50 backdrop-blur-sm transition-all duration-300"
             data-testid="button-skip-onboarding"
           >
-            {completeOnboardingMutation.isPending ? `⏳ ${t('common.loading')}` : `⚡ ${t('onboarding.actions.skip')}`}
+            {completeOnboardingMutation.isPending ? t('common.loading') : t('onboarding.actions.skip')}
           </Button>
         </div>
 
-        {/* Enhanced Progress Indicator */}
+        {/* Clean Progress Indicator */}
         <div className="flex justify-center mb-12">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg">
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
             <div className="flex items-center gap-3">
               {onboardingSteps.map((_, index) => (
                 <div key={index} className="flex items-center">
                   <div
-                    className={`w-4 h-4 rounded-full transition-all duration-500 ${
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
                       index <= currentStep 
-                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 scale-125 shadow-lg' 
-                        : 'bg-gray-200 dark:bg-gray-600'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600' 
+                        : 'bg-muted'
                     }`}
                   />
                   {index < onboardingSteps.length - 1 && (
-                    <div className={`w-8 h-0.5 mx-1 transition-all duration-500 ${
+                    <div className={`w-8 h-0.5 mx-1 transition-all duration-300 ${
                       index < currentStep 
-                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600' 
-                        : 'bg-gray-200 dark:bg-gray-600'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600' 
+                        : 'bg-muted'
                     }`} />
                   )}
                 </div>
               ))}
             </div>
             <div className="text-center mt-2">
-              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+              <span className="text-sm font-medium text-purple-600 dark:text-purple-400">
                 {t('onboarding.stepIndicator', { current: currentStep + 1, total: onboardingSteps.length })}
               </span>
             </div>
