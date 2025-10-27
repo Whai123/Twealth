@@ -3065,33 +3065,33 @@ export class DatabaseStorage implements IStorage {
         .values({
           name: 'Free',
           displayName: 'Twealth Free',
-          description: 'Try AI financial advisor - 10 chats total',
+          description: 'Get started with 50 AI chats per month',
           priceThb: '0.00',
           priceUsd: '0.00',
           currency: 'USD',
-          billingInterval: 'lifetime',
-          aiChatLimit: 10,
+          billingInterval: 'monthly',
+          aiChatLimit: 50,
           aiDeepAnalysisLimit: 0,
           aiInsightsFrequency: 'never',
-          isLifetimeLimit: true,
-          features: ['basic_tracking', 'ai_chat_trial', 'expense_tracking'],
+          isLifetimeLimit: false,
+          features: ['basic_tracking', 'ai_chat', 'expense_tracking'],
           sortOrder: 0,
         })
         .returning();
       freePlan = [newFreePlan];
-    } else if (freePlan[0].aiChatLimit !== 10 || !freePlan[0].isLifetimeLimit) {
-      // Update existing free plan to new limit and lifetime settings
+    } else if (freePlan[0].aiChatLimit !== 50 || freePlan[0].isLifetimeLimit) {
+      // Update existing free plan to new limit and monthly settings
       await db.update(subscriptionPlans)
         .set({ 
-          aiChatLimit: 10,
-          isLifetimeLimit: true,
-          billingInterval: 'lifetime',
-          description: 'Try AI financial advisor - 10 chats total',
-          features: ['basic_tracking', 'ai_chat_trial', 'expense_tracking']
+          aiChatLimit: 50,
+          isLifetimeLimit: false,
+          billingInterval: 'monthly',
+          description: 'Get started with 50 AI chats per month',
+          features: ['basic_tracking', 'ai_chat', 'expense_tracking']
         })
         .where(eq(subscriptionPlans.id, freePlan[0].id));
-      freePlan[0].aiChatLimit = 10;
-      freePlan[0].isLifetimeLimit = true;
+      freePlan[0].aiChatLimit = 50;
+      freePlan[0].isLifetimeLimit = false;
     }
 
     const now = new Date();

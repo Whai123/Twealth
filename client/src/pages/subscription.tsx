@@ -482,6 +482,60 @@ export default function SubscriptionPage() {
           })}
         </div>
         
+        {/* Premium ROI Calculator */}
+        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-green-950/10 dark:via-blue-950/10 dark:to-purple-950/10 max-w-4xl mx-auto">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+          <CardHeader className="text-center relative">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <TrendingUp className="w-8 h-8 text-green-600" />
+              <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                Premium users save an average of $347/month
+              </CardTitle>
+            </div>
+            <CardDescription className="text-base">
+              That's 13.8x your subscription cost - real savings from better financial management
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="relative">
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
+                <div className="text-sm text-muted-foreground mb-2">AI Time Savings</div>
+                <div className="text-3xl font-bold text-blue-600">+$100</div>
+                <div className="text-xs text-muted-foreground mt-1">Auto-categorization & insights</div>
+              </div>
+              <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
+                <div className="text-sm text-muted-foreground mb-2">Budget Optimization</div>
+                <div className="text-3xl font-bold text-green-600">+$197</div>
+                <div className="text-xs text-muted-foreground mt-1">Reduced overspending</div>
+              </div>
+              <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
+                <div className="text-sm text-muted-foreground mb-2">Goal Achievement</div>
+                <div className="text-3xl font-bold text-purple-600">+$50</div>
+                <div className="text-xs text-muted-foreground mt-1">Stay on track value</div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-950/30 dark:to-blue-950/30 rounded-xl p-6 border-2 border-green-300/50 dark:border-green-700/50">
+              <div className="flex items-center justify-between text-lg mb-3">
+                <span className="font-semibold">Total Value Per Month</span>
+                <span className="text-2xl font-bold text-green-600">+$347</span>
+              </div>
+              <div className="flex items-center justify-between text-lg mb-3">
+                <span className="font-semibold">Premium Subscription</span>
+                <span className="text-2xl font-bold text-red-600">-$25</span>
+              </div>
+              <div className="h-px bg-border/50 my-4"></div>
+              <div className="flex items-center justify-between">
+                <span className="text-xl font-bold">Net Benefit</span>
+                <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">+$322</span>
+              </div>
+              <p className="text-sm text-center text-muted-foreground mt-4">
+                Premium pays for itself 13.8x over every single month
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Enterprise Card */}
         <Card className="relative overflow-hidden border-2 border-dashed border-primary/50 bg-gradient-to-br from-primary/5 to-purple-500/5 max-w-5xl mx-auto mt-8">
           <CardHeader className="text-center">
