@@ -467,46 +467,55 @@ export default function FinancialGoals() {
         </div>
       ) : (
         <>
-          {/* Mobile-First Summary Cards */}
+          {/* Premium Summary Cards - Big Tech Design */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Saved</p>
-                  <p className="text-2xl font-bold">
-                    ${financialGoals.reduce((sum: number, goal: any) => sum + parseFloat(goal.currentAmount), 0).toLocaleString()}
-                  </p>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-green-500/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950/30">
+                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Total Saved</span>
                 </div>
-                <TrendingUp className="text-green-600" size={24} />
+                <p className="text-4xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                  ${financialGoals.reduce((sum: number, goal: any) => sum + parseFloat(goal.currentAmount), 0).toLocaleString()}
+                </p>
               </div>
             </Card>
             
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Goals</p>
-                  <p className="text-2xl font-bold">
-                    {financialGoals.filter((goal: any) => goal.status === "active").length}
-                  </p>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950/30">
+                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Active Goals</span>
                 </div>
-                <Target className="text-blue-600" size={24} />
+                <p className="text-4xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                  {financialGoals.filter((goal: any) => goal.status === "active").length}
+                </p>
               </div>
             </Card>
             
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Average Progress</p>
-                  <p className="text-2xl font-bold">
-                    {Math.round(
-                      financialGoals.reduce((sum: number, goal: any) => {
-                        const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
-                        return sum + progress;
-                      }, 0) / financialGoals.length
-                    )}%
-                  </p>
+            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-purple-500/5 pointer-events-none"></div>
+              <div className="relative">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
+                    <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground">Average Progress</span>
                 </div>
-                <TrendingUp className="text-purple-600" size={24} />
+                <p className="text-4xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                  {Math.round(
+                    financialGoals.reduce((sum: number, goal: any) => {
+                      const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
+                      return sum + progress;
+                    }, 0) / financialGoals.length
+                  )}<span className="text-2xl text-muted-foreground/60">%</span>
+                </p>
               </div>
             </Card>
           </div>

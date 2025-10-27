@@ -1,6 +1,6 @@
 # Overview
 
-Twealth is a full-stack web application for comprehensive schedule management, financial tracking, and goal setting. It offers a unified platform for personal and collaborative financial organization, including CFO-level AI financial advice, specialized cryptocurrency features, and de-dollarization insights. The project aims to deliver an intuitive, globally accessible, market-ready product with a "big tech company" aesthetic and professional user experience, empowering users to control spending, achieve financial goals, and gain actionable financial insights.
+Twealth is a full-stack web application for comprehensive schedule management, financial tracking, and goal setting. It offers a unified platform for personal and collaborative financial organization, including CFO-level AI financial advice, specialized cryptocurrency features, and de-dollarization insights. The project delivers an intuitive, globally accessible, production-ready product with premium "big tech company" design (Stripe/Robinhood/Coinbase quality) and professional user experience, empowering users to control spending, achieve financial goals, and gain actionable financial insights.
 
 # User Preferences
 
@@ -13,13 +13,19 @@ Preferred communication style: Simple, everyday language.
 The frontend is a React 18 single-page application built with TypeScript, `shadcn/ui` (Radix UI), Tailwind CSS, and Wouter for routing. It features a mobile-first, responsive, and accessible design with dynamic navigation, PWA support, responsive typography, and a full-width layout. Key UI elements include dynamic dashboard visualizations, interactive onboarding, a professional AI assistant interface (ChatGPT/Claude-style), and comprehensive UI polish.
 
 **Premium UX/UI Polish (October 2025):**
+- **Big Tech Design System**: Stripe/Robinhood/Coinbase-level visual polish across Dashboard, Money Tracking, and Financial Goals with consistent premium patterns
+- **Premium Stat Cards**: Icon badges (colored backgrounds), subtle gradients (to-{color}/5), hover effects (shadow-xl, -translate-y-0.5), large bold typography (4xl font-bold tracking-tight), improved visual hierarchy
+- **Layered Depth**: Multi-layered gradient overlays, absolute positioned backgrounds for visual depth, rounded-2xl corners, border-border/50 transparency
+- **Smart Hover Effects**: Group hover with scale transforms, shadow animations, icon scale effects (group-hover:scale-110), smooth transitions (duration-200)
+- **Rate Limiting**: Graceful 429 handling with RateLimitError class, countdown timers in UI, toast notifications showing retry-after time, exponential backoff (1s, 2s, 4s, 8s, capped at 30s)
+- **Retry Logic**: Exponential backoff for all API calls - queries retry 2x, mutations 1x, smart backoff prevents API overload, no retry on client errors (4xx)
 - **Skeleton Loaders**: Professional loading states across all pages with 10+ specialized components (cards, charts, lists)
 - **Loading Indicators**: All async buttons show Loader2 spinners with smart icon swapping and disabled states
 - **Toast Notifications**: Enhanced with optional icons (CheckCircle2, Target, AlertCircle) and WCAG-compliant aria-live announcements
 - **Optimistic Updates**: Instant UI feedback in forms (transaction, goal, add-funds) with automatic rollback on error
 - **Animations**: Performance-optimized transitions (transform, opacity, box-shadow), card hover effects, fade-in/slide-up, prefers-reduced-motion support
 - **Empty States**: Premium gradient designs with engaging headlines, feature grids, clear CTAs on money-tracking, calendar, friends pages
-- **Error Handling**: Context-aware error messages with specific titles, smart error detection (network, validation, amount), actionable guidance
+- **Error Handling**: Context-aware error messages with specific titles, smart error detection (network, validation, amount, rate limit), actionable guidance
 - **Accessibility**: WCAG 2.1 AA compliant with skip-to-main-content link, enhanced focus styles, aria-live toasts, keyboard shortcuts (G, T, E), comprehensive ARIA attributes
 - **Form Validation**: shadcn forms with aria-describedby, aria-invalid, clear visual feedback, loading spinners on submit buttons
 
