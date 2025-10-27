@@ -147,19 +147,15 @@ export default function SubscriptionPage() {
   const currentPlan = currentSubscription?.subscription?.plan;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/30 dark:via-red-900/30 dark:to-pink-900/30">
-      {/* Spectacular Header */}
-      <header className="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/50 dark:via-red-900/50 dark:to-pink-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
-                <Crown className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-600 via-red-600 to-pink-600 bg-clip-text text-transparent">
-                  👑 Premium Plans
-                </h1>
+    <div className="min-h-screen bg-background">
+      {/* Clean Professional Header */}
+      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                Premium Plans
+              </h1>
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <Sparkles className="w-5 h-5 text-yellow-500 animate-bounce" />
                   <span className="text-lg text-muted-foreground">Unlock AI-powered financial success</span>

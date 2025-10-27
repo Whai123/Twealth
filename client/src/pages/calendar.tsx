@@ -273,27 +273,16 @@ export default function Calendar() {
   ));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
-      {/* Mobile-Optimized Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 shadow-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6">
-          {/* Header Top Row */}
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {/* Icon - Smaller on mobile */}
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-              
-              {/* Title - Responsive sizing */}
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent truncate">
-                  Smart Calendar
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                  AI-powered scheduling
-                </p>
-              </div>
+    <div className="min-h-screen bg-background">
+      {/* Clean Professional Header */}
+      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                Calendar
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">Manage your schedule and events</p>
             </div>
             
             {/* Action Buttons - Touch-friendly */}
@@ -310,8 +299,7 @@ export default function Calendar() {
                 <DialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    size={isMobile ? "icon" : "default"}
-                    className="h-11 sm:h-12 min-w-[44px] transition-all hover:scale-105 active:scale-95"
+                    className="min-h-[44px]"
                     data-testid="button-share-calendar"
                   >
                     <Share2 size={18} className={isMobile ? "" : "mr-2"} />
@@ -386,7 +374,7 @@ export default function Calendar() {
               <Dialog open={showEventForm} onOpenChange={setShowEventForm}>
                 <DialogTrigger asChild>
                   <Button 
-                    className="h-11 sm:h-12 px-4 sm:px-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold shadow-lg transition-all hover:scale-105 active:scale-95"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm min-h-[44px]"
                     data-testid="button-create-event"
                   >
                     <Plus size={18} className="mr-2" />
