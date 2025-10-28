@@ -31,6 +31,7 @@ const InvitePage = lazy(() => import("./pages/invite"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
+const Login = lazy(() => import("./pages/login"));
 const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
@@ -86,15 +87,17 @@ function Router() {
     );
   }
   
-  // Show landing page for unauthenticated users
+  // Show login/landing page for unauthenticated users
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen">
         <ErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Switch>
-              <Route path="/" component={Landing} />
-              <Route component={Landing} />
+              <Route path="/login" component={Login} />
+              <Route path="/welcome" component={Landing} />
+              <Route path="/" component={Login} />
+              <Route component={Login} />
             </Switch>
           </Suspense>
         </ErrorBoundary>

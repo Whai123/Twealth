@@ -5,7 +5,12 @@ import { storage } from "./storage";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { subscriptionPlans } from "@shared/schema";
-import { setupAuth, isAuthenticated, getUserIdFromRequest } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./customAuth";
+
+// Helper function to get user ID from request (custom auth)
+function getUserIdFromRequest(req: any): string {
+  return req.userId || req.user?.userId;
+}
 import { 
   insertUserSchema,
   insertGroupSchema,
@@ -95,45 +100,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Raw body middleware for Stripe webhooks
   app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
   
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Note: /api/auth/user is defined in customAuth.ts - don't redefine it here
   
   // User routes - Requires authentication
   app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      let user = await storage.getUser(userId);
-      
-      // Defensive: if user doesn't exist but we have valid claims, create them
-      // This handles testing scenarios and edge cases where OIDC callback didn't create user
-      if (!user && req.user && req.user.claims) {
-        console.log('[/api/users/me] User not found, creating from claims:', userId);
-        const claims = req.user.claims;
-        user = await storage.upsertUser({
-          id: claims.sub,
-          email: claims.email,
-          firstName: claims.first_name,
-          lastName: claims.last_name,
-          profileImageUrl: claims.profile_image_url,
-        });
-        
-        // Initialize subscription for new user
-        const subscription = await storage.getUserSubscription(user.id);
-        if (!subscription) {
-          await storage.initializeDefaultSubscription(user.id);
-        }
-      }
+      const user = await storage.getUser(userId);
       
       if (!user) {
+        console.error('[/api/users/me] User not found for ID:', userId);
         return res.status(404).json({ message: "User not found" });
       }
       res.json(user);
@@ -1865,36 +1841,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user-preferences", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
+      const user = await storage.getUser(userId);
       
-      // Defensive: ensure user exists before creating preferences (handles testing scenarios)
-      let user = await storage.getUser(userId);
-      if (!user && req.user && req.user.claims) {
-        console.log('[/api/user-preferences] User not found, creating from claims:', userId);
-        const claims = req.user.claims;
-        user = await storage.upsertUser({
-          id: claims.sub,
-          email: claims.email,
-          firstName: claims.first_name,
-          lastName: claims.last_name,
-          profileImageUrl: claims.profile_image_url,
-        });
-        
-        // Initialize subscription for new user
-        const subscription = await storage.getUserSubscription(user.id);
-        if (!subscription) {
-          await storage.initializeDefaultSubscription(user.id);
-        }
-      }
-      
-      // If we still don't have a user, return 404
       if (!user) {
-        console.error('[/api/user-preferences] No user found and could not create from claims');
+        console.error('[/api/user-preferences] User not found for ID:', userId);
         return res.status(404).json({ message: "User not found" });
       }
       
       const preferences = await storage.getUserPreferences(user.id);
       if (!preferences) {
-        // Create default preferences if they don't exist - use user.id to ensure FK constraint
+        // Create default preferences if they don't exist
         const defaultPrefs = { 
           userId: user.id,
           theme: "system" as const
@@ -4389,7 +4345,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Get user's crypto holdings
   app.get("/api/crypto/holdings", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const holdings = await storage.getUserCryptoHoldings(userId);
       
       // Fetch current prices for all holdings
@@ -4418,7 +4374,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Create new crypto holding
   app.post("/api/crypto/holdings", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertCryptoHoldingSchema.parse({
         ...req.body,
         userId
@@ -4441,7 +4397,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Update crypto holding
   app.put("/api/crypto/holdings/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const holdingId = req.params.id;
       
       // Verify ownership
@@ -4463,7 +4419,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Delete crypto holding
   app.delete("/api/crypto/holdings/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const holdingId = req.params.id;
       
       // Verify ownership
@@ -4529,7 +4485,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Get crypto portfolio summary
   app.get("/api/crypto/portfolio", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const portfolio = await storage.getUserCryptoPortfolioValue(userId);
       
       // Update with latest prices
@@ -4569,7 +4525,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Get user's crypto transactions
   app.get("/api/crypto/transactions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
       const transactions = await storage.getUserCryptoTransactions(userId, limit);
       res.json(transactions);
@@ -4581,7 +4537,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Create crypto transaction
   app.post("/api/crypto/transactions", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertCryptoTransactionSchema.parse({
         ...req.body,
         userId
@@ -4614,7 +4570,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Get user's price alerts
   app.get("/api/crypto/alerts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const alerts = await storage.getUserCryptoPriceAlerts(userId);
       res.json(alerts);
     } catch (error: any) {
@@ -4625,7 +4581,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Create price alert
   app.post("/api/crypto/alerts", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const validatedData = insertCryptoPriceAlertSchema.parse({
         ...req.body,
         userId
@@ -4641,7 +4597,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Update price alert
   app.put("/api/crypto/alerts/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const alertId = req.params.id;
       
       // Verify ownership
@@ -4660,7 +4616,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Delete price alert
   app.delete("/api/crypto/alerts/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = getUserIdFromRequest(req);
       const alertId = req.params.id;
       
       // Verify ownership

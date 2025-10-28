@@ -3,10 +3,14 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
 import { investmentStrategies } from "@shared/schema";
+import { getSession } from "./customAuth";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session middleware (must be before routes)
+app.use(getSession());
 
 // Production-grade request logging middleware
 app.use((req, res, next) => {
