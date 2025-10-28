@@ -1,0 +1,150 @@
+Excellent question — this is exactly what you’d need to design an **AI that feels like a real financial expert**.
+Here’s a curated list of **100 questions** across **8 key areas** (budgeting, investing, planning, business, risk, psychology, economy, and AI personalization) that your AI should be able to answer intelligently to become the **best financial assistant** like *Twealth* 👇
+
+---
+
+## 💰 1. Personal Finance & Budgeting (15)
+
+1. How can I optimize my monthly budget to save more?
+2. What percentage of my income should go to savings, rent, and expenses?
+3. How do I track and analyze my spending habits automatically?
+4. How can I reduce unnecessary expenses?
+5. What’s a good rule for balancing needs, wants, and savings?
+6. How much should I keep in my emergency fund?
+7. How do I pay off credit card debt efficiently?
+8. Should I use a credit card or debit card more often?
+9. How can I increase my credit score?
+10. What is the best way to manage irregular income (like freelancers)?
+11. How much should I spend on rent based on my income?
+12. Should I lease or buy a car?
+13. How do I set short-term and long-term financial goals?
+14. How do I track daily expenses automatically with AI?
+15. What are signs I’m living beyond my means?
+
+---
+
+## 📈 2. Investing & Wealth Building (20)
+
+16. What are the best investment options for my risk level?
+17. Should I invest in stocks, bonds, or mutual funds?
+18. How do I diversify my investment portfolio?
+19. What’s dollar-cost averaging and should I use it?
+20. How can I start investing with little money?
+21. Should I invest in index funds or individual stocks?
+22. How do I know when to sell my investments?
+23. What’s the difference between growth and value investing?
+24. What is compound interest and how does it affect my wealth?
+25. What are the best passive income investment ideas?
+26. Should I invest in real estate or financial markets?
+27. What’s the difference between short-term and long-term investing?
+28. How do I invest during inflation?
+29. What’s the best way to evaluate a stock before buying?
+30. How do ETFs work?
+31. Should I buy gold or crypto as a hedge?
+32. What are the top-performing asset classes this year?
+33. How do I calculate ROI and annualized returns?
+34. How should I rebalance my portfolio each year?
+35. When should I take profits or cut losses?
+
+---
+
+## 🏦 3. Banking & Cash Flow (10)
+
+36. How can I choose the best bank account for my needs?
+37. What’s the difference between savings and money market accounts?
+38. How do I automate bill payments effectively?
+39. How do I manage multiple income sources?
+40. How do I transfer money internationally with low fees?
+41. Should I open an offshore account?
+42. How do interest rates affect my savings and loans?
+43. How can I improve my liquidity ratio?
+44. What’s the safest way to store large amounts of cash?
+45. How do I calculate my monthly cash flow accurately?
+
+---
+
+## 🏡 4. Real Estate & Assets (10)
+
+46. Should I buy or rent a home?
+47. How much house can I afford?
+48. What are the hidden costs of owning property?
+49. How do mortgages work and how can I get the best rate?
+50. What’s better: paying off a mortgage early or investing instead?
+51. How do I calculate ROI for rental properties?
+52. Should I invest in condos, apartments, or land?
+53. How can I profit from real estate without buying property?
+54. How do I analyze property cash flow and cap rate?
+55. What’s the impact of location on property value?
+
+---
+
+## 🧠 5. Financial Mindset & Psychology (10)
+
+56. How can I stay motivated to save and invest?
+57. How do I avoid emotional decisions in investing?
+58. Why do people overspend and how can I prevent it?
+59. How can I build long-term discipline in managing money?
+60. How can I set a “money mindset” for success?
+61. How do I overcome fear of investing?
+62. What’s financial independence (FIRE movement) and how can I achieve it?
+63. How do I avoid lifestyle inflation?
+64. What habits do wealthy people have that I can copy?
+65. How can I define my personal relationship with money?
+
+---
+
+## 💼 6. Business & Entrepreneurship (15)
+
+66. How do I write a financial plan for my startup?
+67. How can I forecast cash flow for a business?
+68. How much should I pay myself as a founder?
+69. What’s the break-even point for my business?
+70. How do I raise funding or find investors?
+71. How do I calculate customer acquisition cost (CAC)?
+72. How can I increase business profit margins?
+73. Should I register as a sole proprietor or company?
+74. How do I manage payroll and taxes efficiently?
+75. What’s the ROI on digital marketing spend?
+76. How do I set product pricing based on cost and demand?
+77. How can I reduce operating costs without losing quality?
+78. How should I track inventory and cash flow?
+79. How do I decide when to expand my business?
+80. How can AI help automate my business finances?
+
+---
+
+## 🌍 7. Global Economy & Market Awareness (10)
+
+81. How do interest rate changes affect my investments?
+82. What happens when inflation rises?
+83. How does the US Fed policy impact global markets?
+84. Should I invest differently during recessions?
+85. What are the safest investments during market crashes?
+86. How can I hedge against currency risks?
+87. What are leading indicators of economic growth?
+88. How do oil and gold prices affect the economy?
+89. What’s the difference between fiscal and monetary policy?
+90. How do I stay informed about market trends in real time?
+
+---
+
+## 🤖 8. AI Personalization & Smart Automation (10)
+
+91. Can you analyze my spending and suggest smart goals automatically?
+92. Can you adjust my investment plan as my income changes?
+93. Can you detect risky patterns in my financial behavior?
+94. Can you simulate my financial future based on goals?
+95. Can you automatically rebalance my portfolio?
+96. Can you recommend when to refinance loans or mortgages?
+97. Can you warn me about market events that affect my assets?
+98. Can you create custom savings plans from my data?
+99. Can you generate financial reports for my taxes?
+100. Can you coach me to reach financial freedom step by step?
+
+---
+
+Would you like me to:
+
+* **(A)** Rank these 100 questions by *importance* for your AI to master first,
+  or
+* **(B)** Map them into an **AI skill roadmap** (e.g. “budgeting → level 1”, “investing → level 2”) for Twealth’s training plan?
