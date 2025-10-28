@@ -14,18 +14,30 @@ The frontend is a React 18 single-page application built with TypeScript, `shadc
 
 ## Technical Implementations
 
-The backend is an Express.js application in TypeScript, providing a RESTful API. It uses Drizzle ORM for type-safe PostgreSQL operations and employs a layered architecture with centralized error handling. Authentication has been migrated to a custom OAuth implementation supporting Google and Facebook logins, utilizing Passport.js with PostgreSQL session management and role-based access control. The application supports 11 languages via `i18next` and `react-i18next`.
+The backend is an Express.js application in TypeScript, providing a RESTful API. It uses Drizzle ORM for type-safe PostgreSQL operations and employs a layered architecture with centralized error handling. Authentication has been migrated to a custom OAuth implementation supporting Google, Apple, and Facebook logins, utilizing Passport.js with PostgreSQL session management and role-based access control. The application supports 11 languages via `i18next` and `react-i18next`.
 
 ### OAuth Setup Instructions
 
-To enable authentication, you need to set up OAuth credentials for Google and/or Facebook and configure the following environment secrets:
+To enable authentication, you need to set up OAuth credentials for Google, Apple, and/or Facebook and configure the following environment secrets:
+
+**Google OAuth:**
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
+
+**Apple Sign In:**
+- `APPLE_SERVICE_ID` (Service ID / Client ID)
+- `APPLE_TEAM_ID` (10-character Team ID)
+- `APPLE_KEY_ID` (Key ID from Apple Developer)
+- `APPLE_PRIVATE_KEY` (Private key file content as string with `\n` for newlines)
+
+**Facebook OAuth:**
 - `FACEBOOK_APP_ID`
 - `FACEBOOK_APP_SECRET`
-- `SESSION_SECRET`
 
-Detailed instructions for Google Cloud Console and Facebook for Developers are available for setting up redirect URIs and obtaining credentials.
+**Session Management:**
+- `SESSION_SECRET` (Already configured)
+
+Detailed instructions for Google Cloud Console, Apple Developer Program, and Facebook for Developers are available for setting up redirect URIs and obtaining credentials. Users are stored in the application's PostgreSQL database (not in Replit's user management system).
 
 ## Feature Specifications
 
