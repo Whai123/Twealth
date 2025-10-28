@@ -2957,6 +2957,321 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     onTrack: requiredMonthly <= (annualExpenses / 12) * 0.15 // 15% of monthly expenses
                   }
                 });
+              } else if (toolCall.name === 'calculate_emergency_fund') {
+                // Calculate ideal emergency fund size
+                const { monthlyExpenses, incomeStability, dependents = 0, hasInsurance = true } = toolCall.arguments;
+                
+                // Base recommendation: 3-6 months
+                let months = 4; // Default middle ground
+                
+                // Adjust based on income stability
+                if (incomeStability === 'very_stable') months = 3;
+                else if (incomeStability === 'stable') months = 4;
+                else if (incomeStability === 'variable') months = 6;
+                else if (incomeStability === 'unstable') months = 9;
+                
+                // Add 1 month per dependent
+                months += dependents;
+                
+                // Add 1 month if no insurance
+                if (!hasInsurance) months += 1;
+                
+                // Cap at reasonable limits
+                months = Math.max(3, Math.min(12, months));
+                
+                const targetAmount = monthlyExpenses * months;
+                const minAmount = monthlyExpenses * 3;
+                const maxAmount = monthlyExpenses * 6;
+                
+                actionsPerformed.push({
+                  type: 'emergency_fund_calculated',
+                  data: {
+                    monthlyExpenses,
+                    recommendedMonths: months,
+                    targetAmount,
+                    minAmount,
+                    maxAmount,
+                    incomeStability,
+                    dependents,
+                    hasInsurance
+                  }
+                });
+              } else if (toolCall.name === 'credit_score_improvement_plan') {
+                // Generate personalized credit improvement strategies
+                const { currentScore, hasDebt = false, missedPayments = false, creditUtilization } = toolCall.arguments;
+                
+                const strategies: string[] = [];
+                let priorityAction = '';
+                
+                // Payment history (35% of score)
+                if (missedPayments) {
+                  priorityAction = 'Payment History (35% impact)';
+                  strategies.push('Set up autopay for ALL bills immediately - payment history is 35% of your score');
+                  strategies.push('Pay at least minimum payments on time, every time - even $10 late payment hurts for 7 years');
+                } else {
+                  strategies.push('Keep perfect payment history - your track record is strong! Set autopay as backup');
+                }
+                
+                // Credit utilization (30% of score)
+                if (creditUtilization && creditUtilization > 30) {
+                  if (!priorityAction) priorityAction = 'Credit Utilization (30% impact)';
+                  strategies.push(`CRITICAL: Reduce utilization from ${creditUtilization}% to under 30% (ideally under 10%)`);
+                  strategies.push('Pay down balances BEFORE statement closes for instant score boost');
+                  strategies.push('Request credit limit increase to lower utilization percentage (don\'t spend more!)');
+                } else if (creditUtilization && creditUtilization <= 10) {
+                  strategies.push('Excellent utilization at ${creditUtilization}% - maintain this level for maximum score');
+                } else {
+                  strategies.push('Aim for under 10% credit utilization on all cards for best score');
+                }
+                
+                // Length of credit history (15%)
+                strategies.push('Keep oldest credit accounts open forever - age of credit is 15% of score');
+                strategies.push('Don\'t close old cards even if unused - put small recurring charge + autopay');
+                
+                // Credit mix (10%)
+                if (!hasDebt) {
+                  strategies.push('Consider diverse credit mix: credit card + installment loan (car, personal) = 10% boost');
+                } else {
+                  strategies.push('Good credit mix with existing debt - pay it down while maintaining variety');
+                }
+                
+                // New credit (10%)
+                strategies.push('Limit hard inquiries - only apply when necessary (under 2 per year ideal)');
+                strategies.push('Space out applications 6+ months apart to avoid looking desperate');
+                
+                // Score-specific advice
+                let scoreAdvice = '';
+                if (currentScore && currentScore < 580) {
+                  scoreAdvice = 'Poor credit (under 580): Focus on payment history + utilization for 6-12 months = 100+ point boost possible';
+                } else if (currentScore && currentScore < 670) {
+                  scoreAdvice = 'Fair credit (580-669): You\'re 1 year of perfect payments away from Good credit (670+)';
+                } else if (currentScore && currentScore < 740) {
+                  scoreAdvice = 'Good credit (670-739): Focus on sub-10% utilization + time to reach Very Good (740+)';
+                } else if (currentScore && currentScore < 800) {
+                  scoreAdvice = 'Very Good credit (740-799): Maintain current habits for Exceptional (800+) in 1-2 years';
+                } else if (currentScore && currentScore >= 800) {
+                  scoreAdvice = 'Exceptional credit (800+): You\'re in top 20%! Maintain perfect habits for best rates';
+                } else {
+                  scoreAdvice = 'Follow these strategies for 6-12 months to see 50-100 point improvement';
+                }
+                
+                actionsPerformed.push({
+                  type: 'credit_improvement_analyzed',
+                  data: {
+                    currentScore,
+                    priorityAction: priorityAction || 'Maintain Current Habits',
+                    strategies,
+                    scoreAdvice,
+                    timelineMonths: missedPayments ? 12 : 6
+                  }
+                });
+              } else if (toolCall.name === 'calculate_rent_affordability') {
+                // Calculate rent affordability using 30% rule
+                const { monthlyIncome, otherDebts = 0, desiredLocation } = toolCall.arguments;
+                
+                // 30% rule: rent should be max 30% of gross income
+                const thirtyPercentRule = monthlyIncome * 0.30;
+                
+                // Adjusted for debt: 30% of (income - debt)
+                const adjustedIncome = monthlyIncome - otherDebts;
+                const adjustedMax = adjustedIncome * 0.30;
+                
+                // 50/30/20 rule: rent is part of 50% needs
+                const fiftyThirtyTwentyMax = monthlyIncome * 0.50;
+                
+                // Conservative recommendation (lower of two methods)
+                const recommendedMax = Math.min(thirtyPercentRule, adjustedMax);
+                const comfortableRange = {
+                  min: recommendedMax * 0.75,
+                  max: recommendedMax
+                };
+                
+                // Calculate remaining budget after rent
+                const afterRent = monthlyIncome - recommendedMax - otherDebts;
+                const monthlySavings = monthlyIncome * 0.20;
+                const discretionary = monthlyIncome * 0.30;
+                const remainingForNeeds = fiftyThirtyTwentyMax - recommendedMax - otherDebts;
+                
+                actionsPerformed.push({
+                  type: 'rent_affordability_calculated',
+                  data: {
+                    monthlyIncome,
+                    otherDebts,
+                    recommendedMax: Math.round(recommendedMax),
+                    comfortableRange: {
+                      min: Math.round(comfortableRange.min),
+                      max: Math.round(comfortableRange.max)
+                    },
+                    budgetBreakdown: {
+                      rent: Math.round(recommendedMax),
+                      otherNeeds: Math.round(remainingForNeeds),
+                      discretionary: Math.round(discretionary),
+                      savings: Math.round(monthlySavings)
+                    },
+                    desiredLocation,
+                    percentageOfIncome: Math.round((recommendedMax / monthlyIncome) * 100)
+                  }
+                });
+              } else if (toolCall.name === 'calculate_mortgage_payment') {
+                // Calculate mortgage payment with PITI breakdown
+                const { 
+                  homePrice, 
+                  downPayment, 
+                  interestRate, 
+                  loanTermYears,
+                  propertyTaxRate = 1.2,
+                  insuranceAnnual = 1200
+                } = toolCall.arguments;
+                
+                const loanAmount = homePrice - downPayment;
+                const monthlyRate = (interestRate / 100) / 12;
+                const numPayments = loanTermYears * 12;
+                
+                // Monthly mortgage payment (principal + interest)
+                const monthlyPI = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                                  (Math.pow(1 + monthlyRate, numPayments) - 1);
+                
+                // Property tax (monthly)
+                const monthlyTax = (homePrice * (propertyTaxRate / 100)) / 12;
+                
+                // Insurance (monthly)
+                const monthlyInsurance = insuranceAnnual / 12;
+                
+                // PMI if down payment < 20%
+                const downPaymentPercent = (downPayment / homePrice) * 100;
+                const needsPMI = downPaymentPercent < 20;
+                const monthlyPMI = needsPMI ? (loanAmount * 0.005) / 12 : 0; // 0.5% annual PMI
+                
+                // Total monthly payment (PITI + PMI)
+                const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI;
+                
+                // Total cost over lifetime
+                const totalPaid = (monthlyPI * numPayments) + (monthlyTax * numPayments) + (monthlyInsurance * numPayments);
+                const totalInterest = (monthlyPI * numPayments) - loanAmount;
+                
+                actionsPerformed.push({
+                  type: 'mortgage_calculated',
+                  data: {
+                    homePrice,
+                    downPayment,
+                    downPaymentPercent: Math.round(downPaymentPercent),
+                    loanAmount,
+                    interestRate,
+                    loanTermYears,
+                    monthlyPayment: {
+                      principalInterest: Math.round(monthlyPI),
+                      propertyTax: Math.round(monthlyTax),
+                      insurance: Math.round(monthlyInsurance),
+                      pmi: Math.round(monthlyPMI),
+                      total: Math.round(totalMonthly)
+                    },
+                    lifetimeCost: {
+                      totalPaid: Math.round(totalPaid),
+                      totalInterest: Math.round(totalInterest),
+                      totalPrincipal: Math.round(loanAmount)
+                    },
+                    needsPMI,
+                    amountToAvoidPMI: needsPMI ? Math.round(homePrice * 0.20 - downPayment) : 0
+                  }
+                });
+              } else if (toolCall.name === 'optimize_tax_strategy') {
+                // Analyze tax optimization opportunities
+                const {
+                  annualIncome,
+                  filingStatus,
+                  hasRetirementAccount = false,
+                  currentRetirementContribution = 0,
+                  hasInvestments = false
+                } = toolCall.arguments;
+                
+                // 2024 tax brackets (simplified)
+                const brackets: Record<string, any> = {
+                  'single': [
+                    { limit: 11600, rate: 10 },
+                    { limit: 47150, rate: 12 },
+                    { limit: 100525, rate: 22 },
+                    { limit: 191950, rate: 24 },
+                    { limit: 243725, rate: 32 },
+                    { limit: 609350, rate: 35 },
+                    { limit: Infinity, rate: 37 }
+                  ],
+                  'married_joint': [
+                    { limit: 23200, rate: 10 },
+                    { limit: 94300, rate: 12 },
+                    { limit: 201050, rate: 22 },
+                    { limit: 383900, rate: 24 },
+                    { limit: 487450, rate: 32 },
+                    { limit: 731200, rate: 35 },
+                    { limit: Infinity, rate: 37 }
+                  ]
+                };
+                
+                const taxBrackets = brackets[filingStatus] || brackets['single'];
+                const standardDeduction = filingStatus === 'married_joint' ? 27700 : 13850;
+                
+                // Calculate current tax
+                const taxableIncome = Math.max(0, annualIncome - standardDeduction);
+                let currentTax = 0;
+                let remainingIncome = taxableIncome;
+                
+                for (const bracket of taxBrackets) {
+                  const previousLimit = taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0;
+                  const incomeInBracket = Math.min(remainingIncome, bracket.limit - previousLimit);
+                  currentTax += incomeInBracket * (bracket.rate / 100);
+                  remainingIncome -= incomeInBracket;
+                  if (remainingIncome <= 0) break;
+                }
+                
+                const effectiveTaxRate = (currentTax / annualIncome) * 100;
+                
+                // Retirement account optimization
+                const retirementLimit = filingStatus === 'married_joint' ? 46000 : 23000; // 401k + IRA limits
+                const retirementOpportunity = hasRetirementAccount 
+                  ? Math.min(retirementLimit - currentRetirementContribution, annualIncome * 0.20)
+                  : Math.min(retirementLimit, annualIncome * 0.15);
+                const retirementTaxSavings = retirementOpportunity * (effectiveTaxRate / 100);
+                
+                // Generate strategies
+                const strategies: string[] = [];
+                
+                if (!hasRetirementAccount || currentRetirementContribution < 6000) {
+                  strategies.push(`MAX OUT Roth IRA ($7,000/year) - Tax-free growth forever! Saves $${Math.round(7000 * 0.22)} in future taxes`);
+                }
+                
+                if (currentRetirementContribution < retirementLimit * 0.5) {
+                  strategies.push(`Increase 401(k) to $${Math.round(retirementOpportunity)} - Immediate $${Math.round(retirementTaxSavings)} tax deduction!`);
+                }
+                
+                if (hasInvestments) {
+                  strategies.push('Tax-Loss Harvesting: Sell losing investments to offset gains - can save 15-20% on capital gains');
+                  strategies.push('Hold investments 1+ year for long-term capital gains (15% vs 22-37% short-term)');
+                }
+                
+                strategies.push(`HSA Triple Tax Advantage: Contribute $4,150 (single) or $8,300 (family) - Deductible, grows tax-free, withdraws tax-free for medical`);
+                strategies.push('Bunch deductions: Prepay property tax + extra charity in one year to exceed standard deduction');
+                
+                if (annualIncome > 200000) {
+                  strategies.push('Backdoor Roth IRA: Max traditional IRA → convert to Roth for high earners (over income limits)');
+                }
+                
+                actionsPerformed.push({
+                  type: 'tax_optimization_analyzed',
+                  data: {
+                    annualIncome,
+                    filingStatus,
+                    currentTax: Math.round(currentTax),
+                    effectiveTaxRate: effectiveTaxRate.toFixed(1),
+                    standardDeduction,
+                    retirementOptimization: {
+                      currentContribution: currentRetirementContribution,
+                      recommendedIncrease: Math.round(retirementOpportunity),
+                      taxSavings: Math.round(retirementTaxSavings),
+                      annualLimit: retirementLimit
+                    },
+                    strategies,
+                    potentialSavings: Math.round(retirementTaxSavings + (hasInvestments ? annualIncome * 0.02 : 0))
+                  }
+                });
               } else if (toolCall.name === 'save_financial_estimates') {
                 // Smart validation and parsing of financial estimates
                 const estimates: any = {};
@@ -3235,6 +3550,69 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 `If any of these need correction, just let me know!`;
             } else if (action.type === 'financial_estimates_saved') {
               return `✅ **Financial Data Saved**\n\nI've securely saved your financial information and will use it to provide personalized advice!`;
+            } else if (action.type === 'emergency_fund_calculated') {
+              const data = action.data;
+              return `🛡️ **Emergency Fund Analysis**\n\n` +
+                `Based on your situation (${data.incomeStability} income${data.dependents > 0 ? `, ${data.dependents} dependent${data.dependents > 1 ? 's' : ''}` : ''}${!data.hasInsurance ? ', no insurance' : ''}):\n\n` +
+                `• **Recommended Target**: $${data.targetAmount.toLocaleString()} (${data.recommendedMonths} months of expenses)\n` +
+                `• **Minimum**: $${data.minAmount.toLocaleString()} (3 months)\n` +
+                `• **Optimal**: $${data.maxAmount.toLocaleString()} (6 months)\n\n` +
+                `💡 **Why ${data.recommendedMonths} months?** Your income stability and dependents determine the right safety net. This gives you ${data.recommendedMonths} months to find new income if needed!`;
+            } else if (action.type === 'credit_improvement_analyzed') {
+              const data = action.data;
+              return `📈 **Credit Score Improvement Plan**\n\n` +
+                (data.currentScore ? `Current Score: ${data.currentScore}\n` : '') +
+                `**Priority Focus**: ${data.priorityAction}\n\n` +
+                `**Action Steps (${data.timelineMonths}-month plan)**:\n\n` +
+                data.strategies.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n\n') + `\n\n` +
+                `🎯 **${data.scoreAdvice}**`;
+            } else if (action.type === 'rent_affordability_calculated') {
+              const data = action.data;
+              return `🏠 **Rent Affordability Analysis**\n\n` +
+                `Based on your $${data.monthlyIncome.toLocaleString()}/month income:\n\n` +
+                `• **Recommended Rent Range**: $${data.comfortableRange.min.toLocaleString()} - $${data.comfortableRange.max.toLocaleString()}/month (${data.percentageOfIncome}% of income)\n` +
+                `• **Maximum Comfortable**: $${data.recommendedMax.toLocaleString()}/month\n\n` +
+                `**Your 50/30/20 Budget Breakdown:**\n` +
+                `• Rent & Essentials (50%): $${data.budgetBreakdown.rent.toLocaleString()} + $${data.budgetBreakdown.otherNeeds.toLocaleString()}\n` +
+                `• Wants (30%): $${data.budgetBreakdown.discretionary.toLocaleString()}\n` +
+                `• Savings (20%): $${data.budgetBreakdown.savings.toLocaleString()}\n\n` +
+                (data.desiredLocation ? `For ${data.desiredLocation}: Check that average rents fit in your $${data.comfortableRange.min.toLocaleString()}-$${data.comfortableRange.max.toLocaleString()} range!\n\n` : '') +
+                `💡 **30% Rule**: Never spend more than 30% of gross income on rent - keeps your budget balanced!`;
+            } else if (action.type === 'mortgage_calculated') {
+              const data = action.data;
+              return `🏡 **Mortgage Payment Calculator**\n\n` +
+                `**Home Purchase**: $${data.homePrice.toLocaleString()}\n` +
+                `Down Payment: $${data.downPayment.toLocaleString()} (${data.downPaymentPercent}%)\n` +
+                `Loan Amount: $${data.loanAmount.toLocaleString()} @ ${data.interestRate}% for ${data.loanTermYears} years\n\n` +
+                `**Monthly Payment Breakdown (PITI${data.needsPMI ? ' + PMI' : ''}):**\n` +
+                `• Principal & Interest: $${data.monthlyPayment.principalInterest.toLocaleString()}\n` +
+                `• Property Tax: $${data.monthlyPayment.propertyTax.toLocaleString()}\n` +
+                `• Insurance: $${data.monthlyPayment.insurance.toLocaleString()}\n` +
+                (data.needsPMI ? `• PMI: $${data.monthlyPayment.pmi.toLocaleString()}\n` : '') +
+                `• **TOTAL: $${data.monthlyPayment.total.toLocaleString()}/month**\n\n` +
+                `**Lifetime Cost Analysis:**\n` +
+                `• Total Interest: $${data.lifetimeCost.totalInterest.toLocaleString()}\n` +
+                `• Total Paid: $${data.lifetimeCost.totalPaid.toLocaleString()} over ${data.loanTermYears} years\n\n` +
+                (data.needsPMI ? `⚠️ **PMI Alert**: Put down $${data.amountToAvoidPMI.toLocaleString()} more to avoid PMI and save $${data.monthlyPayment.pmi.toLocaleString()}/month!\n\n` : '') +
+                `💡 **Pro tip**: 15-year mortgage costs less total interest but has higher monthly payments. Run both scenarios to compare!`;
+            } else if (action.type === 'tax_optimization_analyzed') {
+              const data = action.data;
+              return `📊 **Tax Optimization Analysis**\n\n` +
+                `**Your Current Tax Situation:**\n` +
+                `• Annual Income: $${data.annualIncome.toLocaleString()}\n` +
+                `• Filing Status: ${data.filingStatus.replace('_', ' ')}\n` +
+                `• Current Tax: $${data.currentTax.toLocaleString()}\n` +
+                `• Effective Rate: ${data.effectiveTaxRate}%\n` +
+                `• Standard Deduction: $${data.standardDeduction.toLocaleString()}\n\n` +
+                `**Retirement Account Optimization:**\n` +
+                `• Current Contribution: $${data.retirementOptimization.currentContribution.toLocaleString()}/year\n` +
+                `• Recommended Increase: $${data.retirementOptimization.recommendedIncrease.toLocaleString()}/year\n` +
+                `• **Immediate Tax Savings**: $${data.retirementOptimization.taxSavings.toLocaleString()}\n` +
+                `• Annual Limit: $${data.retirementOptimization.annualLimit.toLocaleString()}\n\n` +
+                `**Top Tax Optimization Strategies:**\n\n` +
+                data.strategies.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n\n') + `\n\n` +
+                `💰 **Total Potential Savings**: $${data.potentialSavings.toLocaleString()}/year\n\n` +
+                `💡 **Best move**: Max tax-advantaged accounts first - it's the closest thing to a guaranteed return!`;
             }
             return '';
           }).filter(Boolean).join('\n\n');

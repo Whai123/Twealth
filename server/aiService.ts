@@ -738,6 +738,161 @@ const TOOLS = [
         required: ["currentMonthlyIncome", "currentMonthlyExpenses", "financialGoals"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_emergency_fund",
+      description: "Calculate the ideal emergency fund size based on monthly expenses, income stability, and life situation. Provides detailed breakdown of 3-6 months of expenses, risk-adjusted recommendations, and actionable savings plan. Use when user asks 'How much should I keep in my emergency fund?' or mentions emergency savings.",
+      parameters: {
+        type: "object",
+        properties: {
+          monthlyExpenses: {
+            type: "number",
+            description: "User's monthly expenses in dollars"
+          },
+          incomeStability: {
+            type: "string",
+            enum: ["very_stable", "stable", "variable", "unstable"],
+            description: "Income stability level. very_stable = salaried government/corporate, stable = salaried private sector, variable = freelance/commission, unstable = gig economy/seasonal"
+          },
+          dependents: {
+            type: "number",
+            description: "Number of financial dependents (children, elderly parents, etc.)"
+          },
+          hasInsurance: {
+            type: "boolean",
+            description: "Whether user has health/disability insurance"
+          }
+        },
+        required: ["monthlyExpenses", "incomeStability"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "credit_score_improvement_plan",
+      description: "Provide personalized credit score improvement strategies based on user's current situation. Covers payment history optimization, credit utilization tips, length of credit history, credit mix, and new credit inquiries. Use when user asks 'How can I increase my credit score?' or mentions credit building.",
+      parameters: {
+        type: "object",
+        properties: {
+          currentScore: {
+            type: "number",
+            description: "Current credit score (300-850 range). Optional - if unknown, provide general advice."
+          },
+          hasDebt: {
+            type: "boolean",
+            description: "Whether user has outstanding debt"
+          },
+          missedPayments: {
+            type: "boolean",
+            description: "Whether user has history of missed payments"
+          },
+          creditUtilization: {
+            type: "number",
+            description: "Credit utilization percentage (0-100). Optional."
+          }
+        },
+        required: []
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_rent_affordability",
+      description: "Calculate how much user can afford to spend on rent using the 30% rule and 50/30/20 budget framework. Provides recommended rent range, breakdown of remaining budget for other expenses, and location-based affordability insights. Use when user asks 'How much should I spend on rent?' or mentions apartment hunting.",
+      parameters: {
+        type: "object",
+        properties: {
+          monthlyIncome: {
+            type: "number",
+            description: "User's monthly gross income in dollars"
+          },
+          otherDebts: {
+            type: "number",
+            description: "Other monthly debt obligations (car, student loans, credit cards) in dollars. Optional."
+          },
+          desiredLocation: {
+            type: "string",
+            description: "City or area user wants to live in. Optional - used for context only."
+          }
+        },
+        required: ["monthlyIncome"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_mortgage_payment",
+      description: "Calculate monthly mortgage payment with detailed amortization breakdown. Includes principal, interest, estimated property tax, insurance (PITI), PMI if applicable, and total cost analysis over loan lifetime. Use when user asks about home buying, mortgage affordability, or 'How much house can I afford?'",
+      parameters: {
+        type: "object",
+        properties: {
+          homePrice: {
+            type: "number",
+            description: "Purchase price of the home in dollars"
+          },
+          downPayment: {
+            type: "number",
+            description: "Down payment amount in dollars"
+          },
+          interestRate: {
+            type: "number",
+            description: "Annual interest rate as a percentage (e.g., 6.5 for 6.5%)"
+          },
+          loanTermYears: {
+            type: "number",
+            description: "Loan term in years (typically 15 or 30)"
+          },
+          propertyTaxRate: {
+            type: "number",
+            description: "Annual property tax rate as percentage of home value (e.g., 1.2 for 1.2%). Optional, defaults to 1.2%"
+          },
+          insuranceAnnual: {
+            type: "number",
+            description: "Annual homeowners insurance cost in dollars. Optional, defaults to $1200"
+          }
+        },
+        required: ["homePrice", "downPayment", "interestRate", "loanTermYears"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "optimize_tax_strategy",
+      description: "Analyze user's tax situation and provide optimization strategies including retirement account contributions, tax-loss harvesting opportunities, deduction maximization, and tax-efficient investment allocation. Use when user asks about taxes, deductions, or 'How can I reduce my tax bill?'",
+      parameters: {
+        type: "object",
+        properties: {
+          annualIncome: {
+            type: "number",
+            description: "Annual gross income in dollars"
+          },
+          filingStatus: {
+            type: "string",
+            enum: ["single", "married_joint", "married_separate", "head_of_household"],
+            description: "Tax filing status"
+          },
+          hasRetirementAccount: {
+            type: "boolean",
+            description: "Whether user contributes to 401k/IRA"
+          },
+          currentRetirementContribution: {
+            type: "number",
+            description: "Annual retirement contribution amount in dollars. Optional."
+          },
+          hasInvestments: {
+            type: "boolean",
+            description: "Whether user has taxable investment accounts"
+          }
+        },
+        required: ["annualIncome", "filingStatus"]
+      }
+    }
   }
 ];
 
