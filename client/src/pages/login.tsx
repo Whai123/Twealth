@@ -3,8 +3,9 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Wallet, ArrowRight, Shield, TrendingUp, Target } from "lucide-react";
-import { SiGoogle, SiFacebook } from "react-icons/si";
+import { ArrowRight, Shield, TrendingUp, Target } from "lucide-react";
+import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
+import logoUrl from "@assets/5-removebg-preview_1761660874225.png";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -31,6 +32,15 @@ export default function Login() {
     window.location.href = "/api/auth/facebook";
   };
 
+  const handleAppleLogin = () => {
+    // Apple Sign In uses POST method
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/api/auth/apple';
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 dark:from-background dark:via-background dark:to-primary/10 flex items-center justify-center p-4">
       {/* Background decoration */}
@@ -42,8 +52,12 @@ export default function Login() {
       <div className="relative w-full max-w-md">
         {/* Logo and Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mb-4 shadow-lg shadow-primary/25">
-            <Wallet className="w-8 h-8 text-primary-foreground" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img 
+              src={logoUrl} 
+              alt="Twealth Logo" 
+              className="w-20 h-20 object-contain"
+            />
           </div>
           <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Twealth
@@ -74,6 +88,16 @@ export default function Login() {
               >
                 <SiGoogle className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform" />
                 Continue with Google
+              </Button>
+
+              <Button
+                onClick={handleAppleLogin}
+                variant="outline"
+                className="w-full h-12 text-base font-medium hover:bg-accent hover:border-primary/20 transition-all duration-200 group"
+                data-testid="button-apple-login"
+              >
+                <SiApple className="mr-3 h-5 w-5 group-hover:scale-110 transition-transform" />
+                Continue with Apple
               </Button>
 
               <Button

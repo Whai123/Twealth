@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
+import { Strategy as AppleStrategy } from "passport-apple";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
@@ -151,6 +152,60 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   );
 }
 
+// Apple Sign In Strategy
+if (process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
+  passport.use(
+    new AppleStrategy(
+      {
+        clientID: process.env.APPLE_SERVICE_ID,
+        teamID: process.env.APPLE_TEAM_ID,
+        keyID: process.env.APPLE_KEY_ID,
+        privateKeyString: process.env.APPLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        callbackURL: `${BACKEND_URL}/api/auth/apple/callback`,
+        scope: ['email', 'name'],
+        passReqToCallback: false,
+      },
+      async (accessToken: string, refreshToken: string, idToken: any, profile: any, done: any) => {
+        try {
+          // Apple provides email only on first sign in
+          const email = idToken.email || profile.email;
+          const firstName = profile.name?.firstName || '';
+          const lastName = profile.name?.lastName || '';
+
+          if (!email) {
+            return done(new Error('No email found in Apple profile'));
+          }
+
+          // Upsert user in database
+          const user = await storage.upsertUser({
+            id: `apple_${profile.id || idToken.sub}`,
+            email,
+            firstName,
+            lastName,
+            profileImageUrl: null,
+          });
+
+          // Initialize subscription if new user
+          const subscription = await storage.getUserSubscription(user.id);
+          if (!subscription) {
+            await storage.initializeDefaultSubscription(user.id);
+          }
+
+          return done(null, {
+            userId: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            profileImageUrl: user.profileImageUrl,
+          });
+        } catch (error) {
+          return done(error as Error);
+        }
+      }
+    )
+  );
+}
+
 // Serialize/deserialize user for session
 passport.serializeUser((user: any, done) => {
   done(null, user);
@@ -206,6 +261,23 @@ export function setupAuth(app: Express) {
     app.get(
       "/api/auth/facebook/callback",
       passport.authenticate("facebook", { failureRedirect: "/login" }),
+      (req, res) => {
+        // Successful authentication, redirect to dashboard
+        res.redirect("/");
+      }
+    );
+  }
+
+  // Apple Sign In routes
+  if (process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
+    app.post(
+      "/api/auth/apple",
+      passport.authenticate("apple")
+    );
+
+    app.post(
+      "/api/auth/apple/callback",
+      passport.authenticate("apple", { failureRedirect: "/login" }),
       (req, res) => {
         // Successful authentication, redirect to dashboard
         res.redirect("/");
