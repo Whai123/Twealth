@@ -11,7 +11,10 @@ if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
-const FRONTEND_URL = `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`;
+// Use custom domain (twealth.ltd) if available, otherwise use first domain
+const domains = process.env.REPLIT_DOMAINS.split(',');
+const customDomain = domains.find(d => d === 'twealth.ltd') || domains[0];
+const FRONTEND_URL = `https://${customDomain}`;
 const BACKEND_URL = FRONTEND_URL; // Same domain setup
 
 export function getSession() {
