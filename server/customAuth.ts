@@ -11,11 +11,15 @@ if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
-// Use custom domain (twealth.ltd) if available, otherwise use first domain
+// Use production domain for OAuth (twealth.ltd)
+// For development, can fall back to REPLIT_DOMAINS if needed
+const PRODUCTION_DOMAIN = 'twealth.ltd';
 const domains = process.env.REPLIT_DOMAINS.split(',');
-const customDomain = domains.find(d => d === 'twealth.ltd') || domains[0];
+const customDomain = PRODUCTION_DOMAIN; // Always use production domain for OAuth
+console.log('[OAuth] Using domain for callbacks:', customDomain);
 const FRONTEND_URL = `https://${customDomain}`;
 const BACKEND_URL = FRONTEND_URL; // Same domain setup
+console.log('[OAuth] Google callback URL:', `${BACKEND_URL}/api/auth/google/callback`);
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
