@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
 import logoUrl from "@assets/5-removebg-preview_1761660874225.png";
@@ -61,13 +60,17 @@ export default function Login() {
         </div>
 
         {/* Login Card */}
-        <Card className="border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <div 
+          className="rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900"
+          style={{ transition: 'none', transform: 'none' }}
+        >
           <div className="p-8 space-y-4">
             {/* Social Login Buttons */}
             <Button
               onClick={handleGoogleLogin}
               variant="outline"
               className="w-full h-12 font-medium border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white"
+              style={{ transition: 'none', transform: 'none' }}
               data-testid="button-google-login"
             >
               <SiGoogle className="mr-3 h-4 w-4" />
@@ -78,6 +81,7 @@ export default function Login() {
               onClick={handleAppleLogin}
               variant="outline"
               className="w-full h-12 font-medium border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white"
+              style={{ transition: 'none', transform: 'none' }}
               data-testid="button-apple-login"
             >
               <SiApple className="mr-3 h-4 w-4" />
@@ -88,6 +92,7 @@ export default function Login() {
               onClick={handleFacebookLogin}
               variant="outline"
               className="w-full h-12 font-medium border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white"
+              style={{ transition: 'none', transform: 'none' }}
               data-testid="button-facebook-login"
             >
               <SiFacebook className="mr-3 h-4 w-4 text-[#1877F2]" />
@@ -118,7 +123,7 @@ export default function Login() {
               </p>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 space-y-6">
