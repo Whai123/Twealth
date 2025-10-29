@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { CheckCircle2, X, Zap, Crown, Sparkles, TrendingUp, MessageCircle, Target, Users, Bitcoin } from "lucide-react";
+import { Check, X, Shield } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 interface Plan {
   id: string;
@@ -29,8 +28,8 @@ export default function Pricing() {
 
   const freePlan = plans.find(p => p.name === "Free") || {
     name: "Free",
-    displayName: "Free Plan",
-    description: "Get started with basic features",
+    displayName: "Free",
+    description: "Essential features to get started",
     priceUsd: "0",
     billingInterval: "forever",
     aiChatLimit: 10,
@@ -40,10 +39,10 @@ export default function Pricing() {
 
   const proPlan = plans.find(p => p.name === "Pro") || {
     name: "Pro",
-    displayName: "Twealth Pro",
-    description: "CFO-level AI advisor - 500 chats/month + all features",
+    displayName: "Pro",
+    description: "Complete financial management platform",
     priceUsd: "25.00",
-    billingInterval: "monthly",
+    billingInterval: "month",
     aiChatLimit: 500,
     aiDeepAnalysisLimit: 500,
     features: ["full_tracking", "ai_chat_unlimited", "advanced_goals", "group_planning", "crypto_tracking", "advanced_analytics", "priority_insights", "all_features"]
@@ -51,350 +50,311 @@ export default function Pricing() {
 
   const currentPlan = (currentSubscription as any)?.subscription?.planName || "Free";
 
-  const featureComparison = [
-    {
-      category: "AI Financial Advisor",
-      icon: MessageCircle,
-      features: [
-        {
-          name: "AI Chat Messages",
-          free: "10/month",
-          pro: "500/month",
-          proHighlight: true
-        },
-        {
-          name: "CFO-Level Advice",
-          free: true,
-          pro: true
-        },
-        {
-          name: "Luxury Asset Analysis",
-          free: "Basic",
-          pro: "Advanced + 150+ assets",
-          proHighlight: true
-        },
-        {
-          name: "Multi-Language Support",
-          free: "11 languages",
-          pro: "11 languages"
-        },
-        {
-          name: "Real-Time Market Data",
-          free: false,
-          pro: true,
-          proHighlight: true
-        }
-      ]
-    },
-    {
-      category: "Financial Tracking",
-      icon: TrendingUp,
-      features: [
-        {
-          name: "Income & Expense Tracking",
-          free: true,
-          pro: true
-        },
-        {
-          name: "Transaction History",
-          free: "30 days",
-          pro: "Unlimited",
-          proHighlight: true
-        },
-        {
-          name: "Financial Goals",
-          free: "3 goals",
-          pro: "Unlimited",
-          proHighlight: true
-        },
-        {
-          name: "Smart Budget Insights",
-          free: true,
-          pro: true
-        },
-        {
-          name: "Spending Pattern Detection",
-          free: "Basic",
-          pro: "Advanced AI Analysis",
-          proHighlight: true
-        }
-      ]
-    },
-    {
-      category: "Advanced Features",
-      icon: Sparkles,
-      features: [
-        {
-          name: "Crypto Portfolio Tracking",
-          free: false,
-          pro: true,
-          proHighlight: true
-        },
-        {
-          name: "Group Financial Planning",
-          free: false,
-          pro: true,
-          proHighlight: true
-        },
-        {
-          name: "Calendar Integration",
-          free: "Basic",
-          pro: "Full sync",
-          proHighlight: true
-        },
-        {
-          name: "Export & Reports",
-          free: false,
-          pro: true,
-          proHighlight: true
-        },
-        {
-          name: "Priority Support",
-          free: false,
-          pro: true,
-          proHighlight: true
-        }
-      ]
-    }
+  const features = [
+    { name: "AI Financial Advisor", free: "10 chats/month", pro: "500 chats/month" },
+    { name: "Transaction tracking", free: true, pro: true },
+    { name: "Financial goals", free: "3 goals", pro: "Unlimited" },
+    { name: "Budget insights", free: true, pro: true },
+    { name: "Transaction history", free: "30 days", pro: "Unlimited" },
+    { name: "Crypto tracking", free: false, pro: true },
+    { name: "Group planning", free: false, pro: true },
+    { name: "Advanced analytics", free: false, pro: true },
+    { name: "Market data", free: false, pro: true },
+    { name: "Export & reports", free: false, pro: true },
+    { name: "Priority support", free: false, pro: true },
   ];
 
-  const CheckIcon = () => (
-    <CheckCircle2 className="w-5 h-5 text-green-500" />
-  );
-
-  const XIcon = () => (
-    <X className="w-5 h-5 text-gray-300" />
-  );
-
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white dark:bg-black">
       {/* Header */}
-      <div className="text-center mb-12">
-        <Badge variant="secondary" className="mb-4">
-          <Sparkles className="w-3 h-3 mr-1" />
-          Pricing Plans
-        </Badge>
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Choose Your Plan
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Get CFO-level financial advice at a fraction of the cost. Start free, upgrade when you need more power.
-        </p>
-      </div>
+      <header className="border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
+          <Link href="/">
+            <a className="flex items-center gap-3">
+              <img src={logoUrl} alt="Twealth" className="w-8 h-8" />
+              <span className="text-xl font-semibold text-black dark:text-white">Twealth</span>
+            </a>
+          </Link>
+          <Link href="/dashboard">
+            <Button variant="ghost" className="text-sm font-medium">
+              Dashboard
+            </Button>
+          </Link>
+        </div>
+      </header>
 
-      {/* Plan Cards */}
-      <div className="grid md:grid-cols-2 gap-8 mb-16 max-w-5xl mx-auto">
-        {/* Free Plan */}
-        <Card className="relative">
-          <CardHeader>
-            <div className="mb-4">
-              <Zap className="w-10 h-10 text-blue-500 mb-2" />
-            </div>
-            <CardTitle className="text-2xl">{freePlan.displayName}</CardTitle>
-            <CardDescription className="text-base">{freePlan.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6">
-              <div className="text-4xl font-bold mb-2">
-                ${freePlan.priceUsd}
-                <span className="text-lg font-normal text-muted-foreground ml-2">
+      {/* Hero */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-12 text-center">
+        <h1 className="text-5xl font-semibold tracking-tight text-black dark:text-white mb-4">
+          Simple, transparent pricing
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Choose the plan that works for you. Free to start, upgrade anytime.
+        </p>
+      </section>
+
+      {/* Pricing Cards */}
+      <section className="max-w-5xl mx-auto px-6 lg:px-8 pb-20">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Free Plan */}
+          <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-8">
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-black dark:text-white mb-2">
+                {freePlan.displayName}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {freePlan.description}
+              </p>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-5xl font-semibold text-black dark:text-white">
+                  ${freePlan.priceUsd}
+                </span>
+                <span className="text-gray-600 dark:text-gray-400">
                   /{freePlan.billingInterval}
                 </span>
               </div>
+              <Button
+                variant={currentPlan === "Free" ? "outline" : "default"}
+                className="w-full h-12 font-medium"
+                disabled={currentPlan === "Free"}
+                data-testid="button-free-plan"
+              >
+                {currentPlan === "Free" ? "Current plan" : "Get started"}
+              </Button>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm">10 AI chats per month</span>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">10 AI chats per month</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm">Basic financial tracking</span>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Up to 3 financial goals</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm">Up to 3 financial goals</span>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">30-day transaction history</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm">11 language support</span>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Basic financial tracking</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm">Mobile-first design</span>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">11 language support</span>
               </div>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              variant={currentPlan === "Free" ? "outline" : "default"}
-              className="w-full"
-              disabled={currentPlan === "Free"}
-              data-testid="button-free-plan"
-            >
-              {currentPlan === "Free" ? "Current Plan" : "Downgrade to Free"}
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Pro Plan */}
-        <Card className="relative border-2 border-purple-500 shadow-xl">
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-            <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1">
-              <Crown className="w-3 h-3 mr-1" />
-              Most Popular
-            </Badge>
           </div>
-          <CardHeader>
-            <div className="mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-2">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
+
+          {/* Pro Plan */}
+          <div className="border-2 border-black dark:border-white rounded-lg p-8 relative">
+            <div className="absolute top-0 right-8 -translate-y-1/2">
+              <span className="bg-black dark:bg-white text-white dark:text-black text-xs font-semibold px-3 py-1 rounded-full">
+                Popular
+              </span>
             </div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {proPlan.displayName}
-            </CardTitle>
-            <CardDescription className="text-base">{proPlan.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-6">
-              <div className="text-4xl font-bold mb-2">
-                ${proPlan.priceUsd}
-                <span className="text-lg font-normal text-muted-foreground ml-2">
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-black dark:text-white mb-2">
+                {proPlan.displayName}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {proPlan.description}
+              </p>
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-5xl font-semibold text-black dark:text-white">
+                  ${proPlan.priceUsd}
+                </span>
+                <span className="text-gray-600 dark:text-gray-400">
                   /{proPlan.billingInterval}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Compare: Real CFO costs $150/hour = $12,000/month
+              <Link href="/upgrade" className="block">
+                <Button
+                  className="w-full h-12 font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
+                  disabled={currentPlan === "Pro"}
+                  data-testid="button-pro-plan"
+                >
+                  {currentPlan === "Pro" ? "Current plan" : "Upgrade to Pro"}
+                </Button>
+              </Link>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">500 AI chats per month</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Unlimited financial goals</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Unlimited transaction history</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Crypto portfolio tracking</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Group financial planning</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Advanced analytics & reports</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Real-time market data</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Check className="w-4 h-4 text-black dark:text-white flex-shrink-0" />
+                <span className="text-gray-600 dark:text-gray-400">Priority support</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Comparison */}
+      <section className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-20">
+          <h2 className="text-3xl font-semibold text-black dark:text-white mb-12 text-center">
+            Compare plans
+          </h2>
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="border-b border-gray-200 dark:border-gray-800">
+                <tr>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-black dark:text-white">
+                    Feature
+                  </th>
+                  <th className="text-center py-4 px-6 text-sm font-semibold text-black dark:text-white w-32">
+                    Free
+                  </th>
+                  <th className="text-center py-4 px-6 text-sm font-semibold text-black dark:text-white w-32">
+                    Pro
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {features.map((feature, idx) => (
+                  <tr key={idx} className="border-b border-gray-200 dark:border-gray-800 last:border-0">
+                    <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">
+                      {feature.name}
+                    </td>
+                    <td className="py-4 px-6 text-center text-sm">
+                      {typeof feature.free === 'boolean' ? (
+                        feature.free ? (
+                          <Check className="w-4 h-4 text-black dark:text-white mx-auto" />
+                        ) : (
+                          <X className="w-4 h-4 text-gray-300 dark:text-gray-700 mx-auto" />
+                        )
+                      ) : (
+                        <span className="text-gray-600 dark:text-gray-400">{feature.free}</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 text-center text-sm">
+                      {typeof feature.pro === 'boolean' ? (
+                        feature.pro ? (
+                          <Check className="w-4 h-4 text-black dark:text-white mx-auto" />
+                        ) : (
+                          <X className="w-4 h-4 text-gray-300 dark:text-gray-700 mx-auto" />
+                        )
+                      ) : (
+                        <span className="text-gray-600 dark:text-gray-400">{feature.pro}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Section */}
+      <section className="border-t border-gray-200 dark:border-gray-800">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-20 text-center">
+          <h2 className="text-3xl font-semibold text-black dark:text-white mb-12">
+            Trusted by thousands
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            <div>
+              <div className="text-black dark:text-white font-semibold mb-2">Enterprise security</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Bank-level encryption and security
               </p>
             </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm font-semibold">500 AI chats per month</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm font-semibold">Unlimited financial goals</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm font-semibold">Crypto portfolio tracking</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm font-semibold">Group financial planning</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm font-semibold">Advanced AI analysis</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckIcon />
-                <span className="text-sm font-semibold">Priority support</span>
-              </div>
+            <div>
+              <div className="text-black dark:text-white font-semibold mb-2">99.9% uptime</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Always available when you need it
+              </p>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Link href="/upgrade" className="w-full">
-              <Button
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold"
-                disabled={currentPlan === "Pro"}
-                data-testid="button-pro-plan"
-              >
-                {currentPlan === "Pro" ? "Current Plan" : "Upgrade to Pro"}
-                {currentPlan !== "Pro" && <Sparkles className="ml-2 w-4 h-4" />}
-              </Button>
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
-
-      {/* Detailed Feature Comparison */}
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">Full Feature Comparison</h2>
-        
-        <div className="space-y-8">
-          {featureComparison.map((category) => (
-            <Card key={category.category}>
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
-                    <category.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <CardTitle className="text-xl">{category.category}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-4 font-semibold">Feature</th>
-                        <th className="text-center py-3 px-4 font-semibold">Free</th>
-                        <th className="text-center py-3 px-4 font-semibold bg-purple-50 dark:bg-purple-950/20 rounded-t-lg">Pro</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {category.features.map((feature, idx) => (
-                        <tr 
-                          key={idx} 
-                          className={`border-b last:border-0 ${feature.proHighlight ? 'bg-purple-50/50 dark:bg-purple-950/10' : ''}`}
-                        >
-                          <td className="py-4 px-4 font-medium">{feature.name}</td>
-                          <td className="py-4 px-4 text-center">
-                            {typeof feature.free === 'boolean' ? (
-                              feature.free ? <CheckIcon /> : <XIcon />
-                            ) : (
-                              <span className="text-sm">{feature.free}</span>
-                            )}
-                          </td>
-                          <td className="py-4 px-4 text-center bg-purple-50 dark:bg-purple-950/20">
-                            {typeof feature.pro === 'boolean' ? (
-                              feature.pro ? <CheckIcon /> : <XIcon />
-                            ) : (
-                              <span className="text-sm font-semibold">{feature.pro}</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+            <div>
+              <div className="text-black dark:text-white font-semibold mb-2">24/7 support</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Help whenever you need it
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <Shield className="w-4 h-4" />
+            <span>SOC 2 Type II Certified</span>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* CTA Section */}
-      <div className="mt-16 text-center">
-        <Card className="max-w-3xl mx-auto bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 border-2">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold mb-4">Ready to upgrade your financial game?</h3>
-            <p className="text-muted-foreground mb-6">
-              Join thousands of users getting CFO-level financial advice for less than a single consultation.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/upgrade">
-                <Button 
-                  size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold"
-                  data-testid="button-upgrade-cta"
-                >
-                  <Crown className="mr-2 w-5 h-5" />
-                  Upgrade to Pro
-                </Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button size="lg" variant="outline" data-testid="button-dashboard">
-                  Start with Free
-                </Button>
-              </Link>
+      {/* Footer */}
+      <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Product</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Features</a></li>
+                <li><a href="/pricing" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Pricing</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Security</a></li>
+              </ul>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Company</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">About</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Blog</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Careers</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Resources</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Documentation</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Help Center</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Legal</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Privacy</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Terms</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <img src={logoUrl} alt="Twealth" className="w-6 h-6" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">© 2025 Twealth. All rights reserved.</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+              <Shield className="w-3 h-3" />
+              <span>SOC 2 Type II Certified</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Brain, Calendar, Target, TrendingUp, Zap, Shield, Users, BarChart3, Sparkles, ArrowRight } from "lucide-react";
-import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
+import { Shield, Check } from "lucide-react";
+import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -9,184 +8,167 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-white dark:bg-black">
+      {/* Clean Header */}
+      <header className="border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={logoUrl} alt="Twealth" className="w-8 h-8" />
+            <span className="text-xl font-semibold text-black dark:text-white">Twealth</span>
+          </div>
+          <Button 
+            onClick={handleLogin}
+            variant="ghost"
+            className="text-sm font-medium"
+            data-testid="header-signin-button"
+          >
+            Sign in
+          </Button>
+        </div>
+      </header>
+
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16 md:py-24">
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="inline-flex items-center justify-center mb-8 transform hover:scale-105 transition-transform duration-300" aria-label="Twealth Logo">
-            <img src={logoUrl} alt="Twealth Logo" className="w-24 h-24 md:w-32 md:h-32" />
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent leading-tight">
-            Transform Time Into Wealth
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed max-w-3xl mx-auto">
-            Your all-in-one platform for <span className="font-semibold text-blue-600 dark:text-blue-400">smart financial management</span>, 
-            schedule optimization, and <span className="font-semibold text-purple-600 dark:text-purple-400">AI-powered insights</span>
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <Button 
-              onClick={handleLogin} 
-              size="lg"
-              className="h-14 px-8 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              data-testid="hero-login-button"
-              aria-label="Get started with Twealth"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Get Started Free
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="h-14 px-8 text-lg font-semibold border-2"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-              aria-label="Learn more about features"
-            >
-              Learn More
-            </Button>
-          </div>
-          
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            <Shield className="w-4 h-4 text-green-500" />
-            Secure authentication • No credit card required
-          </p>
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-16 text-center">
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-tight text-black dark:text-white mb-6 max-w-4xl mx-auto leading-[1.1]">
+          Financial intelligence for modern life
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Professional financial management with AI-powered insights. Track spending, set goals, and get CFO-level advice.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <Button 
+            onClick={handleLogin} 
+            size="lg"
+            className="h-12 px-6 text-base font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
+            data-testid="hero-get-started-button"
+          >
+            Get started
+          </Button>
         </div>
-
-        {/* Features Grid */}
-        <div id="features" className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16 scroll-mt-20">
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-blue-200 dark:hover:border-blue-800" data-testid="feature-ai">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Brain className="w-6 h-6 text-white" aria-hidden="true" />
-              </div>
-              <CardTitle className="text-xl font-bold">AI Financial Advisor</CardTitle>
-              <CardDescription className="text-base">
-                Get personalized financial advice powered by advanced AI. Smart recommendations tailored to your goals and spending patterns.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-purple-200 dark:hover:border-purple-800" data-testid="feature-goals">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Target className="w-6 h-6 text-white" aria-hidden="true" />
-              </div>
-              <CardTitle className="text-xl font-bold">Smart Goal Tracking</CardTitle>
-              <CardDescription className="text-base">
-                Set financial goals and track progress automatically. Get AI-powered suggestions to achieve them faster.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-indigo-200 dark:hover:border-indigo-800" data-testid="feature-schedule">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="w-6 h-6 text-white" aria-hidden="true" />
-              </div>
-              <CardTitle className="text-xl font-bold">Schedule Management</CardTitle>
-              <CardDescription className="text-base">
-                Organize events, set reminders, and integrate with your calendar. Never miss a financial deadline.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-green-200 dark:hover:border-green-800" data-testid="feature-tracking">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp className="w-6 h-6 text-white" aria-hidden="true" />
-              </div>
-              <CardTitle className="text-xl font-bold">Money Tracking</CardTitle>
-              <CardDescription className="text-base">
-                Track income, expenses, and investments in real-time. Multi-currency support with live exchange rates.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-orange-200 dark:hover:border-orange-800" data-testid="feature-analytics">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <BarChart3 className="w-6 h-6 text-white" aria-hidden="true" />
-              </div>
-              <CardTitle className="text-xl font-bold">Financial Analytics</CardTitle>
-              <CardDescription className="text-base">
-                Visualize spending patterns, track budgets, and get insights into your financial health score.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-pink-200 dark:hover:border-pink-800" data-testid="feature-collaboration">
-            <CardHeader>
-              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <Users className="w-6 h-6 text-white" aria-hidden="true" />
-              </div>
-              <CardTitle className="text-xl font-bold">Team Collaboration</CardTitle>
-              <CardDescription className="text-base">
-                Create groups for family budgets or shared expenses. Collaborate on financial goals together.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <Shield className="w-4 h-4" />
+          <span>Enterprise-grade security • Free to start</span>
         </div>
+      </section>
 
-        {/* Stats Section */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 md:p-12 border-2 border-white/20 shadow-xl mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-            <div className="space-y-2" data-testid="stat-time-value">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Time = Money
-              </div>
-              <p className="text-muted-foreground text-lg">Track your time value and optimize earnings</p>
-            </div>
-            <div className="space-y-2" data-testid="stat-ai-powered">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                <Brain className="w-12 h-12 mx-auto mb-2 text-purple-600" />
-                AI-Powered
-              </div>
-              <p className="text-muted-foreground text-lg">Advanced AI for smarter financial decisions</p>
-            </div>
-            <div className="space-y-2" data-testid="stat-secure">
-              <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                <Shield className="w-12 h-12 mx-auto mb-2 text-green-600" />
-                100% Secure
-              </div>
-              <p className="text-muted-foreground text-lg">Bank-level security for your financial data</p>
-            </div>
+      {/* Features Section */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-20 border-t border-gray-200 dark:border-gray-800">
+        <div className="grid md:grid-cols-3 gap-12">
+          <div>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-3">AI Financial Advisor</h3>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Get personalized financial advice powered by advanced AI. Smart recommendations tailored to your goals.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Smart Tracking</h3>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Track income, expenses, and investments in real-time with automatic categorization and insights.
+            </p>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-3">Goal Management</h3>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Set financial goals and track progress automatically with AI-powered suggestions to achieve them faster.
+            </p>
           </div>
         </div>
+      </section>
 
-        {/* CTA Section */}
-        <div className="text-center max-w-3xl mx-auto">
-          <Card className="bg-gradient-to-br from-blue-600 to-purple-600 border-0 shadow-2xl">
-            <CardContent className="p-8 md:p-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Ready to Transform Your Financial Future?
-              </h2>
-              <p className="text-blue-100 text-lg mb-6 max-w-2xl mx-auto">
-                Join thousands of users who are already taking control of their finances with AI-powered insights and smart management tools.
+      {/* Trust Section */}
+      <section className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
+          <h2 className="text-3xl font-semibold text-black dark:text-white mb-12 text-center">Built for trust</h2>
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="text-black dark:text-white font-semibold mb-2">Bank-level security</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Your data is encrypted and secure
               </p>
-              <Button 
-                onClick={handleLogin} 
-                size="lg"
-                variant="secondary"
-                className="h-14 px-10 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 bg-white text-blue-600 hover:bg-gray-100"
-                data-testid="cta-login-button"
-                aria-label="Get started with Twealth now"
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                Start Your Journey
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="text-center">
+              <div className="text-black dark:text-white font-semibold mb-2">Privacy first</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                We never sell your information
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-black dark:text-white font-semibold mb-2">Always available</div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                99.9% uptime guarantee
+              </p>
+            </div>
+          </div>
         </div>
+      </section>
 
-        {/* Footer */}
-        <footer className="mt-16 text-center text-sm text-muted-foreground">
-          <p>© 2025 Twealth. Transform time into wealth with smart financial management.</p>
-        </footer>
-      </div>
+      {/* CTA Section */}
+      <section className="max-w-7xl mx-auto px-6 lg:px-8 py-20 text-center border-t border-gray-200 dark:border-gray-800">
+        <h2 className="text-4xl font-semibold text-black dark:text-white mb-6">
+          Start managing your finances today
+        </h2>
+        <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
+          Join thousands taking control of their financial future
+        </p>
+        <Button 
+          onClick={handleLogin} 
+          size="lg"
+          className="h-12 px-6 text-base font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
+          data-testid="cta-get-started-button"
+        >
+          Get started free
+        </Button>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Product</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Features</a></li>
+                <li><a href="/pricing" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Pricing</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Security</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Company</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">About</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Blog</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Careers</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Resources</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Documentation</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Help Center</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Legal</h4>
+              <ul className="space-y-3">
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Privacy</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Terms</a></li>
+                <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="pt-8 border-t border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <img src={logoUrl} alt="Twealth" className="w-6 h-6" />
+              <span className="text-sm text-gray-600 dark:text-gray-400">© 2025 Twealth. All rights reserved.</span>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+              <Shield className="w-3 h-3" />
+              <span>SOC 2 Type II Certified</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
