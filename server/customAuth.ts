@@ -245,13 +245,23 @@ export function setupAuth(app: Express) {
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     app.get(
       "/api/auth/google",
+      (req, res, next) => {
+        console.log('[OAuth] Initiating Google login...');
+        next();
+      },
       passport.authenticate("google", { scope: ["profile", "email"] })
     );
 
     app.get(
       "/api/auth/google/callback",
+      (req, res, next) => {
+        console.log('[OAuth] Google callback received');
+        console.log('[OAuth] Callback URL:', req.url);
+        next();
+      },
       passport.authenticate("google", { failureRedirect: "/login" }),
       (req, res) => {
+        console.log('[OAuth] Google authentication successful');
         // Successful authentication, redirect to dashboard
         res.redirect("/");
       }
