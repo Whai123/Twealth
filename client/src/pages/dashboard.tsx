@@ -137,11 +137,11 @@ export default function Dashboard() {
         className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 fade-in"
       >
         {/* Welcome Message - Clean Professional Design */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50/30 to-purple-50/20 dark:from-purple-950/20 dark:via-pink-950/10 dark:to-purple-950/5 border border-purple-200/40 dark:border-purple-800/30 rounded-2xl p-5 sm:p-6 slide-up" role="banner">
+        <div className="border border-border/50 rounded-lg p-5 sm:p-6" role="banner">
           <div className="flex items-start gap-4">
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 tracking-tight">{t('dashboard.welcome')}</h2>
-              <p className="text-sm text-muted-foreground/90 leading-relaxed">{t('dashboard.welcomeMessage')}</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2 tracking-tight">{t('dashboard.welcome')}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">{t('dashboard.welcomeMessage')}</p>
             </div>
           </div>
         </div>
@@ -158,9 +158,8 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-health-score">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
-              <div className="relative">
+            <Card className="p-6 border-border/50" data-testid="stat-health-score">
+              <div>
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className={`p-2 rounded-lg ${healthScore >= 75 ? 'bg-green-100 dark:bg-green-950/30' : healthScore >= 60 ? 'bg-blue-100 dark:bg-blue-950/30' : healthScore >= 40 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
                     <Award className={`w-4 h-4 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
@@ -185,9 +184,8 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-savings-rate">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
-              <div className="relative">
+            <Card className="p-6 border-border/50" data-testid="stat-savings-rate">
+              <div>
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className={`p-2 rounded-lg ${savingsRate >= 20 ? 'bg-green-100 dark:bg-green-950/30' : savingsRate >= 10 ? 'bg-blue-100 dark:bg-blue-950/30' : savingsRate >= 5 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
                     <TrendingUp className={`w-4 h-4 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
@@ -212,9 +210,8 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-emergency-fund">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
-              <div className="relative">
+            <Card className="p-6 border-border/50" data-testid="stat-emergency-fund">
+              <div>
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className={`p-2 rounded-lg ${emergencyFundMonths >= 6 ? 'bg-green-100 dark:bg-green-950/30' : emergencyFundMonths >= 3 ? 'bg-blue-100 dark:bg-blue-950/30' : emergencyFundMonths >= 1 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
                     <Star className={`w-4 h-4 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
@@ -239,9 +236,8 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50" data-testid="stat-goals">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/5 pointer-events-none"></div>
-              <div className="relative">
+            <Card className="p-6 border-border/50" data-testid="stat-goals">
+              <div>
                 <div className="flex items-center gap-2.5 mb-4">
                   <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
                     <Target className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
@@ -277,21 +273,16 @@ export default function Dashboard() {
           <MultiCurrencyCalculator />
         )}
 
-        {/* AI Assistant CTA Banner - Premium design */}
-        <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50/50 to-pink-50/30 dark:from-blue-950/30 dark:via-purple-950/20 dark:to-pink-950/10 border-blue-200/50 dark:border-blue-800/30 hover:shadow-xl transition-all duration-300 group">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-white/5 pointer-events-none"></div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-300/20 to-transparent dark:from-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          <CardContent className="relative p-6 md:p-8">
+        {/* AI Assistant CTA Banner - Professional design */}
+        <Card className="border-border/50">
+          <CardContent className="p-6 md:p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex items-start space-x-4 flex-1">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity"></div>
-                  <div className="relative w-14 h-14 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Brain className="w-7 h-7 text-white" />
-                  </div>
+                <div className="w-14 h-14 bg-foreground rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Brain className="w-7 h-7 text-background" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-xl mb-1.5 tracking-tight text-foreground">{t('dashboard.aiAssistant.title')}</h3>
+                  <h3 className="font-semibold text-xl mb-1.5 tracking-tight text-foreground">{t('dashboard.aiAssistant.title')}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">{t('dashboard.aiAssistant.description')}</p>
                 </div>
               </div>
@@ -299,14 +290,14 @@ export default function Dashboard() {
                 <Button 
                   variant="outline" 
                   onClick={() => setIsChatOpen(true)}
-                  className="border-border/60 hover:bg-muted/50 min-h-[44px]"
+                  className="min-h-[44px]"
                   data-testid="button-try-ai-chat"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   {t('dashboard.aiAssistant.tryChat')}
                 </Button>
                 <Link href="/ai-assistant">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 min-h-[44px]" data-testid="button-explore-ai">
+                  <Button className="w-full sm:w-auto bg-foreground text-background hover:bg-foreground/90 min-h-[44px]" data-testid="button-explore-ai">
                     <Zap className="w-4 h-4 mr-2" />
                     {t('dashboard.aiAssistant.exploreFeatures')}
                   </Button>
