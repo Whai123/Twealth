@@ -23,11 +23,12 @@ export default function Login() {
   }, [setLocation]);
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+    // Force immediate redirect using location.assign for better compatibility
+    window.location.assign("/api/auth/google");
   };
 
   const handleFacebookLogin = () => {
-    window.location.href = "/api/auth/facebook";
+    window.location.assign("/api/auth/facebook");
   };
 
   const handleAppleLogin = () => {
