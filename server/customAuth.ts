@@ -31,7 +31,18 @@ export function getSession() {
     tableName: "sessions",
   });
   
-  const isProduction = process.env.NODE_ENV === 'production';
+  // Detect production: either NODE_ENV=production OR using production domain
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                       process.env.REPLIT_DEPLOYMENT === '1' ||
+                       process.env.REPL_SLUG !== undefined;
+  
+  console.log('[Session] Environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
+    isProduction,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax'
+  });
   
   return session({
     secret: process.env.SESSION_SECRET!,
@@ -40,8 +51,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction, // Use secure cookies in production
-      sameSite: isProduction ? 'none' : 'lax', // 'none' for production OAuth, 'lax' for development
+      secure: true, // Always use secure cookies (twealth.ltd uses HTTPS)
+      sameSite: 'none', // Required for OAuth redirects across domains
       maxAge: sessionTtl,
     },
   });
@@ -256,6 +267,7 @@ export function setupAuth(app: Express) {
       "/api/auth/google/callback",
       (req, res, next) => {
         console.log('[OAuth] Google callback received');
+        console.log('[OAuth] Session ID before auth:', req.sessionID);
         next();
       },
       passport.authenticate("google", { 
@@ -264,13 +276,18 @@ export function setupAuth(app: Express) {
       }),
       (req, res) => {
         console.log('[OAuth] Google authentication successful');
+        console.log('[OAuth] User:', req.user);
+        console.log('[OAuth] Session ID after auth:', req.sessionID);
+        console.log('[OAuth] Is authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'N/A');
+        
         // Explicitly save session before redirecting to ensure cookie is set
         req.session.save((err) => {
           if (err) {
             console.error('[OAuth] Session save error:', err);
             return res.redirect("/login");
           }
-          console.log('[OAuth] Session saved, redirecting to dashboard');
+          console.log('[OAuth] Session saved successfully');
+          console.log('[OAuth] Redirecting to dashboard');
           res.redirect("/");
         });
       }
