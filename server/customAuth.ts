@@ -255,9 +255,11 @@ export function setupAuth(app: Express) {
     app.get(
       "/api/auth/google/callback",
       (req, res, next) => {
-        console.log('[OAuth] Google callback received');
+        console.log('[OAuth] ===== Google callback received =====');
         console.log('[OAuth] Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
         console.log('[OAuth] Query params:', req.query);
+        console.log('[OAuth] Session ID:', req.sessionID);
+        console.log('[OAuth] Is authenticated?:', req.isAuthenticated ? req.isAuthenticated() : 'no isAuthenticated method');
         next();
       },
       passport.authenticate("google", { 
@@ -265,7 +267,8 @@ export function setupAuth(app: Express) {
         failureMessage: true
       }),
       (req, res) => {
-        console.log('[OAuth] Google authentication successful');
+        console.log('[OAuth] ===== Google authentication successful =====');
+        console.log('[OAuth] User:', req.user);
         // Successful authentication, redirect to dashboard
         res.redirect("/");
       }
