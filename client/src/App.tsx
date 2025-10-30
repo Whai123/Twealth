@@ -95,9 +95,8 @@ function Router() {
           <Suspense fallback={<PageLoader />}>
             <Switch>
               <Route path="/login" component={Login} />
-              <Route path="/welcome" component={Landing} />
-              <Route path="/" component={Login} />
-              <Route component={Login} />
+              <Route path="/" component={Landing} />
+              <Route component={Landing} />
             </Switch>
           </Suspense>
         </ErrorBoundary>
