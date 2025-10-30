@@ -40,8 +40,8 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
+      secure: true, // Always use secure cookies for OAuth
+      sameSite: 'none', // Required for OAuth redirects to work properly
       maxAge: sessionTtl,
     },
   });
