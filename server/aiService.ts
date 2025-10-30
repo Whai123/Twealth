@@ -893,6 +893,108 @@ const TOOLS = [
         required: ["annualIncome", "filingStatus"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calculate_car_affordability",
+      description: "Calculate comprehensive car affordability including purchase price limits, monthly payment options (financing vs. leasing), total cost of ownership (insurance, maintenance, fuel, depreciation), and impact on user's budget. Use the 20/4/10 rule: 20% down, 4-year loan max, 10% of gross income max payment. Call when user asks 'How much car can I afford?' or mentions buying/leasing a vehicle.",
+      parameters: {
+        type: "object",
+        properties: {
+          monthlyIncome: {
+            type: "number",
+            description: "User's monthly gross income in dollars"
+          },
+          downPayment: {
+            type: "number",
+            description: "Available down payment amount in dollars"
+          },
+          currentCarPayment: {
+            type: "number",
+            description: "Current car payment if trading in or existing loan. Optional, defaults to 0."
+          },
+          creditScore: {
+            type: "string",
+            enum: ["excellent", "good", "fair", "poor"],
+            description: "Credit score range for interest rate estimation. Optional, defaults to 'good'."
+          },
+          preferredTerm: {
+            type: "number",
+            description: "Preferred loan term in years (3, 4, 5, or 6). Optional, defaults to 4."
+          }
+        },
+        required: ["monthlyIncome", "downPayment"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "optimize_student_loan_payoff",
+      description: "Analyze student loan repayment strategies comparing avalanche method, income-driven repayment, refinancing options, and forgiveness programs. Calculates total interest paid, payoff timeline, and monthly payment for each strategy. Use when user asks about student loans, loan forgiveness, or 'How should I pay off my student loans?'",
+      parameters: {
+        type: "object",
+        properties: {
+          totalBalance: {
+            type: "number",
+            description: "Total student loan balance in dollars"
+          },
+          averageInterestRate: {
+            type: "number",
+            description: "Weighted average interest rate as percentage (e.g., 6.5 for 6.5%)"
+          },
+          monthlyIncome: {
+            type: "number",
+            description: "Monthly gross income in dollars"
+          },
+          extraPayment: {
+            type: "number",
+            description: "Extra monthly amount available for loan payoff beyond minimum. Optional."
+          },
+          employerType: {
+            type: "string",
+            enum: ["public_service", "private_sector", "nonprofit", "government"],
+            description: "Employer type for forgiveness program eligibility. Optional."
+          }
+        },
+        required: ["totalBalance", "averageInterestRate", "monthlyIncome"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "compare_investment_options",
+      description: "Compare different investment vehicles (index funds, bonds, HYSA, CDs, crypto) with detailed analysis of expected returns, risk levels, liquidity, tax implications, and recommendations based on user's goals and timeline. Use when user asks 'Should I invest in X or Y?' or 'Where should I put my money?'",
+      parameters: {
+        type: "object",
+        properties: {
+          investmentAmount: {
+            type: "number",
+            description: "Amount to invest in dollars"
+          },
+          timeHorizon: {
+            type: "number",
+            description: "Investment time horizon in years"
+          },
+          riskTolerance: {
+            type: "string",
+            enum: ["conservative", "moderate", "aggressive"],
+            description: "User's risk tolerance level"
+          },
+          investmentGoal: {
+            type: "string",
+            description: "Investment goal (e.g., 'retirement', 'house down payment', 'emergency fund', 'wealth building')"
+          },
+          currentHoldings: {
+            type: "string",
+            description: "Brief description of current investments if any. Optional."
+          }
+        },
+        required: ["investmentAmount", "timeHorizon", "riskTolerance", "investmentGoal"]
+      }
+    }
   }
 ];
 

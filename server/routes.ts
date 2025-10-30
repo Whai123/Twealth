@@ -3377,6 +3377,385 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   await storage.updateUserPreferences(userId, estimates);
                   console.log('💾 Saved financial estimates:', estimates);
                 }
+              } else if (toolCall.name === 'calculate_car_affordability') {
+                // Car affordability calculator with 20/4/10 rule
+                const {
+                  monthlyIncome,
+                  downPayment,
+                  currentCarPayment = 0,
+                  creditScore = 'good',
+                  preferredTerm = 4
+                } = toolCall.arguments;
+
+                // Interest rates by credit score
+                const interestRates: Record<string, number> = {
+                  'excellent': 5.5,
+                  'good': 7.0,
+                  'fair': 10.0,
+                  'poor': 14.0
+                };
+                const rate = interestRates[creditScore];
+                const monthlyRate = rate / 100 / 12;
+
+                // ENFORCE 20/4/10 RULE: Max 4-year term
+                const loanTerm = Math.min(preferredTerm, 4);
+                const termViolation = preferredTerm > 4;
+
+                // 20/4/10 rule calculations
+                const maxMonthlyPayment = monthlyIncome * 0.10;
+                const availableForPayment = Math.max(0, maxMonthlyPayment - currentCarPayment);
+                
+                // Check if budget is overextended
+                const budgetOverextended = currentCarPayment >= maxMonthlyPayment;
+                
+                if (budgetOverextended) {
+                  // Budget is already maxed out or over
+                  actionsPerformed.push({
+                    type: 'car_affordability_budget_exceeded',
+                    data: {
+                      monthlyIncome,
+                      currentCarPayment,
+                      maxRecommendedPayment: Math.round(maxMonthlyPayment),
+                      overBudgetAmount: Math.round(currentCarPayment - maxMonthlyPayment),
+                      message: 'Your current car payment already meets or exceeds the recommended 10% of income limit. Focus on paying off the current vehicle before purchasing another.',
+                      recommendations: [
+                        `Current payment: $${Math.round(currentCarPayment)}/month (${Math.round((currentCarPayment / monthlyIncome) * 100)}% of income)`,
+                        `Recommended max: $${Math.round(maxMonthlyPayment)}/month (10% of income)`,
+                        'Pay off current vehicle to free up budget',
+                        'Increase income to afford an additional vehicle',
+                        'Consider selling current vehicle if replacement is needed'
+                      ]
+                    }
+                  });
+                  continue;
+                }
+                
+                // Calculate max car price based on payment with enforced 4-year term
+                const numPayments = loanTerm * 12;
+                const pvFactor = (Math.pow(1 + monthlyRate, numPayments) - 1) / (monthlyRate * Math.pow(1 + monthlyRate, numPayments));
+                const maxLoanAmountFromPayment = availableForPayment * pvFactor;
+                
+                // ENFORCE 20/4/10 RULE: Calculate max affordable price based on 20% down requirement
+                const maxPriceWith20PercentDown = downPayment / 0.20;
+                
+                // Use the LOWER of payment-based cap and down-payment-based cap (strictest constraint wins)
+                const maxCarPrice = Math.min(maxLoanAmountFromPayment + downPayment, maxPriceWith20PercentDown);
+                const maxLoanAmount = maxCarPrice - downPayment;
+                
+                // Validate that we have a reasonable result
+                if (maxCarPrice <= 0 || !isFinite(maxCarPrice)) {
+                  actionsPerformed.push({
+                    type: 'car_affordability_insufficient_budget',
+                    data: {
+                      message: 'Insufficient budget for vehicle purchase with current parameters',
+                      monthlyIncome,
+                      downPayment,
+                      recommendations: [
+                        'Increase monthly income',
+                        'Save for a larger down payment',
+                        'Pay off existing car payment first',
+                        'Consider a less expensive vehicle'
+                      ]
+                    }
+                  });
+                  continue;
+                }
+                
+                // Calculate compliance metrics
+                const downPaymentPercent = (downPayment / maxCarPrice) * 100;
+                const meetsDownPaymentRule = downPaymentPercent >= 20;
+                const recommendedDownPayment = maxCarPrice * 0.20;
+                const downPaymentShortfall = meetsDownPaymentRule ? 0 : recommendedDownPayment - downPayment;
+
+                // Total cost of ownership (5 years)
+                const avgInsurance = 1200; // $100/month
+                const avgMaintenance = 1000; // $83/month
+                const avgFuel = 2000; // $167/month
+                const totalMonthly = availableForPayment + (avgInsurance + avgMaintenance + avgFuel) / 12;
+                const fiveYearOwnership = totalMonthly * 60 + downPayment;
+
+                // Depreciation (new car loses ~20% in year 1, then ~15% per year)
+                const year1Value = maxCarPrice * 0.80;
+                const year5Value = year1Value * Math.pow(0.85, 4);
+                const totalDepreciation = maxCarPrice - year5Value;
+
+                actionsPerformed.push({
+                  type: 'car_affordability_calculated',
+                  data: {
+                    monthlyIncome,
+                    downPayment,
+                    creditScore,
+                    loanTerm,
+                    interestRate: rate,
+                    rule2041Compliance: {
+                      downPayment20: meetsDownPaymentRule,
+                      loanTerm4Years: loanTerm <= 4,
+                      monthlyPayment10: availableForPayment <= maxMonthlyPayment,
+                      allRulesMet: meetsDownPaymentRule && loanTerm <= 4 && availableForPayment <= maxMonthlyPayment
+                    },
+                    affordability: {
+                      maxCarPrice: Math.round(maxCarPrice),
+                      maxLoanAmount: Math.round(maxLoanAmount),
+                      monthlyPayment: Math.round(availableForPayment),
+                      totalMonthlyWithOwnership: Math.round(totalMonthly),
+                      downPaymentNeeded: downPayment,
+                      downPaymentPercent: Math.round(downPaymentPercent),
+                      recommendedDownPayment: Math.round(recommendedDownPayment),
+                      downPaymentShortfall: Math.round(downPaymentShortfall)
+                    },
+                    fiveYearCost: {
+                      payments: Math.round(availableForPayment * (loanTerm * 12)),
+                      insurance: avgInsurance * 5,
+                      maintenance: avgMaintenance * 5,
+                      fuel: avgFuel * 5,
+                      depreciation: Math.round(totalDepreciation),
+                      total: Math.round(fiveYearOwnership)
+                    },
+                    warnings: [
+                      termViolation ? `RULE VIOLATION: You requested ${preferredTerm}-year term, but 20/4/10 rule requires max 4 years. Calculations use 4-year term.` : null,
+                      !meetsDownPaymentRule ? `RULE VIOLATION: Down payment is ${Math.round(downPaymentPercent)}% (need 20%). Max affordable car is limited by your down payment.` : null
+                    ].filter(Boolean),
+                    recommendations: [
+                      meetsDownPaymentRule ? '20% Down Payment Rule: COMPLIANT' : `20% Down Payment Rule: NOT MET - With $${Math.round(downPayment)} down, max car price is $${Math.round(maxCarPrice)} to maintain 20% down`,
+                      !termViolation ? '4-Year Term Rule: COMPLIANT' : `4-Year Term Rule: ENFORCED - Your ${preferredTerm}-year request exceeds the 4-year maximum. Shorter terms save interest.`,
+                      '10% Income Rule: COMPLIANT - Monthly payment within budget',
+                      `Down payment caps your purchase at $${Math.round(maxPriceWith20PercentDown)} (20% rule)`,
+                      `Monthly payment caps your purchase at $${Math.round(maxLoanAmountFromPayment + downPayment)} (budget constraint)`,
+                      'Consider certified pre-owned to avoid steep new car depreciation (20% in year 1)',
+                      `To afford a more expensive car: ${downPayment < maxCarPrice * 0.20 ? 'Save more for down payment OR ' : ''}Increase monthly income`
+                    ].filter(Boolean)
+                  }
+                });
+              } else if (toolCall.name === 'optimize_student_loan_payoff') {
+                // Student loan optimization strategies
+                const {
+                  totalBalance,
+                  averageInterestRate,
+                  monthlyIncome,
+                  extraPayment = 0,
+                  employerType = 'private_sector'
+                } = toolCall.arguments;
+
+                const monthlyRate = (averageInterestRate / 100) / 12;
+                const standardPayment = totalBalance * 0.01; // ~1% of balance is typical minimum
+
+                // Strategy 1: Income-driven repayment (IDR)
+                const idrPayment = monthlyIncome * 0.10; // 10% of discretionary income
+                const idrMonths = Math.ceil(Math.log(totalBalance / (idrPayment - totalBalance * monthlyRate)) / Math.log(1 + monthlyRate));
+                const idrTotalPaid = idrPayment * Math.min(idrMonths, 240); // Cap at 20 years for forgiveness
+
+                // Strategy 2: Standard repayment (10 years)
+                const standardMonths = 120;
+                const standardMonthlyPayment = totalBalance * monthlyRate / (1 - Math.pow(1 + monthlyRate, -standardMonths));
+                const standardTotalPaid = standardMonthlyPayment * standardMonths;
+
+                // Strategy 3: Accelerated payoff with extra payment
+                const acceleratedPayment = standardMonthlyPayment + extraPayment;
+                const acceleratedMonths = extraPayment > 0 
+                  ? Math.ceil(Math.log(totalBalance / (acceleratedPayment - totalBalance * monthlyRate)) / Math.log(1 + monthlyRate))
+                  : standardMonths;
+                const acceleratedTotalPaid = acceleratedPayment * acceleratedMonths;
+
+                // Strategy 4: Refinance analysis (assuming 2% lower rate)
+                const refinanceRate = Math.max(3, averageInterestRate - 2);
+                const refinanceMonthlyRate = (refinanceRate / 100) / 12;
+                const refinancePayment = totalBalance * refinanceMonthlyRate / (1 - Math.pow(1 + refinanceMonthlyRate, -standardMonths));
+                const refinanceTotalPaid = refinancePayment * standardMonths;
+
+                // PSLF eligibility
+                const pslfEligible = ['public_service', 'nonprofit', 'government'].includes(employerType);
+                const pslfMonthsToForgiveness = 120; // 10 years of qualifying payments
+                const pslfPayment = idrPayment;
+                const pslfTotalPaid = pslfPayment * pslfMonthsToForgiveness;
+                const pslfForgiveness = totalBalance - pslfTotalPaid;
+
+                actionsPerformed.push({
+                  type: 'student_loan_optimized',
+                  data: {
+                    totalBalance,
+                    averageInterestRate,
+                    monthlyIncome,
+                    strategies: [
+                      {
+                        name: 'Income-Driven Repayment (IDR)',
+                        monthlyPayment: Math.round(idrPayment),
+                        totalInterest: Math.round(Math.max(0, idrTotalPaid - totalBalance)),
+                        timeToPayoff: Math.round(Math.min(idrMonths, 240) / 12),
+                        totalPaid: Math.round(idrTotalPaid),
+                        pros: ['Lower monthly payment', 'Forgiveness after 20-25 years', 'Hardship protection'],
+                        cons: ['More total interest', 'Taxable forgiveness', 'Longer repayment']
+                      },
+                      {
+                        name: 'Standard 10-Year Plan',
+                        monthlyPayment: Math.round(standardMonthlyPayment),
+                        totalInterest: Math.round(standardTotalPaid - totalBalance),
+                        timeToPayoff: 10,
+                        totalPaid: Math.round(standardTotalPaid),
+                        pros: ['Predictable payments', 'Lower total interest', 'Debt-free in 10 years'],
+                        cons: ['Higher monthly payment', 'No forgiveness option']
+                      },
+                      {
+                        name: `Accelerated Payoff (+$${extraPayment}/month)`,
+                        monthlyPayment: Math.round(acceleratedPayment),
+                        totalInterest: Math.round(Math.max(0, acceleratedTotalPaid - totalBalance)),
+                        timeToPayoff: Math.round(acceleratedMonths / 12 * 10) / 10,
+                        totalPaid: Math.round(acceleratedTotalPaid),
+                        interestSaved: Math.round(standardTotalPaid - acceleratedTotalPaid),
+                        pros: ['Fastest payoff', 'Lowest total interest', 'Build equity fast'],
+                        cons: ['Highest monthly payment', 'Less cash flow flexibility']
+                      },
+                      {
+                        name: 'Refinance to Lower Rate',
+                        monthlyPayment: Math.round(refinancePayment),
+                        newRate: refinanceRate,
+                        totalInterest: Math.round(refinanceTotalPaid - totalBalance),
+                        timeToPayoff: 10,
+                        totalPaid: Math.round(refinanceTotalPaid),
+                        savings: Math.round(standardTotalPaid - refinanceTotalPaid),
+                        pros: ['Lower interest rate', 'Reduced total cost', 'Flexible terms'],
+                        cons: ['Lose federal protections', 'No forgiveness', 'Credit score required']
+                      }
+                    ],
+                    pslf: pslfEligible ? {
+                      eligible: true,
+                      monthlyPayment: Math.round(pslfPayment),
+                      monthsToForgiveness: pslfMonthsToForgiveness,
+                      totalPaid: Math.round(pslfTotalPaid),
+                      amountForgiven: Math.round(pslfForgiveness),
+                      savings: Math.round(totalBalance - pslfTotalPaid),
+                      requirements: ['120 qualifying payments', 'Full-time public service', 'Submit employment certification annually']
+                    } : {
+                      eligible: false,
+                      reason: 'Requires employment in public service, nonprofit, or government'
+                    },
+                    recommendation: pslfEligible 
+                      ? 'Pursue PSLF - potential forgiveness of $' + Math.round(pslfForgiveness).toLocaleString()
+                      : extraPayment > 500 
+                        ? 'Accelerated payoff saves most interest'
+                        : averageInterestRate > 7
+                          ? 'Refinance to save on interest'
+                          : 'Standard plan offers balance of payment and payoff time'
+                  }
+                });
+              } else if (toolCall.name === 'compare_investment_options') {
+                // Investment comparison analysis
+                const {
+                  investmentAmount,
+                  timeHorizon,
+                  riskTolerance,
+                  investmentGoal,
+                  currentHoldings = ''
+                } = toolCall.arguments;
+
+                // Define investment options with expected returns
+                const options = [
+                  {
+                    name: 'S&P 500 Index Fund (VOO/VTI)',
+                    expectedReturn: riskTolerance === 'aggressive' ? 10 : riskTolerance === 'moderate' ? 9 : 7,
+                    risk: 'High',
+                    liquidity: 'High',
+                    taxTreatment: 'Long-term capital gains (15%) if held 1+ year',
+                    minimumInvestment: 0,
+                    fees: '0.03-0.04%',
+                    pros: ['Historical 10% returns', 'Diversified across 500 companies', 'Low fees', 'High liquidity'],
+                    cons: ['Market volatility', 'Short-term losses possible', 'No guaranteed returns']
+                  },
+                  {
+                    name: 'Total Bond Market (BND/AGG)',
+                    expectedReturn: 4.5,
+                    risk: 'Low',
+                    liquidity: 'High',
+                    taxTreatment: 'Ordinary income tax on interest',
+                    minimumInvestment: 0,
+                    fees: '0.03-0.05%',
+                    pros: ['Stable income', 'Lower volatility', 'Portfolio diversification'],
+                    cons: ['Lower returns', 'Interest rate risk', 'Inflation risk']
+                  },
+                  {
+                    name: 'High-Yield Savings Account (HYSA)',
+                    expectedReturn: 4.5,
+                    risk: 'None (FDIC insured)',
+                    liquidity: 'Immediate',
+                    taxTreatment: 'Ordinary income tax on interest',
+                    minimumInvestment: 0,
+                    fees: '0%',
+                    pros: ['No risk', 'FDIC insured up to $250k', 'Immediate access', 'No fees'],
+                    cons: ['Lower returns than stocks', 'Interest taxed as income', 'Not keeping up with inflation']
+                  },
+                  {
+                    name: 'Certificates of Deposit (CDs)',
+                    expectedReturn: 5.0,
+                    risk: 'None (FDIC insured)',
+                    liquidity: 'Low (penalties for early withdrawal)',
+                    taxTreatment: 'Ordinary income tax on interest',
+                    minimumInvestment: 500,
+                    fees: '0% (but early withdrawal penalty)',
+                    pros: ['Guaranteed returns', 'FDIC insured', 'Higher than HYSA rates'],
+                    cons: ['Locked in for term', 'Early withdrawal penalties', 'Opportunity cost if rates rise']
+                  },
+                  {
+                    name: 'Real Estate Investment Trusts (REITs)',
+                    expectedReturn: 8,
+                    risk: 'Medium-High',
+                    liquidity: 'High (if publicly traded)',
+                    taxTreatment: 'Ordinary income + capital gains',
+                    minimumInvestment: 0,
+                    fees: '0.5-1.0%',
+                    pros: ['Real estate exposure', 'Dividends', 'Diversification from stocks'],
+                    cons: ['Interest rate sensitive', 'Market volatility', 'Higher fees']
+                  }
+                ];
+
+                // Calculate projections for each option
+                const projections = options.map(option => {
+                  const futureValue = investmentAmount * Math.pow(1 + option.expectedReturn / 100, timeHorizon);
+                  const totalGain = futureValue - investmentAmount;
+                  return {
+                    ...option,
+                    futureValue: Math.round(futureValue),
+                    totalGain: Math.round(totalGain),
+                    annualizedReturn: option.expectedReturn
+                  };
+                });
+
+                // Recommendations based on goal and timeline
+                let recommended: string[];
+                if (timeHorizon < 2) {
+                  recommended = ['High-Yield Savings Account (HYSA)', 'Certificates of Deposit (CDs)'];
+                } else if (timeHorizon < 5) {
+                  recommended = riskTolerance === 'aggressive' 
+                    ? ['S&P 500 Index Fund (VOO/VTI)', 'Total Bond Market (BND/AGG)']
+                    : ['Total Bond Market (BND/AGG)', 'High-Yield Savings Account (HYSA)'];
+                } else {
+                  recommended = riskTolerance === 'aggressive'
+                    ? ['S&P 500 Index Fund (VOO/VTI)', 'Real Estate Investment Trusts (REITs)']
+                    : riskTolerance === 'moderate'
+                      ? ['S&P 500 Index Fund (VOO/VTI)', 'Total Bond Market (BND/AGG)']
+                      : ['Total Bond Market (BND/AGG)', 'S&P 500 Index Fund (VOO/VTI)'];
+                }
+
+                actionsPerformed.push({
+                  type: 'investment_comparison_completed',
+                  data: {
+                    investmentAmount,
+                    timeHorizon,
+                    riskTolerance,
+                    investmentGoal,
+                    options: projections,
+                    recommended,
+                    allocation: timeHorizon >= 5 ? {
+                      stocks: riskTolerance === 'aggressive' ? 90 : riskTolerance === 'moderate' ? 70 : 50,
+                      bonds: riskTolerance === 'aggressive' ? 10 : riskTolerance === 'moderate' ? 30 : 50,
+                      description: `Based on ${timeHorizon}-year timeline and ${riskTolerance} risk tolerance`
+                    } : null,
+                    keyInsights: [
+                      `For ${timeHorizon}-year timeline, ${recommended[0]} offers best balance of risk/return`,
+                      timeHorizon >= 10 ? 'Long horizon allows recovery from market dips - stocks recommended' : 'Shorter timeline favors safer options',
+                      `Expected portfolio value in ${timeHorizon} years: $${projections.find(p => p.name === recommended[0])?.futureValue.toLocaleString()}`,
+                      'Diversification across multiple options reduces overall risk'
+                    ]
+                  }
+                });
               }
             } catch (toolError) {
               console.error(`Tool execution error (${toolCall.name}):`, toolError);

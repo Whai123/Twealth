@@ -224,34 +224,34 @@ export default function AIAssistantPage() {
 
   const starterPrompts: StarterPrompt[] = [
     {
-      icon: <BarChart3 className="w-5 h-5" />,
-      title: "Analyze my budget",
-      prompt: "Can you analyze my current budget and suggest improvements?"
-    },
-    {
       icon: <Target className="w-5 h-5" />,
-      title: "Create savings goal",
-      prompt: "Help me create a realistic savings goal based on my income"
-    },
-    {
-      icon: <TrendingUp className="w-5 h-5" />,
-      title: "Investment advice",
-      prompt: "What are the best investment strategies for my financial situation?"
+      title: "Buy a Car",
+      prompt: "I want to buy a $35,000 car in 2 years. Can you help me create a savings plan?"
     },
     {
       icon: <PiggyBank className="w-5 h-5" />,
-      title: "Emergency fund plan",
-      prompt: "Help me build an emergency fund. How much should I save?"
+      title: "Emergency Fund",
+      prompt: "How much should I have in my emergency fund? What's realistic for my situation?"
+    },
+    {
+      icon: <TrendingUp className="w-5 h-5" />,
+      title: "Investment Strategy",
+      prompt: "I have $10,000 to invest. What's the best allocation for someone my age?"
+    },
+    {
+      icon: <BarChart3 className="w-5 h-5" />,
+      title: "Retirement Planning",
+      prompt: "Help me calculate how much I need to save monthly to retire comfortably at 65"
     },
     {
       icon: <DollarSign className="w-5 h-5" />,
-      title: "Reduce expenses",
-      prompt: "Review my recent expenses and suggest ways to cut costs"
+      title: "Reduce Debt",
+      prompt: "I have $20,000 in credit card debt. What's the fastest way to pay it off?"
     },
     {
       icon: <Sparkles className="w-5 h-5" />,
-      title: "Financial health check",
-      prompt: "Give me a complete financial health assessment"
+      title: "Full Financial Checkup",
+      prompt: "Give me a comprehensive analysis of my financial health with specific recommendations"
     }
   ];
 
@@ -317,12 +317,15 @@ export default function AIAssistantPage() {
             {!hasMessages ? (
               /* Empty State */
               <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mb-6">
-                  <Brain className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 bg-black dark:bg-white rounded-lg flex items-center justify-center mb-6 border border-border">
+                  <Brain className="w-8 h-8 text-white dark:text-black" />
                 </div>
-                <h2 className="text-3xl font-bold mb-2">Welcome to Twealth AI</h2>
-                <p className="text-muted-foreground text-lg mb-8 max-w-md">
-                  Your personal CFO worth $150/hour. Get expert financial advice powered by AI.
+                <h2 className="text-3xl font-bold mb-2">Your Personal CFO</h2>
+                <p className="text-muted-foreground text-lg mb-2 max-w-md">
+                  Expert financial advice powered by AI
+                </p>
+                <p className="text-sm text-muted-foreground mb-8 max-w-md">
+                  Ask me anything about budgeting, investing, debt payoff, retirement, or financial planning
                 </p>
 
                 {/* Starter Prompts Grid */}
