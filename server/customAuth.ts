@@ -264,8 +264,15 @@ export function setupAuth(app: Express) {
       }),
       (req, res) => {
         console.log('[OAuth] Google authentication successful');
-        // Successful authentication, redirect to dashboard
-        res.redirect("/");
+        // Explicitly save session before redirecting to ensure cookie is set
+        req.session.save((err) => {
+          if (err) {
+            console.error('[OAuth] Session save error:', err);
+            return res.redirect("/login");
+          }
+          console.log('[OAuth] Session saved, redirecting to dashboard');
+          res.redirect("/");
+        });
       }
     );
   }
@@ -281,8 +288,14 @@ export function setupAuth(app: Express) {
       "/api/auth/facebook/callback",
       passport.authenticate("facebook", { failureRedirect: "/login" }),
       (req, res) => {
-        // Successful authentication, redirect to dashboard
-        res.redirect("/");
+        // Explicitly save session before redirecting
+        req.session.save((err) => {
+          if (err) {
+            console.error('[OAuth] Facebook session save error:', err);
+            return res.redirect("/login");
+          }
+          res.redirect("/");
+        });
       }
     );
   }
@@ -298,8 +311,14 @@ export function setupAuth(app: Express) {
       "/api/auth/apple/callback",
       passport.authenticate("apple", { failureRedirect: "/login" }),
       (req, res) => {
-        // Successful authentication, redirect to dashboard
-        res.redirect("/");
+        // Explicitly save session before redirecting
+        req.session.save((err) => {
+          if (err) {
+            console.error('[OAuth] Apple session save error:', err);
+            return res.redirect("/login");
+          }
+          res.redirect("/");
+        });
       }
     );
   }
