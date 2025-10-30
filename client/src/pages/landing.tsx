@@ -4,7 +4,7 @@ import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 export default function Landing() {
   const handleLogin = () => {
-    window.location.href = "/api/login";
+    window.location.href = "/login";
   };
 
   return (
