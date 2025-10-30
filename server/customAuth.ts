@@ -256,10 +256,14 @@ export function setupAuth(app: Express) {
       "/api/auth/google/callback",
       (req, res, next) => {
         console.log('[OAuth] Google callback received');
-        console.log('[OAuth] Callback URL:', req.url);
+        console.log('[OAuth] Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
+        console.log('[OAuth] Query params:', req.query);
         next();
       },
-      passport.authenticate("google", { failureRedirect: "/login" }),
+      passport.authenticate("google", { 
+        failureRedirect: "/login",
+        failureMessage: true
+      }),
       (req, res) => {
         console.log('[OAuth] Google authentication successful');
         // Successful authentication, redirect to dashboard
