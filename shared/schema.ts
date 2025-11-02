@@ -433,8 +433,10 @@ export const insertUserSchema = createInsertSchema(users).omit({
   updatedAt: true,
 });
 
-// Upsert user schema for Replit Auth
-export const upsertUserSchema = createInsertSchema(users);
+// Upsert user schema for OAuth - accepts provider-formatted IDs like google_123, facebook_456, apple_789
+export const upsertUserSchema = createInsertSchema(users).extend({
+  id: z.string().min(1).max(128), // Accept provider-formatted IDs or UUIDs with length limit
+});
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
 
 export const insertGroupSchema = createInsertSchema(groups).omit({
