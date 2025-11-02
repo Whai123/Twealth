@@ -266,30 +266,48 @@ export function setupAuth(app: Express) {
     app.get(
       "/api/auth/google/callback",
       (req, res, next) => {
-        console.log('[OAuth] Google callback received');
-        console.log('[OAuth] Session ID before auth:', req.sessionID);
+        console.log('[OAuth] ===== CALLBACK RECEIVED =====');
+        console.log('[OAuth] Query params:', req.query);
+        console.log('[OAuth] Session ID:', req.sessionID);
+        console.log('[OAuth] Session data:', req.session);
         next();
       },
-      passport.authenticate("google", { 
-        failureRedirect: "/login",
-        failureMessage: true
-      }),
-      (req, res) => {
-        console.log('[OAuth] Google authentication successful');
-        console.log('[OAuth] User:', req.user);
-        console.log('[OAuth] Session ID after auth:', req.sessionID);
-        console.log('[OAuth] Is authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'N/A');
-        
-        // Explicitly save session before redirecting to ensure cookie is set
-        req.session.save((err) => {
+      (req, res, next) => {
+        passport.authenticate("google", (err: any, user: any, info: any) => {
+          console.log('[OAuth] Passport authenticate callback triggered');
+          console.log('[OAuth] Error:', err);
+          console.log('[OAuth] User:', user);
+          console.log('[OAuth] Info:', info);
+          
           if (err) {
-            console.error('[OAuth] Session save error:', err);
+            console.error('[OAuth] Authentication error:', err);
             return res.redirect("/login");
           }
-          console.log('[OAuth] Session saved successfully');
-          console.log('[OAuth] Redirecting to dashboard');
-          res.redirect("/");
-        });
+          
+          if (!user) {
+            console.error('[OAuth] No user returned from passport');
+            return res.redirect("/login");
+          }
+          
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              console.error('[OAuth] Login error:', loginErr);
+              return res.redirect("/login");
+            }
+            
+            console.log('[OAuth] User logged in successfully');
+            console.log('[OAuth] Session after login:', req.session);
+            
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                console.error('[OAuth] Session save error:', saveErr);
+                return res.redirect("/login");
+              }
+              console.log('[OAuth] Session saved, redirecting to /');
+              res.redirect("/");
+            });
+          });
+        })(req, res, next);
       }
     );
   }
