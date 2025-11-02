@@ -255,6 +255,12 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
   console.log('[OAuth] Passport initialized');
 
+  // Test route to verify routing works
+  app.get("/api/auth/test", (req, res) => {
+    console.log('[OAuth] Test route hit! Headers:', req.headers);
+    res.json({ message: "OAuth routes working", timestamp: new Date().toISOString() });
+  });
+
   // Google OAuth routes
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     console.log('[OAuth] Registering Google OAuth routes...');
