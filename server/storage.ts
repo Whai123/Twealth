@@ -464,55 +464,76 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    // First try to find existing user by ID
-    const existingById = await db
-      .select()
-      .from(users)
-      .where(sql`${users.id} = ${userData.id}`)
-      .limit(1);
-    
-    // If found by ID, update that user
-    if (existingById.length > 0) {
-      const [user] = await db
-        .update(users)
-        .set({
-          ...userData,
-          updatedAt: new Date(),
-        })
-        .where(sql`${users.id} = ${userData.id}`)
-        .returning();
-      return user;
-    }
-    
-    // If not found by ID, try by email
-    if (userData.email) {
-      const existingByEmail = await db
+    try {
+      console.log('[Storage] upsertUser called with:', {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName
+      });
+
+      // First try to find existing user by ID
+      const existingById = await db
         .select()
         .from(users)
-        .where(sql`${users.email} = ${userData.email}`)
+        .where(sql`${users.id} = ${userData.id}`)
         .limit(1);
       
-      if (existingByEmail.length > 0) {
-        // Update existing user found by email - DO NOT change ID to avoid FK violations
-        const { id, ...updateData } = userData;
+      console.log('[Storage] Existing user by ID:', existingById.length > 0 ? 'Found' : 'Not found');
+      
+      // If found by ID, update that user
+      if (existingById.length > 0) {
         const [user] = await db
           .update(users)
           .set({
-            ...updateData,
+            ...userData,
             updatedAt: new Date(),
           })
-          .where(sql`${users.id} = ${existingByEmail[0].id}`)
+          .where(sql`${users.id} = ${userData.id}`)
           .returning();
+        console.log('[Storage] User updated:', user.id);
         return user;
       }
+      
+      // If not found by ID, try by email
+      if (userData.email) {
+        const existingByEmail = await db
+          .select()
+          .from(users)
+          .where(sql`${users.email} = ${userData.email}`)
+          .limit(1);
+        
+        console.log('[Storage] Existing user by email:', existingByEmail.length > 0 ? 'Found' : 'Not found');
+        
+        if (existingByEmail.length > 0) {
+          // Update existing user found by email - DO NOT change ID to avoid FK violations
+          const { id, ...updateData } = userData;
+          const [user] = await db
+            .update(users)
+            .set({
+              ...updateData,
+              updatedAt: new Date(),
+            })
+            .where(sql`${users.id} = ${existingByEmail[0].id}`)
+            .returning();
+          console.log('[Storage] User updated by email:', user.id);
+          return user;
+        }
+      }
+      
+      // No existing user found - insert new
+      console.log('[Storage] Inserting new user with ID:', userData.id);
+      const [user] = await db
+        .insert(users)
+        .values(userData)
+        .returning();
+      console.log('[Storage] User created successfully:', user.id);
+      return user;
+    } catch (error) {
+      console.error('[Storage] ERROR in upsertUser:', error);
+      console.error('[Storage] User data that failed:', userData);
+      throw error;
     }
-    
-    // No existing user found - insert new
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning();
-    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
