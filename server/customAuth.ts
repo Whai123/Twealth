@@ -52,7 +52,7 @@ export function getSession() {
     cookie: {
       httpOnly: true,
       secure: true, // Always use secure cookies (twealth.ltd uses HTTPS)
-      sameSite: 'none', // Required for OAuth redirects across domains
+      sameSite: 'lax', // Allows cookies during OAuth redirects on same domain
       maxAge: sessionTtl,
     },
   });
