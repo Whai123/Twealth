@@ -6,6 +6,10 @@ import { investmentStrategies } from "@shared/schema";
 import { getSession, setupAuth } from "./customAuth";
 
 const app = express();
+
+// Trust proxy - required for secure cookies behind Replit's proxy
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
