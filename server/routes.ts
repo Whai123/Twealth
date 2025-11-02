@@ -94,8 +94,7 @@ try {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Auth middleware setup
-  await setupAuth(app);
+  // Note: Auth setup (setupAuth) is done in server/index.ts before this function is called
   
   // Raw body middleware for Stripe webhooks
   app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));

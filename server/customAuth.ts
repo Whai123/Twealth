@@ -248,12 +248,16 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 export function setupAuth(app: Express) {
+  console.log('[OAuth] ===== setupAuth() CALLED =====');
+  
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
+  console.log('[OAuth] Passport initialized');
 
   // Google OAuth routes
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log('[OAuth] Registering Google OAuth routes...');
     app.get(
       "/api/auth/google",
       (req, res, next) => {
