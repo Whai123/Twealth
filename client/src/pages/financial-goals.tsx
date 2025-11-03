@@ -346,22 +346,22 @@ export default function FinancialGoals() {
       
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" data-testid="tab-overview">
-              <Target className="h-4 w-4 mr-2" />
-              <span>Overview</span>
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="overview" data-testid="tab-overview" className="text-xs sm:text-sm min-h-[44px] py-3 sm:py-2.5" aria-label="Overview">
+              <Target className="h-4 w-4 sm:mr-2" />
+              <span className="sr-only sm:not-sr-only">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="analytics" data-testid="tab-analytics">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              <span>Analytics</span>
+            <TabsTrigger value="analytics" data-testid="tab-analytics" className="text-xs sm:text-sm min-h-[44px] py-3 sm:py-2.5" aria-label="Analytics">
+              <BarChart3 className="h-4 w-4 sm:mr-2" />
+              <span className="sr-only sm:not-sr-only">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" data-testid="tab-insights">
-              <Lightbulb className="h-4 w-4 mr-2" />
-              <span>Insights</span>
+            <TabsTrigger value="insights" data-testid="tab-insights" className="text-xs sm:text-sm min-h-[44px] py-3 sm:py-2.5" aria-label="Insights">
+              <Lightbulb className="h-4 w-4 sm:mr-2" />
+              <span className="sr-only sm:not-sr-only">Insights</span>
             </TabsTrigger>
-            <TabsTrigger value="achievements" data-testid="tab-achievements">
-              <Award className="h-4 w-4 mr-2" />
-              <span>Achievements</span>
+            <TabsTrigger value="achievements" data-testid="tab-achievements" className="text-xs sm:text-sm min-h-[44px] py-3 sm:py-2.5" aria-label="Achievements">
+              <Award className="h-4 w-4 sm:mr-2" />
+              <span className="sr-only sm:not-sr-only">Achievements</span>
             </TabsTrigger>
           </TabsList>
 
@@ -394,68 +394,65 @@ export default function FinancialGoals() {
         </div>
       ) : (
         <>
-          {/* Premium Summary Cards - Big Tech Design */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-green-500/5 pointer-events-none"></div>
+          {/* Premium Summary Cards - Mobile Optimized */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="group relative overflow-hidden p-4 sm:p-6 border-border/50">
               <div className="relative">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950/30">
-                    <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-950/30">
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Total Saved</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Saved</span>
                 </div>
-                <p className="text-4xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-green-600 dark:text-green-400">
                   ${financialGoals.reduce((sum: number, goal: any) => sum + parseFloat(goal.currentAmount), 0).toLocaleString()}
                 </p>
               </div>
             </Card>
             
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-blue-500/5 pointer-events-none"></div>
+            <Card className="group relative overflow-hidden p-4 sm:p-6 border-border/50">
               <div className="relative">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-950/30">
-                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-950/30">
+                    <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Active Goals</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Active Goals</span>
                 </div>
-                <p className="text-4xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
                   {financialGoals.filter((goal: any) => goal.status === "active").length}
                 </p>
               </div>
             </Card>
             
-            <Card className="group relative overflow-hidden p-6 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 border-border/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-purple-500/5 pointer-events-none"></div>
+            <Card className="group relative overflow-hidden p-4 sm:p-6 border-border/50">
               <div className="relative">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
-                    <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
+                    <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Average Progress</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Avg Progress</span>
                 </div>
-                <p className="text-4xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
                   {Math.round(
                     financialGoals.reduce((sum: number, goal: any) => {
                       const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
                       return sum + progress;
                     }, 0) / financialGoals.length
-                  )}<span className="text-2xl text-muted-foreground/60">%</span>
+                  )}<span className="text-lg sm:text-xl md:text-2xl text-muted-foreground/60">%</span>
                 </p>
               </div>
             </Card>
           </div>
 
           {/* Mobile-First Goals Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {financialGoals.map((goal: any) => {
               const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
               const remaining = parseFloat(goal.targetAmount) - parseFloat(goal.currentAmount);
               const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
               
               return (
-                <Card key={goal.id} className="p-6 hover:shadow-lg transition-shadow">
+                <Card key={goal.id} className="p-4 sm:p-6">
                   <CardHeader className="p-0 mb-4">
                     <div className="flex items-center justify-between">
                       <CardTitle 

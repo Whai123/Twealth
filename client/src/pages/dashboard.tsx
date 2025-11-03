@@ -147,10 +147,10 @@ export default function Dashboard() {
         </div>
 
         {/* Key Metrics - Real Financial Data */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Financial Health Score - REAL calculation */}
           {healthLoading ? (
-            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
+            <Card className="p-4 sm:p-6">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -158,16 +158,16 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6 border-border/50" data-testid="stat-health-score">
+            <Card className="p-4 sm:p-6 border-border/50" data-testid="stat-health-score">
               <div>
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className={`p-2 rounded-lg ${healthScore >= 75 ? 'bg-green-100 dark:bg-green-950/30' : healthScore >= 60 ? 'bg-blue-100 dark:bg-blue-950/30' : healthScore >= 40 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
-                    <Award className={`w-4 h-4 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${healthScore >= 75 ? 'bg-green-100 dark:bg-green-950/30' : healthScore >= 60 ? 'bg-blue-100 dark:bg-blue-950/30' : healthScore >= 40 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                    <Award className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Financial Health</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Financial Health</span>
                 </div>
-                <div className={`text-4xl font-bold tracking-tight mb-2 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-health-score">
-                  {healthScore}<span className="text-2xl text-muted-foreground/60">/100</span>
+                <div className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 ${healthScore >= 75 ? 'text-green-600 dark:text-green-400' : healthScore >= 60 ? 'text-blue-600 dark:text-blue-400' : healthScore >= 40 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-health-score">
+                  {healthScore}<span className="text-lg sm:text-xl md:text-2xl text-muted-foreground/60">/100</span>
                 </div>
                 <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{healthGrade}</p>
               </div>
@@ -176,7 +176,7 @@ export default function Dashboard() {
           
           {/* Savings Rate - REAL from transactions */}
           {healthLoading ? (
-            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
+            <Card className="p-4 sm:p-6">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -184,16 +184,16 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6 border-border/50" data-testid="stat-savings-rate">
+            <Card className="p-4 sm:p-6 border-border/50" data-testid="stat-savings-rate">
               <div>
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className={`p-2 rounded-lg ${savingsRate >= 20 ? 'bg-green-100 dark:bg-green-950/30' : savingsRate >= 10 ? 'bg-blue-100 dark:bg-blue-950/30' : savingsRate >= 5 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
-                    <TrendingUp className={`w-4 h-4 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${savingsRate >= 20 ? 'bg-green-100 dark:bg-green-950/30' : savingsRate >= 10 ? 'bg-blue-100 dark:bg-blue-950/30' : savingsRate >= 5 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                    <TrendingUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Savings Rate</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Savings Rate</span>
                 </div>
-                <div className={`text-4xl font-bold tracking-tight mb-2 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-savings-rate">
-                  {savingsRate.toFixed(1)}<span className="text-2xl text-muted-foreground/60">%</span>
+                <div className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 ${savingsRate >= 20 ? 'text-green-600 dark:text-green-400' : savingsRate >= 10 ? 'text-blue-600 dark:text-blue-400' : savingsRate >= 5 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-savings-rate">
+                  {savingsRate.toFixed(1)}<span className="text-lg sm:text-xl md:text-2xl text-muted-foreground/60">%</span>
                 </div>
                 <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{savingsRateLabel}</p>
               </div>
@@ -202,7 +202,7 @@ export default function Dashboard() {
           
           {/* Emergency Fund - REAL months of expenses */}
           {healthLoading ? (
-            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
+            <Card className="p-4 sm:p-6">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -210,16 +210,16 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6 border-border/50" data-testid="stat-emergency-fund">
+            <Card className="p-4 sm:p-6 border-border/50" data-testid="stat-emergency-fund">
               <div>
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className={`p-2 rounded-lg ${emergencyFundMonths >= 6 ? 'bg-green-100 dark:bg-green-950/30' : emergencyFundMonths >= 3 ? 'bg-blue-100 dark:bg-blue-950/30' : emergencyFundMonths >= 1 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
-                    <Star className={`w-4 h-4 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`p-1.5 sm:p-2 rounded-lg ${emergencyFundMonths >= 6 ? 'bg-green-100 dark:bg-green-950/30' : emergencyFundMonths >= 3 ? 'bg-blue-100 dark:bg-blue-950/30' : emergencyFundMonths >= 1 ? 'bg-orange-100 dark:bg-orange-950/30' : 'bg-red-100 dark:bg-red-950/30'}`}>
+                    <Star className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} aria-hidden="true" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Emergency Fund</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Emergency Fund</span>
                 </div>
-                <div className={`text-4xl font-bold tracking-tight mb-2 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-emergency-fund">
-                  {emergencyFundMonths.toFixed(1)}<span className="text-xl text-muted-foreground/60">mo</span>
+                <div className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 ${emergencyFundMonths >= 6 ? 'text-green-600 dark:text-green-400' : emergencyFundMonths >= 3 ? 'text-blue-600 dark:text-blue-400' : emergencyFundMonths >= 1 ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'}`} data-testid="value-emergency-fund">
+                  {emergencyFundMonths.toFixed(1)}<span className="text-lg sm:text-xl text-muted-foreground/60">mo</span>
                 </div>
                 <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">{emergencyFundLabel}</p>
               </div>
@@ -228,7 +228,7 @@ export default function Dashboard() {
           
           {/* Goals Tracking - REAL progress */}
           {goalsLoading ? (
-            <Card className="p-6 hover:shadow-lg transition-shadow duration-200">
+            <Card className="p-4 sm:p-6">
               <div className="space-y-3">
                 <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
                 <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
@@ -236,16 +236,16 @@ export default function Dashboard() {
               </div>
             </Card>
           ) : (
-            <Card className="p-6 border-border/50" data-testid="stat-goals">
+            <Card className="p-4 sm:p-6 border-border/50" data-testid="stat-goals">
               <div>
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
-                    <Target className="w-4 h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
+                    <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" aria-hidden="true" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">Goals</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted-foreground">Goals</span>
                 </div>
-                <div className="text-4xl font-bold tracking-tight mb-2 text-purple-600 dark:text-purple-400" data-testid="value-goals">
-                  {goalsOnTrack}<span className="text-2xl text-muted-foreground/60">/{activeGoalsCount}</span>
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 text-purple-600 dark:text-purple-400" data-testid="value-goals">
+                  {goalsOnTrack}<span className="text-lg sm:text-xl md:text-2xl text-muted-foreground/60">/{activeGoalsCount}</span>
                 </div>
                 <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">On Track</p>
               </div>
