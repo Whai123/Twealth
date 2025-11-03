@@ -259,7 +259,7 @@ export default function AIAssistantPage() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background" style={{ height: '100dvh' }}>
       {/* Sidebar */}
       <ConversationSidebar
         currentConversationId={currentConversationId}
@@ -270,32 +270,32 @@ export default function AIAssistantPage() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-full">
         {/* Header */}
-        <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between px-6 py-3">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Brain className="w-5 h-5 text-primary" />
-                <h1 className="text-lg font-semibold">Twealth AI</h1>
+        <header className="shrink-0 border-b border-border bg-white dark:bg-black">
+          <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white shrink-0" />
+                <h1 className="text-sm sm:text-lg font-semibold truncate">Twealth AI</h1>
               </div>
               
               {/* Mode Selector */}
               <Select value={analysisMode} onValueChange={(v: 'quick' | 'deep') => setAnalysisMode(v)}>
-                <SelectTrigger className="w-[160px] h-9" data-testid="select-analysis-mode">
+                <SelectTrigger className="w-[120px] sm:w-[160px] h-11 sm:h-9 text-xs sm:text-sm" data-testid="select-analysis-mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="quick">
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4" />
-                      Quick Chat
+                      <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm">Quick Chat</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="deep">
                     <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4" />
-                      Deep Analysis
+                      <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="text-xs sm:text-sm">Deep Analysis</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -304,44 +304,45 @@ export default function AIAssistantPage() {
 
             {/* Usage Counter */}
             {usage && (
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium">{usage.chatUsage.used}/{usage.chatUsage.limit}</span> chats used
+              <div className="text-xs sm:text-sm text-muted-foreground shrink-0">
+                <span className="font-medium">{usage.chatUsage.used}/{usage.chatUsage.limit}</span>
+                <span className="hidden sm:inline"> chats used</span>
               </div>
             )}
           </div>
         </header>
 
-        {/* Messages Area */}
-        <ScrollArea className="flex-1 px-4">
-          <div className="max-w-3xl mx-auto py-8">
+        {/* Messages Area - Scrollable with bottom padding */}
+        <div className="flex-1 overflow-y-auto px-3 sm:px-4" style={{ paddingBottom: 'max(9rem, calc(9rem + env(safe-area-inset-bottom)))' }}>
+          <div className="max-w-3xl mx-auto py-4 sm:py-8">
             {!hasMessages ? (
               /* Empty State */
-              <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-                <div className="w-16 h-16 bg-black dark:bg-white rounded-lg flex items-center justify-center mb-6 border border-border">
-                  <Brain className="w-8 h-8 text-white dark:text-black" />
+              <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[60vh] text-center px-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-black dark:bg-white rounded-lg flex items-center justify-center mb-4 sm:mb-6 border border-border">
+                  <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-white dark:text-black" />
                 </div>
-                <h2 className="text-3xl font-bold mb-2">Your Personal CFO</h2>
-                <p className="text-muted-foreground text-lg mb-2 max-w-md">
+                <h2 className="text-xl sm:text-3xl font-bold mb-2">Your Personal CFO</h2>
+                <p className="text-muted-foreground text-sm sm:text-lg mb-1 sm:mb-2 max-w-md">
                   Expert financial advice powered by AI
                 </p>
-                <p className="text-sm text-muted-foreground mb-8 max-w-md">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8 max-w-md">
                   Ask me anything about budgeting, investing, debt payoff, retirement, or financial planning
                 </p>
 
                 {/* Starter Prompts Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-4xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 w-full max-w-4xl">
                   {starterPrompts.map((prompt, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentMessage(prompt.prompt)}
-                      className="flex items-start gap-3 p-4 text-left rounded-lg border border-border hover:bg-muted/50 transition-colors group"
+                      className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 text-left rounded-lg border border-border hover:bg-muted/50 min-h-[44px] active:scale-[0.98] transition-all"
                       data-testid={`starter-prompt-${index}`}
                     >
-                      <div className="text-primary group-hover:scale-110 transition-transform">
+                      <div className="text-black dark:text-white shrink-0">
                         {prompt.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm mb-1">{prompt.title}</p>
+                        <p className="font-medium text-xs sm:text-sm mb-0.5 sm:mb-1">{prompt.title}</p>
                         <p className="text-xs text-muted-foreground line-clamp-2">{prompt.prompt}</p>
                       </div>
                     </button>
@@ -350,7 +351,7 @@ export default function AIAssistantPage() {
               </div>
             ) : (
               /* Messages */
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {messages.map((message, index) => (
                   <MessageBubble
                     key={message.id}
@@ -359,7 +360,6 @@ export default function AIAssistantPage() {
                     timestamp={message.createdAt}
                     isLatest={index === messages.length - 1 && message.role === 'assistant'}
                     onRegenerate={() => {
-                      // Find the last user message and resend it
                       const lastUserMessage = messages.filter(m => m.role === 'user').pop();
                       if (lastUserMessage) {
                         sendMessageMutation.mutate(lastUserMessage.content);
@@ -375,19 +375,19 @@ export default function AIAssistantPage() {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
-        {/* Input Area */}
-        <div className="border-t border-border bg-background p-4">
-          <div className="max-w-3xl mx-auto">
-            <div className="relative flex items-end gap-2">
+        {/* Input Area - Fixed at bottom with safe area support */}
+        <div className="fixed bottom-0 inset-x-0 z-10 border-t border-border bg-white dark:bg-black" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+          <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-3 sm:pt-4 pb-3 sm:pb-0">
+            <div className="relative">
               <Textarea
                 ref={textareaRef}
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Message Twealth AI..."
-                className="min-h-[52px] max-h-[200px] resize-none pr-12"
+                className="min-h-[48px] sm:min-h-[52px] max-h-[120px] sm:max-h-[200px] resize-none pr-12 sm:pr-14 text-sm sm:text-base w-full"
                 rows={1}
                 data-testid="input-message"
               />
@@ -395,18 +395,18 @@ export default function AIAssistantPage() {
                 onClick={handleSendMessage}
                 disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
                 size="icon"
-                className="absolute right-2 bottom-2 h-8 w-8"
+                className="absolute right-2 bottom-2 h-11 w-11 sm:h-10 sm:w-10"
                 data-testid="button-send-message"
                 title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
               >
                 {rateLimitRetryAfter > 0 ? (
                   <span className="text-xs font-medium">{rateLimitRetryAfter}s</span>
                 ) : (
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 sm:w-4 sm:h-4" />
                 )}
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
+            <p className="text-xs text-muted-foreground mt-2 text-center hidden sm:block">
               Twealth AI can make mistakes. Consider checking important information.
             </p>
           </div>
