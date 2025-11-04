@@ -3145,11 +3145,13 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
       
       return { response: text, toolCalls };
     } catch (error: any) {
-      // COMPREHENSIVE ERROR LOGGING - See what's actually failing
+      // COMPREHENSIVE ERROR LOGGING - Preserve all Groq error details
       console.error('❌ ============ AI SERVICE ERROR ============');
-      console.error('Error Type:', error.constructor.name);
+      console.error('Error Type:', error.constructor?.name || 'Unknown');
       console.error('Error Message:', error.message);
-      console.error('Error Code:', error.code || error.status || 'N/A');
+      console.error('Error Code/Status:', error.code || error.status || error.statusCode || 'N/A');
+      console.error('Error Response:', error.response?.data || error.error || 'N/A');
+      console.error('Request ID:', error.headers?.['x-request-id'] || 'N/A');
       console.error('Full Error Object:', JSON.stringify(error, null, 2));
       if (error.stack) console.error('Stack Trace:', error.stack);
       console.error('=========================================');
@@ -3167,13 +3169,20 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
         return { response: failedText, toolCalls: undefined };
       }
       
-      // Throw detailed error with more context
-      const errorDetails = {
-        message: error.message || 'Failed to generate AI response',
-        code: error.code || error.status,
-        type: error.constructor.name
+      // Create structured error with all Groq metadata preserved
+      const structuredError = new Error(error.message || 'Failed to generate AI response');
+      // Preserve all original error properties
+      (structuredError as any).groqError = {
+        originalMessage: error.message,
+        code: error.code || error.status || error.statusCode,
+        type: error.constructor?.name,
+        response: error.response?.data || error.error,
+        requestId: error.headers?.['x-request-id'],
+        statusCode: error.status || error.statusCode,
+        // Preserve raw error for debugging
+        raw: error
       };
-      throw new Error(JSON.stringify(errorDetails));
+      throw structuredError;
     }
   }
 

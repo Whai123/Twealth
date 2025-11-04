@@ -3982,25 +3982,30 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         });
 
       } catch (aiError: any) {
-        // COMPREHENSIVE ERROR LOGGING AND HANDLING
+        // COMPREHENSIVE ERROR LOGGING - Access structured Groq error details
         console.error('❌ ============ AI CHAT ERROR (routes.ts) ============');
         console.error('Error Type:', aiError.constructor?.name || 'Unknown');
         console.error('Error Message:', aiError.message);
-        console.error('Error Code:', aiError.code || aiError.status || 'N/A');
-        console.error('Full Error:', JSON.stringify(aiError, null, 2));
+        
+        // Access structured Groq error details if available
+        const groqError = aiError.groqError;
+        if (groqError) {
+          console.error('🔴 GROQ ERROR DETAILS:');
+          console.error('  - Code/Status:', groqError.code || groqError.statusCode || 'N/A');
+          console.error('  - Type:', groqError.type);
+          console.error('  - Original Message:', groqError.originalMessage);
+          console.error('  - Response:', JSON.stringify(groqError.response, null, 2));
+          console.error('  - Request ID:', groqError.requestId || 'N/A');
+          console.error('  - Raw Error:', JSON.stringify(groqError.raw, null, 2));
+        } else {
+          console.error('Error Code:', aiError.code || aiError.status || 'N/A');
+          console.error('Full Error:', JSON.stringify(aiError, null, 2));
+        }
         console.error('Error Stack:', aiError.stack);
         console.error('================================================');
         
-        // Try to parse JSON error details from aiService
-        let errorDetails: any = null;
-        try {
-          errorDetails = JSON.parse(aiError.message);
-        } catch {
-          // Not JSON, just use the message as-is
-        }
-        
-        const actualErrorMsg = errorDetails?.message || aiError.message || 'Unknown error';
-        const errorCode = errorDetails?.code || aiError.code || aiError.status;
+        const actualErrorMsg = groqError?.originalMessage || aiError.message || 'Unknown error';
+        const errorCode = groqError?.code || groqError?.statusCode || aiError.code || aiError.status;
         
         let errorMessage = "I apologize for the confusion. Let me help you with that!";
         
