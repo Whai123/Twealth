@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database, Sparkles, Lock, CreditCard, Brain, Zap, Cog, CheckCircle2, AlertCircle } from "lucide-react";
+import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database, Sparkles, Lock, CreditCard, Brain, Zap, Cog, CheckCircle2, AlertCircle, LogOut, Loader2 } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -40,6 +41,41 @@ function Settings() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("account");
+  const [, setLocation] = useLocation();
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/auth/logout', {});
+    },
+    onSuccess: () => {
+      // Invalidate auth queries
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      queryClient.clear(); // Clear all cached data on logout
+      
+      // Show success toast
+      toast({
+        title: "Signed out securely",
+        description: "You have been logged out successfully",
+      });
+      
+      // Redirect to login page
+      setTimeout(() => {
+        setLocation('/login');
+      }, 100);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Logout failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   const { data: userSettings, isLoading } = useQuery({
     queryKey: ["/api/user-settings"],
@@ -413,6 +449,50 @@ function Settings() {
                         </Button>
                       </form>
                     </Form>
+                  </CardContent>
+                </Card>
+
+                {/* Account Management Section */}
+                <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Shield className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />
+                      Account Management
+                    </CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
+                      Security and session management options
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="space-y-4">
+                      <div className="p-4 sm:p-6 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50">
+                        <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mb-2">
+                          Sign Out
+                        </h3>
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-4">
+                          End your current session and return to the login page securely
+                        </p>
+                        <Button
+                          onClick={handleLogout}
+                          disabled={logoutMutation.isPending}
+                          variant="destructive"
+                          className="w-full sm:w-auto h-11 sm:h-12 text-sm sm:text-base"
+                          data-testid="button-signout-settings"
+                        >
+                          {logoutMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                              Signing out...
+                            </>
+                          ) : (
+                            <>
+                              <LogOut className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                              Sign Out
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
