@@ -3983,7 +3983,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
 
       } catch (aiError: any) {
         // Provide more specific error messages based on error type
-        console.error('AI Chat Error:', aiError.message);
+        console.error('❌ AI Chat Error:', aiError);
+        console.error('Error message:', aiError.message);
+        console.error('Error stack:', aiError.stack);
         let errorMessage = "I apologize for the confusion. Let me help you with that!";
         
         // Check if user is trying to create something

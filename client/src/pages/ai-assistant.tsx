@@ -117,6 +117,25 @@ export default function AIAssistantPage() {
     }
   }, [currentMessage]);
 
+  // Mobile keyboard fix: Scroll input into view when focused
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const handleFocus = () => {
+      // Delay to account for keyboard animation
+      setTimeout(() => {
+        textarea.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 300);
+    };
+
+    textarea.addEventListener('focus', handleFocus);
+    return () => textarea.removeEventListener('focus', handleFocus);
+  }, []);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {

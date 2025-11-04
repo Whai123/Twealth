@@ -3249,7 +3249,7 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
 
     try {
       const response = await groq.chat.completions.create({
-        model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: "You are a financial advisor. Give concise, actionable advice." },
           { role: "user", content: insightPrompt }
