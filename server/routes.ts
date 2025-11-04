@@ -4007,7 +4007,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         const actualErrorMsg = groqError?.originalMessage || aiError.message || 'Unknown error';
         const errorCode = groqError?.code || groqError?.statusCode || aiError.code || aiError.status;
         
-        let errorMessage = "I apologize for the confusion. Let me help you with that!";
+        // TEMPORARY DEBUG: Show actual error to diagnose issue
+        let errorMessage = `DEBUG: ${actualErrorMsg} | Code: ${errorCode} | Type: ${aiError.constructor?.name}`;
         
         // Check if user is trying to create something
         const lowerMsg = userMessage.toLowerCase();
