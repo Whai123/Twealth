@@ -1379,6 +1379,14 @@ RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educatio
         !lowerMsg.includes('want to') && !lowerMsg.includes('going to')
       );
 
+      // DEBUG: Log what we're sending to Groq
+      console.log('🟢 === CALLING GROQ API ===');
+      console.log('Model: llama-3.3-70b-versatile');
+      console.log('Messages count:', messages.length);
+      console.log('System prompt length:', systemPrompt.length, 'chars (~', Math.ceil(systemPrompt.length / 4), 'tokens)');
+      console.log('User message:', userMessage.substring(0, 100));
+      console.log('Tools available:', availableTools.length);
+
       const response = await groq.chat.completions.create({
         model: "llama-3.3-70b-versatile",  // Recommended for tool calling (Oct 2025) - native tool-use support
         messages: messages,

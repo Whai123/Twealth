@@ -2382,6 +2382,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
       
+      // DEBUG: Log incoming chat request
+      console.log('🔵 === CHAT REQUEST START ===');
+      console.log('User:', userId);
+      console.log('Conversation:', conversationId);
+      console.log('Message:', req.body.content?.substring(0, 100));
+      
       // Ensure user has a subscription before checking limits
       let subscription = await storage.getUserSubscription(userId);
       if (!subscription) {
