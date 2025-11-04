@@ -270,7 +270,7 @@ export default function AIAssistantPage() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
         <header className="shrink-0 border-b border-border bg-white dark:bg-black">
           <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
@@ -312,9 +312,9 @@ export default function AIAssistantPage() {
           </div>
         </header>
 
-        {/* Messages Area - Scrollable with bottom padding */}
-        <div className="flex-1 overflow-y-auto px-3 sm:px-4" style={{ paddingBottom: 'max(9rem, calc(9rem + env(safe-area-inset-bottom)))' }}>
-          <div className="max-w-3xl mx-auto py-4 sm:py-8">
+        {/* Messages Area - Scrollable flex-grow container */}
+        <div className="flex-1 overflow-y-auto px-3 sm:px-4">
+          <div className="max-w-3xl mx-auto py-4 sm:py-8 pb-4 sm:pb-6">
             {!hasMessages ? (
               /* Empty State */
               <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[60vh] text-center px-4">
@@ -377,8 +377,8 @@ export default function AIAssistantPage() {
           </div>
         </div>
 
-        {/* Input Area - Fixed at bottom with safe area support */}
-        <div className="fixed bottom-0 inset-x-0 z-10 border-t border-border bg-white dark:bg-black" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+        {/* Input Area - Flex item at bottom, always visible */}
+        <div className="shrink-0 border-t border-border bg-white dark:bg-black" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-3 sm:pt-4 pb-3 sm:pb-0">
             <div className="relative">
               <Textarea
