@@ -3982,10 +3982,26 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         });
 
       } catch (aiError: any) {
-        // Provide more specific error messages based on error type
-        console.error('❌ AI Chat Error:', aiError);
-        console.error('Error message:', aiError.message);
-        console.error('Error stack:', aiError.stack);
+        // COMPREHENSIVE ERROR LOGGING AND HANDLING
+        console.error('❌ ============ AI CHAT ERROR (routes.ts) ============');
+        console.error('Error Type:', aiError.constructor?.name || 'Unknown');
+        console.error('Error Message:', aiError.message);
+        console.error('Error Code:', aiError.code || aiError.status || 'N/A');
+        console.error('Full Error:', JSON.stringify(aiError, null, 2));
+        console.error('Error Stack:', aiError.stack);
+        console.error('================================================');
+        
+        // Try to parse JSON error details from aiService
+        let errorDetails: any = null;
+        try {
+          errorDetails = JSON.parse(aiError.message);
+        } catch {
+          // Not JSON, just use the message as-is
+        }
+        
+        const actualErrorMsg = errorDetails?.message || aiError.message || 'Unknown error';
+        const errorCode = errorDetails?.code || aiError.code || aiError.status;
+        
         let errorMessage = "I apologize for the confusion. Let me help you with that!";
         
         // Check if user is trying to create something
@@ -4001,15 +4017,21 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           } else {
             errorMessage = "I'd love to help you create that! Could you provide the details? For example: What's the goal name, target amount, and when do you want to achieve it?";
           }
-        } else if (aiError.message?.includes('decommissioned')) {
-          errorMessage = "Our AI is being upgraded! Please try again in a moment.";
-        } else if (aiError.message?.includes('rate limit') || aiError.message?.includes('429')) {
+        } else if (actualErrorMsg.includes('decommissioned') || actualErrorMsg.includes('model_not_found')) {
+          errorMessage = "Our AI model is being updated! Please try again in a moment.";
+        } else if (actualErrorMsg.includes('rate limit') || actualErrorMsg.includes('429') || errorCode === 429) {
           errorMessage = "I'm handling lots of conversations right now! Please wait a moment and try again.";
-        } else if (aiError.message?.includes('timeout')) {
+        } else if (actualErrorMsg.includes('timeout') || actualErrorMsg.includes('timed out')) {
           errorMessage = "Taking longer than expected - please try asking again!";
-        } else if (aiError.message?.includes('model')) {
+        } else if (actualErrorMsg.includes('model') || actualErrorMsg.includes('API')) {
           errorMessage = "Experiencing technical difficulties. Please try again shortly!";
+        } else if (actualErrorMsg.includes('GROQ_API_KEY')) {
+          errorMessage = "AI service is currently unavailable. Please contact support.";
         }
+        
+        // Log what we're showing to the user
+        console.log('📤 Showing user error:', errorMessage);
+        console.log('   (Actual error:', actualErrorMsg, ')');
         
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
