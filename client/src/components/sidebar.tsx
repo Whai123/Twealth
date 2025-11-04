@@ -17,7 +17,9 @@ import {
   Bitcoin,
   UserPlus,
   Wallet,
-  BarChart3
+  BarChart3,
+  LogOut,
+  Loader2
 } from "lucide-react";
 import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
 import { cn } from "@/lib/utils";
@@ -33,6 +35,9 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavSection {
   title: string;
@@ -146,11 +151,46 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
 ];
 
 export default function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
+  const { toast } = useToast();
   const navigationSections = getNavigationSections(t);
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/auth/logout', {});
+    },
+    onSuccess: () => {
+      // Invalidate auth queries
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      queryClient.clear(); // Clear all cached data on logout
+      
+      // Show success toast
+      toast({
+        title: "Signed out securely",
+        description: "You have been logged out successfully",
+      });
+      
+      // Redirect to login page
+      setTimeout(() => {
+        setLocation('/login');
+      }, 100);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Logout failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   const toggleTheme = () => {
     if (theme === "dark") {
@@ -281,6 +321,19 @@ export default function Sidebar() {
                   {t('navigation.settings')}
                 </button>
               </Link>
+              <button 
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+                className="text-xs text-destructive hover:text-destructive/90 transition-colors flex items-center disabled:opacity-50"
+                data-testid="button-logout"
+              >
+                {logoutMutation.isPending ? (
+                  <Loader2 size={12} className="mr-1 animate-spin" />
+                ) : (
+                  <LogOut size={12} className="mr-1" />
+                )}
+                {logoutMutation.isPending ? "Signing out..." : "Sign out"}
+              </button>
             </div>
           </div>
         </div>

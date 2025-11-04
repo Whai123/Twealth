@@ -1,4 +1,4 @@
-import { Menu, User } from "lucide-react";
+import { Menu, User, LogOut, Loader2 } from "lucide-react";
 import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,12 +13,54 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export default function MobileHeader() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('POST', '/api/auth/logout', {});
+    },
+    onSuccess: () => {
+      // Invalidate auth queries
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      queryClient.clear(); // Clear all cached data on logout
+      
+      // Show success toast
+      toast({
+        title: "Signed out securely",
+        description: "You have been logged out successfully",
+      });
+      
+      // Redirect to login page
+      setTimeout(() => {
+        setLocation('/login');
+      }, 100);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Logout failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = () => {
+    setIsMenuOpen(false); // Close menu immediately
+    logoutMutation.mutate();
+  };
 
   const getUserInitials = () => {
     if (!user) return "U";
@@ -58,7 +100,7 @@ export default function MobileHeader() {
         </Link>
 
         {/* Right: User Avatar Menu */}
-        <DropdownMenu>
+        <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -97,6 +139,24 @@ export default function MobileHeader() {
                   {t('navigation.premium')}
                 </span>
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleLogout}
+              disabled={logoutMutation.isPending}
+              className="cursor-pointer text-destructive focus:text-destructive"
+              data-testid="button-logout"
+            >
+              <div className="flex items-center gap-2 w-full">
+                {logoutMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
+                <span>
+                  {logoutMutation.isPending ? "Signing out..." : "Sign out"}
+                </span>
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
