@@ -3145,7 +3145,14 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
       
       return { response: text, toolCalls };
     } catch (error: any) {
-      console.error('AI Service Error:', error);
+      // COMPREHENSIVE ERROR LOGGING - See what's actually failing
+      console.error('❌ ============ AI SERVICE ERROR ============');
+      console.error('Error Type:', error.constructor.name);
+      console.error('Error Message:', error.message);
+      console.error('Error Code:', error.code || error.status || 'N/A');
+      console.error('Full Error Object:', JSON.stringify(error, null, 2));
+      if (error.stack) console.error('Stack Trace:', error.stack);
+      console.error('=========================================');
       
       // GRACEFUL DEGRADATION (like ChatGPT/Claude):
       // If Groq rejected the response due to tool_use_failed, extract the generated text
@@ -3160,7 +3167,13 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
         return { response: failedText, toolCalls: undefined };
       }
       
-      throw new Error('Failed to generate AI response');
+      // Throw detailed error with more context
+      const errorDetails = {
+        message: error.message || 'Failed to generate AI response',
+        code: error.code || error.status,
+        type: error.constructor.name
+      };
+      throw new Error(JSON.stringify(errorDetails));
     }
   }
 
