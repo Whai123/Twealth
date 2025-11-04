@@ -3092,8 +3092,9 @@ Monthly payment: $77,804 × [0.00667 / ((1.00667)^120 - 1)] = $466/month
         messages: messages,
         tools: availableTools,
         tool_choice: needsImmediateAction ? "required" : "auto",
-        temperature: 0.5,
-        max_tokens: 3000  // Increased from 500 to allow complete luxury analysis responses
+        temperature: 0.7,  // Higher temp for more creative, insightful CFO-level advice
+        max_tokens: 4000,  // Increased for comprehensive financial analysis
+        top_p: 0.95  // Nucleus sampling for better quality
       });
 
       const assistantMessage = response.choices[0]?.message;
