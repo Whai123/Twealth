@@ -3778,8 +3778,11 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         
         // Sanitize response: remove any leaked function call syntax or technical details
         if (responseContent) {
-          // Remove <function=...>...</function> syntax
-          responseContent = responseContent.replace(/<function=[^>]+>.*?<\/function>/gi, '').trim();
+          // Remove ALL variations of <function>...</function> syntax (with or without attributes)
+          responseContent = responseContent.replace(/<function[^>]*>.*?<\/function>/gi, '').trim();
+          
+          // Remove any standalone <function> or </function> tags that might be left over
+          responseContent = responseContent.replace(/<\/?function[^>]*>/gi, '').trim();
           
           // Remove "Tool Calls" sections and similar technical disclosures
           responseContent = responseContent.replace(/##?\s*Tool Calls?.*$/gi, '').trim();

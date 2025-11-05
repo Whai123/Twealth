@@ -1135,8 +1135,9 @@ CORE RULES:
 5. Use compound interest (not simple division). Show 3 plans: Conservative (4-5%), Balanced (7-8%), Aggressive (10-12%)
 6. Professional responses only - no emojis, no JSON/code blocks to users
 7. Regional products: Thailand (RMF/SSF), USA (401k/IRA)
+8. CRITICAL: NEVER output function names, XML tags, or tool syntax in responses. Tools execute silently in background. Users see ONLY natural language financial advice.
 
-RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educational insights. Examples: "Save $847/mo for 18mo = $40k goal" not "save more."`;
+RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educational insights. Examples: "Save $847/mo for 18mo = $40k goal" not "save more." When tools are used, explain the RESULTS naturally without mentioning the tool execution.`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
     systemPromptCache.set(cacheKey, fullPrompt);
@@ -1166,6 +1167,15 @@ RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educatio
     // Users should NEVER see internal tool call syntax, code, or system prompt echoing
     
     let sanitized = text;
+    
+    // 0. CRITICAL: Remove ALL function/tool call syntax (multiple patterns)
+    // Pattern 1: <function>...</function> or <function=...>...</function>
+    sanitized = sanitized.replace(/<function[^>]*>.*?<\/function>/gi, '');
+    sanitized = sanitized.replace(/<\/?function[^>]*>/gi, '');
+    
+    // Pattern 2: <tool>...</tool> or similar XML-like tags
+    sanitized = sanitized.replace(/<tool[^>]*>.*?<\/tool>/gi, '');
+    sanitized = sanitized.replace(/<\/?tool[^>]*>/gi, '');
     
     // 0. CRITICAL: Remove system prompt echoing (AI repeating its own instructions)
     // Pattern: 🚨🚨🚨 ... or any lines starting with emojis like 🚨 ⚠️ 🔥 followed by CAPS
