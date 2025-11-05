@@ -397,8 +397,8 @@ export default function AIAssistantPage() {
         </div>
 
         {/* Input Area - Flex item at bottom, always visible */}
-        <div className="shrink-0 border-t border-border bg-white dark:bg-black" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
-          <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-3 sm:pt-4 pb-3 sm:pb-0">
+        <div className="shrink-0 border-t border-border bg-white dark:bg-black pb-20 sm:pb-4" style={{ paddingBottom: 'max(5rem, calc(5rem + env(safe-area-inset-bottom)))' }}>
+          <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-3 sm:pt-4">
             <div className="relative">
               <Textarea
                 ref={textareaRef}
