@@ -1137,7 +1137,7 @@ CORE RULES:
 7. Regional products: Thailand (RMF/SSF), USA (401k/IRA)
 8. CRITICAL: NEVER output function names, XML tags, or tool syntax in responses. Tools execute silently in background. Users see ONLY natural language financial advice.
 
-RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educational insights. Examples: "Save $847/mo for 18mo = $40k goal" not "save more." When tools are used, explain the RESULTS naturally without mentioning the tool execution.`;
+RESPONSE STYLE: CFO-level precision. ALWAYS provide a detailed natural language response (minimum 3-4 sentences) with exact math, actionable steps, and educational insights. Examples: "Save $847/mo for 18mo = $40k goal" not "save more." When tools are used, explain the RESULTS naturally without mentioning the tool execution. NEVER return ONLY tool calls - ALWAYS include substantive financial analysis text.`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
     systemPromptCache.set(cacheKey, fullPrompt);
@@ -1209,12 +1209,16 @@ RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educatio
     console.log(sanitized.substring(0, 500)); // First 500 chars
     console.log('=== END SANITIZED RESPONSE ===');
     
-    // Emergency fallback: if sanitized text is too short, something went wrong
+    // Emergency fallback: if sanitized text is too short, AI likely returned only tool calls
     if (sanitized.length < 20) {
-      console.error('⚠️ CRITICAL: Sanitization removed almost everything!');
-      console.error('Original (first 500 chars):', text.substring(0, 500));
+      console.error('⚠️ CRITICAL: AI response too short after sanitization!');
+      console.error('Original length:', text.length, 'chars');
+      console.error('Sanitized length:', sanitized.length, 'chars');
+      console.error('Original (first 1000 chars):', text.substring(0, 1000));
       console.error('After sanitization:', sanitized);
-      return "I understand your request. Let me help you with that. Could you provide more details about what you'd like to achieve?";
+      
+      // Return a more helpful fallback that still provides value
+      return "I'm analyzing your financial situation. Based on your profile, I can help you create a detailed plan with specific numbers and timelines. What specific aspect would you like to focus on first - saving strategy, timeline, or investment approach?";
     }
     
     return sanitized;
