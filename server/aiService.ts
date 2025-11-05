@@ -1184,6 +1184,21 @@ CRITICAL VALIDATION RULES (Enforced by system):
 - Failure mode: If you respond with generic text when tools are required, users will receive a fallback message asking for clarification instead of your response
 - Quality standard: CFO-level analysis with specific numbers from tool results - no shallow "save more" advice
 
+RESPONSE FORMATTING STANDARDS (Professional CFO-level structure):
+1. **Lead with the answer**: Start with the key conclusion/recommendation
+2. **Show your work**: Provide calculations with specific methodology
+3. **Structure clearly**: Use natural paragraphs with clear logic flow (no bullet points unless listing 3+ options)
+4. **Quantify everything**: Replace "more" with exact amounts, "better" with percentage improvements
+5. **Be concise**: 3-5 substantive sentences for simple queries, 6-10 for complex analysis
+6. **Professional tone**: No emojis, no exclamation points (except urgent warnings), institutional language
+
+PROACTIVE NEXT STEPS (After answering, suggest logical follow-ups):
+- After luxury purchase analysis → "Want me to create a savings goal for the down payment?"
+- After transaction logging → "Should I analyze your spending patterns this month?"
+- After goal creation → "Would you like a reminder to review progress in 30 days?"
+- After debt strategy → "Ready to set up automatic payment tracking?"
+- After investment comparison → "Should I create a portfolio allocation goal?"
+
 RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive sentences per response. Include: (1) Exact calculations with methodology, (2) Actionable implementation steps, (3) Risk assessment, (4) Educational context. Example: "Target: $40,000 in 18 months requires $2,222/month savings. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommended allocation: 70% high-yield savings (4.5% APY), 30% S&P 500 index (historical 10% return). Risk mitigation: Emergency fund coverage required before aggressive investing." Never provide shallow advice like "save more" without quantitative support.`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
@@ -1323,8 +1338,22 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
         { role: "system", content: systemPrompt }
       ];
 
-      // Add conversation history (last 6 messages for context)
-      conversationHistory.slice(-6).forEach(msg => {
+      // SMART CONVERSATION MEMORY: Optimize context window for quality + performance
+      // Keep last 8 messages (4 turns) for immediate context, prioritizing tool-using exchanges
+      const recentHistory = conversationHistory.slice(-8);
+      
+      // If we have older important context (e.g., goal creation, major decisions), include it
+      const olderImportantMessages = conversationHistory.slice(0, -8).filter(msg => 
+        msg.role === 'assistant' && (
+          msg.content.includes('created') || 
+          msg.content.includes('Goal:') ||
+          msg.content.includes('Strategy:') ||
+          msg.content.includes('Analysis complete')
+        )
+      ).slice(-2); // Keep max 2 older important messages
+      
+      // Add older important messages first, then recent history
+      [...olderImportantMessages, ...recentHistory].forEach(msg => {
         messages.push({
           role: msg.role === 'user' ? 'user' : 'assistant',
           content: msg.content
@@ -1409,24 +1438,6 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       // 2. User gives imperative command (direct action request)
       const canCreate = (isConfirmation && wasAskingForConfirmation) || isImperativeAction;
       
-      // Filter tools based on context
-      const availableTools = canCreate 
-        ? TOOLS  // All tools available if confirming
-        : TOOLS.filter(t => !['create_financial_goal', 'create_calendar_event', 'create_group'].includes(t.function.name));
-      
-      console.log(`🛡️  Tool filtering DEBUG:
-        - User message: "${userMessage}"
-        - isConfirmation: ${isConfirmation}
-        - wasAsking: ${wasAskingForConfirmation}
-        - isImperative: ${isImperativeAction}
-        - desireAnalysis: ${desireAnalysisNeeded}
-        - needsImmediateAction: ${needsImmediateAction}
-        - canCreate: ${canCreate}
-        - toolCount: ${availableTools.length}/${TOOLS.length}
-        - tool_choice: ${(needsImmediateAction || desireAnalysisNeeded) ? "required" : "auto"}
-        - Last assistant msg preview: "${lastAssistantMsg.substring(0, 100)}..."
-      `);
-      
       // Check if message indicates need for transaction/crypto tracking (immediate actions)
       // Only trigger for PAST tense actions, NOT future intentions
       const needsImmediateAction = (
@@ -1459,8 +1470,51 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
         (lowerMsg.includes('debt') || lowerMsg.includes('loan') || lowerMsg.includes('credit'))
       );
 
+      // Filter tools based on context
+      const availableTools = canCreate 
+        ? TOOLS  // All tools available if confirming
+        : TOOLS.filter(t => !['create_financial_goal', 'create_calendar_event', 'create_group'].includes(t.function.name));
+      
       // Calculate tool_choice based on trigger detection
       const toolChoiceMode = (needsImmediateAction || desireAnalysisNeeded) ? "required" : "auto";
+      
+      // DYNAMIC TEMPERATURE: Optimize creativity vs. precision based on query type
+      const temperature = (() => {
+        // Lower temp (0.6) for calculation-heavy queries requiring precision
+        if (lowerMsg.includes('calculate') || lowerMsg.includes('how much') || 
+            lowerMsg.includes('afford') || lowerMsg.includes('pay off') ||
+            /\$\d+/.test(lowerMsg)) {
+          return 0.6; // Precise calculations
+        }
+        // Medium temp (0.7) for general financial questions
+        if (lowerMsg.includes('should i') || lowerMsg.includes('is it') || 
+            lowerMsg.includes('which') || lowerMsg.includes('better')) {
+          return 0.7; // Balanced reasoning
+        }
+        // Higher temp (0.8) for creative advice and strategy
+        if (lowerMsg.includes('strategy') || lowerMsg.includes('plan') || 
+            lowerMsg.includes('advice') || lowerMsg.includes('recommend')) {
+          return 0.8; // Creative strategic thinking
+        }
+        return 0.75; // Default balanced temperature
+      })();
+      
+      // DEBUG: Comprehensive logging for monitoring Scout's behavior
+      console.log(`🛡️  Tool filtering DEBUG:
+        - User message: "${userMessage.substring(0, 80)}..."
+        - isConfirmation: ${isConfirmation}
+        - wasAsking: ${wasAskingForConfirmation}
+        - isImperative: ${isImperativeAction}
+        - desireAnalysis: ${desireAnalysisNeeded}
+        - needsImmediateAction: ${needsImmediateAction}
+        - canCreate: ${canCreate}
+        - toolCount: ${availableTools.length}/${TOOLS.length}
+        - tool_choice: "${toolChoiceMode}"
+        - temperature: ${temperature}
+      `);
+      
+      // PERFORMANCE TRACKING: Measure response time
+      const apiStartTime = Date.now();
       
       // DEBUG: Log what we're sending to Groq
       console.log('🟢 === CALLING GROQ API ===');
@@ -1470,16 +1524,21 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       console.log('User message:', userMessage.substring(0, 100));
       console.log('Tools available:', availableTools.length);
       console.log(`⚙️  TOOL CHOICE: "${toolChoiceMode}" (needsImmediateAction=${needsImmediateAction}, desireAnalysisNeeded=${desireAnalysisNeeded})`);
+      console.log(`🌡️  TEMPERATURE: ${temperature} (dynamic optimization)`);
 
       const response = await groq.chat.completions.create({
         model: "meta-llama/llama-4-scout-17b-16e-instruct",  // Llama 4 Scout - 17B MoE with native tool-use support
         messages: messages,
         tools: availableTools,
         tool_choice: toolChoiceMode,
-        temperature: 0.75,  // Higher temp for Scout - better reasoning and tool execution
+        temperature: temperature,  // Dynamic temperature: 0.6 (precision) to 0.8 (strategy)
         max_tokens: 4096,  // Maximum for comprehensive CFO-level analysis
         top_p: 0.9  // More focused sampling for precise financial advice
       });
+      
+      // PERFORMANCE TRACKING: Log response time
+      const apiDuration = Date.now() - apiStartTime;
+      console.log(`⏱️  API Response Time: ${apiDuration}ms`);
 
       const assistantMessage = response.choices[0]?.message;
       
@@ -1551,7 +1610,7 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
             fallbackResponse = `I should create a debt payoff strategy for you. To provide the most accurate plan, I'll need: (1) Total debt amount, (2) Interest rate (APR), and (3) Minimum monthly payment. With your current savings capacity of $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo, I can calculate aggressive vs. balanced payoff strategies.`;
           } else {
             // Generic financial analysis fallback
-            fallbackResponse = `Let me analyze this properly with your financial data. Your current profile: $${context.monthlyIncome.toLocaleString()}/mo income, $${context.monthlyExpenses.toLocaleString()}/mo expenses, $${netWorth.toLocaleString()} total savings. I'll provide specific calculations and recommendations. Could you clarify what specific analysis you'd like me to run?`;
+            fallbackResponse = `Let me analyze this properly with your financial data. Your current profile: $${context.monthlyIncome.toLocaleString()}/mo income, $${context.monthlyExpenses.toLocaleString()}/mo expenses, $${context.totalSavings.toLocaleString()} total savings. I'll provide specific calculations and recommendations. Could you clarify what specific analysis you'd like me to run?`;
           }
           
           return { response: fallbackResponse, toolCalls: undefined };
