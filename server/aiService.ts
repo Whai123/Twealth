@@ -1361,14 +1361,14 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
 
       // DEBUG: Log what we're sending to Groq
       console.log('🟢 === CALLING GROQ API ===');
-      console.log('Model: llama-3.3-70b-versatile');
+      console.log('Model: meta-llama/llama-4-scout-17b-16e-instruct');
       console.log('Messages count:', messages.length);
       console.log('System prompt length:', systemPrompt.length, 'chars (~', Math.ceil(systemPrompt.length / 4), 'tokens)');
       console.log('User message:', userMessage.substring(0, 100));
       console.log('Tools available:', availableTools.length);
 
       const response = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",  // Recommended for tool calling (Oct 2025) - native tool-use support
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",  // Llama 4 Scout - 17B MoE with native tool-use support
         messages: messages,
         tools: availableTools,
         tool_choice: needsImmediateAction ? "required" : "auto",
@@ -1552,7 +1552,7 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
 
     try {
       const response = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
         messages: [
           { role: "system", content: "You are a financial advisor. Give concise, actionable advice." },
           { role: "user", content: insightPrompt }
