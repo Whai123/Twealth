@@ -152,7 +152,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal when user gives a direct command or confirms. IMMEDIATE EXECUTION: When user says imperative commands like 'Create a goal to save...', 'Add a goal for...', 'Make a goal for...', 'Set a goal to...', call this tool IMMEDIATELY with all details. NO confirmation needed for imperative commands - they ARE the confirmation! Extract: name (e.g., 'Vacation Savings'), targetAmount (e.g., '5000'), targetDate (e.g., '2025-12-31'), description. For imperative commands: Set userConfirmed=true automatically.",
+      description: "Create a financial goal when user gives a direct command or confirms. ALWAYS provide a detailed natural language response explaining the goal creation alongside calling this tool. IMMEDIATE EXECUTION: When user says imperative commands like 'Create a goal to save...', 'Add a goal for...', 'Make a goal for...', 'Set a goal to...', call this tool IMMEDIATELY with all details AND provide comprehensive analysis (savings needed per month, feasibility, timeline, strategy). NO confirmation needed for imperative commands - they ARE the confirmation! Extract: name (e.g., 'Vacation Savings'), targetAmount (e.g., '5000'), targetDate (e.g., '2025-12-31'), description. For imperative commands: Set userConfirmed=true automatically.",
       parameters: {
         type: "object",
         properties: {
@@ -214,7 +214,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "add_transaction",
-      description: "Record a transaction when user explicitly states they spent/received money with specific amount. Call immediately to track the transaction, but ALWAYS provide spending insights and budget context in your response. Use when user says 'I spent $X on Y' or 'I earned $X from Y'.",
+      description: "Record a transaction when user explicitly states they spent/received money with specific amount. CRITICAL: Call this tool AND simultaneously provide detailed financial insights in natural language (impact on budget, monthly spend comparison, savings rate effect, actionable advice). NEVER just call the tool silently - ALWAYS explain the transaction's financial impact with specific numbers. Use when user says 'I spent $X on Y' or 'I earned $X from Y'.",
       parameters: {
         type: "object",
         properties: {
@@ -1372,9 +1372,9 @@ RESPONSE STYLE: CFO-level precision. ALWAYS provide a detailed natural language 
         messages: messages,
         tools: availableTools,
         tool_choice: needsImmediateAction ? "required" : "auto",
-        temperature: 0.7,  // Higher temp for more creative, insightful CFO-level advice
-        max_tokens: 4000,  // Increased for comprehensive financial analysis
-        top_p: 0.95  // Nucleus sampling for better quality
+        temperature: 0.6,  // Balanced temp for precise financial calculations with good reasoning
+        max_tokens: 4096,  // Maximum for comprehensive CFO-level analysis
+        top_p: 0.9  // More focused sampling for precise financial advice
       });
 
       const assistantMessage = response.choices[0]?.message;
