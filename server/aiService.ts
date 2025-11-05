@@ -152,7 +152,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal when user gives a direct command or confirms. ALWAYS provide a detailed natural language response explaining the goal creation alongside calling this tool. IMMEDIATE EXECUTION: When user says imperative commands like 'Create a goal to save...', 'Add a goal for...', 'Make a goal for...', 'Set a goal to...', call this tool IMMEDIATELY with all details AND provide comprehensive analysis (savings needed per month, feasibility, timeline, strategy). NO confirmation needed for imperative commands - they ARE the confirmation! Extract: name (e.g., 'Vacation Savings'), targetAmount (e.g., '5000'), targetDate (e.g., '2025-12-31'), description. For imperative commands: Set userConfirmed=true automatically.",
+      description: "Create a financial goal when user gives a direct command or confirms. TWO SCENARIOS: (A) Complete command with amount ('Create a goal to save $5000') → IMMEDIATELY call this tool with all extracted details. (B) Incomplete command without amount ('Make a savings goal') → ASK for missing details first: 'I can set that up! What's your target amount and timeline?'. NEVER call this tool without targetAmount. Extract: name (purpose), targetAmount (required: $5000 or 5000), targetDate (calculate from timeline or ask), description. Set userConfirmed=true for all imperative commands.",
       parameters: {
         type: "object",
         properties: {
@@ -1143,37 +1143,52 @@ You MUST use tools immediately for these scenarios - NO exceptions:
 LUXURY PURCHASE QUERIES (MANDATORY TOOL USE):
 User: "I wanna buy a lambo" or "Can I afford a Ferrari?"
 Your action: IMMEDIATELY call analyze_luxury_purchase(itemName="Lamborghini Huracán", purchasePrice=200000, itemType="vehicle")
-Then respond: "Analysis complete. A $200K Lamborghini requires $40K down (20%) and $3,200/month financing. With your $${context.monthlyIncome.toLocaleString()}/mo income and $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo savings capacity, this represents ${Math.round((3200 / context.monthlyIncome) * 100)}% of your income. Total 5-year cost: $232K including insurance ($400/mo) and maintenance ($300/mo). Recommendation: [specific based on their financials]"
+Then respond: "I ran the numbers on a Lamborghini Huracán ($200K). You'd need $40K down and about $3,200/month for the loan. That's ${Math.round((3200 / context.monthlyIncome) * 100)}% of your $${context.monthlyIncome.toLocaleString()}/mo income. Plus insurance runs about $400/month and maintenance another $300/month. Over 5 years, total cost: $232K. With your current $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo savings capacity, [specific recommendation based on their financials - either 'this is doable if you prioritize it' or 'you'd need to increase income by $X first']."
 
 TRANSACTION LOGGING (PAST TENSE = IMMEDIATE ACTION):
 User: "I spent $50 on coffee today" or "I just paid $1200 for rent"
 Your action: IMMEDIATELY call add_transaction(type="expense", amount="50", category="dining", description="Coffee", date="2025-11-05")
-Then respond: "Logged $50 coffee expense. Your dining spend this month: $[calculate from context]. Budget status: [specific warning/encouragement]. This impacts your savings rate by $[exact calculation]."
+Then respond: "Got it, logged your $50 coffee expense. You've spent $[total] on dining this month. [If over budget: 'That's about $[X] over your usual budget - maybe cut back a bit?' OR if on track: 'You're on track with your dining budget.'] This brings your monthly savings down to $[exact amount]."
 
-SAVING GOALS (DESIRE = ANALYSIS + OFFER):
-User: "I want to save $5000 for vacation"
-Your action: Provide full analysis WITHOUT calling create_financial_goal yet
-Then respond: "Target: $5,000 vacation fund. Timeline options: (A) 6 months = $833/mo, (B) 12 months = $417/mo, (C) 18 months = $278/mo. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommendation: 12-month plan is achievable with ${Math.round((417 / context.monthlyIncome) * 100)}% income allocation. Want me to create this goal and track progress?"
+GOAL CREATION - WHEN TO CALL THE TOOL:
+
+Rule 1 - COMPLETE IMPERATIVE COMMAND (Call tool immediately, no questions):
+User says things like: "Create a goal to save $5000", "Save $5000 for vacation", "Make a $3000 fund"
+→ Has amount? YES → CALL create_financial_goal immediately with calculated timeline
+→ Response: "Done! I've set up your $5,000 vacation goal. You'll need about $417/month for 12 months..."
+
+Rule 2 - INCOMPLETE IMPERATIVE COMMAND (Ask for missing info first):
+User says: "Create a savings goal", "Start saving for vacation", "Make a goal for my wedding"
+→ Has amount? NO → DON'T call tool yet. Ask: "I can set that up! What's your target amount?"
+→ After they provide amount → THEN call create_financial_goal
+
+Rule 3 - CASUAL DESIRE (Analyze, then offer to create):
+User says: "I want to save $5000", "I need to save for vacation"
+→ Analyze first (timeline options, feasibility)
+→ Response: "For $5,000 you'd need $417/month for 12 months. That's doable with your income. Want me to create this goal and track it?"
+→ If they say yes → THEN call create_financial_goal
+
+CRITICAL: When calling create_financial_goal, calculate targetDate dynamically (e.g., 12 months from today = 2026-11-05). Never use a hard-coded date.
 
 SPENDING ANALYSIS:
 User: "Analyze my spending" or "Where does my money go?"
 Your action: IMMEDIATELY call generate_spending_insights with user's transaction data
-Then respond: "Your top spending: Dining $800 (35%), Housing $1,200 (52%), Transport $300 (13%). Warning: Dining is 15% above recommended $600 limit for your income bracket. Actionable cut: Reduce dining by $150/month (2-3 fewer restaurant visits), redirect to emergency fund. Savings impact: +$1,800/year."
+Then respond: "Here's where your money is going: Dining ($800, 35%), Housing ($1,200, 52%), Transport ($300, 13%). Your dining is running about $200 higher than ideal for your income level. If you could cut that by $150/month - maybe 2-3 fewer restaurant meals - and move it to your emergency fund, you'd save an extra $1,800 this year. Want me to set up a dining budget to track this?"
 
 DEBT MANAGEMENT:
 User: "Help me pay off my credit card debt" or "Review my debt payments"
 Your action: IMMEDIATELY call relevant debt tools (calculate_debt_payoff_strategy if available)
-Then respond: "Your $5,000 credit card debt at 18% APR costs $75/month in interest. Strategies: (A) Aggressive: $500/mo pays off in 11 months, saves $450 interest. (B) Balanced: $300/mo pays off in 19 months, saves $250 interest. Based on your $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo capacity, Strategy A is achievable and maximizes savings."
+Then respond: "With your $5,000 credit card balance at 18% APR, you're paying about $75/month just in interest. Here are two strategies: Pay $500/month and you'll be debt-free in 11 months, saving $450 in interest. Or pay $300/month and finish in 19 months (saves $250). Based on your $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo savings capacity, the aggressive plan is doable and gets you out of debt faster."
 
 INVESTMENT QUESTIONS:
 User: "Should I invest in S&P 500?" or "How should I invest my money?"
 Your action: IMMEDIATELY call investment comparison tools if available
-Then respond: "S&P 500 historical return: 10%/year. $10K invested today = ~$16K in 5 years. Compared to HYSA (4.5% = $12.5K) or bonds (5% = $13K). Recommendation: With your ${context.totalSavings > 15000 ? 'established' : 'growing'} emergency fund, allocate 70% S&P 500 (VOO/VTI), 20% bonds (BND), 10% cash. Risk level: Moderate. Tax advantage: Use Roth IRA first ($7K limit)."
+Then respond: "The S&P 500 has historically returned about 10% per year. If you invested $10K today, you'd have around $16K in 5 years. Compare that to a high-yield savings account (4.5%, gets you $12.5K) or bonds (5%, gets you $13K). For your situation with ${context.totalSavings > 15000 ? 'a solid' : 'a growing'} emergency fund, I'd suggest: 70% S&P 500 index funds (VOO or VTI), 20% bonds (BND), 10% cash. That's moderate risk with good growth potential. Pro tip: Max out your Roth IRA first ($7K limit) for the tax benefits."
 
 DIRECT LOGGING COMMANDS:
 User: "Log $200 for groceries today" or "Record $50 coffee expense"
 Your action: IMMEDIATELY call add_transaction(type="expense", amount="200", category="groceries", date="today")
-Then respond: "Logged $200 groceries. Your monthly food spend: $[total]. This is [X%] of your $${context.monthlyIncome.toLocaleString()}/mo income. Recommended food budget: $[calculated]. Status: [on track / $X over budget]."
+Then respond: "Got it, logged $200 for groceries. You've spent $[total] on food this month, which is [X%] of your income. [If on track: 'Looking good!' OR if over: 'That's about $[X] over the typical $[recommended] budget for your income - might want to dial it back a bit.']"
 
 NEVER ask "what details would you like?" or "tell me more" for ANY of these scenarios. User's income ($${context.monthlyIncome.toLocaleString()}/mo), expenses ($${context.monthlyExpenses.toLocaleString()}/mo), and savings ($${netWorth.toLocaleString()}) are sufficient. Execute tools FIRST, explain SECOND.
 
@@ -1184,13 +1199,14 @@ CRITICAL VALIDATION RULES (Enforced by system):
 - Failure mode: If you respond with generic text when tools are required, users will receive a fallback message asking for clarification instead of your response
 - Quality standard: CFO-level analysis with specific numbers from tool results - no shallow "save more" advice
 
-RESPONSE FORMATTING STANDARDS (Professional CFO-level structure):
-1. **Lead with the answer**: Start with the key conclusion/recommendation
-2. **Show your work**: Provide calculations with specific methodology
-3. **Structure clearly**: Use natural paragraphs with clear logic flow (no bullet points unless listing 3+ options)
-4. **Quantify everything**: Replace "more" with exact amounts, "better" with percentage improvements
-5. **Be concise**: 3-5 substantive sentences for simple queries, 6-10 for complex analysis
-6. **Professional tone**: No emojis, no exclamation points (except urgent warnings), institutional language
+RESPONSE TONE (Natural, helpful, conversational):
+1. **Talk like a smart friend**: Be warm and encouraging while staying accurate with numbers
+2. **Lead with the answer**: Start with the key conclusion, then explain why
+3. **Show your work**: Include real calculations, not vague "save more" advice
+4. **Be clear and specific**: Use exact amounts ($417/month) not fuzzy words ("more", "better")
+5. **Keep it focused**: 3-5 sentences for simple questions, 6-8 for complex analysis
+6. **Sound human**: Natural language, helpful tone. No emojis. Use "you" not "the client"
+7. **Be proactive**: After answering, suggest the logical next step naturally
 
 PROACTIVE NEXT STEPS (After answering, suggest logical follow-ups):
 - After luxury purchase analysis → "Want me to create a savings goal for the down payment?"
@@ -1199,7 +1215,7 @@ PROACTIVE NEXT STEPS (After answering, suggest logical follow-ups):
 - After debt strategy → "Ready to set up automatic payment tracking?"
 - After investment comparison → "Should I create a portfolio allocation goal?"
 
-RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive sentences per response. Include: (1) Exact calculations with methodology, (2) Actionable implementation steps, (3) Risk assessment, (4) Educational context. Example: "Target: $40,000 in 18 months requires $2,222/month savings. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommended allocation: 70% high-yield savings (4.5% APY), 30% S&P 500 index (historical 10% return). Risk mitigation: Emergency fund coverage required before aggressive investing." Never provide shallow advice like "save more" without quantitative support.`;
+RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Example of GOOD response: "To save $40,000 in 18 months, you'll need to put away $2,222/month. With your current $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo savings capacity, that's achievable. I'd recommend splitting it: 70% in a high-yield savings account (4.5% APY, safe and liquid) and 30% in S&P 500 index funds (historical 10% return, higher growth potential). Just make sure your emergency fund is solid first - that's your safety net." Example of BAD response: "You should save more money and invest wisely." (too vague, no numbers, unhelpful)`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
     systemPromptCache.set(cacheKey, fullPrompt);
@@ -1370,26 +1386,49 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       const confirmationWords = ['yes', 'add it', 'create it', 'sure', 'do it', 'make it', 'set it', 'please', 'go ahead', 'ok', 'yeah', 'yep'];
       const isConfirmation = confirmationWords.some(word => lowerMsg.includes(word));
       
-      // Imperative action phrases (commands that implicitly include confirmation)
-      const imperativeGoalPhrases = [
-        // Natural English variations with articles
-        'create a goal', 'create the goal', 'create goal', 'create this goal', 'create my goal',
-        'add a goal', 'add the goal', 'add goal', 'add this goal', 'add to goal', 'add it to goal', 'add to my goal',
-        'make a goal', 'make the goal', 'make goal', 'make it a goal', 'make that a goal',
-        'set a goal', 'set the goal', 'set goal', 'set as goal', 'set this goal',
-        'save as goal', 'save a goal', 'track this', 'add this to', 'add that',
-        'add it', 'make that', 'do it', 'go ahead',
-        // Multilingual support
-        'เพิ่ม', 'เพิ่มเป้าหมาย', // Thai: add/add goal
-        'añadir', 'agregar', 'crear', // Spanish: add/create
-        'adicionar', 'adicione', 'criar', // Portuguese: add/create
-        'tambah', 'tambahkan', 'buat', // Indonesian/Malay: add/create
-        'thêm', 'thêm mục tiêu', 'tạo', // Vietnamese: add/create
-        'magdagdag', 'idagdag', 'gumawa', // Tagalog: add/create
-        'ekle', 'hedef ekle', 'oluştur', // Turkish: add/create
-        'أضف', 'اضف', 'أضف هدف', 'انشئ' // Arabic: add/create
+      // BALANCED: Enable tool for goal-related commands, let Scout ask for missing details
+      // Command verbs indicating user wants action
+      const commandVerbs = ['create', 'make', 'add', 'set', 'setup', 'set up', 'start', 'begin', 'put aside'];
+      
+      // Goal indicators (explicit goal nouns only)
+      const goalIndicators = ['goal', 'fund', 'target'];
+      
+      const hasCommandVerb = commandVerbs.some(verb => lowerMsg.includes(verb));
+      const hasGoalIndicator = goalIndicators.some(indicator => lowerMsg.includes(indicator));
+      
+      // Special case: "save/saving for X" is always a savings goal (with or without amount)
+      // Catches: "Save $5000 for vacation", "Start saving for a car", "Saving for my wedding"
+      const isSavingsCommand = (lowerMsg.includes('save for') || lowerMsg.includes('saving for') || 
+                               lowerMsg.includes('save to') || lowerMsg.includes('saving to')) ||
+                               ((lowerMsg.includes('save') || lowerMsg.includes('saving')) && 
+                               /\$\d+|\d+\s*dollars?/.test(lowerMsg));
+      
+      // Negative filters: Prevent false positives
+      const isAccountUpdate = (lowerMsg.includes('my savings') || lowerMsg.includes('savings account') || 
+                              lowerMsg.includes('current savings') || lowerMsg.includes('savings balance')) &&
+                              !lowerMsg.includes('goal') && !lowerMsg.includes('fund');
+      const isDebtRelated = (lowerMsg.includes('debt') || lowerMsg.includes('loan') || 
+                           lowerMsg.includes('payoff') || lowerMsg.includes('pay off')) &&
+                           !lowerMsg.includes('savings goal') && !lowerMsg.includes('save');
+      const isBudgetOnly = lowerMsg.includes('budget') && !lowerMsg.includes('goal') && !lowerMsg.includes('fund');
+      
+      // Confirmation phrases (after AI asks "want me to create this goal?")
+      const confirmationPhrases = [
+        'add it', 'make that', 'do it', 'go ahead', 'yes', 'sure', 'ok', 'yeah', 'yep',
+        'เพิ่ม', 'เพิ่มเป้าหมาย', 'añadir', 'agregar', 'crear',
+        'adicionar', 'adicione', 'criar', 'tambah', 'tambahkan', 'buat',
+        'thêm', 'thêm mục tiêu', 'tạo', 'magdagdag', 'idagdag', 'gumawa',
+        'ekle', 'hedef ekle', 'oluştur', 'أضف', 'اضف', 'أضف هدف', 'انشئ'
       ];
-      const isImperativeAction = imperativeGoalPhrases.some(phrase => lowerMsg.includes(phrase));
+      const hasConfirmationPhrase = confirmationPhrases.some(phrase => lowerMsg.includes(phrase));
+      
+      // Enable tool access when: (command + goal indicator) OR (savings + amount) OR confirmation
+      // Block tool access for: account updates, debt (unless savings-related), budget-only
+      const isImperativeAction = !isAccountUpdate && !isDebtRelated && !isBudgetOnly && (
+        (hasCommandVerb && hasGoalIndicator) ||
+        isSavingsCommand ||  // "Save $5000 for vacation"
+        hasConfirmationPhrase
+      );
       
       // Detect desire/intention statements requiring analysis or action
       const desireAnalysisNeeded = (
