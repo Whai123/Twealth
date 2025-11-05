@@ -414,7 +414,7 @@ export default function AIAssistantPage() {
                 onClick={handleSendMessage}
                 disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
                 size="icon"
-                className="absolute right-2 bottom-2 h-11 w-11 sm:h-10 sm:w-10"
+                className="absolute right-2 bottom-2 h-12 w-12 sm:h-10 sm:w-10"
                 data-testid="button-send-message"
                 title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
               >
