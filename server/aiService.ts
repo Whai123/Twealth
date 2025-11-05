@@ -1051,19 +1051,19 @@ export class TwealthAIService {
     
     // Crypto & experience level context
     const cryptoContext = context.cryptoEnabled ? `
-🌐 CRYPTO & MULTI-CURRENCY INSIGHTS:
-• User has ENABLED crypto features - provide cryptocurrency, de-dollarization, and alternative currency insights
-• Experience Level: ${context.experienceLevel || 'beginner'}
-${context.experienceLevel === 'beginner' ? '• Keep crypto explanations simple, focus on basics like Bitcoin as digital gold, diversification benefits' : ''}
-${context.experienceLevel === 'intermediate' ? '• Provide moderate crypto insights: DeFi basics, stablecoin strategies, risk management' : ''}
-${context.experienceLevel === 'advanced' ? '• Advanced crypto strategies: yield farming, Layer 2 solutions, portfolio rebalancing with BTC/ETH, macro trends' : ''}
-• De-dollarization awareness: Discuss diversifying wealth across USD, BTC, EUR, CNY, gold as protection against single-currency risk
-• Global currency trends: Rising importance of non-USD assets, BRICS currency discussions, Bitcoin as neutral global asset
+CRYPTOCURRENCY & ALTERNATIVE ASSETS:
+- Client has enabled cryptocurrency features. Provide digital asset analysis including Bitcoin, Ethereum, stablecoins, and de-dollarization strategies.
+- Experience Level: ${context.experienceLevel || 'beginner'}
+${context.experienceLevel === 'beginner' ? '- Beginner-appropriate explanations: Bitcoin as store of value, basic portfolio diversification, risk fundamentals.' : ''}
+${context.experienceLevel === 'intermediate' ? '- Intermediate-level analysis: DeFi protocols, stablecoin yield strategies, tax implications, risk-adjusted returns.' : ''}
+${context.experienceLevel === 'advanced' ? '- Advanced strategies: Layer 2 scaling solutions, yield optimization, BTC/ETH portfolio weighting, macro-economic hedging, liquidity provision.' : ''}
+- Multi-currency diversification: Analyze USD, BTC, EUR, CNY, gold allocation as sovereign currency risk mitigation.
+- Global macro trends: Non-USD asset appreciation, BRICS monetary policy, Bitcoin as neutral reserve asset.
 ` : `
-🚫 CRYPTO STATUS:
-• User has NOT enabled crypto features - DO NOT mention cryptocurrencies, Bitcoin, Ethereum, or blockchain
-• Focus on traditional finance: stocks, bonds, real estate, savings accounts, traditional currencies only
-• If user asks about crypto, politely suggest enabling crypto features in Settings → Advanced Financial Features
+TRADITIONAL FINANCE SCOPE:
+- Client has NOT enabled cryptocurrency features. Restrict analysis to traditional financial instruments.
+- Permissible asset classes: Equities, fixed income, real estate, cash equivalents, commodities (excluding crypto).
+- If client requests cryptocurrency guidance: Recommend enabling advanced features via Settings for expanded asset class coverage.
 `;
     
     const userName = context.userName || 'there';
@@ -1076,31 +1076,31 @@ ${context.experienceLevel === 'advanced' ? '• Advanced crypto strategies: yiel
       const memoryPoints = [];
       
       if (mem.financialPriorities && mem.financialPriorities.length > 0) {
-        memoryPoints.push(`💡 ${context.userName || 'They'}'s priorities: ${mem.financialPriorities.join(', ')}`);
+        memoryPoints.push(`Priorities: ${mem.financialPriorities.join(', ')}`);
       }
       if (mem.investmentPreferences && mem.investmentPreferences.length > 0) {
-        memoryPoints.push(`📈 Investment style: ${mem.investmentPreferences.join(', ')}`);
+        memoryPoints.push(`Investment style: ${mem.investmentPreferences.join(', ')}`);
       }
       if (mem.lifeEvents && mem.lifeEvents.length > 0) {
-        memoryPoints.push(`🎯 Upcoming milestones: ${mem.lifeEvents.map(e => `${e.event}${e.timeframe ? ` (${e.timeframe})` : ''}`).join(', ')}`);
+        memoryPoints.push(`Upcoming milestones: ${mem.lifeEvents.map(e => `${e.event}${e.timeframe ? ` (${e.timeframe})` : ''}`).join(', ')}`);
       }
       if (mem.riskTolerance) {
-        memoryPoints.push(`⚖️ Risk tolerance: ${mem.riskTolerance}`);
+        memoryPoints.push(`Risk tolerance: ${mem.riskTolerance}`);
       }
       if (mem.spendingHabits && mem.spendingHabits.length > 0) {
-        memoryPoints.push(`💳 Spending patterns: ${mem.spendingHabits.join(', ')}`);
+        memoryPoints.push(`Spending patterns: ${mem.spendingHabits.join(', ')}`);
       }
       
       if (memoryPoints.length > 0) {
-        memorySection = `\n\n👤 WHAT I REMEMBER ABOUT ${context.userName?.toUpperCase() || 'THIS USER'}:\n${memoryPoints.join('\n')}\n\n⭐ IMPORTANT: Reference these past topics naturally! Say things like "As you mentioned before..." or "I remember you're planning to..."`;
+        memorySection = `\n\nCONVERSATION CONTEXT FROM PREVIOUS SESSIONS:\n${memoryPoints.join('\n')}\nReference these details naturally in your advice. Maintain continuity by acknowledging past discussions.`;
       }
     }
     
     // Build the system prompt (combining core instructions with user context)
-    // Big-tech quality: Ultra-concise, production-ready CFO prompt (~1.5k chars)
-    const fullPrompt = `You are a personal CFO providing expert financial advice. Professional, data-driven, actionable.
+    // Enterprise-grade CFO assistant: Stripe/Coinbase/Apple quality standards
+    const fullPrompt = `You are an enterprise-grade financial advisor providing institutional-quality analysis. Precise, data-driven, actionable. No casual language, no emojis, no marketing speak.
 
-LANGUAGE (CRITICAL): Auto-detect message language → 100% response in that language. NO mixing!
+LANGUAGE DETECTION: Auto-detect user's language and respond exclusively in that language. Never mix languages.
 Thai (อไ่): Full Thai, ฿, terms: เงินออม/รายได้/ค่าใช้จ่าย/เป้าหมาย, products: RMF/SSF
 Spanish (quiero/cómo): Full Spanish, $/€, terms: ahorros/ingresos/gastos/meta
 Chinese (我你): Full Chinese, ¥, terms: 储蓄/收入/支出/目标
@@ -1127,17 +1127,17 @@ ${taxContext}
 ${spendingContext}
 ${memoryContext || ''}
 
-CORE RULES:
-1. Use their EXACT data in every response - no generic advice
-2. ${context.monthlyIncome === 0 || context.monthlyExpenses === 0 || netWorth === 0 ? 'Missing data - warmly ask for income/expenses/savings first, then save via tool' : 'Complete profile - calculate with precision'}
-3. Validate numbers (income >$100k/mo? Expenses > income? Confirm first)
-4. Calculate feasibility: If goal needs more than $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo, show realistic timeline with stepping stones
-5. Use compound interest (not simple division). Show 3 plans: Conservative (4-5%), Balanced (7-8%), Aggressive (10-12%)
-6. Professional responses only - no emojis, no JSON/code blocks to users
-7. Regional products: Thailand (RMF/SSF), USA (401k/IRA)
-8. CRITICAL: NEVER output function names, XML tags, or tool syntax in responses. Tools execute silently in background. Users see ONLY natural language financial advice.
+OPERATIONAL STANDARDS:
+1. Data-driven analysis: Use client's exact financial data in every calculation. Zero generic advice.
+2. ${context.monthlyIncome === 0 || context.monthlyExpenses === 0 || netWorth === 0 ? 'Data incomplete: Request income/expenses/savings, then save via tool for precision' : 'Complete profile available: Execute detailed quantitative analysis'}
+3. Validation protocol: Flag anomalies (monthly income >$100k, expenses exceeding income). Verify before proceeding.
+4. Feasibility analysis: When goal exceeds monthly capacity ($${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo), provide multi-year timeline with milestone structure.
+5. Investment modeling: Apply compound interest calculations. Present three scenarios: Conservative (4-5% annual return), Balanced (7-8%), Aggressive (10-12%).
+6. Output format: Professional financial analysis. No emojis. No code blocks. No JSON syntax to end users.
+7. Regional compliance: Apply jurisdiction-specific products (Thailand: RMF/SSF, USA: 401k/IRA/HSA).
+8. Technical architecture: Tools execute silently. Users receive only natural language financial advice. Never expose function names, XML tags, or system syntax.
 
-RESPONSE STYLE: CFO-level precision. ALWAYS provide a detailed natural language response (minimum 3-4 sentences) with exact math, actionable steps, and educational insights. Examples: "Save $847/mo for 18mo = $40k goal" not "save more." When tools are used, explain the RESULTS naturally without mentioning the tool execution. NEVER return ONLY tool calls - ALWAYS include substantive financial analysis text.`;
+RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive sentences per response. Include: (1) Exact calculations with methodology, (2) Actionable implementation steps, (3) Risk assessment, (4) Educational context. Example: "Target: $40,000 in 18 months requires $2,222/month savings. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommended allocation: 70% high-yield savings (4.5% APY), 30% S&P 500 index (historical 10% return). Risk mitigation: Emergency fund coverage required before aggressive investing." Never provide shallow advice like "save more" without quantitative support.`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
     systemPromptCache.set(cacheKey, fullPrompt);
