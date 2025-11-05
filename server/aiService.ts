@@ -1137,6 +1137,15 @@ OPERATIONAL STANDARDS:
 7. Regional compliance: Apply jurisdiction-specific products (Thailand: RMF/SSF, USA: 401k/IRA/HSA).
 8. Technical architecture: Tools execute silently. Users receive only natural language financial advice. Never expose function names, XML tags, or system syntax.
 
+PROACTIVE TOOL EXECUTION (CRITICAL FOR SCOUT):
+When user expresses desire, intention, or asks for analysis - IMMEDIATELY use appropriate tools:
+- "I want to buy [luxury item]" → Call analyze_luxury_purchase tool with exact item name and user's data
+- "Can I afford [item]?" → Call calculate_affordability tool immediately
+- "I want to save for [goal]" → Provide full analysis AND offer to create goal
+- "I spent $X on [category]" → Call add_transaction tool immediately
+- "Analyze my spending" → Call generate_spending_insights tool
+NEVER ask "what details would you like?" or "tell me more" for luxury purchases. User's income ($${context.monthlyIncome.toLocaleString()}/mo), expenses ($${context.monthlyExpenses.toLocaleString()}/mo), and savings ($${netWorth.toLocaleString()}) are sufficient for comprehensive affordability analysis. Execute tool calls FIRST, then provide expert interpretation.
+
 RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive sentences per response. Include: (1) Exact calculations with methodology, (2) Actionable implementation steps, (3) Risk assessment, (4) Educational context. Example: "Target: $40,000 in 18 months requires $2,222/month savings. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommended allocation: 70% high-yield savings (4.5% APY), 30% S&P 500 index (historical 10% return). Risk mitigation: Emergency fund coverage required before aggressive investing." Never provide shallow advice like "save more" without quantitative support.`;
     
     // Cache the full generated prompt for 1 hour (market data inside is already cached)
@@ -1315,6 +1324,21 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       ];
       const isImperativeAction = imperativeGoalPhrases.some(phrase => lowerMsg.includes(phrase));
       
+      // Detect desire/intention statements requiring analysis or action
+      const desireAnalysisNeeded = (
+        // Purchase desires
+        (lowerMsg.includes('want') || lowerMsg.includes('wanna') || lowerMsg.includes('need') || lowerMsg.includes('looking to')) &&
+        (lowerMsg.includes('buy') || lowerMsg.includes('purchase') || lowerMsg.includes('get') || lowerMsg.includes('afford'))
+      ) || (
+        // Saving desires
+        (lowerMsg.includes('save') || lowerMsg.includes('saving')) &&
+        (lowerMsg.includes('for') || lowerMsg.includes('to'))
+      ) || (
+        // Investment desires
+        (lowerMsg.includes('invest') || lowerMsg.includes('investing')) &&
+        (lowerMsg.includes('in') || lowerMsg.includes('want'))
+      );
+      
       // Check if last assistant message was asking for confirmation
       const lastAssistantMsg = conversationHistory.slice().reverse().find(m => m.role === 'assistant')?.content || '';
       const wasAskingForConfirmation = lastAssistantMsg.includes('Want me to') || 
@@ -1341,6 +1365,7 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
         - isConfirmation: ${isConfirmation}
         - wasAsking: ${wasAskingForConfirmation}
         - isImperative: ${isImperativeAction}
+        - desireAnalysis: ${desireAnalysisNeeded}
         - canCreate: ${canCreate}
         - toolCount: ${availableTools.length}/${TOOLS.length}
         - Last assistant msg preview: "${lastAssistantMsg.substring(0, 100)}..."
@@ -1371,8 +1396,8 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
         model: "meta-llama/llama-4-scout-17b-16e-instruct",  // Llama 4 Scout - 17B MoE with native tool-use support
         messages: messages,
         tools: availableTools,
-        tool_choice: needsImmediateAction ? "required" : "auto",
-        temperature: 0.6,  // Balanced temp for precise financial calculations with good reasoning
+        tool_choice: (needsImmediateAction || desireAnalysisNeeded) ? "required" : "auto",
+        temperature: 0.75,  // Higher temp for Scout - better reasoning and tool execution
         max_tokens: 4096,  // Maximum for comprehensive CFO-level analysis
         top_p: 0.9  // More focused sampling for precise financial advice
       });
