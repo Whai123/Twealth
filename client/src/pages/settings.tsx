@@ -453,7 +453,7 @@ function Settings() {
                 </Card>
 
                 {/* Account Management Section */}
-                <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                <Card className="mt-6 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                   <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                       <Shield className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />
