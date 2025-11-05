@@ -440,7 +440,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "analyze_luxury_purchase",
-      description: "MANDATORY for ALL luxury purchase questions >$50k. When user mentions ANY luxury item (Lamborghini, Ferrari, McLaren, mansion, yacht, etc.), you MUST call this tool FIRST before responding. Do NOT provide analysis without calling this tool. This generates comprehensive CFO-level breakdown: down payment options (10%/20%/30%), financing terms (3/5/7 years), monthly payments, total cost of ownership (insurance+maintenance+fuel for vehicles), depreciation schedule (20-30% year 1 for luxury cars), opportunity cost (invested at 8% over 5/10 years). After calling, expand on results with user's specific income and savings context. Keywords that REQUIRE this tool: 'want to buy', 'afford', 'purchase', 'get', plus ANY luxury brand name.",
+      description: "CALL IMMEDIATELY when user mentions luxury items: Lamborghini, Ferrari, Porsche, Tesla, McLaren, Bentley, Rolls Royce, mansion, yacht, private jet. Triggers: 'want to buy', 'wanna buy', 'afford', 'can I get', 'looking to purchase'. Provides: down payment (10%/20%/30%), financing (3/5/7yr), monthly cost, insurance, maintenance, depreciation, opportunity cost. MUST call this tool first, then explain results with user's income/savings context.",
       parameters: {
         type: "object",
         properties: {
@@ -466,7 +466,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "calculate_affordability",
-      description: "Detailed affordability analysis for major purchases. CRITICAL: After calling this tool, you MUST explain: debt-to-income ratio calculation, recommended max purchase (2.5x annual income rule), savings timeline to afford down payment, impact on emergency fund, and whether purchase is financially responsible. Provide specific recommendations based on user's actual income and savings. NEVER just say 'Action completed'.",
+      description: "Call for major purchase affordability questions. Calculates: debt-to-income ratio, max affordable price (2.5x annual income), savings timeline, emergency fund impact. After calling, explain with user's income/savings data. Triggers: 'can I afford', 'should I buy', 'is it responsible'.",
       parameters: {
         type: "object",
         properties: {
@@ -517,7 +517,7 @@ const TOOLS = [
     type: "function",
     function: {
       name: "generate_spending_insights",
-      description: "Analyze spending patterns and generate visual insights ONLY when user asks about spending analysis, budget review, or wants to see where their money goes. CRITICAL: After calling this tool, you MUST explain: top 3 spending categories with exact percentages and dollar amounts, spending trends (X% increase/decrease vs previous period), specific budget warnings (e.g., 'Dining $800 is 40% above recommended $500 limit'), actionable recommendations with exact numbers ('Cut dining by $150/month, redirect to savings'). Use visual language: 'Your spending pie chart shows...', 'The trend line indicates...'. Provide category breakdown data for charts. NEVER just say 'Action completed'.",
+      description: "Call when user asks about spending patterns. Provides: top 3 categories with percentages/amounts, trends, budget warnings, actionable recommendations. After calling, explain with specific numbers. Triggers: 'analyze spending', 'where does my money go', 'spending review', 'budget analysis'.",
       parameters: {
         type: "object",
         properties: {
@@ -1138,13 +1138,51 @@ OPERATIONAL STANDARDS:
 8. Technical architecture: Tools execute silently. Users receive only natural language financial advice. Never expose function names, XML tags, or system syntax.
 
 PROACTIVE TOOL EXECUTION (CRITICAL FOR SCOUT):
-When user expresses desire, intention, or asks for analysis - IMMEDIATELY use appropriate tools:
-- "I want to buy [luxury item]" → Call analyze_luxury_purchase tool with exact item name and user's data
-- "Can I afford [item]?" → Call calculate_affordability tool immediately
-- "I want to save for [goal]" → Provide full analysis AND offer to create goal
-- "I spent $X on [category]" → Call add_transaction tool immediately
-- "Analyze my spending" → Call generate_spending_insights tool
-NEVER ask "what details would you like?" or "tell me more" for luxury purchases. User's income ($${context.monthlyIncome.toLocaleString()}/mo), expenses ($${context.monthlyExpenses.toLocaleString()}/mo), and savings ($${netWorth.toLocaleString()}) are sufficient for comprehensive affordability analysis. Execute tool calls FIRST, then provide expert interpretation.
+You MUST use tools immediately for these scenarios - NO exceptions:
+
+LUXURY PURCHASE QUERIES (MANDATORY TOOL USE):
+User: "I wanna buy a lambo" or "Can I afford a Ferrari?"
+Your action: IMMEDIATELY call analyze_luxury_purchase(itemName="Lamborghini Huracán", purchasePrice=200000, itemType="vehicle")
+Then respond: "Analysis complete. A $200K Lamborghini requires $40K down (20%) and $3,200/month financing. With your $${context.monthlyIncome.toLocaleString()}/mo income and $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo savings capacity, this represents ${Math.round((3200 / context.monthlyIncome) * 100)}% of your income. Total 5-year cost: $232K including insurance ($400/mo) and maintenance ($300/mo). Recommendation: [specific based on their financials]"
+
+TRANSACTION LOGGING (PAST TENSE = IMMEDIATE ACTION):
+User: "I spent $50 on coffee today" or "I just paid $1200 for rent"
+Your action: IMMEDIATELY call add_transaction(type="expense", amount="50", category="dining", description="Coffee", date="2025-11-05")
+Then respond: "Logged $50 coffee expense. Your dining spend this month: $[calculate from context]. Budget status: [specific warning/encouragement]. This impacts your savings rate by $[exact calculation]."
+
+SAVING GOALS (DESIRE = ANALYSIS + OFFER):
+User: "I want to save $5000 for vacation"
+Your action: Provide full analysis WITHOUT calling create_financial_goal yet
+Then respond: "Target: $5,000 vacation fund. Timeline options: (A) 6 months = $833/mo, (B) 12 months = $417/mo, (C) 18 months = $278/mo. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommendation: 12-month plan is achievable with ${Math.round((417 / context.monthlyIncome) * 100)}% income allocation. Want me to create this goal and track progress?"
+
+SPENDING ANALYSIS:
+User: "Analyze my spending" or "Where does my money go?"
+Your action: IMMEDIATELY call generate_spending_insights with user's transaction data
+Then respond: "Your top spending: Dining $800 (35%), Housing $1,200 (52%), Transport $300 (13%). Warning: Dining is 15% above recommended $600 limit for your income bracket. Actionable cut: Reduce dining by $150/month (2-3 fewer restaurant visits), redirect to emergency fund. Savings impact: +$1,800/year."
+
+DEBT MANAGEMENT:
+User: "Help me pay off my credit card debt" or "Review my debt payments"
+Your action: IMMEDIATELY call relevant debt tools (calculate_debt_payoff_strategy if available)
+Then respond: "Your $5,000 credit card debt at 18% APR costs $75/month in interest. Strategies: (A) Aggressive: $500/mo pays off in 11 months, saves $450 interest. (B) Balanced: $300/mo pays off in 19 months, saves $250 interest. Based on your $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo capacity, Strategy A is achievable and maximizes savings."
+
+INVESTMENT QUESTIONS:
+User: "Should I invest in S&P 500?" or "How should I invest my money?"
+Your action: IMMEDIATELY call investment comparison tools if available
+Then respond: "S&P 500 historical return: 10%/year. $10K invested today = ~$16K in 5 years. Compared to HYSA (4.5% = $12.5K) or bonds (5% = $13K). Recommendation: With your ${context.totalSavings > 15000 ? 'established' : 'growing'} emergency fund, allocate 70% S&P 500 (VOO/VTI), 20% bonds (BND), 10% cash. Risk level: Moderate. Tax advantage: Use Roth IRA first ($7K limit)."
+
+DIRECT LOGGING COMMANDS:
+User: "Log $200 for groceries today" or "Record $50 coffee expense"
+Your action: IMMEDIATELY call add_transaction(type="expense", amount="200", category="groceries", date="today")
+Then respond: "Logged $200 groceries. Your monthly food spend: $[total]. This is [X%] of your $${context.monthlyIncome.toLocaleString()}/mo income. Recommended food budget: $[calculated]. Status: [on track / $X over budget]."
+
+NEVER ask "what details would you like?" or "tell me more" for ANY of these scenarios. User's income ($${context.monthlyIncome.toLocaleString()}/mo), expenses ($${context.monthlyExpenses.toLocaleString()}/mo), and savings ($${netWorth.toLocaleString()}) are sufficient. Execute tools FIRST, explain SECOND.
+
+CRITICAL VALIDATION RULES (Enforced by system):
+- Generic, tool-less responses to financial questions WILL BE REJECTED and replaced with fallback guidance
+- When tool_choice="required", you MUST use at least one tool or your response will be discarded
+- Success criteria: Every luxury purchase query, transaction logging request, spending analysis, or debt question MUST include tool execution
+- Failure mode: If you respond with generic text when tools are required, users will receive a fallback message asking for clarification instead of your response
+- Quality standard: CFO-level analysis with specific numbers from tool results - no shallow "save more" advice
 
 RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive sentences per response. Include: (1) Exact calculations with methodology, (2) Actionable implementation steps, (3) Risk assessment, (4) Educational context. Example: "Target: $40,000 in 18 months requires $2,222/month savings. Your current capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo. Recommended allocation: 70% high-yield savings (4.5% APY), 30% S&P 500 index (historical 10% return). Risk mitigation: Emergency fund coverage required before aggressive investing." Never provide shallow advice like "save more" without quantitative support.`;
     
@@ -1326,17 +1364,33 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       
       // Detect desire/intention statements requiring analysis or action
       const desireAnalysisNeeded = (
-        // Purchase desires
-        (lowerMsg.includes('want') || lowerMsg.includes('wanna') || lowerMsg.includes('need') || lowerMsg.includes('looking to')) &&
-        (lowerMsg.includes('buy') || lowerMsg.includes('purchase') || lowerMsg.includes('get') || lowerMsg.includes('afford'))
+        // Purchase desires (general)
+        (lowerMsg.includes('want') || lowerMsg.includes('wanna') || lowerMsg.includes('need') || lowerMsg.includes('looking to') || lowerMsg.includes('thinking about')) &&
+        (lowerMsg.includes('buy') || lowerMsg.includes('purchase') || lowerMsg.includes('get') || lowerMsg.includes('afford') || lowerMsg.includes('acquiring'))
+      ) || (
+        // Luxury items (instant trigger for analysis)
+        lowerMsg.includes('lamborghini') || lowerMsg.includes('lambo') ||
+        lowerMsg.includes('ferrari') || lowerMsg.includes('porsche') || 
+        lowerMsg.includes('mclaren') || lowerMsg.includes('bentley') ||
+        lowerMsg.includes('rolls royce') || lowerMsg.includes('rolls-royce') ||
+        lowerMsg.includes('tesla') || lowerMsg.includes('mansion') ||
+        lowerMsg.includes('yacht') || lowerMsg.includes('private jet')
       ) || (
         // Saving desires
         (lowerMsg.includes('save') || lowerMsg.includes('saving')) &&
-        (lowerMsg.includes('for') || lowerMsg.includes('to'))
+        (lowerMsg.includes('for') || lowerMsg.includes('to') || lowerMsg.includes('want'))
       ) || (
         // Investment desires
-        (lowerMsg.includes('invest') || lowerMsg.includes('investing')) &&
-        (lowerMsg.includes('in') || lowerMsg.includes('want'))
+        (lowerMsg.includes('invest') || lowerMsg.includes('investing') || lowerMsg.includes('investment')) &&
+        (lowerMsg.includes('in') || lowerMsg.includes('want') || lowerMsg.includes('should i') || lowerMsg.includes('portfolio'))
+      ) || (
+        // Budget/spending analysis
+        (lowerMsg.includes('budget') || lowerMsg.includes('spending') || lowerMsg.includes('expenses')) &&
+        (lowerMsg.includes('analyze') || lowerMsg.includes('review') || lowerMsg.includes('check') || lowerMsg.includes('where'))
+      ) || (
+        // Debt management
+        (lowerMsg.includes('debt') || lowerMsg.includes('loan') || lowerMsg.includes('credit card') || lowerMsg.includes('pay off')) &&
+        (lowerMsg.includes('help') || lowerMsg.includes('strategy') || lowerMsg.includes('plan') || lowerMsg.includes('manage'))
       );
       
       // Check if last assistant message was asking for confirmation
@@ -1366,8 +1420,10 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
         - wasAsking: ${wasAskingForConfirmation}
         - isImperative: ${isImperativeAction}
         - desireAnalysis: ${desireAnalysisNeeded}
+        - needsImmediateAction: ${needsImmediateAction}
         - canCreate: ${canCreate}
         - toolCount: ${availableTools.length}/${TOOLS.length}
+        - tool_choice: ${(needsImmediateAction || desireAnalysisNeeded) ? "required" : "auto"}
         - Last assistant msg preview: "${lastAssistantMsg.substring(0, 100)}..."
       `);
       
@@ -1375,15 +1431,37 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       // Only trigger for PAST tense actions, NOT future intentions
       const needsImmediateAction = (
         (lowerMsg.includes('spent') || lowerMsg.includes('paid') || 
-         lowerMsg.includes('received') || lowerMsg.includes('earned')) &&
+         lowerMsg.includes('received') || lowerMsg.includes('earned') ||
+         lowerMsg.includes('bought') || lowerMsg.includes('purchased') ||
+         lowerMsg.includes('got paid') || lowerMsg.includes('made money')) &&
         !lowerMsg.includes('want to') && !lowerMsg.includes('going to') && 
-        !lowerMsg.includes('plan to') && !lowerMsg.includes('will')
+        !lowerMsg.includes('plan to') && !lowerMsg.includes('will') &&
+        !lowerMsg.includes('thinking about') && !lowerMsg.includes('if i')
       ) || (
+        // Crypto transactions
         lowerMsg.includes('bought') && 
         (lowerMsg.includes('btc') || lowerMsg.includes('crypto') || lowerMsg.includes('bitcoin') || lowerMsg.includes('ethereum')) &&
         !lowerMsg.includes('want to') && !lowerMsg.includes('going to')
+      ) || (
+        // Specific spending phrases requiring immediate logging
+        (lowerMsg.includes('i spent') || lowerMsg.includes('i paid') || 
+         lowerMsg.includes('i bought') || lowerMsg.includes('just spent') ||
+         lowerMsg.includes('just paid') || lowerMsg.includes('just bought'))
+      ) || (
+        // Direct transaction logging commands
+        (lowerMsg.includes('log') || lowerMsg.includes('record') || lowerMsg.includes('track')) &&
+        (lowerMsg.includes('expense') || lowerMsg.includes('income') || 
+         lowerMsg.includes('transaction') || lowerMsg.includes('purchase') ||
+         /\$\d+/.test(lowerMsg) || /\d+\s*dollars?/.test(lowerMsg)) // Contains "$50" or "50 dollars"
+      ) || (
+        // Debt payment tracking
+        (lowerMsg.includes('paid off') || lowerMsg.includes('paid down') || lowerMsg.includes('payment on')) &&
+        (lowerMsg.includes('debt') || lowerMsg.includes('loan') || lowerMsg.includes('credit'))
       );
 
+      // Calculate tool_choice based on trigger detection
+      const toolChoiceMode = (needsImmediateAction || desireAnalysisNeeded) ? "required" : "auto";
+      
       // DEBUG: Log what we're sending to Groq
       console.log('🟢 === CALLING GROQ API ===');
       console.log('Model: meta-llama/llama-4-scout-17b-16e-instruct');
@@ -1391,12 +1469,13 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       console.log('System prompt length:', systemPrompt.length, 'chars (~', Math.ceil(systemPrompt.length / 4), 'tokens)');
       console.log('User message:', userMessage.substring(0, 100));
       console.log('Tools available:', availableTools.length);
+      console.log(`⚙️  TOOL CHOICE: "${toolChoiceMode}" (needsImmediateAction=${needsImmediateAction}, desireAnalysisNeeded=${desireAnalysisNeeded})`);
 
       const response = await groq.chat.completions.create({
         model: "meta-llama/llama-4-scout-17b-16e-instruct",  // Llama 4 Scout - 17B MoE with native tool-use support
         messages: messages,
         tools: availableTools,
-        tool_choice: (needsImmediateAction || desireAnalysisNeeded) ? "required" : "auto",
+        tool_choice: toolChoiceMode,
         temperature: 0.75,  // Higher temp for Scout - better reasoning and tool execution
         max_tokens: 4096,  // Maximum for comprehensive CFO-level analysis
         top_p: 0.9  // More focused sampling for precise financial advice
@@ -1442,6 +1521,43 @@ RESPONSE REQUIREMENTS: Institutional-grade precision. Minimum 3-4 substantive se
       // Cache only if no tools were used
       if (!toolCalls || toolCalls.length === 0) {
         const tokenCount = this.estimateTokenCount(systemPrompt + userMessage + text);
+        
+        // RESPONSE QUALITY VALIDATION: Enforce fallback if Scout should have used tools but didn't
+        if (needsImmediateAction || desireAnalysisNeeded) {
+          console.warn(`⚠️  QUALITY WARNING: Expected tool use but got text-only response!
+            - needsImmediateAction: ${needsImmediateAction}
+            - desireAnalysisNeeded: ${desireAnalysisNeeded}
+            - tool_choice was set to: "required"
+            - Original response: "${text.substring(0, 150)}..."
+            → ENFORCING FALLBACK RESPONSE`);
+          
+          // ENFORCED FALLBACK: Provide structured response when Scout fails to use tools
+          let fallbackResponse = '';
+          const lowerMsg = userMessage.toLowerCase();
+          
+          if (lowerMsg.includes('lambo') || lowerMsg.includes('ferrari') || lowerMsg.includes('porsche') || 
+              lowerMsg.includes('luxury') || lowerMsg.includes('mansion') || lowerMsg.includes('yacht')) {
+            // Luxury purchase fallback
+            fallbackResponse = `I need to run a comprehensive affordability analysis for this purchase. Based on your current financial profile (income: $${context.monthlyIncome.toLocaleString()}/mo, available savings capacity: $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo), I'll calculate down payment options, financing terms, total cost of ownership, and opportunity cost. Let me analyze this properly with the specific vehicle details and provide you with a complete CFO-level breakdown. What's the exact model and approximate price you're considering?`;
+          } else if (lowerMsg.includes('spent') || lowerMsg.includes('paid') || lowerMsg.includes('bought') ||
+                     lowerMsg.includes('log') || lowerMsg.includes('record')) {
+            // Transaction logging fallback
+            fallbackResponse = `I should log this transaction for you. To ensure accurate tracking, could you confirm: (1) The exact amount, (2) What category this falls under (groceries, dining, transport, etc.), and (3) When this expense occurred? This will help me track your spending patterns and provide budget insights.`;
+          } else if (lowerMsg.includes('budget') || lowerMsg.includes('spending') || lowerMsg.includes('where')) {
+            // Spending analysis fallback
+            fallbackResponse = `I need to analyze your spending patterns to provide actionable insights. Based on your recent transactions, I'll show you: top spending categories with percentages, budget warnings for overspending areas, and specific recommendations to optimize your $${context.monthlyIncome.toLocaleString()}/mo income. Let me pull that data now.`;
+          } else if (lowerMsg.includes('debt') || lowerMsg.includes('loan') || lowerMsg.includes('credit')) {
+            // Debt management fallback
+            fallbackResponse = `I should create a debt payoff strategy for you. To provide the most accurate plan, I'll need: (1) Total debt amount, (2) Interest rate (APR), and (3) Minimum monthly payment. With your current savings capacity of $${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/mo, I can calculate aggressive vs. balanced payoff strategies.`;
+          } else {
+            // Generic financial analysis fallback
+            fallbackResponse = `Let me analyze this properly with your financial data. Your current profile: $${context.monthlyIncome.toLocaleString()}/mo income, $${context.monthlyExpenses.toLocaleString()}/mo expenses, $${netWorth.toLocaleString()} total savings. I'll provide specific calculations and recommendations. Could you clarify what specific analysis you'd like me to run?`;
+          }
+          
+          return { response: fallbackResponse, toolCalls: undefined };
+        }
+        
+        // Cache normal responses (when tools weren't expected)
         responseCache.set(userMessage, context, text, tokenCount);
         console.log(`💰 Groq call made - ~${tokenCount} tokens`);
       } else {
