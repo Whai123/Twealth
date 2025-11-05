@@ -1166,88 +1166,54 @@ RESPONSE STYLE: CFO-level precision. Show exact math, actionable steps, educatio
     // CRITICAL: Remove any JSON code blocks, raw JSON, or technical syntax from AI responses
     // Users should NEVER see internal tool call syntax, code, or system prompt echoing
     
+    // DEBUG: Log raw AI output before sanitization
+    console.log('🔍 === RAW AI RESPONSE (before sanitization) ===');
+    console.log(text.substring(0, 500)); // First 500 chars
+    console.log('=== END RAW RESPONSE ===');
+    
     let sanitized = text;
     
-    // 0. CRITICAL: Remove ALL function/tool call syntax (multiple patterns)
-    // Pattern 1: <function>...</function> or <function=...>...</function>
-    sanitized = sanitized.replace(/<function[^>]*>.*?<\/function>/gi, '');
-    sanitized = sanitized.replace(/<\/?function[^>]*>/gi, '');
+    // 0. CRITICAL: Remove ONLY function/tool tags (surgical removal - preserve surrounding text)
+    // Pattern 1: Remove <function>text</function> tags on their own line
+    sanitized = sanitized.replace(/^<function[^>]*>.*?<\/function>\s*$/gim, '');
     
-    // Pattern 2: <tool>...</tool> or similar XML-like tags
-    sanitized = sanitized.replace(/<tool[^>]*>.*?<\/tool>/gi, '');
+    // Pattern 2: Remove inline <function> tags but keep surrounding text
+    sanitized = sanitized.replace(/<function[^>]*>.*?<\/function>/gi, '');
+    
+    // Pattern 3: Remove any orphaned tags
+    sanitized = sanitized.replace(/<\/?function[^>]*>/gi, '');
     sanitized = sanitized.replace(/<\/?tool[^>]*>/gi, '');
     
-    // 0. CRITICAL: Remove system prompt echoing (AI repeating its own instructions)
-    // Pattern: 🚨🚨🚨 ... or any lines starting with emojis like 🚨 ⚠️ 🔥 followed by CAPS
-    sanitized = sanitized.replace(/🚨🚨🚨[\s\S]*?(?=\n\n|$)/gi, '');
-    sanitized = sanitized.replace(/^[🚨⚠️🔥💡📊🌍]\s*[A-Z\s]{10,}:[\s\S]*?(?=\n\n[^•]|$)/gim, '');
+    // 1. Remove obvious system prompt echoing (very specific patterns only)
+    // Only remove lines that are CLEARLY system instructions, not natural language
+    sanitized = sanitized.replace(/^🚨🚨🚨.*$/gim, ''); // Triple warning emoji
+    sanitized = sanitized.replace(/^(STOP!|MANDATORY:).*$/gim, ''); // Explicit instruction markers
     
-    // Remove lines that look like system instructions
-    sanitized = sanitized.replace(/^(STOP!|MANDATORY|CRITICAL|IMPORTANT|USER'S FINANCIAL REALITY).*$/gim, '');
-    sanitized = sanitized.replace(/^\d️⃣\s+.*?:.*$/gim, ''); // Numbered emoji instructions
-    sanitized = sanitized.replace(/^[•\-]\s*(Calculate|Compare|Decision|If Monthly).*$/gim, '');
-    
-    // Remove schema-like JSON (tool definitions being echoed)
-    sanitized = sanitized.replace(/\{\s*"type":\s*"string"[\s\S]*?\}/gi, '');
-    sanitized = sanitized.replace(/\[\s*,\s*"name":\s*\{[\s\S]*?\}\s*\]/gi, '');
-    
-    // 1. Remove JSON code blocks (```json ... ```)
-    sanitized = sanitized.replace(/```json\s*\n[\s\S]*?\n```/gi, '');
-    
-    // 2. Remove generic code blocks (``` ... ```)
+    // 2. Remove code blocks (```...```) - AI shouldn't output code to users
     sanitized = sanitized.replace(/```[\s\S]*?```/g, '');
     
-    // 3. Remove inline code markers (`...`)
-    sanitized = sanitized.replace(/`([^`]+)`/g, '$1');
+    // 3. Remove "Tool Call" section headers if AI mentions them
+    sanitized = sanitized.replace(/^##?\s*Tool Calls?:?.*$/gim, '');
     
-    // 4. Remove raw JSON arrays that look like tool calls
-    // Pattern: [ { "name": "...", "parameters": { ... } } ]
-    sanitized = sanitized.replace(/\[\s*\{\s*"name":\s*"[^"]+"\s*,\s*"parameters":\s*\{[\s\S]*?\}\s*\}\s*\]/gi, '');
-    
-    // 5. Remove any remaining JSON-like structures with "name" and "parameters"
-    sanitized = sanitized.replace(/\{\s*"name":\s*"[^"]+"\s*,\s*"parameters":\s*\{[\s\S]*?\}\s*\}/gi, '');
-    
-    // 6. Remove "Tool Call" headers or mentions
-    sanitized = sanitized.replace(/###?\s*Tool Call.*?\n/gi, '');
-    sanitized = sanitized.replace(/To get a more detailed analysis.*?tool.*?:/gi, '');
-    sanitized = sanitized.replace(/I recommend calling the.*?tool.*?\./gi, '');
-    
-    // 7. Clean up multiple consecutive newlines (from removed blocks)
-    sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
-    
-    // 8. Remove any remaining bullet points that look like system instructions
-    const systemInstructionPatterns = [
-      /^•\s*Monthly\s*(Income|Expenses|Savings):\s*\$\d+.*$/gim,
-      /^•\s*MAXIMUM Monthly Savings:.*$/gim,
-      /^•\s*Emergency Fund:.*$/gim
-    ];
-    systemInstructionPatterns.forEach(pattern => {
-      sanitized = sanitized.replace(pattern, '');
-    });
-    
-    // 9. Trim whitespace and clean up empty lines
+    // 4. Clean up whitespace
     sanitized = sanitized.trim();
     sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
     
-    // 10. Final check: if response starts with technical markers, remove everything up to first natural text
-    if (sanitized.match(/^[\s\n]*[🚨⚠️🔥💡📊]/)) {
-      // Find first paragraph that looks like natural language (starts with letter or Thai/Chinese chars)
-      const naturalTextMatch = sanitized.match(/\n\n([A-Za-zก-๙\u4e00-\u9fff][\s\S]*)/);
-      if (naturalTextMatch) {
-        sanitized = naturalTextMatch[1].trim();
-      }
-    }
-    
-    // Log if we stripped anything significant
+    // Log sanitization results
     if (text.length - sanitized.length > 50) {
-      console.log(`🧹 Sanitized AI response: removed ${text.length - sanitized.length} chars of code/JSON/system prompts`);
-      console.log(`📝 Original length: ${text.length}, Sanitized length: ${sanitized.length}`);
+      console.log(`🧹 Sanitization removed ${text.length - sanitized.length} chars`);
+      console.log(`📝 Original: ${text.length} chars → Sanitized: ${sanitized.length} chars`);
     }
     
-    // Emergency fallback: if sanitized text is empty or very short, provide helpful message
+    console.log('✅ === SANITIZED AI RESPONSE (after cleaning) ===');
+    console.log(sanitized.substring(0, 500)); // First 500 chars
+    console.log('=== END SANITIZED RESPONSE ===');
+    
+    // Emergency fallback: if sanitized text is too short, something went wrong
     if (sanitized.length < 20) {
-      console.error('⚠️ WARNING: Sanitization removed too much content!');
-      console.error('Original text:', text.substring(0, 200));
+      console.error('⚠️ CRITICAL: Sanitization removed almost everything!');
+      console.error('Original (first 500 chars):', text.substring(0, 500));
+      console.error('After sanitization:', sanitized);
       return "I understand your request. Let me help you with that. Could you provide more details about what you'd like to achieve?";
     }
     
