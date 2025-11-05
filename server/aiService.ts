@@ -7,7 +7,7 @@ import { spendingPatternService } from './spendingPatternService';
 import { systemPromptCache } from './services/systemPromptCache';
 import { detectLanguage, calculateInvestmentPlans, calculateRealisticTimeline } from './financialCalculations';
 
-// Using Groq with Llama 4 Scout for fast, powerful AI with function calling
+// Using Groq with Llama 4 Scout (17B MoE) for fast, powerful CFO-level AI with native tool-use
 const groq = new Groq({ 
   apiKey: process.env.GROQ_API_KEY || "" 
 });
