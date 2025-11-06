@@ -276,7 +276,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  <Button
  type="submit"
  disabled={saveEstimates.isPending}
- className="flex-1 bg-white dark:bg-gray-900
+ className="flex-1 bg-white dark:bg-gray-900"
  data-testid="button-continue-step2"
  >
  {saveEstimates.isPending && <Loader2 className="mr-2 h-4 w-4" />}
@@ -409,7 +409,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  <Button
  type="submit"
  disabled={createGoal.isPending}
- className="flex-1 bg-white dark:bg-gray-900
+ className="flex-1 bg-white dark:bg-gray-900"
  data-testid="button-create-goal"
  >
  {createGoal.isPending && <Loader2 className="mr-2 h-4 w-4" />}
