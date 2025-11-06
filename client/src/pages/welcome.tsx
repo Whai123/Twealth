@@ -209,14 +209,14 @@ export default function WelcomePage() {
  <div
  className={`w-3 h-3 rounded-full ${
  index <= currentStep 
- ? 'bg-white dark:bg-gray-900 
+ ? 'bg-white dark:bg-gray-900'
  : 'bg-muted'
  }`}
  />
  {index < onboardingSteps.length - 1 && (
  <div className={`w-8 h-0.5 mx-1 ${
  index < currentStep 
- ? 'bg-white dark:bg-gray-900 
+ ? 'bg-white dark:bg-gray-900'
  : 'bg-muted'
  }`} />
  )}
