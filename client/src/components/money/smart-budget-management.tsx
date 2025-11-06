@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useState } from"react";
+import { useQuery, useMutation } from"@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { Badge } from"@/components/ui/badge";
+import { Progress } from"@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from"@/components/ui/dialog";
+import { Input } from"@/components/ui/input";
+import { Label } from"@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { useToast } from"@/hooks/use-toast";
+import { queryClient, apiRequest } from"@/lib/queryClient";
 import { 
  Target, 
  PiggyBank,
@@ -23,8 +23,8 @@ import {
  Brain,
  Award,
  Loader2
-} from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+} from"lucide-react";
+import { format, startOfMonth, endOfMonth } from"date-fns";
 
 interface SmartBudgetManagementProps {
  transactions: any[];
@@ -32,25 +32,25 @@ interface SmartBudgetManagementProps {
 }
 
 const availableCategories = [
- { value: "dining", label: "Dining Out" },
- { value: "groceries", label: "Groceries" },
- { value: "transport", label: "Transportation" },
- { value: "utilities", label: "Utilities" },
- { value: "entertainment", label: "Entertainment" },
- { value: "shopping", label: "Shopping" },
- { value: "healthcare", label: "Healthcare" },
- { value: "education", label: "Education" },
- { value: "insurance", label: "Insurance" },
- { value: "rent", label: "Rent/Mortgage" },
- { value: "subscriptions", label: "Subscriptions" },
- { value: "other", label: "Other" },
+ { value:"dining", label:"Dining Out" },
+ { value:"groceries", label:"Groceries" },
+ { value:"transport", label:"Transportation" },
+ { value:"utilities", label:"Utilities" },
+ { value:"entertainment", label:"Entertainment" },
+ { value:"shopping", label:"Shopping" },
+ { value:"healthcare", label:"Healthcare" },
+ { value:"education", label:"Education" },
+ { value:"insurance", label:"Insurance" },
+ { value:"rent", label:"Rent/Mortgage" },
+ { value:"subscriptions", label:"Subscriptions" },
+ { value:"other", label:"Other" },
 ];
 
 export default function SmartBudgetManagement({ transactions, timeRange }: SmartBudgetManagementProps) {
  const { toast } = useToast();
  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
  const [editingBudget, setEditingBudget] = useState<any>(null);
- const [formData, setFormData] = useState({ category: "", monthlyLimit: "" });
+ const [formData, setFormData] = useState({ category:"", monthlyLimit:"" });
 
  // Fetch budgets
  const { data: budgets = [], isLoading } = useQuery<any[]>({
@@ -98,16 +98,16 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  // Mutations
  const createBudgetMutation = useMutation({
  mutationFn: async (data: any) => {
- return await apiRequest("POST", "/api/budgets", data);
+ return await apiRequest("POST","/api/budgets", data);
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
- toast({ title: "Budget Created", description: "Your budget has been added successfully." });
+ toast({ title:"Budget Created", description:"Your budget has been added successfully." });
  setIsAddDialogOpen(false);
- setFormData({ category: "", monthlyLimit: "" });
+ setFormData({ category:"", monthlyLimit:"" });
  },
  onError: (error: any) => {
- toast({ title: "Error", description: error.message, variant: "destructive" });
+ toast({ title:"Error", description: error.message, variant:"destructive" });
  }
  });
 
@@ -117,11 +117,11 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
- toast({ title: "Budget Updated", description: "Your budget has been updated successfully." });
+ toast({ title:"Budget Updated", description:"Your budget has been updated successfully." });
  setEditingBudget(null);
  },
  onError: (error: any) => {
- toast({ title: "Error", description: error.message, variant: "destructive" });
+ toast({ title:"Error", description: error.message, variant:"destructive" });
  }
  });
 
@@ -131,10 +131,10 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
- toast({ title: "Budget Deleted", description: "Budget has been removed." });
+ toast({ title:"Budget Deleted", description:"Budget has been removed." });
  },
  onError: (error: any) => {
- toast({ title: "Error", description: error.message, variant: "destructive" });
+ toast({ title:"Error", description: error.message, variant:"destructive" });
  }
  });
 
@@ -144,9 +144,9 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  // Validate form data
  if (!formData.category || !formData.monthlyLimit) {
  toast({ 
- title: "Validation Error", 
- description: "Please fill in all fields", 
- variant: "destructive" 
+ title:"Validation Error", 
+ description:"Please fill in all fields", 
+ variant:"destructive" 
  });
  return;
  }
@@ -207,7 +207,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  <div className="space-y-6">
  {/* Budget Overview */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
- <Card className="p-6 ">
+ <Card className="p-6">
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm text-muted-foreground">Total Budget</p>
@@ -224,7 +224,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  </div>
  </Card>
 
- <Card className="p-6 ">
+ <Card className="p-6">
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm text-muted-foreground">Budget Used</p>
@@ -241,7 +241,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  </div>
  </Card>
 
- <Card className="p-6 ">
+ <Card className="p-6">
  <div className="flex items-center justify-between">
  <div>
  <p className="text-sm text-muted-foreground">Remaining</p>
@@ -307,7 +307,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  </div>
  <Button type="submit" disabled={createBudgetMutation.isPending} data-testid="button-submit-budget">
  {createBudgetMutation.isPending && <Loader2 className="mr-2 h-4 w-4" />}
- {createBudgetMutation.isPending ? "Creating..." : "Create Budget"}
+ {createBudgetMutation.isPending ?"Creating..." :"Create Budget"}
  </Button>
  </form>
  </DialogContent>
@@ -404,7 +404,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  </div>
  <Button type="submit" disabled={updateBudgetMutation.isPending} data-testid="button-update-budget">
  {updateBudgetMutation.isPending && <Loader2 className="mr-2 h-4 w-4" />}
- {updateBudgetMutation.isPending ? "Updating..." : "Update Budget"}
+ {updateBudgetMutation.isPending ?"Updating..." :"Update Budget"}
  </Button>
  </form>
  </DialogContent>

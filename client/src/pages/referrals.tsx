@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { Input } from"@/components/ui/input";
+import { Badge } from"@/components/ui/badge";
+import { Label } from"@/components/ui/label";
+import { Separator } from"@/components/ui/separator";
+import { useToast } from"@/hooks/use-toast";
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Copy, Share2, Gift, Users, ChevronRight, AlertCircle, Trophy, Star, Zap, Crown, Target, Award, TrendingUp, Sparkles, Rocket } from 'lucide-react';
 import { format } from 'date-fns';
@@ -83,7 +83,7 @@ export default function ReferralsPage() {
  // Extract the actual error message from the API response
  let errorMessage = 'An error occurred';
  if (error?.message) {
- // Parse error message format: "400: {\"message\":\"Invalid referral code\"}"
+ // Parse error message format:"400: {\"message\":\"Invalid referral code\"}"
  const match = error.message.match(/^\d+:\s*(.+)$/);
  if (match) {
  try {
@@ -160,11 +160,11 @@ export default function ReferralsPage() {
  const levelProgress = ((referrals.length % 5) / 5) * 100;
 
  const getLevelBadge = (level: number) => {
- if (level >= 10) return { icon: Crown, color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/20", title: "Referral Royalty" };
- if (level >= 7) return { icon: Trophy, color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", title: "Referral Champion" };
- if (level >= 4) return { icon: Star, color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", title: "Referral Expert" };
- if (level >= 2) return { icon: Award, color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", title: "Referral Pro" };
- return { icon: Target, color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", title: "Referral Starter" };
+ if (level >= 10) return { icon: Crown, color:"text-purple-600", bg:"bg-purple-100 dark:bg-purple-900/20", title:"Referral Royalty" };
+ if (level >= 7) return { icon: Trophy, color:"text-yellow-600", bg:"bg-yellow-100 dark:bg-yellow-900/20", title:"Referral Champion" };
+ if (level >= 4) return { icon: Star, color:"text-blue-600", bg:"bg-blue-100 dark:bg-blue-900/20", title:"Referral Expert" };
+ if (level >= 2) return { icon: Award, color:"text-green-600", bg:"bg-green-100 dark:bg-green-900/20", title:"Referral Pro" };
+ return { icon: Target, color:"text-orange-600", bg:"bg-orange-100 dark:bg-orange-900/20", title:"Referral Starter" };
  };
 
  const levelBadge = getLevelBadge(referralLevel);
@@ -181,7 +181,7 @@ export default function ReferralsPage() {
  <Users className="w-8 h-8 text-white" />
  </div>
  <div>
- <h1 className="text-2xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 " data-testid="heading-referrals">
+ <h1 className="text-2xl md:text-4xl font-bold text-purple-600 dark:text-purple-400" data-testid="heading-referrals">
  Referral Rewards
  </h1>
  <p className="text-xl text-muted-foreground">Share the wealth, grow together!</p>
@@ -307,7 +307,7 @@ export default function ReferralsPage() {
  <Input 
  value={referralCode.code} 
  readOnly 
- className="font-mono text-xl text-center bg-white dark:bg-gray-900 dark:from-blue-900/50 dark:to-purple-900/50 border-2 border-blue-200 dark:border-blue-700 h-14 text-blue-800 dark:text-blue-200 font-bold" 
+ className="font-mono text-xl text-center bg-white dark:bg-gray-900 border-2 border-blue-200 dark:border-blue-700 h-14 text-blue-800 dark:text-blue-200 font-bold" 
  data-testid="input-referral-code"
  />
  <Button 
@@ -326,14 +326,14 @@ export default function ReferralsPage() {
  <TrendingUp className="h-4 w-4 text-blue-600" />
  <span className="text-sm font-medium" data-testid="text-uses">Used: {referralCode.currentUses}/{referralCode.maxUses}</span>
  </div>
- <Badge variant={referralCode.isActive ? "default" : "secondary"} className="bg-green-100 text-green-800 border-green-300">
+ <Badge variant={referralCode.isActive ?"default" :"secondary"} className="bg-green-100 text-green-800 border-green-300">
  {referralCode.isActive ? 'Active' : 'Inactive'}
  </Badge>
  </div>
 
  <Button 
  onClick={shareReferralCode} 
- className="w-full bg-primary text-primary-foreground font-semibold py-3 h-12 shadow-lg "
+ className="w-full bg-primary text-primary-foreground font-semibold py-3 h-12 shadow-lg"
  data-testid="button-share-code"
  >
  <Share2 className="h-5 w-5 mr-2" />
@@ -365,7 +365,7 @@ export default function ReferralsPage() {
  placeholder="TYPE-FRIEND-CODE"
  value={shareCode}
  onChange={(e) => setShareCode(e.target.value.toUpperCase())}
- className="font-mono text-lg text-center bg-white dark:bg-gray-900 dark:from-orange-900/50 dark:to-pink-900/50 border-2 border-orange-200 dark:border-orange-700 h-12 text-orange-800 dark:text-orange-200 font-bold"
+ className="font-mono text-lg text-center bg-white dark:bg-gray-900 border-2 border-orange-200 dark:border-orange-700 h-12 text-orange-800 dark:text-orange-200 font-bold"
  data-testid="input-use-code"
  />
  </div>

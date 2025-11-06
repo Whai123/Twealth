@@ -1,14 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Crown, Check, Zap, TrendingUp, AlertTriangle, Sparkles } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
-import { getLocalizedPrice, formatCurrency, getCurrencySymbol } from "@/lib/currency";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { Badge } from"@/components/ui/badge";
+import { Progress } from"@/components/ui/progress";
+import { useQuery, useMutation } from"@tanstack/react-query";
+import { Skeleton } from"@/components/ui/skeleton";
+import { Crown, Check, Zap, TrendingUp, AlertTriangle, Sparkles } from"lucide-react";
+import { useToast } from"@/hooks/use-toast";
+import { queryClient, apiRequest } from"@/lib/queryClient";
+import { useLocation } from"wouter";
+import { getLocalizedPrice, formatCurrency, getCurrencySymbol } from"@/lib/currency";
 
 interface SubscriptionPlan {
  id: string;
@@ -106,20 +106,20 @@ export default function SubscriptionPage() {
  // Free plan doesn't need payment
  if (planName === 'Free') {
  // Direct upgrade without payment
- apiRequest("POST", "/api/subscription/upgrade", { planId })
+ apiRequest("POST","/api/subscription/upgrade", { planId })
  .then(() => {
  toast({
- title: "Switched to Free Plan",
- description: "You're now on the Free plan."
+ title:"Switched to Free Plan",
+ description:"You're now on the Free plan."
  });
  queryClient.invalidateQueries({ queryKey: ["/api/subscription/current"] });
  queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
  })
  .catch((error: any) => {
  toast({
- title: "Upgrade failed",
- description: error.message || "Failed to change plan",
- variant: "destructive"
+ title:"Upgrade failed",
+ description: error.message ||"Failed to change plan",
+ variant:"destructive"
  });
  });
  } else {
@@ -235,19 +235,19 @@ export default function SubscriptionPage() {
  )}
 
  <div className="grid gap-4 md:grid-cols-3">
- <div className="text-center p-4 bg-white dark:bg-gray-900 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50">
+ <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50">
  <div className="text-2xl font-bold text-foreground">
  {usage?.insights || 0}
  </div>
  <div className="text-sm font-medium text-muted-foreground">Insights Generated</div>
  </div>
- <div className="text-center p-4 bg-white dark:bg-gray-900 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
+ <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
  <div className="text-2xl font-bold text-foreground">
  {usage?.totalTokens?.toLocaleString() || 0}
  </div>
  <div className="text-sm font-medium text-muted-foreground">Tokens Used</div>
  </div>
- <div className="text-center p-4 bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-blue-950/20 rounded-xl border border-green-200/50 dark:border-green-800/50">
+ <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-xl border border-green-200/50 dark:border-green-800/50">
  <div className="text-2xl font-bold text-foreground">
  ${usage?.estimatedCost || '0.000'}
  </div>
@@ -392,7 +392,7 @@ export default function SubscriptionPage() {
  AI Features
  </h4>
  <div className="space-y-3">
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg">
  <span className="font-medium">AI Chats</span>
  <div className="text-right">
  <span className="font-bold text-lg text-primary block" data-testid={`text-${plan.name.toLowerCase()}-chat-limit`}>
@@ -403,13 +403,13 @@ export default function SubscriptionPage() {
  </span>
  </div>
  </div>
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg">
  <span className="font-medium">Deep Analysis</span>
  <span className="font-bold text-lg text-primary">
  {plan.aiDeepAnalysisLimit === 999999 ? 'Unlimited' : plan.aiDeepAnalysisLimit}
  </span>
  </div>
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-lg">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg">
  <span className="font-medium">AI Insights</span>
  <span className="font-bold text-lg text-primary capitalize">
  {plan.aiInsightsFrequency}
@@ -515,7 +515,7 @@ export default function SubscriptionPage() {
  </div>
  </div>
 
- <div className="bg-white dark:bg-gray-900 dark:from-green-950/30 dark:to-blue-950/30 rounded-xl p-6 border-2 border-green-300/50 dark:border-green-700/50">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border-2 border-green-300/50 dark:border-green-700/50">
  <div className="flex items-center justify-between text-lg mb-3">
  <span className="font-semibold">Total Value Per Month</span>
  <span className="text-2xl font-bold text-green-600">+$347</span>
@@ -577,7 +577,7 @@ export default function SubscriptionPage() {
 
  {/* Enhanced Value Proposition */}
  <Card className="relative overflow-hidden border-0 shadow-2xl">
- <div className="absolute inset-0 bg-green-500/20 " />
+ <div className="absolute inset-0 bg-green-500/20" />
  <div className="absolute inset-0 bg-white dark:bg-gray-900 backdrop-blur-xl" />
  <CardContent className="relative p-8">
  <div className="text-center space-y-6">
@@ -615,7 +615,7 @@ export default function SubscriptionPage() {
  </div>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-blue-950/30 dark:to-green-950/30 rounded-xl p-6">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
  <div className="flex items-center justify-center gap-3 mb-4">
  <Zap className="w-8 h-8 text-blue-500" />
  <h4 className="text-xl font-bold">Powered by Groq & Llama 4 Scout</h4>

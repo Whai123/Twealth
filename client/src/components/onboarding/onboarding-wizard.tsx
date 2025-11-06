@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useState } from"react";
+import { useForm } from"react-hook-form";
+import { zodResolver } from"@hookform/resolvers/zod";
+import { z } from"zod";
+import { useMutation } from"@tanstack/react-query";
+import { useLocation } from"wouter";
 import { 
  Sparkles, 
  DollarSign, 
@@ -15,26 +15,26 @@ import {
  PiggyBank,
  Rocket,
  Loader2
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+} from"lucide-react";
+import { Button } from"@/components/ui/button";
+import { Input } from"@/components/ui/input";
+import { Progress } from"@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from"@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from"@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { apiRequest, queryClient } from"@/lib/queryClient";
+import { useToast } from"@/hooks/use-toast";
 
 const financialInfoSchema = z.object({
- monthlyIncome: z.string().min(1, "Monthly income is required"),
- monthlyExpenses: z.string().min(1, "Monthly expenses are required"),
+ monthlyIncome: z.string().min(1,"Monthly income is required"),
+ monthlyExpenses: z.string().min(1,"Monthly expenses are required"),
 });
 
 const goalSchema = z.object({
- title: z.string().min(1, "Goal name is required"),
- targetAmount: z.string().min(1, "Target amount is required"),
- targetDate: z.string().min(1, "Target date is required"),
- category: z.string().min(1, "Category is required"),
+ title: z.string().min(1,"Goal name is required"),
+ targetAmount: z.string().min(1,"Target amount is required"),
+ targetDate: z.string().min(1,"Target date is required"),
+ category: z.string().min(1,"Category is required"),
  priority: z.string().default("medium"),
 });
 
@@ -58,8 +58,8 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  const financialForm = useForm<FinancialInfo>({
  resolver: zodResolver(financialInfoSchema),
  defaultValues: {
- monthlyIncome: "",
- monthlyExpenses: "",
+ monthlyIncome:"",
+ monthlyExpenses:"",
  },
  });
 
@@ -67,18 +67,18 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  const goalForm = useForm<GoalInfo>({
  resolver: zodResolver(goalSchema),
  defaultValues: {
- title: "",
- targetAmount: "",
- targetDate: "",
- category: "savings",
- priority: "medium",
+ title:"",
+ targetAmount:"",
+ targetDate:"",
+ category:"savings",
+ priority:"medium",
  },
  });
 
  // Save financial estimates mutation
  const saveEstimates = useMutation({
  mutationFn: async (data: FinancialInfo) => {
- return apiRequest("POST", "/api/financial-estimates", {
+ return apiRequest("POST","/api/financial-estimates", {
  monthlyIncome: parseFloat(data.monthlyIncome),
  monthlyExpenses: parseFloat(data.monthlyExpenses),
  });
@@ -91,14 +91,14 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  // Create goal mutation
  const createGoal = useMutation({
  mutationFn: async (data: GoalInfo) => {
- return apiRequest("POST", "/api/financial-goals", {
+ return apiRequest("POST","/api/financial-goals", {
  title: data.title,
  targetAmount: data.targetAmount,
- currentAmount: "0",
+ currentAmount:"0",
  targetDate: data.targetDate,
  category: data.category,
  priority: data.priority,
- status: "active",
+ status:"active",
  });
  },
  onSuccess: () => {
@@ -120,8 +120,8 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
 
  const handleComplete = () => {
  toast({
- title: "Welcome to Twealth!",
- description: "Your financial journey starts now. Let's build wealth together!",
+ title:"Welcome to Twealth!",
+ description:"Your financial journey starts now. Let's build wealth together!",
  });
  onComplete();
  };
@@ -205,7 +205,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  {step === 2 && (
  <Card className="border-2 shadow-xl">
  <CardHeader>
- <div className="mx-auto mb-4 w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center">
+ <div className="mx-auto mb-4 w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
  <DollarSign className="w-6 h-6 text-white" />
  </div>
  <CardTitle className="text-center">Tell us about your finances</CardTitle>
@@ -280,7 +280,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  data-testid="button-continue-step2"
  >
  {saveEstimates.isPending && <Loader2 className="mr-2 h-4 w-4" />}
- {saveEstimates.isPending ? "Saving..." : "Continue"}
+ {saveEstimates.isPending ?"Saving..." :"Continue"}
  {!saveEstimates.isPending && <ArrowRight className="ml-2 w-4 h-4" />}
  </Button>
  </div>
@@ -294,7 +294,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  {step === 3 && (
  <Card className="border-2 shadow-xl">
  <CardHeader>
- <div className="mx-auto mb-4 w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center">
+ <div className="mx-auto mb-4 w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
  <Target className="w-6 h-6 text-white" />
  </div>
  <CardTitle className="text-center">Set your first goal</CardTitle>
@@ -413,7 +413,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  data-testid="button-create-goal"
  >
  {createGoal.isPending && <Loader2 className="mr-2 h-4 w-4" />}
- {createGoal.isPending ? "Creating..." : "Create Goal"}
+ {createGoal.isPending ?"Creating..." :"Create Goal"}
  {!createGoal.isPending && <ArrowRight className="ml-2 w-4 h-4" />}
  </Button>
  </div>
@@ -438,7 +438,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  </CardDescription>
  </CardHeader>
  <CardContent className="space-y-6">
- <div className="p-6 rounded-lg bg-white dark:bg-gray-900 dark:from-indigo-950/20 dark:to-purple-950/20">
+ <div className="p-6 rounded-lg bg-white dark:bg-gray-900">
  <h4 className="font-semibold mb-3">What's Next?</h4>
  <ul className="space-y-2 text-sm">
  <li className="flex items-center gap-2">

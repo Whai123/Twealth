@@ -1,28 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from"react";
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Users, Globe, Clock, DollarSign, TrendingUp, Edit, Trash2, BarChart3, Filter, ChevronDown, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import EventForm from "@/components/forms/event-form";
-import { TimeTracker } from "@/components/time-tracker";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import AdvancedFilters, { type FilterOptions } from "@/components/calendar/advanced-filters";
-import SmartCalendarInsights from "@/components/calendar/smart-calendar-insights";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Users, Globe, Clock, DollarSign, TrendingUp, Edit, Trash2, BarChart3, Filter, ChevronDown, Sparkles } from"lucide-react";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogDescription } from"@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { Label } from"@/components/ui/label";
+import { Badge } from"@/components/ui/badge";
+import EventForm from"@/components/forms/event-form";
+import { TimeTracker } from"@/components/time-tracker";
+import { apiRequest } from"@/lib/queryClient";
+import { useToast } from"@/hooks/use-toast";
+import { useIsMobile } from"@/hooks/use-mobile";
+import AdvancedFilters, { type FilterOptions } from"@/components/calendar/advanced-filters";
+import SmartCalendarInsights from"@/components/calendar/smart-calendar-insights";
 
-const DAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_SHORT = ["S","M","T","W","T","F","S"];
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const MONTHS = [
- "January", "February", "March", "April", "May", "June",
- "July", "August", "September", "October", "November", "December"
+"January","February","March","April","May","June",
+"July","August","September","October","November","December"
 ];
-const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 export default function Calendar() {
  const { t } = useTranslation();
@@ -74,19 +74,19 @@ export default function Calendar() {
  });
 
  const { data: eventFinancials } = useQuery({
- queryKey: ["/api/events", selectedEventId, "financial-summary"],
+ queryKey: ["/api/events", selectedEventId,"financial-summary"],
  queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/financial-summary`).then(res => res.json()) : null,
  enabled: !!selectedEventId,
  });
 
  const { data: eventExpenses } = useQuery({
- queryKey: ["/api/events", selectedEventId, "expenses"],
+ queryKey: ["/api/events", selectedEventId,"expenses"],
  queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/expenses`).then(res => res.json()) : [],
  enabled: !!selectedEventId,
  });
 
  const { data: eventTimeValue } = useQuery({
- queryKey: ["/api/events", selectedEventId, "time-value"],
+ queryKey: ["/api/events", selectedEventId,"time-value"],
  queryFn: () => selectedEventId ? fetch(`/api/events/${selectedEventId}/time-value`).then(res => res.json()) : null,
  enabled: !!selectedEventId,
  });
@@ -100,17 +100,17 @@ export default function Calendar() {
  const shareUrl = `${window.location.origin}/shared/calendar/${data.share.token}`;
  navigator.clipboard.writeText(shareUrl);
  toast({
- title: "Calendar shared successfully!",
- description: "The share link has been copied to your clipboard.",
+ title:"Calendar shared successfully!",
+ description:"The share link has been copied to your clipboard.",
  });
  setIsShareDialogOpen(false);
  queryClient.invalidateQueries({ queryKey: ["/api/calendar/shares"] });
  },
  onError: (error: any) => {
  toast({
- title: "Error creating share",
+ title:"Error creating share",
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -124,17 +124,17 @@ export default function Calendar() {
  queryClient.invalidateQueries({ queryKey: ["/api/events"] });
  queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
  toast({
- title: "Event Updated!",
- description: "Your event has been updated successfully.",
+ title:"Event Updated!",
+ description:"Your event has been updated successfully.",
  });
  setIsEditDialogOpen(false);
  setEventToEdit(null);
  },
  onError: (error: any) => {
  toast({
- title: "Failed to update event",
- description: error.message || "Please try again",
- variant: "destructive",
+ title:"Failed to update event",
+ description: error.message ||"Please try again",
+ variant:"destructive",
  });
  },
  });
@@ -147,17 +147,17 @@ export default function Calendar() {
  queryClient.invalidateQueries({ queryKey: ["/api/events"] });
  queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
  toast({
- title: "Event Deleted!",
- description: "Your event has been deleted successfully.",
+ title:"Event Deleted!",
+ description:"Your event has been deleted successfully.",
  });
  setIsDeleteDialogOpen(false);
  setEventToDelete(null);
  },
  onError: (error: any) => {
  toast({
- title: "Failed to delete event",
- description: error.message || "Please try again",
- variant: "destructive",
+ title:"Failed to delete event",
+ description: error.message ||"Please try again",
+ variant:"destructive",
  });
  },
  });
@@ -302,7 +302,7 @@ export default function Calendar() {
  className="min-h-[44px]"
  data-testid="button-share-calendar"
  >
- <Share2 size={18} className={isMobile ? "" : "mr-2"} />
+ <Share2 size={18} className={isMobile ?"" :"mr-2"} />
  {!isMobile && <span className="hidden sm:inline">Share</span>}
  </Button>
  </DialogTrigger>
@@ -391,7 +391,7 @@ export default function Calendar() {
  
  {/* Stats Cards - Responsive Grid */}
  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
- <div className="bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
+ <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
  <div className="flex items-center gap-2 mb-1">
  <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
  <span className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100">Events</span>
@@ -400,7 +400,7 @@ export default function Calendar() {
  <div className="text-xs text-blue-700 dark:text-blue-300">This month</div>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200 dark:border-purple-800">
+ <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200 dark:border-purple-800">
  <div className="flex items-center gap-2 mb-1">
  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
  <span className="text-xs sm:text-sm font-medium text-purple-900 dark:text-purple-100">Value</span>
@@ -414,7 +414,7 @@ export default function Calendar() {
  <div className="text-xs text-purple-700 dark:text-purple-300">Time value</div>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-green-900/20 dark:to-green-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200 dark:border-green-800">
+ <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200 dark:border-green-800">
  <div className="flex items-center gap-2 mb-1">
  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
  <span className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-100">ROI</span>
@@ -423,7 +423,7 @@ export default function Calendar() {
  <div className="text-xs text-green-700 dark:text-green-300">Avg return</div>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-amber-900/20 dark:to-amber-800/20 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-200 dark:border-amber-800">
+ <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-200 dark:border-amber-800">
  <div className="flex items-center gap-2 mb-1">
  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
  <span className="text-xs sm:text-sm font-medium text-amber-900 dark:text-amber-100">Efficiency</span>
@@ -455,7 +455,7 @@ export default function Calendar() {
  variant="outline" 
  size="icon"
  onClick={() => navigateMonth('prev')}
- className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl "
+ className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl"
  data-testid="button-prev-month"
  >
  <ChevronLeft className="w-5 h-5" />
@@ -474,7 +474,7 @@ export default function Calendar() {
  variant="outline" 
  size="icon"
  onClick={() => navigateMonth('next')}
- className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl "
+ className="h-11 w-11 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl"
  data-testid="button-next-month"
  >
  <ChevronRight className="w-5 h-5" />
@@ -485,9 +485,9 @@ export default function Calendar() {
  <div className="flex items-center gap-2">
  <Button 
  variant="ghost" 
- size={isMobile ? "sm" : "default"}
+ size={isMobile ?"sm" :"default"}
  onClick={goToToday}
- className="h-11 sm:h-12 px-3 sm:px-4 font-medium "
+ className="h-11 sm:h-12 px-3 sm:px-4 font-medium"
  data-testid="button-today"
  >
  Today
@@ -501,8 +501,8 @@ export default function Calendar() {
  {(['month', 'agenda'] as const).map((view) => (
  <Button
  key={view}
- variant={currentView === view ? "default" : "ghost"}
- size={isMobile ? "sm" : "default"}
+ variant={currentView === view ?"default" :"ghost"}
+ size={isMobile ?"sm" :"default"}
  onClick={() => setCurrentView(view)}
  className="h-10 sm:h-11 px-4 sm:px-6 capitalize font-medium transition-all"
  data-testid={`button-view-${view}`}
@@ -771,7 +771,7 @@ export default function Calendar() {
  {dayEvents.map((event: any) => (
  <div 
  key={event.id}
- className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg cursor-pointer "
+ className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg cursor-pointer"
  onClick={() => handleViewEventDetails(event.id)}
  data-testid={`agenda-event-${event.id}`}
  >
@@ -803,7 +803,7 @@ export default function Calendar() {
  </div>
  </div>
  
- <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400  mb-3">
+ <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-3">
  Master Your Time
  </h3>
  <p className="text-muted-foreground text-lg mb-4 max-w-lg mx-auto">
@@ -811,24 +811,24 @@ export default function Calendar() {
  </p>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
- <div className="bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <Clock className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Time Tracking</h4>
  <p className="text-sm text-blue-600 dark:text-blue-300">Log actual vs planned time</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <BarChart3 className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-purple-800 dark:text-purple-200">Event Analytics</h4>
  <p className="text-sm text-purple-600 dark:text-purple-300">Productivity insights & trends</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-pink-900/20 dark:to-pink-800/10 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <Sparkles className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-pink-800 dark:text-pink-200">Smart Scheduling</h4>

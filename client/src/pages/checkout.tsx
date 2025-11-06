@@ -55,16 +55,16 @@ function CheckoutForm({ planId }: { planId: string }) {
 
  if (error) {
  toast({
- title: "Payment Failed",
+ title:"Payment Failed",
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  }
  } catch (err: any) {
  toast({
- title: "Payment Error",
- description: err.message || "An unexpected error occurred",
- variant: "destructive",
+ title:"Payment Error",
+ description: err.message ||"An unexpected error occurred",
+ variant:"destructive",
  });
  } finally {
  setIsProcessing(false);
@@ -131,9 +131,9 @@ export default function CheckoutPage() {
  useEffect(() => {
  if (!planId) {
  toast({
- title: "Invalid Plan",
- description: "No plan selected. Redirecting to subscription page.",
- variant: "destructive",
+ title:"Invalid Plan",
+ description:"No plan selected. Redirecting to subscription page.",
+ variant:"destructive",
  });
  setLocation('/subscription');
  return;
@@ -157,17 +157,17 @@ export default function CheckoutPage() {
  } else {
  const error = await response.json();
  toast({
- title: "Setup Failed",
- description: error.message || "Failed to setup payment",
- variant: "destructive",
+ title:"Setup Failed",
+ description: error.message ||"Failed to setup payment",
+ variant:"destructive",
  });
  setLocation('/subscription');
  }
  } catch (error: any) {
  toast({
- title: "Error",
- description: error.message || "An error occurred",
- variant: "destructive",
+ title:"Error",
+ description: error.message ||"An error occurred",
+ variant:"destructive",
  });
  setLocation('/subscription');
  }
@@ -238,7 +238,7 @@ export default function CheckoutPage() {
  <CardDescription>{plan.description}</CardDescription>
  </CardHeader>
  <CardContent>
- <div className="flex items-baseline justify-between mb-6 p-6 bg-white dark:bg-gray-900 dark:from-orange-900/20 dark:to-pink-900/20 rounded-xl">
+ <div className="flex items-baseline justify-between mb-6 p-6 bg-white dark:bg-gray-900 rounded-xl">
  <div>
  <div className="text-sm text-muted-foreground mb-1">Monthly Subscription</div>
  <div className="text-4xl font-bold text-foreground">

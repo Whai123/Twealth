@@ -1,23 +1,23 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from"react";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
-import { Plus, Calendar, Users, Clock, CheckCircle, XCircle, TrendingUp, Brain, Sparkles, MoreHorizontal, Settings, UserPlus, Trash2, Copy, Share, Link } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import GroupForm from "@/components/forms/group-form";
-import EventForm from "@/components/forms/event-form";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useUserId } from "@/lib/userContext";
+import { Plus, Calendar, Users, Clock, CheckCircle, XCircle, TrendingUp, Brain, Sparkles, MoreHorizontal, Settings, UserPlus, Trash2, Copy, Share, Link } from"lucide-react";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Avatar, AvatarFallback } from"@/components/ui/avatar";
+import { Badge } from"@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from"@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from"@/components/ui/dropdown-menu";
+import { Progress } from"@/components/ui/progress";
+import { Input } from"@/components/ui/input";
+import { Label } from"@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { Checkbox } from"@/components/ui/checkbox";
+import GroupForm from"@/components/forms/group-form";
+import EventForm from"@/components/forms/event-form";
+import { apiRequest } from"@/lib/queryClient";
+import { useToast } from"@/hooks/use-toast";
+import { useUserId } from"@/lib/userContext";
 
 export default function Groups() {
  const { t } = useTranslation();
@@ -78,7 +78,7 @@ export default function Groups() {
  toast({
  title: t('common.error'),
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -104,7 +104,7 @@ export default function Groups() {
  toast({
  title: t('common.error'),
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -133,7 +133,7 @@ export default function Groups() {
  toast({
  title: t('common.error'),
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -143,7 +143,7 @@ export default function Groups() {
  apiRequest("POST", `/api/groups/${groupId}/bulk-invite-friends`, { friendIds, role }),
  onSuccess: (data: any) => {
  toast({
- title: "Friends invited",
+ title:"Friends invited",
  description: `Successfully invited ${data.invitations?.length || 0} friends to the group.`,
  });
  setBulkInviteDialogOpen(false);
@@ -154,7 +154,7 @@ export default function Groups() {
  toast({
  title: t('common.error'),
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -171,9 +171,9 @@ export default function Groups() {
  },
  onError: (error: any) => {
  toast({
- title: "Error",
+ title:"Error",
  description: error.message,
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -263,9 +263,9 @@ export default function Groups() {
  });
  } else {
  toast({
- title: "Error",
+ title:"Error",
  description: t('common.error'),
- variant: "destructive",
+ variant:"destructive",
  });
  }
  };
@@ -338,7 +338,7 @@ export default function Groups() {
  <Users className="w-8 h-8 text-white" />
  </div>
  <div>
- <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-emerald-600 dark:text-emerald-400 ">
+ <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-emerald-600 dark:text-emerald-400">
  {t('groups.title')}
  </h1>
  <p className="text-xl text-muted-foreground">{t('groups.subtitle')}</p>
@@ -391,7 +391,7 @@ export default function Groups() {
  <DialogTrigger asChild>
  <Button 
  size="lg" 
- className="bg-emerald-500 text-white font-semibold px-6 py-3 h-12 shadow-lg " 
+ className="bg-emerald-500 text-white font-semibold px-6 py-3 h-12 shadow-lg" 
  data-testid="button-create-group"
  >
  <Sparkles size={18} className="mr-2" />
@@ -406,7 +406,7 @@ export default function Groups() {
  </div>
  
  {/* Welcome Message */}
- <div className="bg-white dark:bg-gray-900 dark:from-gray-800/80 dark:to-emerald-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+ <div className="bg-white dark:bg-gray-900 backdrop-blur-sm rounded-xl p-6 border border-white/20">
  <div className="flex items-center gap-3">
  <Brain className="w-6 h-6 text-emerald-500" />
  <div>
@@ -435,7 +435,7 @@ export default function Groups() {
  </div>
  </div>
  
- <h3 className="text-2xl md:text-4xl font-bold text-emerald-600 dark:text-emerald-400  mb-4">
+ <h3 className="text-2xl md:text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-4">
  Ready to Build Teams?
  </h3>
  <p className="text-muted-foreground text-xl mb-4 max-w-2xl mx-auto">
@@ -447,7 +447,7 @@ export default function Groups() {
  
  {/* Feature Grid */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-12">
- <div className="bg-white dark:bg-gray-900 dark:from-emerald-900/20 dark:to-emerald-800/10 rounded-2xl p-8 border border-emerald-200/50 dark:border-emerald-700/50">
+ <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-emerald-200/50 dark:border-emerald-700/50">
  <div className="w-14 h-14 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
  <Users className="h-7 w-7 text-white" />
  </div>
@@ -455,7 +455,7 @@ export default function Groups() {
  <p className="text-sm text-emerald-600 dark:text-emerald-300">Invite members, assign roles, and build amazing teams</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-blue-800/10 rounded-2xl p-8 border border-blue-200/50 dark:border-blue-700/50">
+ <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-blue-200/50 dark:border-blue-700/50">
  <div className="w-14 h-14 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
  <Calendar className="h-7 w-7 text-white" />
  </div>
@@ -463,7 +463,7 @@ export default function Groups() {
  <p className="text-sm text-blue-600 dark:text-blue-300">AI-powered event scheduling with optimal timing suggestions</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-purple-900/20 dark:to-purple-800/10 rounded-2xl p-8 border border-purple-200/50 dark:border-purple-700/50">
+ <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-purple-200/50 dark:border-purple-700/50">
  <div className="w-14 h-14 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
  <TrendingUp className="h-7 w-7 text-white" />
  </div>
@@ -476,7 +476,7 @@ export default function Groups() {
  <DialogTrigger asChild>
  <Button 
  size="lg" 
- className="bg-emerald-500 shadow-2xl text-xl px-12 py-4 h-16 font-bold " 
+ className="bg-emerald-500 shadow-2xl text-xl px-12 py-4 h-16 font-bold" 
  data-testid="button-create-first-group"
  >
  <Sparkles size={24} className="mr-3" />
@@ -524,22 +524,22 @@ export default function Groups() {
  }
  
  const getViabilityColor = (score: number) => {
- if (score >= 80) return { bg: "bg-green-100 dark:bg-green-900/30", text: "text-green-800 dark:text-green-200", icon: "✓" };
- if (score >= 60) return { bg: "bg-yellow-100 dark:bg-yellow-900/30", text: "text-yellow-800 dark:text-yellow-200", icon: "~" };
- return { bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-800 dark:text-red-200", icon: "!" };
+ if (score >= 80) return { bg:"bg-green-100 dark:bg-green-900/30", text:"text-green-800 dark:text-green-200", icon:"✓" };
+ if (score >= 60) return { bg:"bg-yellow-100 dark:bg-yellow-900/30", text:"text-yellow-800 dark:text-yellow-200", icon:"~" };
+ return { bg:"bg-red-100 dark:bg-red-900/30", text:"text-red-800 dark:text-red-200", icon:"!" };
  };
  
  const viability = getViabilityColor(eventData.viabilityScore);
  
  return (
- <Card key={group.id} className=" bg-white dark:bg-gray-900 dark:from-gray-800/90 dark:to-gray-900/50 backdrop-blur-sm border border-white/20 overflow-hidden group">
+ <Card key={group.id} className="bg-white dark:bg-gray-900 backdrop-blur-sm border border-white/20 overflow-hidden group">
  <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
  
  <CardHeader className="p-6 relative z-10">
  <div className="flex items-center justify-between mb-4">
  <div className="min-w-0 flex-1 pr-2">
  <div className="flex items-center gap-3 mb-2">
- <div className="w-10 h-10 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center shadow-lg">
+ <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
  <Users className="w-5 h-5 text-white" />
  </div>
  <CardTitle 

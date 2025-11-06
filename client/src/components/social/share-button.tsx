@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState } from"react";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent } from"@/components/ui/card";
+import { Badge } from"@/components/ui/badge";
 import { 
  DropdownMenu, 
  DropdownMenuContent, 
  DropdownMenuItem, 
  DropdownMenuTrigger,
  DropdownMenuSeparator 
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
+} from"@/components/ui/dropdown-menu";
+import { useToast } from"@/hooks/use-toast";
 import { 
  Share2, 
  Twitter, 
@@ -20,18 +20,18 @@ import {
  Mail, 
  Copy,
  Sparkles
-} from "lucide-react";
+} from"lucide-react";
 import { 
  ShareData, 
  shareToSocialMedia, 
  shareContent, 
  isNativeShareAvailable 
-} from "@/lib/social-sharing";
+} from"@/lib/social-sharing";
 
 interface ShareButtonProps {
  shareData: ShareData;
- variant?: "default" | "outline" | "ghost" | "secondary";
- size?: "default" | "sm" | "lg";
+ variant?:"default" |"outline" |"ghost" |"secondary";
+ size?:"default" |"sm" |"lg";
  showText?: boolean;
  achievement?: boolean;
  className?: string;
@@ -39,11 +39,11 @@ interface ShareButtonProps {
 
 export default function ShareButton({ 
  shareData, 
- variant = "outline", 
- size = "default", 
+ variant ="outline", 
+ size ="default", 
  showText = true,
  achievement = false,
- className = ""
+ className =""
 }: ShareButtonProps) {
  const [isLoading, setIsLoading] = useState(false);
  const { toast } = useToast();
@@ -56,21 +56,21 @@ export default function ShareButton({
  
  if (result.success) {
  toast({
- title: "Shared successfully!",
+ title:"Shared successfully!",
  description: result.message,
  });
  } else {
  toast({
- title: "Share failed",
+ title:"Share failed",
  description: result.message,
- variant: "destructive"
+ variant:"destructive"
  });
  }
  } catch (error) {
  toast({
- title: "Share failed",
- description: "Something went wrong. Please try again.",
- variant: "destructive"
+ title:"Share failed",
+ description:"Something went wrong. Please try again.",
+ variant:"destructive"
  });
  } finally {
  setIsLoading(false);
@@ -83,14 +83,14 @@ export default function ShareButton({
  try {
  const result = await shareContent(shareData);
  toast({
- title: "Shared! 📱",
+ title:"Shared! 📱",
  description: result.message,
  });
  } catch (error) {
  toast({
- title: "Share failed",
- description: "Something went wrong. Please try again.",
- variant: "destructive"
+ title:"Share failed",
+ description:"Something went wrong. Please try again.",
+ variant:"destructive"
  });
  } finally {
  setIsLoading(false);
@@ -244,7 +244,7 @@ export function AchievementShareCard({ achievement, shareData }: AchievementShar
  };
 
  return (
- <Card className="relative overflow-hidden border-2 border-primary/20 bg-white dark:bg-gray-900 dark:from-gray-800 dark:to-purple-950/20">
+ <Card className="relative overflow-hidden border-2 border-primary/20 bg-white dark:bg-gray-900">
  {/* Background decoration */}
  <div className="absolute inset-0 bg-muted/30" />
  <div className="absolute top-0 right-0 w-32 h-32 bg-white dark:bg-gray-900 rounded-full -translate-y-16 translate-x-16" />

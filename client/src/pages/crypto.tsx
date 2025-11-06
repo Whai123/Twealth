@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState } from"react";
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useQuery, useMutation } from"@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { Input } from"@/components/ui/input";
+import { Label } from"@/components/ui/label";
 import {
  Dialog,
  DialogContent,
@@ -12,17 +12,17 @@ import {
  DialogHeader,
  DialogTitle,
  DialogTrigger,
-} from "@/components/ui/dialog";
+} from"@/components/ui/dialog";
 import {
  Select,
  SelectContent,
  SelectItem,
  SelectTrigger,
  SelectValue,
-} from "@/components/ui/select";
-import { Bitcoin, Plus, TrendingUp, TrendingDown, Search, Bell, Trash2, Edit } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+} from"@/components/ui/select";
+import { Bitcoin, Plus, TrendingUp, TrendingDown, Search, Bell, Trash2, Edit } from"lucide-react";
+import { useToast } from"@/hooks/use-toast";
+import { queryClient, apiRequest } from"@/lib/queryClient";
 
 export default function CryptoPage() {
  const { t } = useTranslation();
@@ -53,7 +53,7 @@ export default function CryptoPage() {
  // Add holding mutation
  const addHoldingMutation = useMutation({
  mutationFn: async (data: any) => {
- return apiRequest("POST", "/api/crypto/holdings", data);
+ return apiRequest("POST","/api/crypto/holdings", data);
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/crypto/holdings"] });
@@ -70,9 +70,9 @@ export default function CryptoPage() {
  },
  onError: (error: any) => {
  toast({
- title: "Error",
+ title:"Error",
  description: error.message || t('common.error'),
- variant: "destructive",
+ variant:"destructive",
  });
  },
  });
@@ -95,9 +95,9 @@ export default function CryptoPage() {
  const handleAddHolding = () => {
  if (!selectedCoin || !amount) {
  toast({
- title: "Error",
+ title:"Error",
  description: t('common.error'),
- variant: "destructive",
+ variant:"destructive",
  });
  return;
  }
@@ -107,8 +107,8 @@ export default function CryptoPage() {
  symbol: selectedCoin.symbol,
  name: selectedCoin.name,
  amount: amount,
- averageBuyPrice: buyPrice || "0",
- source: "manual",
+ averageBuyPrice: buyPrice ||"0",
+ source:"manual",
  });
  };
 
@@ -140,7 +140,7 @@ export default function CryptoPage() {
  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
  <Bitcoin className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-orange-500 flex-shrink-0" />
  <div className="min-w-0 flex-1">
- <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400  truncate">
+ <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400 truncate">
  Crypto Portfolio
  </h1>
  <p className="text-sm sm:text-base text-muted-foreground truncate">Manage your cryptocurrency holdings</p>
@@ -242,7 +242,7 @@ export default function CryptoPage() {
  disabled={addHoldingMutation.isPending}
  data-testid="button-confirm-add"
  >
- {addHoldingMutation.isPending ? "Adding..." : "Add to Portfolio"}
+ {addHoldingMutation.isPending ?"Adding..." :"Add to Portfolio"}
  </Button>
  </>
  )}
@@ -255,7 +255,7 @@ export default function CryptoPage() {
  
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
  {/* Mobile-First Portfolio Value Card */}
- <Card className="bg-white dark:bg-gray-900 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800 ">
+ <Card className="bg-white dark:bg-gray-900 border-orange-200 dark:border-orange-800">
  <CardContent className="p-4 sm:p-6">
  <div className="flex items-center justify-between">
  <div className="flex-1 min-w-0">
@@ -296,7 +296,7 @@ export default function CryptoPage() {
  const isPositive = change >= 0;
 
  return (
- <Card key={holding.id} className="relative overflow-hidden " data-testid={`card-holding-${holding.symbol.toLowerCase()}`}>
+ <Card key={holding.id} className="relative overflow-hidden" data-testid={`card-holding-${holding.symbol.toLowerCase()}`}>
  <CardHeader className="pb-3 p-4 sm:p-6">
  <div className="flex items-start sm:items-center justify-between gap-2">
  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">

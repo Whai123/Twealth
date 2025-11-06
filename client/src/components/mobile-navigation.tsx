@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { useState, useEffect } from"react";
+import { Link, useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 import { 
  Home, 
@@ -13,26 +13,26 @@ import {
  Gift,
  Bitcoin,
  BarChart3
-} from "lucide-react";
-import { cn } from "../lib/utils";
-import { Button } from "./ui/button";
-import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
+} from"lucide-react";
+import { cn } from"../lib/utils";
+import { Button } from"./ui/button";
+import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import {
  Drawer,
  DrawerContent,
  DrawerDescription,
  DrawerTitle,
-} from "./ui/drawer";
-import GoalForm from "./forms/goal-form";
-import TransactionForm from "./forms/transaction-form";
-import EventForm from "./forms/event-form";
+} from"./ui/drawer";
+import GoalForm from"./forms/goal-form";
+import TransactionForm from"./forms/transaction-form";
+import EventForm from"./forms/event-form";
 
 const getNavigation = (t: (key: string) => string) => [
- { name: t('navigation.dashboard'), href: "/", icon: Home, label: t('navigation.labels.home') },
- { name: t('navigation.aiAssistant'), href: "/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
- { name: t('navigation.aiInsights'), href: "/ai-insights", icon: BarChart3, label: t('navigation.labels.insights') },
- { name: t('navigation.calendar'), href: "/calendar", icon: Calendar, label: t('navigation.labels.calendar') },
- { name: t('navigation.premium'), href: "/subscription", icon: Crown, label: t('navigation.labels.premium') },
+ { name: t('navigation.dashboard'), href:"/", icon: Home, label: t('navigation.labels.home') },
+ { name: t('navigation.aiAssistant'), href:"/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
+ { name: t('navigation.aiInsights'), href:"/ai-insights", icon: BarChart3, label: t('navigation.labels.insights') },
+ { name: t('navigation.calendar'), href:"/calendar", icon: Calendar, label: t('navigation.labels.calendar') },
+ { name: t('navigation.premium'), href:"/subscription", icon: Crown, label: t('navigation.labels.premium') },
 ];
 
 export default function MobileNavigation() {
@@ -55,30 +55,30 @@ export default function MobileNavigation() {
 
  const quickActions = [
  {
- id: "add-goal",
+ id:"add-goal",
  title: t('quickActions.newGoal'),
  description: t('quickActions.newGoalDesc'),
  icon: Target,
- color: "text-primary",
- bgColor: "bg-primary/10",
+ color:"text-primary",
+ bgColor:"bg-primary/10",
  action: () => { setActiveAction('goal'); setIsQuickActionsOpen(false); }
  },
  {
- id: "add-transaction",
+ id:"add-transaction",
  title: t('quickActions.addTransaction'),
  description: t('quickActions.addTransactionDesc'),
  icon: DollarSign,
- color: "text-success",
- bgColor: "bg-success/10",
+ color:"text-success",
+ bgColor:"bg-success/10",
  action: () => { setActiveAction('transaction'); setIsQuickActionsOpen(false); }
  },
  {
- id: "schedule-event",
+ id:"schedule-event",
  title: t('quickActions.scheduleEvent'),
  description: t('quickActions.scheduleEventDesc'),
  icon: Calendar,
- color: "text-warning",
- bgColor: "bg-warning/10",
+ color:"text-warning",
+ bgColor:"bg-warning/10",
  action: () => { setActiveAction('event'); setIsQuickActionsOpen(false); }
  }
  ];
@@ -198,21 +198,21 @@ export default function MobileNavigation() {
  <div className="flex items-center justify-around px-1 py-2">
  {navigation.map((item) => {
  const isActive = location === item.href || 
- (item.href !== "/" && location.startsWith(item.href));
+ (item.href !=="/" && location.startsWith(item.href));
  
  return (
  <Link 
  key={item.name} 
  href={item.href}
- aria-current={isActive ? "page" : undefined}
+ aria-current={isActive ?"page" : undefined}
  aria-label={`${item.name} tab`}
  >
  <div
  className={cn(
- "relative flex flex-col items-center justify-center min-w-[64px] min-h-[64px] rounded-2xl ease-out group",
+"relative flex flex-col items-center justify-center min-w-[64px] min-h-[64px] rounded-2xl ease-out group",
  isActive
- ? "text-primary scale-105"
- : "text-muted-foreground hover:text-foreground"
+ ?"text-primary scale-105"
+ :"text-muted-foreground hover:text-foreground"
  )}
  style={{ 
  padding: 'clamp(8px, 2vw, 12px)',
@@ -242,25 +242,25 @@ export default function MobileNavigation() {
  {/* Icon and label */}
  <div className="relative z-10 flex flex-col items-center space-y-1">
  <div className={cn(
- "p-1.5 rounded-xl",
+"p-1.5 rounded-xl",
  isActive 
- ? "bg-primary/10 shadow-sm" 
- : "group-hover:bg-muted/50"
+ ?"bg-primary/10 shadow-sm" 
+ :"group-hover:bg-muted/50"
  )}>
  <item.icon 
  size={20} 
  className={cn(
- "transition-all",
- isActive && "drop-shadow-sm"
+"transition-all",
+ isActive &&"drop-shadow-sm"
  )}
  />
  </div>
  <span 
  className={cn(
- "text-xs font-medium leading-none",
+"text-xs font-medium leading-none",
  isActive 
- ? "text-primary font-semibold" 
- : "text-muted-foreground group-hover:text-foreground"
+ ?"text-primary font-semibold" 
+ :"text-muted-foreground group-hover:text-foreground"
  )}
  style={{ 
  fontSize: 'clamp(10px, 2.5vw, 12px)',

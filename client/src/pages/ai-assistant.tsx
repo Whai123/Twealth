@@ -1,16 +1,16 @@
-import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from"react";
+import { useQuery, useMutation } from"@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from"@/components/ui/button";
+import { Textarea } from"@/components/ui/textarea";
+import { ScrollArea } from"@/components/ui/scroll-area";
 import {
  Select,
  SelectContent,
  SelectItem,
  SelectTrigger,
  SelectValue,
-} from "@/components/ui/select";
+} from"@/components/ui/select";
 import { 
  Send,
  Brain,
@@ -22,12 +22,12 @@ import {
  PiggyBank,
  Target,
  DollarSign
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { ToastAction } from "@/components/ui/toast";
-import { apiRequest, queryClient, RateLimitError } from "@/lib/queryClient";
-import { ConversationSidebar } from "@/components/chat/conversation-sidebar";
-import { MessageBubble, TypingIndicator } from "@/components/chat/message-bubble";
+} from"lucide-react";
+import { useToast } from"@/hooks/use-toast";
+import { ToastAction } from"@/components/ui/toast";
+import { apiRequest, queryClient, RateLimitError } from"@/lib/queryClient";
+import { ConversationSidebar } from"@/components/chat/conversation-sidebar";
+import { MessageBubble, TypingIndicator } from"@/components/chat/message-bubble";
 
 interface UsageInfo {
  chatUsage: {
@@ -142,7 +142,7 @@ export default function AIAssistantPage() {
  let conversationId = currentConversationId;
  
  if (!conversationId) {
- const response = await apiRequest("POST", "/api/chat/conversations", { 
+ const response = await apiRequest("POST","/api/chat/conversations", { 
  title: content.slice(0, 50) + (content.length > 50 ? '...' : '')
  });
  const conversation = await response.json();
@@ -172,16 +172,16 @@ export default function AIAssistantPage() {
  if (error instanceof RateLimitError) {
  setRateLimitRetryAfter(error.retryAfter);
  toast({
- title: "Rate Limit Exceeded",
+ title:"Rate Limit Exceeded",
  description: `Too many requests. Please wait ${error.retryAfter} seconds before trying again.`,
- variant: "destructive",
+ variant:"destructive",
  duration: error.retryAfter * 1000,
  });
  } else if (error.message.includes("limit exceeded") || error.message.includes("Quota")) {
  toast({
- title: "Upgrade Required",
- description: "You've reached your AI chat limit. Upgrade to continue.",
- variant: "destructive",
+ title:"Upgrade Required",
+ description:"You've reached your AI chat limit. Upgrade to continue.",
+ variant:"destructive",
  duration: 8000,
  action: (
  <ToastAction 
@@ -195,9 +195,9 @@ export default function AIAssistantPage() {
  });
  } else {
  toast({
- title: "Error",
- description: error.message || "Failed to send message",
- variant: "destructive"
+ title:"Error",
+ description: error.message ||"Failed to send message",
+ variant:"destructive"
  });
  }
  }
@@ -210,9 +210,9 @@ export default function AIAssistantPage() {
  
  if (isLimitExceeded) {
  toast({
- title: "Upgrade Required",
- description: "You've reached your AI chat limit. Upgrade to continue.",
- variant: "destructive",
+ title:"Upgrade Required",
+ description:"You've reached your AI chat limit. Upgrade to continue.",
+ variant:"destructive",
  action: (
  <ToastAction 
  altText="Upgrade"
@@ -244,33 +244,33 @@ export default function AIAssistantPage() {
  const starterPrompts: StarterPrompt[] = [
  {
  icon: <Target className="w-5 h-5" />,
- title: "Buy a Car",
- prompt: "I want to buy a $35,000 car in 2 years. Can you help me create a savings plan?"
+ title:"Buy a Car",
+ prompt:"I want to buy a $35,000 car in 2 years. Can you help me create a savings plan?"
  },
  {
  icon: <PiggyBank className="w-5 h-5" />,
- title: "Emergency Fund",
- prompt: "How much should I have in my emergency fund? What's realistic for my situation?"
+ title:"Emergency Fund",
+ prompt:"How much should I have in my emergency fund? What's realistic for my situation?"
  },
  {
  icon: <TrendingUp className="w-5 h-5" />,
- title: "Investment Strategy",
- prompt: "I have $10,000 to invest. What's the best allocation for someone my age?"
+ title:"Investment Strategy",
+ prompt:"I have $10,000 to invest. What's the best allocation for someone my age?"
  },
  {
  icon: <BarChart3 className="w-5 h-5" />,
- title: "Retirement Planning",
- prompt: "Help me calculate how much I need to save monthly to retire comfortably at 65"
+ title:"Retirement Planning",
+ prompt:"Help me calculate how much I need to save monthly to retire comfortably at 65"
  },
  {
  icon: <DollarSign className="w-5 h-5" />,
- title: "Reduce Debt",
- prompt: "I have $20,000 in credit card debt. What's the fastest way to pay it off?"
+ title:"Reduce Debt",
+ prompt:"I have $20,000 in credit card debt. What's the fastest way to pay it off?"
  },
  {
  icon: <Sparkles className="w-5 h-5" />,
- title: "Full Financial Checkup",
- prompt: "Give me a comprehensive analysis of my financial health with specific recommendations"
+ title:"Full Financial Checkup",
+ prompt:"Give me a comprehensive analysis of my financial health with specific recommendations"
  }
  ];
 

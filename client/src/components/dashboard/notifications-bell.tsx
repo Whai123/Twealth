@@ -1,28 +1,28 @@
-import { useState, useEffect } from "react";
-import { Bell, Check, Trash2, Archive, ChevronDown } from "lucide-react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from"react";
+import { Bell, Check, Trash2, Archive, ChevronDown } from"lucide-react";
+import { useQuery, useMutation } from"@tanstack/react-query";
+import { Button } from"@/components/ui/button";
 import {
  DropdownMenu,
  DropdownMenuContent,
  DropdownMenuTrigger,
  DropdownMenuItem,
  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import NotificationActions from "./notification-actions";
+} from"@/components/ui/dropdown-menu";
+import { Badge } from"@/components/ui/badge";
+import { ScrollArea } from"@/components/ui/scroll-area";
+import { Card } from"@/components/ui/card";
+import { apiRequest, queryClient } from"@/lib/queryClient";
+import { useToast } from"@/hooks/use-toast";
+import NotificationActions from"./notification-actions";
 
 interface Notification {
  id: string;
  type: string;
  title: string;
  message: string;
- priority: "low" | "normal" | "high" | "urgent";
- category: "goals" | "transactions" | "budget" | "achievements" | "suggestions";
+ priority:"low" |"normal" |"high" |"urgent";
+ category:"goals" |"transactions" |"budget" |"achievements" |"suggestions";
  isRead: boolean;
  actionType?: string;
  actionData?: any;
@@ -69,11 +69,11 @@ export default function NotificationsBell() {
  // Mark all as read mutation
  const markAllAsReadMutation = useMutation({
  mutationFn: () =>
- apiRequest("PUT", "/api/notifications/mark-all-read"),
+ apiRequest("PUT","/api/notifications/mark-all-read"),
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
  queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
- toast({ title: "All notifications marked as read" });
+ toast({ title:"All notifications marked as read" });
  },
  });
 
@@ -90,14 +90,14 @@ export default function NotificationsBell() {
  // Generate smart notifications mutation
  const generateNotificationsMutation = useMutation({
  mutationFn: () =>
- apiRequest("POST", "/api/notifications/generate"),
+ apiRequest("POST","/api/notifications/generate"),
  onSuccess: (data: any) => {
  queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
  queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
  if (data.generated > 0) {
  toast({ 
  title: `Generated ${data.generated} new notifications`,
- description: "Check your notification bell for smart suggestions!"
+ description:"Check your notification bell for smart suggestions!"
  });
  }
  },
@@ -180,13 +180,13 @@ export default function NotificationsBell() {
  case 'goals':
  return 'Long-term';
  case 'transactions':
- return "Money";
+ return"Money";
  case 'budget':
- return "Warning";
+ return"Warning";
  case 'achievements':
- return "Success";
+ return"Success";
  case 'suggestions':
- return "Insight";
+ return"Insight";
  default:
  return '📋';
  }

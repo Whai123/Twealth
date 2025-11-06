@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 import { 
  Home, 
@@ -20,24 +20,24 @@ import {
  BarChart3,
  LogOut,
  Loader2
-} from "lucide-react";
-import logoUrl from "@assets/5-removebg-preview_1761578659737.png";
-import { cn } from "@/lib/utils";
-import LanguageSwitcher from "@/components/language-switcher";
-import { useTheme } from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import CryptoTicker from "@/components/crypto-ticker";
-import { useAuth } from "@/hooks/useAuth";
+} from"lucide-react";
+import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
+import { cn } from"@/lib/utils";
+import LanguageSwitcher from"@/components/language-switcher";
+import { useTheme } from"@/components/theme-provider";
+import { Button } from"@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from"@/components/ui/tooltip";
+import CryptoTicker from"@/components/crypto-ticker";
+import { useAuth } from"@/hooks/useAuth";
 import {
  Sidebar as SidebarWrapper,
  SidebarContent,
  SidebarFooter,
  SidebarHeader,
-} from "@/components/ui/sidebar";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+} from"@/components/ui/sidebar";
+import { useMutation } from"@tanstack/react-query";
+import { apiRequest, queryClient } from"@/lib/queryClient";
+import { useToast } from"@/hooks/use-toast";
 
 interface NavSection {
  title: string;
@@ -55,19 +55,19 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  items: [
  { 
  name: t('navigation.dashboard'), 
- href: "/", 
+ href:"/", 
  icon: Home,
  description: t('navigation.descriptions.dashboard')
  },
  { 
  name: t('navigation.aiAssistant'), 
- href: "/ai-assistant", 
+ href:"/ai-assistant", 
  icon: Brain,
  description: t('navigation.descriptions.aiAssistant')
  },
  { 
  name: t('navigation.aiInsights'), 
- href: "/ai-insights", 
+ href:"/ai-insights", 
  icon: BarChart3,
  description: t('navigation.descriptions.aiInsights')
  },
@@ -78,25 +78,25 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  items: [
  { 
  name: t('navigation.goals'), 
- href: "/financial-goals", 
+ href:"/financial-goals", 
  icon: Target,
  description: t('navigation.descriptions.goals')
  },
  { 
  name: t('navigation.money'), 
- href: "/money-tracking", 
+ href:"/money-tracking", 
  icon: Wallet,
  description: t('navigation.descriptions.money')
  },
  { 
- name: "Investments", 
- href: "/investments", 
+ name:"Investments", 
+ href:"/investments", 
  icon: TrendingUp,
- description: "AI-powered investment recommendations and passive income opportunities"
+ description:"AI-powered investment recommendations and passive income opportunities"
  },
  { 
  name: t('navigation.crypto'), 
- href: "/crypto", 
+ href:"/crypto", 
  icon: Bitcoin,
  description: t('navigation.descriptions.crypto')
  },
@@ -107,19 +107,19 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  items: [
  { 
  name: t('navigation.friends'), 
- href: "/friends", 
+ href:"/friends", 
  icon: UserPlus,
  description: t('navigation.descriptions.friends')
  },
  { 
  name: t('navigation.groups'), 
- href: "/groups", 
+ href:"/groups", 
  icon: Users,
  description: t('navigation.descriptions.groups')
  },
  { 
  name: t('navigation.calendar'), 
- href: "/calendar", 
+ href:"/calendar", 
  icon: Calendar,
  description: t('navigation.descriptions.calendar')
  },
@@ -130,19 +130,19 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  items: [
  { 
  name: t('navigation.planning'), 
- href: "/planning", 
+ href:"/planning", 
  icon: Lightbulb,
  description: t('navigation.descriptions.planning')
  },
  { 
  name: t('navigation.referrals'), 
- href: "/referrals", 
+ href:"/referrals", 
  icon: Gift,
  description: t('navigation.descriptions.referrals')
  },
  { 
  name: t('navigation.premium'), 
- href: "/subscription", 
+ href:"/subscription", 
  icon: Crown,
  description: t('navigation.descriptions.premium')
  },
@@ -170,8 +170,8 @@ export default function Sidebar() {
  
  // Show success toast
  toast({
- title: "Signed out securely",
- description: "You have been logged out successfully",
+ title:"Signed out securely",
+ description:"You have been logged out successfully",
  });
  
  // Redirect to login page
@@ -181,9 +181,9 @@ export default function Sidebar() {
  },
  onError: (error: any) => {
  toast({
- title: "Logout failed",
- description: error.message || "Please try again",
- variant: "destructive",
+ title:"Logout failed",
+ description: error.message ||"Please try again",
+ variant:"destructive",
  });
  },
  });
@@ -193,7 +193,7 @@ export default function Sidebar() {
  };
 
  const toggleTheme = () => {
- if (theme === "dark") {
+ if (theme ==="dark") {
  setTheme("light");
  } else {
  setTheme("dark");
@@ -208,7 +208,7 @@ export default function Sidebar() {
  <img 
  src={logoUrl} 
  alt="Twealth Logo" 
- className="w-10 h-10 "
+ className="w-10 h-10"
  />
  <span className="font-bold text-xl text-foreground text-foreground">
  Twealth
@@ -221,7 +221,7 @@ export default function Sidebar() {
  <nav className="px-4 pb-4" aria-label="Main navigation">
  <TooltipProvider delayDuration={300}>
  {navigationSections.map((section, sectionIndex) => (
- <div key={section.title} className={cn(sectionIndex > 0 && "mt-6")}>
+ <div key={section.title} className={cn(sectionIndex > 0 &&"mt-6")}>
  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3">
  {section.title}
  </h3>
@@ -235,19 +235,19 @@ export default function Sidebar() {
  <Link href={item.href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:rounded-md">
  <div
  className={cn(
- "flex items-center space-x-3 px-3 py-2 rounded-md cursor-pointer group",
+"flex items-center space-x-3 px-3 py-2 rounded-md cursor-pointer group",
  isActive
- ? "bg-primary text-primary-foreground shadow-sm"
- : "text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm[1.02]"
+ ?"bg-primary text-primary-foreground shadow-sm"
+ :"text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm[1.02]"
  )}
  data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
  role="link"
  aria-label={`Navigate to ${item.name}`}
- aria-current={isActive ? "page" : undefined}
+ aria-current={isActive ?"page" : undefined}
  >
  <item.icon size={20} aria-hidden="true" className={cn(
- "transition-transform",
- !isActive && ""
+"transition-transform",
+ !isActive &&""
  )} />
  <span className="text-sm font-medium">{item.name}</span>
  </div>
@@ -298,9 +298,9 @@ export default function Sidebar() {
  onClick={toggleTheme}
  className="h-8 w-8 p-0"
  data-testid="button-theme-toggle"
- aria-label={theme === "dark" ? t('theme.switchToLight') : t('theme.switchToDark')}
+ aria-label={theme ==="dark" ? t('theme.switchToLight') : t('theme.switchToDark')}
  >
- {theme === "dark" ? (
+ {theme ==="dark" ? (
  <Sun size={16} className="text-muted-foreground hover:text-foreground" aria-hidden="true" />
  ) : (
  <Moon size={16} className="text-muted-foreground hover:text-foreground" aria-hidden="true" />
@@ -308,7 +308,7 @@ export default function Sidebar() {
  </Button>
  </TooltipTrigger>
  <TooltipContent>
- <p className="text-xs">{theme === "dark" ? t('theme.switchToLight') : t('theme.switchToDark')}</p>
+ <p className="text-xs">{theme ==="dark" ? t('theme.switchToLight') : t('theme.switchToDark')}</p>
  </TooltipContent>
  </Tooltip>
  </div>
@@ -332,7 +332,7 @@ export default function Sidebar() {
  ) : (
  <LogOut size={12} className="mr-1" />
  )}
- {logoutMutation.isPending ? "Signing out..." : "Sign out"}
+ {logoutMutation.isPending ?"Signing out..." :"Sign out"}
  </button>
  </div>
  </div>

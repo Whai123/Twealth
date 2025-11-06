@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { useTranslation } from "react-i18next";
+import { useState } from"react";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Badge } from"@/components/ui/badge";
+import { useQuery, useMutation } from"@tanstack/react-query";
+import { useLocation } from"wouter";
+import { useTranslation } from"react-i18next";
 import { 
  Crown, 
  Sparkles, 
@@ -19,9 +19,9 @@ import {
  MessageCircle,
  Brain,
  Smartphone
-} from "lucide-react";
-import { getLocalizedPrice, CURRENCIES } from "@/lib/currency";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+} from"lucide-react";
+import { getLocalizedPrice, CURRENCIES } from"@/lib/currency";
+import { queryClient, apiRequest } from"@/lib/queryClient";
 
 interface OnboardingStep {
  id: string;
@@ -43,7 +43,7 @@ export default function WelcomePage() {
 
  const completeOnboardingMutation = useMutation({
  mutationFn: async () => {
- const response = await apiRequest("PUT", "/api/user-preferences", { 
+ const response = await apiRequest("PUT","/api/user-preferences", { 
  hasCompletedOnboarding: true 
  });
  return response.json();
@@ -79,25 +79,25 @@ export default function WelcomePage() {
  originalPrice: localizedPrice.originalAmount ? `${localizedPrice.currency.symbol}${Math.round(localizedPrice.originalAmount)}` : null,
  discount: localizedPrice.isDiscounted ? `${discount}% OFF` : null,
  benefits: [
- "Start free: 10 lifetime trial AI chats",
- "Expert financial advice in your currency",
- "Pro: 500 monthly AI chats + all features",
- "Build wealth with personalized insights"
+"Start free: 10 lifetime trial AI chats",
+"Expert financial advice in your currency",
+"Pro: 500 monthly AI chats + all features",
+"Build wealth with personalized insights"
  ]
  };
  }
  
  return {
- title: "CFO-Level AI Financial Intelligence",
- subtitle: "Try 10 free AI chats, then unlock premium features",
+ title:"CFO-Level AI Financial Intelligence",
+ subtitle:"Try 10 free AI chats, then unlock premium features",
  price: `${localizedPrice.currency.symbol}${localizedPrice.amount}/month`,
  originalPrice: null,
  discount: null,
  benefits: [
- "Free trial: 10 lifetime AI chats",
- "Pro plan: 500 monthly AI chats",
- "Professional financial tracking",
- "Advanced analytics & insights"
+"Free trial: 10 lifetime AI chats",
+"Pro plan: 500 monthly AI chats",
+"Professional financial tracking",
+"Advanced analytics & insights"
  ]
  };
  };
@@ -106,46 +106,46 @@ export default function WelcomePage() {
 
  const onboardingSteps: OnboardingStep[] = [
  {
- id: "welcome",
+ id:"welcome",
  title: t('onboarding.welcome.title'),
  description: t('onboarding.welcome.description'),
  icon: <Sparkles className="w-8 h-8 text-yellow-500" />,
  action: t('onboarding.actions.getStarted')
  },
  {
- id: "ai-assistant", 
+ id:"ai-assistant", 
  title: t('onboarding.aiAssistant.title'),
  description: t('onboarding.aiAssistant.description'),
  icon: <MessageCircle className="w-8 h-8 text-blue-500" />,
  action: t('onboarding.actions.tryAiChat'),
- route: "/ai-assistant"
+ route:"/ai-assistant"
  },
  {
- id: "track-money",
+ id:"track-money",
  title: t('onboarding.trackMoney.title'),
  description: t('onboarding.trackMoney.description'),
  icon: <DollarSign className="w-8 h-8 text-green-500" />,
  action: t('onboarding.actions.addFirstTransaction'),
- route: "/money-tracking?add=1"
+ route:"/money-tracking?add=1"
  },
  {
- id: "set-goals",
+ id:"set-goals",
  title: t('onboarding.setGoals.title'),
  description: t('onboarding.setGoals.description'),
  icon: <Target className="w-8 h-8 text-purple-500" />,
  action: t('onboarding.actions.createFirstGoal'),
- route: "/financial-goals?create=1"
+ route:"/financial-goals?create=1"
  },
  {
- id: "plan-together",
+ id:"plan-together",
  title: t('onboarding.groupPlanning.title'),
  description: t('onboarding.groupPlanning.description'),
  icon: <Users className="w-8 h-8 text-orange-500" />,
  action: t('onboarding.actions.createGroup'),
- route: "/groups?create=1"
+ route:"/groups?create=1"
  },
  {
- id: "pro-tips",
+ id:"pro-tips",
  title: t('onboarding.proTips.title'),
  description: t('onboarding.proTips.description'),
  icon: <Zap className="w-8 h-8 text-yellow-500" />,
@@ -238,7 +238,7 @@ export default function WelcomePage() {
  <div className="text-center space-y-12">
  <div className="space-y-6">
  <div className="flex items-center justify-center gap-3 mb-6">
- <div className="w-10 h-10 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center shadow-lg">
+ <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
  <Globe className="w-6 h-6 text-white" />
  </div>
  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20 shadow-lg">
@@ -248,7 +248,7 @@ export default function WelcomePage() {
  </div>
  </div>
  
- <h2 className="text-6xl font-bold text-indigo-600 dark:text-indigo-400  leading-tight">
+ <h2 className="text-6xl font-bold text-indigo-600 dark:text-indigo-400 leading-tight">
  {valueProposition.title}
  </h2>
  <p className="text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
@@ -258,7 +258,7 @@ export default function WelcomePage() {
  {/* Feature Highlights */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3">
  <MessageCircle className="w-6 h-6 text-white" />
  </div>
  <h3 className="font-semibold text-lg mb-2">{t('onboarding.aiAssistant.cardTitle')}</h3>
@@ -266,7 +266,7 @@ export default function WelcomePage() {
  </div>
  
  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3">
  <Target className="w-6 h-6 text-white" />
  </div>
  <h3 className="font-semibold text-lg mb-2">{t('onboarding.setGoals.cardTitle')}</h3>
@@ -274,7 +274,7 @@ export default function WelcomePage() {
  </div>
  
  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3">
  <Users className="w-6 h-6 text-white" />
  </div>
  <h3 className="font-semibold text-lg mb-2">{t('onboarding.groupPlanning.cardTitle')}</h3>
@@ -284,7 +284,7 @@ export default function WelcomePage() {
  </div>
 
  {/* Pricing Card */}
- <Card className="max-w-md mx-auto border-2 border-primary/20 bg-white dark:bg-gray-900 dark:from-gray-800 dark:to-gray-800/50">
+ <Card className="max-w-md mx-auto border-2 border-primary/20 bg-white dark:bg-gray-900">
  <CardHeader className="text-center pb-4">
  <div className="flex items-center justify-center gap-2 mb-2">
  <Zap className="w-5 h-5 text-yellow-500" />
@@ -324,10 +324,10 @@ export default function WelcomePage() {
  <Button
  onClick={handleNext}
  disabled={completeOnboardingMutation.isPending}
- className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg "
+ className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg"
  data-testid="button-start-onboarding"
  >
- {completeOnboardingMutation.isPending ? "Starting..." : currentStepData.action}
+ {completeOnboardingMutation.isPending ?"Starting..." : currentStepData.action}
  <ArrowRight className="ml-2 w-5 h-5" />
  </Button>
  </div>
@@ -350,7 +350,7 @@ export default function WelcomePage() {
  {/* Shortcuts & Tips Cards */}
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  {/* Keyboard Shortcuts */}
- <Card className="bg-white dark:bg-gray-900 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+ <Card className="bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-800">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
  <span className="text-2xl">⌨️</span>
@@ -374,7 +374,7 @@ export default function WelcomePage() {
  </Card>
 
  {/* Navigation Tips */}
- <Card className="bg-white dark:bg-gray-900 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
+ <Card className="bg-white dark:bg-gray-900 border-purple-200 dark:border-purple-800">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
  <span className="text-2xl">🧭</span>
@@ -395,7 +395,7 @@ export default function WelcomePage() {
  </Card>
 
  {/* AI Assistant Tip */}
- <Card className="bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+ <Card className="bg-white dark:bg-gray-900 border-green-200 dark:border-green-800">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
  <Brain className="w-6 h-6 text-green-600" />
@@ -411,7 +411,7 @@ export default function WelcomePage() {
  </Card>
 
  {/* Mobile Tip */}
- <Card className="bg-white dark:bg-gray-900 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
+ <Card className="bg-white dark:bg-gray-900 border-orange-200 dark:border-orange-800">
  <CardHeader>
  <CardTitle className="flex items-center gap-2">
  <Smartphone className="w-6 h-6 text-orange-600" />
@@ -429,10 +429,10 @@ export default function WelcomePage() {
  <Button
  onClick={() => handleActionClick(currentStepData)}
  disabled={completeOnboardingMutation.isPending}
- className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg "
+ className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg"
  data-testid={`button-${currentStepData.id}`}
  >
- {completeOnboardingMutation.isPending ? "Loading..." : currentStepData.action}
+ {completeOnboardingMutation.isPending ?"Loading..." : currentStepData.action}
  <ArrowRight className="ml-2 w-5 h-5" />
  </Button>
  </div>
@@ -456,7 +456,7 @@ export default function WelcomePage() {
  <Button
  onClick={() => handleActionClick(currentStepData)}
  disabled={completeOnboardingMutation.isPending}
- className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg "
+ className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg"
  data-testid={`button-${currentStepData.id}`}
  >
  {currentStepData.action}
@@ -471,7 +471,7 @@ export default function WelcomePage() {
  className="px-6 py-6 text-lg"
  data-testid="button-next-step"
  >
- {completeOnboardingMutation.isPending ? "Loading..." : "Skip This Step"}
+ {completeOnboardingMutation.isPending ?"Loading..." :"Skip This Step"}
  </Button>
  )}
  </div>

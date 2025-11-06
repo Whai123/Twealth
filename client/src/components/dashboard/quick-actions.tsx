@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from"react";
 import { 
  Plus, 
  Target, 
@@ -8,22 +8,22 @@ import {
  TrendingUp,
  Clock,
  Zap
-} from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from"lucide-react";
+import { useQuery } from"@tanstack/react-query";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import {
  Drawer,
  DrawerContent,
  DrawerDescription,
  DrawerTitle,
  DrawerTrigger,
-} from "@/components/ui/drawer";
-import GoalForm from "@/components/forms/goal-form";
-import TransactionForm from "@/components/forms/transaction-form";
-import EventForm from "@/components/forms/event-form";
-import { TimeTracker } from "@/components/time-tracker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+} from"@/components/ui/drawer";
+import GoalForm from"@/components/forms/goal-form";
+import TransactionForm from"@/components/forms/transaction-form";
+import EventForm from"@/components/forms/event-form";
+import { TimeTracker } from"@/components/time-tracker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
 
 export default function QuickActions() {
  const [isGoalDrawerOpen, setIsGoalDrawerOpen] = useState(false);
@@ -68,50 +68,50 @@ export default function QuickActions() {
 
  const quickActions = [
  {
- id: "add-goal",
- title: "New Goal",
- description: "Set financial target",
+ id:"add-goal",
+ title:"New Goal",
+ description:"Set financial target",
  icon: Target,
- color: "text-primary",
- bgColor: "bg-primary/10",
+ color:"text-primary",
+ bgColor:"bg-primary/10",
  action: () => setIsGoalDrawerOpen(true),
- shortcut: "G"
+ shortcut:"G"
  },
  {
- id: "add-transaction",
- title: "Add Transaction",
- description: "Record income/expense",
+ id:"add-transaction",
+ title:"Add Transaction",
+ description:"Record income/expense",
  icon: DollarSign,
- color: "text-success",
- bgColor: "bg-success/10",
+ color:"text-success",
+ bgColor:"bg-success/10",
  action: () => setIsTransactionDrawerOpen(true),
- shortcut: "T"
+ shortcut:"T"
  },
  {
- id: "schedule-event",
- title: "Add Event",
- description: "Plan new activity",
+ id:"schedule-event",
+ title:"Add Event",
+ description:"Plan new activity",
  icon: Calendar,
- color: "text-warning",
- bgColor: "bg-warning/10",
+ color:"text-warning",
+ bgColor:"bg-warning/10",
  action: () => setIsEventDrawerOpen(true),
- shortcut: "E"
+ shortcut:"E"
  },
  {
- id: "time-tracker",
- title: "Start Timer",
- description: "Track productivity",
+ id:"time-tracker",
+ title:"Start Timer",
+ description:"Track productivity",
  icon: Clock,
- color: "text-info",
- bgColor: "bg-info/10",
+ color:"text-info",
+ bgColor:"bg-info/10",
  action: () => setIsTimerDrawerOpen(true),
- shortcut: "⏲️"
+ shortcut:"⏲️"
  }
  ];
 
  return (
  <>
- <Card className="overflow-hidden border-0 bg-white dark:bg-gray-900 shadow-lg" role="region" aria-label="Quick Actions">
+ <Card className="overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg" role="region" aria-label="Quick Actions">
  <CardHeader className="pb-4">
  <CardTitle className="text-lg font-semibold text-primary-foreground flex items-center gap-2">
  <Zap className="h-5 w-5" aria-hidden="true" />
@@ -125,7 +125,7 @@ export default function QuickActions() {
  key={action.id}
  variant="ghost"
  onClick={action.action}
- className={`h-auto p-3 md:p-4 flex flex-col items-center gap-2 hover:bg-white/20 border border-white/20 backdrop-blur-sm[1.02][0.98] button-press group touch-manipulation`}
+ className={`h-auto p-3 md:p-4 flex flex-col items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 button-press group touch-manipulation`}
  style={{
  animationDelay: `${index * 0.1}s`,
  borderRadius: 'var(--radius-lg)',
@@ -147,7 +147,7 @@ export default function QuickActions() {
  {action.description}
  </p>
  </div>
- <div className="text-xs bg-white/20 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-primary-foreground/80 font-mono">
+ <div className="text-xs bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-foreground font-mono">
  {action.shortcut}
  </div>
  </Button>
@@ -220,7 +220,7 @@ export default function QuickActions() {
  <div className="space-y-4">
  <div>
  <label className="text-sm font-medium mb-2 block">Select an event to track:</label>
- <Select value={selectedEventForTimer || ""} onValueChange={setSelectedEventForTimer}>
+ <Select value={selectedEventForTimer ||""} onValueChange={setSelectedEventForTimer}>
  <SelectTrigger data-testid="select-event-timer">
  <SelectValue placeholder="Choose an event..." />
  </SelectTrigger>
@@ -238,7 +238,7 @@ export default function QuickActions() {
  <div className="border rounded-lg p-4 bg-muted/20">
  <TimeTracker
  eventId={selectedEventForTimer}
- eventTitle={Array.isArray(upcomingEvents) ? upcomingEvents.find((e: any) => e.id === selectedEventForTimer)?.title || "" : ""}
+ eventTitle={Array.isArray(upcomingEvents) ? upcomingEvents.find((e: any) => e.id === selectedEventForTimer)?.title ||"" :""}
  />
  </div>
  )}

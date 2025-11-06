@@ -16,38 +16,38 @@ import tr from './locales/tr.json';
 import ar from './locales/ar.json';
 
 const resources = {
-  en: { translation: en },
-  es: { translation: es },
-  id: { translation: id },
-  th: { translation: th },
-  pt: { translation: pt },
-  hi: { translation: hi },
-  vi: { translation: vi },
-  tl: { translation: tl },
-  ms: { translation: ms },
-  tr: { translation: tr },
-  ar: { translation: ar }
+ en: { translation: en },
+ es: { translation: es },
+ id: { translation: id },
+ th: { translation: th },
+ pt: { translation: pt },
+ hi: { translation: hi },
+ vi: { translation: vi },
+ tl: { translation: tl },
+ ms: { translation: ms },
+ tr: { translation: tr },
+ ar: { translation: ar }
 };
 
 i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: 'en',
-    
-    detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage']
-    },
-    
-    interpolation: {
-      escapeValue: false
-    },
-    
-    react: {
-      useSuspense: false
-    }
-  });
+ .use(LanguageDetector)
+ .use(initReactI18next)
+ .init({
+  resources,
+  fallbackLng: 'en',
+  
+  detection: {
+   order: ['localStorage', 'navigator', 'htmlTag'],
+   caches: ['localStorage']
+  },
+  
+  interpolation: {
+   escapeValue: false
+  },
+  
+  react: {
+   useSuspense: false
+  }
+ });
 
 export default i18n;

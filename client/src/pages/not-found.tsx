@@ -1,7 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Home, Search, Compass, Sparkles, TrendingUp } from "lucide-react";
-import { useLocation } from "wouter";
+import { Card, CardContent } from"@/components/ui/card";
+import { Button } from"@/components/ui/button";
+import { ArrowLeft, Home, Search, Compass, Sparkles, TrendingUp } from"lucide-react";
+import { useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 
 export default function NotFound() {
@@ -12,14 +12,14 @@ export default function NotFound() {
  const handleGoBack = () => window.history.back();
 
  const quickActions = [
- { icon: Home, label: t('navigation.dashboard'), path: "/", color: "from-blue-500 to-purple-600" },
- { icon: TrendingUp, label: t('navigation.money'), path: "/money-tracking", color: "from-green-500 to-blue-500" },
- { icon: Sparkles, label: t('navigation.aiAssistant'), path: "/ai-assistant", color: "from-purple-500 to-pink-500" },
- { icon: Compass, label: t('navigation.goals'), path: "/financial-goals", color: "from-orange-500 to-red-500" }
+ { icon: Home, label: t('navigation.dashboard'), path:"/", color:"from-blue-500 to-purple-600" },
+ { icon: TrendingUp, label: t('navigation.money'), path:"/money-tracking", color:"from-green-500 to-blue-500" },
+ { icon: Sparkles, label: t('navigation.aiAssistant'), path:"/ai-assistant", color:"from-purple-500 to-pink-500" },
+ { icon: Compass, label: t('navigation.goals'), path:"/financial-goals", color:"from-orange-500 to-red-500" }
  ];
 
  return (
- <div className="min-h-screen w-full flex items-center justify-center bg-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
+ <div className="min-h-screen w-full flex items-center justify-center bg-blue-50 dark:bg-gray-900 p-4">
  <div className="max-w-2xl w-full text-center space-y-8">
  {/* Animated 404 */}
  <div className="relative">
@@ -57,7 +57,7 @@ export default function NotFound() {
  <Button 
  onClick={handleGoHome}
  size="lg"
- className="bg-primary text-primary-foreground shadow-lg "
+ className="bg-primary text-primary-foreground shadow-lg"
  data-testid="button-go-home"
  >
  <Home className="w-5 h-5 mr-2" />
@@ -77,7 +77,7 @@ export default function NotFound() {
  className="h-auto p-4 flex flex-col items-center gap-2 transition-all"
  data-testid={`button-quick-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
  >
- <div className={`w-10 h-10 rounded-lg ${action.color.split(" ")[0]} flex items-center justify-center`}>
+ <div className={`w-10 h-10 rounded-lg ${action.color.split("")[0]} flex items-center justify-center`}>
  <action.icon className="w-5 h-5 text-white" />
  </div>
  <span className="text-sm font-medium">{action.label}</span>
@@ -87,7 +87,7 @@ export default function NotFound() {
  </Card>
 
  {/* Helpful tip */}
- <div className="bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/50">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/50">
  <div className="flex items-center gap-2 mb-2">
  <Search className="w-5 h-5 text-blue-600 dark:text-blue-400" />
  <span className="font-medium text-blue-900 dark:text-blue-100">{t('notFound.proTip')}</span>

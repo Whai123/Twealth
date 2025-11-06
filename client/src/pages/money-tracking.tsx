@@ -1,24 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from"react";
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient as globalQueryClient } from "@/lib/queryClient";
-import TransactionForm from "@/components/forms/transaction-form";
-import AdvancedSpendingAnalytics from "@/components/money/advanced-spending-analytics";
-import SmartBudgetManagement from "@/components/money/smart-budget-management";
-import SpendingInsights from "@/components/money/spending-insights";
+import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle } from"lucide-react";
+import { Button } from"@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
+import { Badge } from"@/components/ui/badge";
+import { Dialog, DialogContent, DialogTrigger } from"@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
+import { useToast } from"@/hooks/use-toast";
+import { apiRequest, queryClient as globalQueryClient } from"@/lib/queryClient";
+import TransactionForm from"@/components/forms/transaction-form";
+import AdvancedSpendingAnalytics from"@/components/money/advanced-spending-analytics";
+import SmartBudgetManagement from"@/components/money/smart-budget-management";
+import SpendingInsights from"@/components/money/spending-insights";
 
 const TRANSACTION_CATEGORIES = {
- income: ["salary", "freelance", "investment", "gift", "other"],
- expense: ["rent", "utilities", "groceries", "dining", "transport", "healthcare", "entertainment", "shopping", "other"],
- transfer: ["savings", "investment", "goal_contribution"]
+ income: ["salary","freelance","investment","gift","other"],
+ expense: ["rent","utilities","groceries","dining","transport","healthcare","entertainment","shopping","other"],
+ transfer: ["savings","investment","goal_contribution"]
 };
 
 export default function MoneyTracking() {
@@ -67,23 +67,23 @@ export default function MoneyTracking() {
  onSuccess: (data: any) => {
  queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
  toast({
- title: "Categories Fixed",
+ title:"Categories Fixed",
  description: `Successfully categorized ${data.updated} of ${data.total} transactions using AI detection.`,
- variant: "default",
+ variant:"default",
  });
  },
  onError: (error: any) => {
  toast({
- title: "Error",
- description: error.message || "Failed to categorize transactions",
- variant: "destructive",
+ title:"Error",
+ description: error.message ||"Failed to categorize transactions",
+ variant:"destructive",
  });
  },
  });
 
  const filteredTransactions = transactions?.filter((transaction: any) => {
- const typeMatch = filterType === "all" || transaction.type === filterType;
- const categoryMatch = filterCategory === "all" || transaction.category === filterCategory;
+ const typeMatch = filterType ==="all" || transaction.type === filterType;
+ const categoryMatch = filterCategory ==="all" || transaction.category === filterCategory;
  
  const transactionDate = new Date(transaction.date);
  const daysAgo = new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
@@ -93,22 +93,22 @@ export default function MoneyTracking() {
  }) || [];
 
  const totalIncome = filteredTransactions
- .filter((t: any) => t.type === "income")
+ .filter((t: any) => t.type ==="income")
  .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
 
  const totalExpenses = filteredTransactions
- .filter((t: any) => t.type === "expense")
+ .filter((t: any) => t.type ==="expense")
  .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
 
  const netCashFlow = totalIncome - totalExpenses;
 
  const getTransactionIcon = (type: string) => {
  switch (type) {
- case "income":
+ case"income":
  return <TrendingUp className="text-green-600" size={16} />;
- case "expense":
+ case"expense":
  return <TrendingDown className="text-red-600" size={16} />;
- case "transfer":
+ case"transfer":
  return <DollarSign className="text-blue-600" size={16} />;
  default:
  return <DollarSign className="text-gray-600" size={16} />;
@@ -117,14 +117,14 @@ export default function MoneyTracking() {
 
  const getAmountColor = (type: string) => {
  switch (type) {
- case "income":
- return "text-green-600";
- case "expense":
- return "text-red-600";
- case "transfer":
- return "text-blue-600";
+ case"income":
+ return"text-green-600";
+ case"expense":
+ return"text-red-600";
+ case"transfer":
+ return"text-blue-600";
  default:
- return "text-gray-600";
+ return"text-gray-600";
  }
  };
 
@@ -444,7 +444,7 @@ export default function MoneyTracking() {
  </div>
  </div>
  
- <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400  mb-3">
+ <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-3">
  Start Your Financial Journey
  </h3>
  <p className="text-muted-foreground text-lg mb-4 max-w-lg mx-auto">
@@ -452,24 +452,24 @@ export default function MoneyTracking() {
  </p>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
- <div className="bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <BarChart3 className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Smart Insights</h4>
  <p className="text-sm text-blue-600 dark:text-blue-300">AI analyzes spending patterns</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-cyan-900/20 dark:to-cyan-800/10 rounded-xl p-6 border border-cyan-200/50 dark:border-cyan-700/50">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-cyan-200/50 dark:border-cyan-700/50">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <Target className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-cyan-800 dark:text-cyan-200">Budget Tracking</h4>
  <p className="text-sm text-cyan-600 dark:text-cyan-300">Stay on top of spending goals</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-6 border border-green-200/50 dark:border-green-700/50">
- <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-200/50 dark:border-green-700/50">
+ <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <TrendingUp className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-green-800 dark:text-green-200">Cash Flow</h4>
@@ -535,7 +535,7 @@ export default function MoneyTracking() {
  style={{ fontSize: 'var(--text-base)' }}
  data-testid={`text-amount-${transaction.id}`}
  >
- {transaction.type === "income" ? "+" : "-"}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
+ {transaction.type ==="income" ?"+" :"-"}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
  </span>
  {transaction.goalId && (
  <p className="text-muted-foreground whitespace-nowrap" style={{ fontSize: 'var(--text-xs)' }}>Goal contribution</p>
