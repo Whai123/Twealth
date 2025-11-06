@@ -57,6 +57,49 @@ Detailed instructions for Google Cloud Console, Apple Developer Program, and Fac
 
 The architecture includes a comprehensive caching strategy (system prompt, market data, React Query optimization) and database indexing for performance. Authentication handles OIDC foreign key constraints. Automatic investment data seeding populates 15+ investment strategies and passive income opportunities for fresh deployments.
 
+## Project X Roadmap (Future Enhancements)
+
+**Vision**: Transform Twealth from a financial tracking app into a full-featured financial operating system comparable to Robinhood/Coinbase, with the goal of becoming a billion-dollar company.
+
+### Phase 1: Bank Account Integration (Priority 1)
+- **Technology**: Plaid API for automatic bank account syncing
+- **Impact**: 10x user engagement by eliminating manual transaction entry
+- **Implementation**: Link Token flow, daily transaction sync via webhooks or cron jobs, automatic categorization pipeline
+- **Cost**: ~$0.20/user/month (Plaid pricing)
+- **Timeline**: 1 week development
+- **Revenue Impact**: ⭐⭐⭐⭐⭐ (Massive reduction in user friction)
+
+### Phase 2: News-Aware AI (Priority 2)
+- **Technology**: NewsAPI or Finnhub for financial news
+- **Impact**: Daily user engagement through personalized financial news briefings
+- **Features**: 
+  - Daily AI-powered financial news summaries
+  - Personalized alerts based on user's portfolio/goals
+  - Breaking market news integration
+  - Portfolio-aware notifications (e.g., "Tesla dropped 5%, affects your holdings")
+- **Cost**: $449/month (NewsAPI Business plan)
+- **Timeline**: 2 days development
+- **Revenue Impact**: ⭐⭐⭐ (Increases daily active users)
+
+### Phase 3: Investment Execution (Priority 3)
+- **Technology**: Alpaca Markets API for commission-free trading
+- **Impact**: Transform from advice-only to actionable investment platform
+- **Features**:
+  - AI can execute trades: "Buy $500 of S&P 500" → Actually purchases
+  - Real portfolio tracking with live P&L
+  - Automated rebalancing
+  - Tax-loss harvesting
+- **Compliance**: Requires SEC registration, Alpaca handles custody
+- **Timeline**: 2 weeks development + legal compliance
+- **Revenue Impact**: ⭐⭐⭐⭐⭐ (Trading fees, premium subscriptions)
+
+### Additional Future Enhancements:
+- **Mobile Apps**: Native iOS/Android with push notifications
+- **Social Features**: Share goals, compete with friends, community learning
+- **Credit Monitoring**: Real-time credit score tracking, loan recommendations
+- **Advanced Tax Tools**: Year-round tax planning, automated tax documents
+- **Insurance Marketplace**: AI-powered insurance comparison and recommendations
+
 # External Dependencies
 
 -   **React 18**: Frontend framework.

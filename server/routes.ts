@@ -2665,11 +2665,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
         if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
-          console.log(`🔧 Processing ${aiResult.toolCalls.length} tool call(s):`, aiResult.toolCalls.map(t => t.name).join(', '));
+          console.log(`🔧 ========== PROCESSING ${aiResult.toolCalls.length} TOOL CALL(S) ==========`);
+          console.log(`Tools requested:`, aiResult.toolCalls.map(t => t.name).join(', '));
           for (const toolCall of aiResult.toolCalls) {
             try {
+              console.log(`\n🛠️  Tool: ${toolCall.name}`);
+              console.log(`📋 Arguments:`, JSON.stringify(toolCall.arguments, null, 2));
+              
               if (toolCall.name === 'create_financial_goal') {
-                console.log(`🎯 create_financial_goal tool called with args:`, JSON.stringify(toolCall.arguments, null, 2));
+                console.log(`🎯 [create_financial_goal] Starting goal creation...`);
                 
                 // CRITICAL: Validate user confirmation before creating goal
                 if (toolCall.arguments.userConfirmed !== true) {
@@ -2718,6 +2722,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   data: event
                 });
               } else if (toolCall.name === 'add_transaction') {
+                console.log(`💰 [add_transaction] Creating transaction...`);
                 const transaction = await storage.createTransaction({
                   userId: userId,
                   type: toolCall.arguments.type,
@@ -2726,6 +2731,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   description: toolCall.arguments.description || null,
                   date: toolCall.arguments.date ? new Date(toolCall.arguments.date) : new Date()
                 });
+                console.log(`✅ [add_transaction] Transaction created successfully! ID=${transaction.id}, Amount=$${transaction.amount}, Category=${transaction.category}`);
                 actionsPerformed.push({
                   type: 'transaction_added',
                   data: transaction

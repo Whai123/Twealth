@@ -1162,13 +1162,19 @@ User says: "Create a savings goal", "Start saving for vacation", "Make a goal fo
 → Has amount? NO → DON'T call tool yet. Ask: "I can set that up! What's your target amount?"
 → After they provide amount → THEN call create_financial_goal
 
-Rule 3 - CASUAL DESIRE (Analyze, then offer to create):
-User says: "I want to save $5000", "I need to save for vacation"
-→ Analyze first (timeline options, feasibility)
-→ Response: "For $5,000 you'd need $417/month for 12 months. That's doable with your income. Want me to create this goal and track it?"
-→ If they say yes → THEN call create_financial_goal
+Rule 3 - CASUAL DESIRE (Analyze, then ALWAYS ask to create):
+User says: "I want to save $5000", "I need to save for vacation", or discusses retirement/savings goals
+→ STEP 1: Analyze first (timeline options, feasibility, calculations)
+→ STEP 2: **MANDATORY** - End your response with: "Want me to create this goal and track it?" or "Should I add this to your goals?"
+→ STEP 3: If they say yes → THEN call create_financial_goal with userConfirmed=true
 
-CRITICAL: When calling create_financial_goal, calculate targetDate dynamically (e.g., 12 months from today = 2026-11-05). Never use a hard-coded date.
+Example (Thai retirement goal):
+User: "เราอยากจะมีเป้าหมายการออมและสถานการณ์ทางการเงินที่ดีกว่านี้" (Want savings goal and better financial situation)
+You: [Provide detailed retirement analysis in Thai with calculations]
+**CRITICAL: Must end with:** "คุณต้องการให้ฉันสร้างเป้าหมายนี้และติดตามความคืบหน้าให้ไหม?" (Want me to create this goal and track progress?)
+→ If user confirms → call create_financial_goal with userConfirmed=true
+
+CRITICAL: When calling create_financial_goal, calculate targetDate dynamically (e.g., 12 months from today = 2026-11-05). Never use a hard-coded date. ALWAYS set userConfirmed=true if user gave explicit confirmation.
 
 SPENDING ANALYSIS:
 User: "Analyze my spending" or "Where does my money go?"
@@ -1483,7 +1489,8 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         (lowerMsg.includes('spent') || lowerMsg.includes('paid') || 
          lowerMsg.includes('received') || lowerMsg.includes('earned') ||
          lowerMsg.includes('bought') || lowerMsg.includes('purchased') ||
-         lowerMsg.includes('got paid') || lowerMsg.includes('made money')) &&
+         lowerMsg.includes('got paid') || lowerMsg.includes('made money') ||
+         lowerMsg.includes('rent') || lowerMsg.includes('rented')) &&  // Added rent/rented
         !lowerMsg.includes('want to') && !lowerMsg.includes('going to') && 
         !lowerMsg.includes('plan to') && !lowerMsg.includes('will') &&
         !lowerMsg.includes('thinking about') && !lowerMsg.includes('if i')
@@ -1496,12 +1503,15 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         // Specific spending phrases requiring immediate logging
         (lowerMsg.includes('i spent') || lowerMsg.includes('i paid') || 
          lowerMsg.includes('i bought') || lowerMsg.includes('just spent') ||
-         lowerMsg.includes('just paid') || lowerMsg.includes('just bought'))
+         lowerMsg.includes('just paid') || lowerMsg.includes('just bought') ||
+         lowerMsg.includes('i rent') || lowerMsg.includes('i rented'))  // Added rent phrases
       ) || (
-        // Direct transaction logging commands
-        (lowerMsg.includes('log') || lowerMsg.includes('record') || lowerMsg.includes('track')) &&
+        // Direct transaction logging commands - CRITICAL: Added "add" for "add it to transaction"
+        (lowerMsg.includes('log') || lowerMsg.includes('record') || lowerMsg.includes('track') || 
+         lowerMsg.includes('add') || lowerMsg.includes('create')) &&  // Added "add" and "create"
         (lowerMsg.includes('expense') || lowerMsg.includes('income') || 
          lowerMsg.includes('transaction') || lowerMsg.includes('purchase') ||
+         lowerMsg.includes('it to') || lowerMsg.includes('this to') ||  // "add it to transaction", "add this to transaction"
          /\$\d+/.test(lowerMsg) || /\d+\s*dollars?/.test(lowerMsg)) // Contains "$50" or "50 dollars"
       ) || (
         // Debt payment tracking
@@ -1539,18 +1549,20 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
       })();
       
       // DEBUG: Comprehensive logging for monitoring Scout's behavior
-      console.log(`🛡️  Tool filtering DEBUG:
-        - User message: "${userMessage.substring(0, 80)}..."
-        - isConfirmation: ${isConfirmation}
-        - wasAsking: ${wasAskingForConfirmation}
-        - isImperative: ${isImperativeAction}
-        - desireAnalysis: ${desireAnalysisNeeded}
-        - needsImmediateAction: ${needsImmediateAction}
-        - canCreate: ${canCreate}
-        - toolCount: ${availableTools.length}/${TOOLS.length}
-        - tool_choice: "${toolChoiceMode}"
-        - temperature: ${temperature}
-      `);
+      console.log(`🛡️  ============ TOOL FILTERING DEBUG ============`);
+      console.log(`User message: "${userMessage.substring(0, 100)}..."`);
+      console.log(`Detection Results:`);
+      console.log(`  - isConfirmation: ${isConfirmation}`);
+      console.log(`  - wasAsking: ${wasAskingForConfirmation}`);
+      console.log(`  - isImperative: ${isImperativeAction}`);
+      console.log(`  - desireAnalysis: ${desireAnalysisNeeded}`);
+      console.log(`  - needsImmediateAction: ${needsImmediateAction} ← CRITICAL for transactions`);
+      console.log(`  - canCreate: ${canCreate}`);
+      console.log(`Available Tools:`);
+      console.log(`  - toolCount: ${availableTools.length}/${TOOLS.length}`);
+      console.log(`  - tool_choice: "${toolChoiceMode}" ${needsImmediateAction || desireAnalysisNeeded ? '(REQUIRED - AI MUST use tools)' : '(AUTO)'}`);
+      console.log(`  - temperature: ${temperature}`);
+      console.log(`================================================`);
       
       // PERFORMANCE TRACKING: Measure response time
       const apiStartTime = Date.now();
