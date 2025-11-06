@@ -150,7 +150,7 @@ export default function InvitePage() {
             </Button>
             <Button 
               onClick={handleAccept} 
-              className="flex-1 bg-white dark:bg-gray-900
+              className="flex-1 bg-white dark:bg-gray-900"
               disabled={acceptInviteMutation.isPending}
               data-testid="button-accept-invite"
             >

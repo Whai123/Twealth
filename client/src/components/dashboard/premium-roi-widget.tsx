@@ -61,7 +61,7 @@ export default function PremiumROIWidget() {
   const roi = totalValue > 0 ? (totalValue / subscriptionCost).toFixed(1) : "0";
 
   return (
-    <Card className="relative overflow-hidden border-primary/20 bg-white dark:bg-gray-900
+    <Card className="relative overflow-hidden border-primary/20 bg-white dark:bg-gray-900">
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
       
       <CardHeader className="relative">

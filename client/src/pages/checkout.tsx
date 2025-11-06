@@ -89,7 +89,7 @@ function CheckoutForm({ planId }: { planId: string }) {
  <Button
  type="submit"
  disabled={!stripe || isProcessing}
- className="flex-1 bg-white dark:bg-gray-900
+ className="flex-1 bg-white dark:bg-gray-900"
  data-testid="button-submit-payment"
  >
  {isProcessing ? (
