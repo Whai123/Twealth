@@ -56,7 +56,7 @@ export default function ShareButton({
  
  if (result.success) {
  toast({
- title: "Shared successfully! 🎉",
+ title: "Shared successfully!",
  description: result.message,
  });
  } else {

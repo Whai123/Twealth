@@ -95,8 +95,8 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
     const icons: any = {
       rent: '🏠',
       utilities: '',
-      groceries: '🛒',
-      dining: '🍽️',
+      groceries: 'Groceries',
+      dining: 'Dining',
       transport: '🚗',
       healthcare: '🏥',
       entertainment: '🎬',

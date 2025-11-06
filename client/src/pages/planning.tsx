@@ -477,7 +477,7 @@ export default function Planning() {
  
  {monthlyNeeded > 1000 && (
  <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 rounded text-sm text-red-700 dark:text-red-300">
- ⚠️ You need to save ${monthlyNeeded.toLocaleString()}/month to reach this goal on time
+  You need to save ${monthlyNeeded.toLocaleString()}/month to reach this goal on time
  </div>
  )}
  </div>

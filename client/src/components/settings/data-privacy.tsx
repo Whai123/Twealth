@@ -149,7 +149,7 @@ export default function DataPrivacy({ }: DataPrivacyProps) {
 
   const handleDataDeletion = () => {
     const confirmation = window.confirm(
-      "⚠️ DANGER ZONE ⚠️\n\nThis action will PERMANENTLY DELETE your entire account and all associated data including:\n\n• All financial goals and transactions\n• All events and time tracking data\n• All groups and memberships\n• All user preferences and settings\n• All notification history\n\nThis action CANNOT be undone!\n\nType 'DELETE' in the next prompt to confirm permanent account deletion."
+      "DANGER ZONE \n\nThis action will PERMANENTLY DELETE your entire account and all associated data including:\n\n• All financial goals and transactions\n• All events and time tracking data\n• All groups and memberships\n• All user preferences and settings\n• All notification history\n\nThis action CANNOT be undone!\n\nType 'DELETE' in the next prompt to confirm permanent account deletion."
     );
     
     if (confirmation) {

@@ -120,7 +120,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
 
  const handleComplete = () => {
  toast({
- title: "Welcome to Twealth! 🎉",
+ title: "Welcome to Twealth!",
  description: "Your financial journey starts now. Let's build wealth together!",
  });
  onComplete();
@@ -431,7 +431,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  <CheckCircle2 className="w-8 h-8 text-white" />
  </div>
  <CardTitle className="text-3xl font-bold text-foreground">
- You're All Set! 🎉
+ You're All Set!
  </CardTitle>
  <CardDescription className="text-base mt-2">
  Your Twealth account is ready. Let's start building wealth!

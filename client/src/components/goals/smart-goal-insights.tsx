@@ -74,7 +74,7 @@ export default function SmartGoalInsights({ goals, onActionClick }: SmartGoalIns
         id: 'completion-celebration',
         type: 'achievement',
         icon: Award,
-        title: `${completedGoals.length} Goal${completedGoals.length > 1 ? 's' : ''} Completed! 🎉`,
+        title: `${completedGoals.length} Goal${completedGoals.length > 1 ? 's' : ''} Completed!`,
         description: `You've successfully completed ${completedGoals.length} financial goal${completedGoals.length > 1 ? 's' : ''}. Your dedication is paying off!`,
         priority: 1
       });

@@ -178,15 +178,15 @@ export default function NotificationsBell() {
  const getCategoryIcon = (category: string) => {
  switch (category) {
  case 'goals':
- return '🎯';
+ return 'Long-term';
  case 'transactions':
- return '💰';
+ return "Money";
  case 'budget':
- return '⚠️';
+ return "Warning";
  case 'achievements':
- return '🎉';
+ return "Success";
  case 'suggestions':
- return '💡';
+ return "Insight";
  default:
  return '📋';
  }

@@ -86,9 +86,9 @@ const RISK_TEXT_COLORS: Record<string, string> = {
 };
 
 const TIME_HORIZON_ICONS: Record<string, string> = {
-  short: "⚡",
+  short: "Short-term",
   medium: "📅",
-  long: "🎯",
+  long: "Long-term",
 };
 
 const EMOJI_BY_CATEGORY: Record<string, string> = {
@@ -99,7 +99,7 @@ const EMOJI_BY_CATEGORY: Record<string, string> = {
   savings: "🏦",
   digital_products: "📦",
   content_creation: "🎥",
-  investments: "💰",
+  investments: "Investments",
 };
 
 function formatCurrency(value: number): string {
@@ -392,7 +392,7 @@ export default function InvestmentIntelligence() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-2xl">{EMOJI_BY_CATEGORY[strategy.category] || "💰"}</span>
+                            <span className="text-2xl">{EMOJI_BY_CATEGORY[strategy.category] || "Investments"}</span>
                             <Badge className={RISK_COLORS[strategy.riskLevel]}>
                               {strategy.riskLevel.replace("_", " ").toUpperCase()}
                             </Badge>
@@ -580,7 +580,7 @@ export default function InvestmentIntelligence() {
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-2xl">{EMOJI_BY_CATEGORY[strategy.category] || "💰"}</span>
+                                <span className="text-2xl">{EMOJI_BY_CATEGORY[strategy.category] || "Investments"}</span>
                                 <Badge variant="outline" className="capitalize">
                                   {strategy.category.replace("_", " ")}
                                 </Badge>
@@ -917,7 +917,7 @@ export default function InvestmentIntelligence() {
                   onClick={() => setPassiveIncomeFilter("investments")}
                   data-testid="button-filter-passive-investments"
                 >
-                  💰 Investments
+                   Investments
                 </Button>
               </div>
 
@@ -947,7 +947,7 @@ export default function InvestmentIntelligence() {
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-2xl">{EMOJI_BY_CATEGORY[opportunity.category] || "💰"}</span>
+                                <span className="text-2xl">{EMOJI_BY_CATEGORY[opportunity.category] || "Investments"}</span>
                                 <Badge variant="outline" className="capitalize">
                                   {opportunity.category.replace("_", " ")}
                                 </Badge>
@@ -1064,7 +1064,7 @@ export default function InvestmentIntelligence() {
 
                                 {opportunity.requiredSkills && opportunity.requiredSkills.length > 0 && (
                                   <div>
-                                    <h4 className="font-semibold text-sm mb-2">🎯 Required Skills</h4>
+                                    <h4 className="font-semibold text-sm mb-2">Long-term Required Skills</h4>
                                     <div className="flex flex-wrap gap-2">
                                       {opportunity.requiredSkills.map((skill, idx) => (
                                         <Badge key={idx} variant="secondary" className="text-xs">

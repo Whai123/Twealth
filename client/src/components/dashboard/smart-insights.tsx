@@ -109,7 +109,7 @@ export default function SmartInsights() {
     } else if (savingsRate >= 20) {
       insights.push({
         type: 'achievement',
-        title: 'Excellent Savings Rate! 🎉',
+        title: 'Excellent Savings Rate!',
         description: `Your ${savingsRate.toFixed(1)}% savings rate is outstanding! You're building wealth effectively.`,
         value: `${savingsRate.toFixed(1)}%`,
         priority: 'medium',
@@ -158,7 +158,7 @@ export default function SmartInsights() {
       if (progressPercent >= 80 && progressPercent < 100) {
         insights.push({
           type: 'achievement',
-          title: `${goal.title} Almost Complete! 🎯`,
+          title: `${goal.title} Almost Complete! `,
           description: `You're ${progressPercent.toFixed(0)}% done! Just $${(targetAmount - currentAmount).toFixed(2)} more to go.`,
           value: `${progressPercent.toFixed(0)}%`,
           priority: 'medium',

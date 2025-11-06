@@ -102,7 +102,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
- toast({ title: "✅ Budget Created", description: "Your budget has been added successfully." });
+ toast({ title: "Budget Created", description: "Your budget has been added successfully." });
  setIsAddDialogOpen(false);
  setFormData({ category: "", monthlyLimit: "" });
  },
@@ -117,7 +117,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
- toast({ title: "✅ Budget Updated", description: "Your budget has been updated successfully." });
+ toast({ title: "Budget Updated", description: "Your budget has been updated successfully." });
  setEditingBudget(null);
  },
  onError: (error: any) => {
@@ -131,7 +131,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  },
  onSuccess: () => {
  queryClient.invalidateQueries({ queryKey: ["/api/budgets"] });
- toast({ title: "✅ Budget Deleted", description: "Budget has been removed." });
+ toast({ title: "Budget Deleted", description: "Budget has been removed." });
  },
  onError: (error: any) => {
  toast({ title: "Error", description: error.message, variant: "destructive" });
