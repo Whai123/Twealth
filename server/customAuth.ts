@@ -11,11 +11,12 @@ if (!process.env.REPLIT_DOMAINS) {
   throw new Error("Environment variable REPLIT_DOMAINS not provided");
 }
 
-// Use production domain for OAuth (twealth.ltd)
-// For development, can fall back to REPLIT_DOMAINS if needed
+// Use production domain for OAuth in production, dev domain in development
 const PRODUCTION_DOMAIN = 'twealth.ltd';
 const domains = process.env.REPLIT_DOMAINS.split(',');
-const customDomain = PRODUCTION_DOMAIN; // Always use production domain for OAuth
+const isDevelopment = process.env.NODE_ENV === 'development';
+const customDomain = isDevelopment ? domains[0] : PRODUCTION_DOMAIN;
+console.log('[OAuth] Environment:', process.env.NODE_ENV);
 console.log('[OAuth] Using domain for callbacks:', customDomain);
 const FRONTEND_URL = `https://${customDomain}`;
 const BACKEND_URL = FRONTEND_URL; // Same domain setup
@@ -31,10 +32,9 @@ export function getSession() {
     tableName: "sessions",
   });
   
-  // Detect production: either NODE_ENV=production OR using production domain
+  // Detect production: NODE_ENV=production OR deployment flag
   const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.REPLIT_DEPLOYMENT === '1' ||
-                       process.env.REPL_SLUG !== undefined;
+                       process.env.REPLIT_DEPLOYMENT === '1';
   
   console.log('[Session] Environment:', {
     NODE_ENV: process.env.NODE_ENV,
@@ -51,9 +51,9 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true, // Always use secure cookies (twealth.ltd uses HTTPS)
-      sameSite: 'none', // Required for OAuth callbacks with HTTPS
-      domain: '.twealth.ltd', // Allow cookies across OAuth redirects
+      secure: isProduction, // Secure cookies only in production
+      sameSite: isProduction ? 'none' : 'lax', // 'none' for production OAuth, 'lax' for dev
+      domain: isProduction ? '.twealth.ltd' : undefined, // Domain only in production
       maxAge: sessionTtl,
     },
   });
