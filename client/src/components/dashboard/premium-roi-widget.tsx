@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Crown, TrendingUp, DollarSign, Sparkles } from "lucide-react";
+import { Crown, TrendingUp, DollarSign, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -61,7 +61,7 @@ export default function PremiumROIWidget() {
   const roi = totalValue > 0 ? (totalValue / subscriptionCost).toFixed(1) : "0";
 
   return (
-    <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-background to-primary/5">
+    <Card className="relative overflow-hidden border-primary/20 bg-white dark:bg-gray-900
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
       
       <CardHeader className="relative">
@@ -88,7 +88,7 @@ export default function PremiumROIWidget() {
           
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-blue-500" />
+              <Plus className="h-4 w-4 text-blue-500" />
               <span className="text-muted-foreground">AI Time Savings</span>
             </div>
             <span className="font-medium text-green-600">+${Math.round(timeSavingsValue)}</span>

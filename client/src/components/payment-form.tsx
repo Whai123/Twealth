@@ -81,7 +81,7 @@ export default function PaymentForm({ onSuccess, onError }: PaymentFormProps) {
       >
         {isLoading ? (
           <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4" />
             Processing Payment...
           </div>
         ) : (

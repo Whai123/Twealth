@@ -507,10 +507,10 @@ export function TimeTracker({
     <Card className={`time-tracker ${isTracking ? 'border-time-active' : ''}`} data-testid="time-tracker">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Clock className={isTracking ? "text-time-active animate-pulse" : "text-time"} size={20} />
+          <Clock className={isTracking ? "text-time-active" : "text-time"} size={20} />
           Time Tracker
           {isTracking && (
-            <Badge variant="default" className="bg-time-active text-white animate-pulse">
+            <Badge variant="default" className="bg-time-active text-white">
               Recording
             </Badge>
           )}
@@ -546,7 +546,7 @@ export function TimeTracker({
             </div>
             <div className="w-full bg-muted rounded-full h-2">
               <div 
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-all ${
                   isOverPlanned ? 'bg-value-negative' : 'bg-time-active'
                 }`}
                 style={{ width: `${Math.min(progressPercentage, 100)}%` }}

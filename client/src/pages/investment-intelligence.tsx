@@ -279,7 +279,7 @@ export default function InvestmentIntelligence() {
         <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
           <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
@@ -385,7 +385,7 @@ export default function InvestmentIntelligence() {
                 {personalizedRecommendations.map((strategy) => (
                   <Card 
                     key={strategy.id}
-                    className="border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20"
+                    className="border-2 border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 dark:from-purple-950/20 dark:to-blue-950/20"
                     data-testid={`card-recommended-${strategy.id}`}
                   >
                     <CardHeader>
@@ -573,7 +573,7 @@ export default function InvestmentIntelligence() {
                     {filteredStrategies.map((strategy) => (
                       <Card
                         key={strategy.id}
-                        className="border-border/50 hover:border-primary/50 transition-all duration-200"
+                        className="border-border/50 hover:border-primary/50 transition-all"
                         data-testid={`card-strategy-${strategy.id}`}
                       >
                         <CardHeader>
@@ -940,7 +940,7 @@ export default function InvestmentIntelligence() {
                     {filteredPassiveIncome.map((opportunity) => (
                       <Card
                         key={opportunity.id}
-                        className="border-border/50 hover:border-primary/50 transition-all duration-200"
+                        className="border-border/50 hover:border-primary/50 transition-all"
                         data-testid={`card-passive-income-${opportunity.id}`}
                       >
                         <CardHeader>

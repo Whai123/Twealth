@@ -82,11 +82,11 @@ export default function AIInsightsCard({ onOpenChat }: AIInsightsCardProps) {
           <div className="space-y-3">
             <div className="text-sm text-muted-foreground leading-relaxed">
               <p data-testid="text-ai-insight">
-                💡 Track your daily expenses to identify spending patterns and savings opportunities.
+                Track your daily expenses to identify spending patterns and savings opportunities.
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 {(error as any)?.message?.includes('429') || (error as any)?.message?.includes('rate limit') 
-                  ? '⚡ AI insights temporarily unavailable due to high demand. Try again in a few minutes.' 
+                  ? 'AI insights temporarily unavailable due to high demand. Try again in a few minutes.' 
                   : '* Showing fallback insight'}
               </p>
             </div>

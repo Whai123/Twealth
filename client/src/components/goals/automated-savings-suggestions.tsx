@@ -12,7 +12,7 @@ import {
   PiggyBank,
   Clock,
   ArrowRight,
-  Sparkles
+  Plus
 } from "lucide-react";
 import { differenceInDays, differenceInMonths, addDays, format } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
@@ -294,7 +294,7 @@ export default function AutomatedSavingsSuggestions({
             AI Savings Suggestions
           </div>
           <Badge variant="secondary" className="flex items-center">
-            <Sparkles className="mr-1 h-3 w-3" />
+            <Plus className="mr-1 h-3 w-3" />
             {suggestions.length} suggestions
           </Badge>
         </CardTitle>

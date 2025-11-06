@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
-import { CalendarDays, MapPin, Users, Clock, Calendar, Sparkles, Brain, Zap, Target, Wand2 } from "lucide-react";
+import { CalendarDays, MapPin, Users, Clock, Calendar, Plus, Brain, Zap, Target, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -152,14 +152,14 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
       queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
-        title: "🎉 Event Created Successfully!",
+        title: "Event Created Successfully",
         description: "Your collaborative event is ready for RSVPs",
       });
       onSuccess?.();
     },
     onError: (error: any) => {
       toast({
-        title: "❌ Failed to Create Event",
+        title: "Failed to Create Event",
         description: error.message || "Please try again",
         variant: "destructive",
       });
@@ -184,14 +184,14 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
       queryClient.invalidateQueries({ queryKey: ["/api/events/upcoming"] });
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
       toast({
-        title: "✅ Event Updated Successfully!",
+        title: "Event Updated Successfully",
         description: "Your event details have been updated",
       });
       onSuccess?.();
     },
     onError: (error: any) => {
       toast({
-        title: "❌ Failed to Update Event",
+        title: "Failed to Update Event",
         description: error.message || "Please try again",
         variant: "destructive",
       });
@@ -235,7 +235,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
       <DialogHeader className="mb-4">
         <div className="text-center mb-3">
           <DialogTitle className="text-lg sm:text-xl font-bold">
-            {eventToEdit ? "✏️ Edit Event" : "🚀 Create Event"}
+            {eventToEdit ? "Edit Event" : "Create Event"}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground mt-1">
             {eventToEdit ? "Update your event details" : "Create a new event for your calendar"}
@@ -245,33 +245,32 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-3">
-          <Label htmlFor="title" className="text-base font-bold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
+          <Label htmlFor="title" className="text-base font-bold">
             Event Title *
           </Label>
           <Input
             id="title"
             {...register("title")}
-            placeholder="e.g., Q4 Financial Strategy Meeting 💰"
-            className="h-12 sm:h-14 text-base px-4 border-2 focus:border-purple-500 transition-all duration-200"
+            placeholder="e.g., Q4 Financial Strategy Meeting"
+            className="h-12 sm:h-14 text-base px-4 border-2 focus:border-purple-500 transition-all"
             data-testid="input-event-title"
           />
           {errors.title && (
-            <p className="text-sm text-red-600 flex items-center gap-1">
-              ❌ {errors.title.message}
+            <p className="text-sm text-red-600">
+              {errors.title.message}
             </p>
           )}
         </div>
 
         <div className="space-y-3">
           <Label htmlFor="description" className="text-base font-bold">
-            📝 Event Description
+            Event Description
           </Label>
           <Textarea
             id="description"
             {...register("description")}
             placeholder="Tell people what to expect! Goals, what to bring, what they'll learn..."
-            className="min-h-[100px] sm:min-h-[120px] text-base p-4 border-2 focus:border-blue-500 transition-all duration-200 resize-none"
+            className="min-h-[100px] sm:min-h-[120px] text-base p-4 border-2 focus:border-blue-500 transition-all resize-none"
             data-testid="input-event-description"
           />
         </div>
@@ -283,7 +282,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
             📅 Which day? Slide to choose! 
           </Label>
           
-          <Card className="p-4 sm:p-6 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-200 dark:border-green-800">
+          <Card className="p-4 sm:p-6 bg-white dark:bg-gray-900 dark:from-green-900/20 dark:to-blue-900/20 border-2 border-green-200 dark:border-green-800">
             <div className="space-y-4">
               {/* Current Date Display */}
               <div className="text-center">
@@ -426,10 +425,10 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
         <div className="space-y-4">
           <Label className="text-base font-bold flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-500" />
-            ⏰ What time? Slide to choose! 
+            What time? Slide to choose 
           </Label>
           
-          <Card className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-800">
+          <Card className="p-4 sm:p-6 bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-200 dark:border-blue-800">
             <div className="space-y-6">
               {/* Time Display */}
               <div className="flex justify-between items-center gap-2">
@@ -512,7 +511,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                   }}
                   data-testid="button-preset-morning"
                 >
-                  🌅 Morning
+                  Morning
                 </Button>
                 <Button
                   type="button"
@@ -534,7 +533,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                   }}
                   data-testid="button-preset-lunch"
                 >
-                  🍽️ Lunch
+                  Lunch
                 </Button>
                 <Button
                   type="button"
@@ -556,7 +555,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
                   }}
                   data-testid="button-preset-afternoon"
                 >
-                  ☀️ Afternoon
+                  Afternoon
                 </Button>
               </div>
             </div>
@@ -575,15 +574,15 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
           />
           
           {(errors.startTime || errors.endTime) && (
-            <p className="text-sm text-destructive flex items-center gap-1">
-              ❌ {errors.startTime?.message || errors.endTime?.message}
+            <p className="text-sm text-destructive">
+              {errors.startTime?.message || errors.endTime?.message}
             </p>
           )}
         </div>
 
         <div className="space-y-3">
           <Label htmlFor="location" className="text-base font-medium">
-            📍 Location (Optional)
+            Location (Optional)
           </Label>
           <Input
             id="location"
@@ -596,7 +595,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
 
         <div className="space-y-3">
           <Label htmlFor="groupId" className="text-base font-medium">
-            👥 Group (Optional)
+            Group (Optional)
           </Label>
           <Select value={watch("groupId") || "personal"} onValueChange={(value) => setValue("groupId", value === "personal" ? undefined : value)}>
             <SelectTrigger className="h-12 sm:h-14 text-base" data-testid="select-event-group">
@@ -617,12 +616,12 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 h-12 sm:h-14 text-base font-semibold bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+            className="flex-1 h-12 sm:h-14 text-base font-semibold bg-white dark:bg-gray-900"
             data-testid="button-submit-event"
           >
             {isSubmitting 
               ? (eventToEdit ? "Updating..." : "Creating...") 
-              : (eventToEdit ? "✅ Update Event" : "✨ Create Event")
+              : (eventToEdit ? "Update Event" : "Create Event")
             }
           </Button>
         </div>

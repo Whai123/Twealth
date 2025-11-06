@@ -56,8 +56,8 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
 
   return (
     <div className="flex gap-3 group" data-testid="message-assistant">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-        <Brain className="w-4 h-4 text-white" />
+      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <Brain className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
@@ -168,14 +168,14 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
 export function TypingIndicator() {
   return (
     <div className="flex gap-3" data-testid="typing-indicator">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-        <Brain className="w-4 h-4 text-white" />
+      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <Brain className="w-4 h-4 text-primary" />
       </div>
       <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
         <div className="flex gap-1">
-          <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="w-2 h-2 bg-muted-foreground/50 rounded-full" />
+          <div className="w-2 h-2 bg-muted-foreground/50 rounded-full" />
+          <div className="w-2 h-2 bg-muted-foreground/50 rounded-full" />
         </div>
       </div>
     </div>

@@ -170,10 +170,10 @@ export default function Friends() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-pink-900/30 dark:via-purple-900/30 dark:to-blue-900/30">
+    <div className="min-h-screen bg-pink-50 dark:bg-pink-900/20">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
         <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">👥 Friends</h1>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-pink-600 dark:text-pink-400">👥 Friends</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Connect with friends to collaborate on groups and events</p>
         </div>
 
@@ -202,18 +202,18 @@ export default function Friends() {
             <CardContent>
               {friendsLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <Loader2 className="h-6 w-6" />
                 </div>
               ) : friends?.length === 0 ? (
                 <div className="text-center py-16">
                   <div className="relative mb-10">
-                    <div className="absolute inset-0 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 rounded-full blur-3xl"></div>
-                    <div className="relative bg-gradient-to-br from-pink-500 via-purple-500 to-blue-600 rounded-3xl p-6 w-32 h-32 mx-auto flex items-center justify-center shadow-2xl">
+                    <div className="absolute inset-0 bg-pink-500/20 rounded-full blur-3xl"></div>
+                    <div className="relative bg-pink-500 rounded-3xl p-6 w-32 h-32 mx-auto flex items-center justify-center shadow-2xl">
                       <Users className="h-16 w-16 text-white" />
                     </div>
                   </div>
                   
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                  <h3 className="text-3xl font-bold text-pink-600 dark:text-pink-400 mb-3">
                     Build Your Network
                   </h3>
                   <p className="text-muted-foreground text-lg mb-4 max-w-lg mx-auto">
@@ -221,24 +221,24 @@ export default function Friends() {
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
-                    <div className="bg-gradient-to-br from-pink-50 to-pink-100/50 dark:from-pink-900/20 dark:to-pink-800/10 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
-                      <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <div className="bg-white dark:bg-gray-900 dark:from-pink-900/20 dark:to-pink-800/10 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
+                      <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
                         <Target className="h-6 w-6 text-white" />
                       </div>
                       <h4 className="font-bold mb-2 text-pink-800 dark:text-pink-200">Shared Goals</h4>
                       <p className="text-sm text-pink-600 dark:text-pink-300">Collaborate on financial targets</p>
                     </div>
                     
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <div className="bg-white dark:bg-gray-900 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+                      <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
                         <Calendar className="h-6 w-6 text-white" />
                       </div>
                       <h4 className="font-bold mb-2 text-purple-800 dark:text-purple-200">Group Events</h4>
                       <p className="text-sm text-purple-600 dark:text-purple-300">Plan activities together</p>
                     </div>
                     
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <div className="bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+                      <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
                         <TrendingUp className="h-6 w-6 text-white" />
                       </div>
                       <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Social Motivation</h4>
@@ -295,7 +295,7 @@ export default function Friends() {
               <CardContent>
                 {pendingLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-6 w-6" />
                   </div>
                 ) : pendingRequests?.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -359,7 +359,7 @@ export default function Friends() {
               <CardContent>
                 {sentLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-6 w-6" />
                   </div>
                 ) : sentRequests?.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -425,7 +425,7 @@ export default function Friends() {
                   </div>
                 ) : searchLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-6 w-6" />
                   </div>
                 ) : searchResults?.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -514,7 +514,7 @@ export default function Friends() {
                 disabled={sendRequestMutation.isPending}
                 data-testid="button-send-request"
               >
-                {sendRequestMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {sendRequestMutation.isPending && <Loader2 className="h-4 w-4 mr-2" />}
                 Send Request
               </Button>
             </div>

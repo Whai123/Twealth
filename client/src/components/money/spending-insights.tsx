@@ -341,7 +341,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
                     <p className="text-sm text-muted-foreground">{insight.description}</p>
                     {insight.potential_saving > 0 && (
                       <p className="text-sm text-green-600 font-medium mt-1">
-                        💰 Save ${insight.potential_saving.toFixed(0)}/month
+                        Save ${insight.potential_saving.toFixed(0)}/month
                       </p>
                     )}
                   </div>
@@ -367,9 +367,9 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
         <CardContent className="px-0">
           <div className="space-y-4">
             {recommendations.map((rec, index) => (
-              <div key={index} className="flex items-start justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+              <div key={index} className="flex items-start justify-between p-4 bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
                 <div className="flex items-start">
-                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
+                  <div className="w-10 h-10 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center mr-3">
                     <Zap className="text-white" size={20} />
                   </div>
                   <div>
@@ -379,11 +379,11 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
                     </div>
                     <p className="text-sm text-muted-foreground">{rec.description}</p>
                     <p className="text-sm text-green-600 font-medium mt-1">
-                      ✨ {rec.benefit}
+                      {rec.benefit}
                     </p>
                   </div>
                 </div>
-                <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white" size="sm">
+                <Button className="bg-white dark:bg-gray-900 text-white" size="sm">
                   {rec.action}
                   <ArrowRight className="ml-1" size={14} />
                 </Button>

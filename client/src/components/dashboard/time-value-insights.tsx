@@ -105,7 +105,7 @@ export default function TimeValueInsights() {
           <TabsContent value="overview" className="space-y-6">
             {/* Key Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-200 dark:border-blue-800">
+              <div className="p-4 rounded-lg bg-white dark:bg-gray-900 dark:from-blue-900/20 dark:to-blue-800/10 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="text-time" size={16} />
                   <span className="text-sm font-medium text-time">Total Time</span>
@@ -118,7 +118,7 @@ export default function TimeValueInsights() {
                 </p>
               </div>
               
-              <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/10 border border-yellow-200 dark:border-yellow-800">
+              <div className="p-4 rounded-lg bg-white dark:bg-gray-900 dark:from-yellow-900/20 dark:to-yellow-800/10 border border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign className="text-money" size={16} />
                   <span className="text-sm font-medium text-money">Time Value</span>
@@ -131,7 +131,7 @@ export default function TimeValueInsights() {
                 </p>
               </div>
               
-              <div className={`p-4 rounded-lg ${insights?.netImpact >= 0 ? 'bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 border border-green-200 dark:border-green-800' : 'bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 border border-red-200 dark:border-red-800'}`}>
+              <div className={`p-4 rounded-lg ${insights?.netImpact >= 0 ? 'bg-white dark:bg-gray-900 dark:from-green-900/20 dark:to-green-800/10 border border-green-200 dark:border-green-800' : 'bg-white dark:bg-gray-900 dark:from-red-900/20 dark:to-red-800/10 border border-red-200 dark:border-red-800'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className={insights?.netImpact >= 0 ? "text-value-positive" : "text-value-negative"} size={16} />
                   <span className={`text-sm font-medium ${insights?.netImpact >= 0 ? "text-value-positive" : "text-value-negative"}`}>
@@ -197,7 +197,7 @@ export default function TimeValueInsights() {
                                   ⏰ {hours.toFixed(1)}h tracked
                                 </p>
                                 <p className="text-sm text-money">
-                                  💰 {currencySymbol}{Math.round(value).toLocaleString()} earned
+                                  {currencySymbol}{Math.round(value).toLocaleString()} earned
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   Efficiency: {currencySymbol}{Math.round(efficiency)}/hr
@@ -319,7 +319,7 @@ export default function TimeValueInsights() {
                                   ⏰ {hours.toFixed(1)}h ({percentage}%)
                                 </p>
                                 <p className="text-sm text-money">
-                                  💰 {currencySymbol}{Math.round(value).toLocaleString()}
+                                  {currencySymbol}{Math.round(value).toLocaleString()}
                                 </p>
                               </div>
                             );
@@ -360,7 +360,7 @@ export default function TimeValueInsights() {
                     </p>
                   </div>
                   <div className="value-badge-positive">
-                    💡 High ROI
+                    High ROI
                   </div>
                 </div>
               ))}

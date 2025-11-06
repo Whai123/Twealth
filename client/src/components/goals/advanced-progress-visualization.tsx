@@ -136,7 +136,7 @@ export default function AdvancedProgressVisualization({
   return (
     <div className="space-y-6">
       {/* Overall Progress Overview */}
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+      <Card className="bg-white dark:bg-gray-900 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center text-blue-900 dark:text-blue-100">
             <PieChart className="mr-2 h-5 w-5" />

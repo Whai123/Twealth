@@ -65,7 +65,7 @@ export default function FinancialGoalsProgress() {
         {activeGoals.length === 0 ? (
           <div className="text-center py-12 space-y-4">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
                 <Target className="w-8 h-8 text-primary" />
               </div>
             </div>

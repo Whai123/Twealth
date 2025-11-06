@@ -219,9 +219,9 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="income">💰 Money In (Income)</SelectItem>
-              <SelectItem value="expense">💸 Money Out (Expense)</SelectItem>
-              <SelectItem value="transfer">💳 Transfer/Savings</SelectItem>
+              <SelectItem value="income">Money In (Income)</SelectItem>
+              <SelectItem value="expense">Money Out (Expense)</SelectItem>
+              <SelectItem value="transfer">Transfer/Savings</SelectItem>
             </SelectContent>
           </Select>
           {errors.type && (
@@ -274,7 +274,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           </Label>
           <Select value={selectedCategory || ""} onValueChange={handleCategoryChange}>
             <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-category">
-              <SelectValue placeholder="Leave blank for auto-categorization ✨" />
+              <SelectValue placeholder="Leave blank for auto-categorization" />
             </SelectTrigger>
             <SelectContent>
               {availableCategories.map((category) => (
@@ -292,7 +292,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
         {/* Destination - Only for Transfer/Savings */}
         {selectedType === "transfer" && selectedCategory === "goal_contribution" && (
           <div>
-            <Label htmlFor="goalId" className="text-base font-semibold">💰 Which financial goal?</Label>
+            <Label htmlFor="goalId" className="text-base font-semibold">Which financial goal?</Label>
             <Select value={watch("goalId") || ""} onValueChange={(value) => setValue("goalId", value)}>
               <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-goal">
                 <SelectValue placeholder="Select a goal" />
@@ -314,17 +314,17 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
 
         {selectedType === "transfer" && selectedCategory === "savings" && (
           <div>
-            <Label htmlFor="destination" className="text-base font-semibold">🏦 Where is this money going?</Label>
+            <Label htmlFor="destination" className="text-base font-semibold">Where is this money going?</Label>
             <Select value={watch("destination") || ""} onValueChange={(value) => setValue("destination", value)}>
               <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-destination">
                 <SelectValue placeholder="Select destination" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="emergency_fund">🚨 Emergency Fund</SelectItem>
-                <SelectItem value="general_savings">💵 General Savings</SelectItem>
-                <SelectItem value="vacation_fund">✈️ Vacation Fund</SelectItem>
-                <SelectItem value="down_payment">🏠 Down Payment</SelectItem>
-                <SelectItem value="other">📦 Other Savings</SelectItem>
+                <SelectItem value="emergency_fund">Emergency Fund</SelectItem>
+                <SelectItem value="general_savings">General Savings</SelectItem>
+                <SelectItem value="vacation_fund">Vacation Fund</SelectItem>
+                <SelectItem value="down_payment">Down Payment</SelectItem>
+                <SelectItem value="other">Other Savings</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -332,18 +332,18 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
 
         {selectedType === "transfer" && selectedCategory === "investment" && (
           <div>
-            <Label htmlFor="destination" className="text-base font-semibold">📈 Which investment account?</Label>
+            <Label htmlFor="destination" className="text-base font-semibold">Which investment account?</Label>
             <Select value={watch("destination") || ""} onValueChange={(value) => setValue("destination", value)}>
               <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-destination">
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="brokerage">🏦 Brokerage Account</SelectItem>
-                <SelectItem value="401k">👴 401(k)</SelectItem>
-                <SelectItem value="roth_ira">💎 Roth IRA</SelectItem>
-                <SelectItem value="crypto">₿ Cryptocurrency</SelectItem>
-                <SelectItem value="real_estate">🏘️ Real Estate</SelectItem>
-                <SelectItem value="other">📊 Other Investment</SelectItem>
+                <SelectItem value="brokerage">Brokerage Account</SelectItem>
+                <SelectItem value="401k">401(k)</SelectItem>
+                <SelectItem value="roth_ira">Roth IRA</SelectItem>
+                <SelectItem value="crypto">Cryptocurrency</SelectItem>
+                <SelectItem value="real_estate">Real Estate</SelectItem>
+                <SelectItem value="other">Other Investment</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -373,7 +373,7 @@ export default function TransactionForm({ onSuccess }: TransactionFormProps) {
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4" />
                 Adding...
               </>
             ) : (

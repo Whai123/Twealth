@@ -445,13 +445,13 @@
     "unlimited": "Sınırsız",
     "quotaExceeded": "AI sohbet limitinize ulaştınız. Sınırsız AI yardımı için Premium'a yükseltin!",
     "runningLow": "AI sohbetleriniz azalıyor. Sınırsız erişim için Premium'a yükseltmeyi düşünün.",
-    "upgradeRequired": "🚀 Yükseltme Gerekli",
+    "upgradeRequired": "Yükseltme Gerekli",
     "upgradeButton": "Premium'a Yükselt",
     "chatPlaceholder": "Finanslarınızla ilgili her şeyi sorabilirsiniz...",
     "send": "Gönder",
     "upgradeToChat": "Sohbet için Yükselt",
     "header": {
-      "title": "Akıllı Mali Asistan 🧠"
+      "title": "Akıllı Mali Asistan"
     },
     "stats": {
       "chatUsage": "Sohbet Kullanımı",
@@ -474,11 +474,11 @@
       "keepExploring": "Keşfetmeye devam edin!"
     },
     "limits": {
-      "chatLimitReached": "🚫 AI Sohbet Limiti Doldu!",
+      "chatLimitReached": "AI Sohbet Limiti Doldu!",
       "allChatsUsed": "Bu ay için tüm {limit} AI sohbetini kullandınız",
       "upgradeMessage": "Sınırsız AI yardımı için Premium'a yükseltin",
       "upgradeNow": "Şimdi Yükselt",
-      "runningLow": "⚠️ AI Kotanız Azalıyor!",
+      "runningLow": "AI Kotanız Azalıyor!",
       "onlyRemaining": "Sadece {remaining} AI sohbeti kaldı. Sınırsız erişim için yükseltin!",
       "upgrade": "Yükselt"
     },
@@ -655,7 +655,7 @@
     "aiAssistant": {
       "title": "AI Asistanınızla Tanışın",
       "description": "Anında mali tavsiye, bütçe optimizasyonu ve hedef stratejileri alın",
-      "cardTitle": "🤖 AI Asistanı",
+      "cardTitle": "AI Asistanı",
       "cardDescription": "Anında mali tavsiye için AI ile sohbet edin"
     },
     "trackMoney": {
@@ -665,13 +665,13 @@
     "setGoals": {
       "title": "Mali Hedefler Belirleyin",
       "description": "Hedefler oluşturun ve AI'ın bunlara ulaşmak için en iyi yolu önermesine izin verin",
-      "cardTitle": "🎯 Akıllı Hedefler",
+      "cardTitle": "Akıllı Hedefler",
       "cardDescription": "AI destekli hedef takibi ve stratejiler"
     },
     "groupPlanning": {
       "title": "Gruplarla Planlayın",
       "description": "Arkadaşlar ve aileyle ortak mali hedefler üzerinde işbirliği yapın",
-      "cardTitle": "👥 Grup Planlaması",
+      "cardTitle": "Grup Planlaması",
       "cardDescription": "Ortak mali hedefler üzerinde işbirliği yapın"
     },
     "proTips": {

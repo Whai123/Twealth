@@ -89,7 +89,7 @@ export default function AdvancedFilters({
           <Button 
             variant="outline" 
             size="sm"
-            className="relative transition-all duration-200 hover:scale-105"
+            className="relative transition-all"
             data-testid="button-open-filters"
           >
             <Filter size={16} className="mr-2" />
@@ -145,7 +145,7 @@ export default function AdvancedFilters({
                     <Badge
                       key={category}
                       variant={filters.categories.includes(category) ? "default" : "outline"}
-                      className="cursor-pointer transition-all duration-200 hover:scale-105"
+                      className="cursor-pointer transition-all"
                       onClick={() => {
                         const newCategories = filters.categories.includes(category)
                           ? filters.categories.filter(c => c !== category)

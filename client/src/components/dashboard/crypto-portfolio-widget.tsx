@@ -52,7 +52,7 @@ export default function CryptoPortfolioWidget() {
       
       <CardContent className="p-0">
         {/* Total Portfolio Value */}
-        <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 p-4 rounded-lg mb-4">
+        <div className="bg-white dark:bg-gray-900 dark:from-orange-950/20 dark:to-amber-950/20 p-4 rounded-lg mb-4">
           <p className="text-sm text-muted-foreground mb-1">Total Value</p>
           <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
             ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

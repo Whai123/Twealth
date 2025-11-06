@@ -35,7 +35,7 @@ export function ErrorState({
 
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-4">
-      <div className="w-16 h-16 bg-gradient-to-br from-red-500/20 to-orange-500/10 rounded-full flex items-center justify-center">
+      <div className="w-16 h-16 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
         <AlertCircle className="w-8 h-8 text-red-600" />
       </div>
       <div className="text-center space-y-2">

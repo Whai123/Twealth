@@ -111,10 +111,10 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen p-6 bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="flex items-center justify-center min-h-screen p-6 bg-white dark:bg-gray-900 dark:from-gray-900 dark:to-gray-800">
       <Card className="max-w-lg w-full shadow-2xl">
         <CardHeader>
-          <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-blue-600 mx-auto mb-4">
+          <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white dark:bg-gray-900 mx-auto mb-4">
             <Users className="w-10 h-10 text-white" />
           </div>
           <CardTitle className="text-2xl text-center">You're Invited!</CardTitle>
@@ -123,7 +123,7 @@ export default function InvitePage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-6 bg-gradient-to-br from-white to-emerald-50 dark:from-gray-800 dark:to-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+          <div className="p-6 bg-white dark:bg-gray-900 dark:from-gray-800 dark:to-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
             <h3 className="text-xl font-bold mb-2 text-foreground">{invite.group.name}</h3>
             {invite.group.description && (
               <p className="text-muted-foreground mb-4">{invite.group.description}</p>
@@ -150,7 +150,7 @@ export default function InvitePage() {
             </Button>
             <Button 
               onClick={handleAccept} 
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700"
+              className="flex-1 bg-white dark:bg-gray-900
               disabled={acceptInviteMutation.isPending}
               data-testid="button-accept-invite"
             >

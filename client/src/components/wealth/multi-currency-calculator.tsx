@@ -193,7 +193,7 @@ export default function MultiCurrencyCalculator() {
         </div>
 
         {/* Result */}
-        <div className="p-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-primary/20">
+        <div className="p-6 bg-white dark:bg-gray-900 rounded-lg border border-primary/20">
           <div className="text-sm text-muted-foreground mb-1">Result</div>
           {isLoading ? (
             <div className="flex items-center">

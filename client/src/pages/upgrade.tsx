@@ -140,7 +140,7 @@ export default function UpgradePage() {
 
   if (paymentMode === 'payment' && clientSecret && stripePromise) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-screen bg-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="container mx-auto px-4 py-8">
           <Button
             variant="ghost"
@@ -212,9 +212,9 @@ export default function UpgradePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-900/30 dark:via-teal-900/30 dark:to-cyan-900/30">
+    <div className="min-h-screen bg-emerald-50 dark:bg-emerald-900/20">
       {/* Spectacular Header */}
-      <header className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-900/50 dark:via-teal-900/50 dark:to-cyan-900/50 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
+      <header className="bg-emerald-50 dark:bg-emerald-900/30 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-8">
           <Button
             variant="ghost"
@@ -228,11 +228,11 @@ export default function UpgradePage() {
 
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-xl animate-pulse">
+              <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center shadow-xl">
                 <Crown className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
+                <h1 className="text-5xl font-bold text-emerald-600 dark:text-emerald-400">
                   Choose Your Plan
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2">
@@ -291,7 +291,7 @@ export default function UpgradePage() {
             </div>
             
             {/* Welcome Message */}
-            <div className="bg-gradient-to-r from-white/80 to-emerald-50/80 dark:from-gray-800/80 dark:to-emerald-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="bg-white dark:bg-gray-900 dark:from-gray-800/80 dark:to-emerald-900/20 backdrop-blur-sm rounded-xl p-6 border border-white/20">
               <div className="flex items-center gap-3">
                 <Crown className="w-6 h-6 text-emerald-500" />
                 <div>
@@ -309,7 +309,7 @@ export default function UpgradePage() {
         {plansLoading ? (
           <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="bg-white/50 dark:bg-gray-800/50 animate-pulse">
+              <Card key={i} className="bg-white/50 dark:bg-gray-800/50">
                 <CardHeader className="h-32"></CardHeader>
                 <CardContent className="h-48"></CardContent>
               </Card>
@@ -320,7 +320,7 @@ export default function UpgradePage() {
             {plans.map((plan: any) => (
               <Card
                 key={plan.id}
-                className={`relative bg-white/80 dark:bg-gray-800/80 backdrop-blur border-0 shadow-xl hover:shadow-2xl transition-all duration-300 ${
+                className={`relative bg-white/80 dark:bg-gray-800/80 backdrop-blur border-0 shadow-xl hover:shadow-2xl transition-all ${
                   plan.name === 'Pro' ? 'ring-2 ring-purple-500 scale-105' : ''
                 } ${isCurrentPlan(plan.id) ? 'ring-2 ring-green-500' : ''}`}
                 data-testid={`card-plan-${plan.name.toLowerCase()}`}
@@ -394,7 +394,7 @@ export default function UpgradePage() {
                   >
                     {upgradeMutation.isPending || paymentMutation.isPending ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
                         Processing...
                       </div>
                     ) : isCurrentPlan(plan.id) ? (

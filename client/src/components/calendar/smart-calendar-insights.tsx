@@ -210,7 +210,7 @@ export default function SmartCalendarInsights({ events, timeRange }: CalendarIns
           return (
             <Card 
               key={index} 
-              className={`transition-all duration-200 hover:shadow-md ${getInsightStyle(insight.type)}`}
+              className={`transition-all hover:shadow-md ${getInsightStyle(insight.type)}`}
               data-testid={`insight-card-${insight.type}-${index}`}
             >
               <CardContent className="p-4">
@@ -255,7 +255,7 @@ export default function SmartCalendarInsights({ events, timeRange }: CalendarIns
       </div>
       
       {/* Calendar Health Score */}
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+      <Card className="bg-white dark:bg-gray-900 dark:from-purple-900/20 dark:to-blue-900/20">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-semibold flex items-center gap-2">

@@ -95,7 +95,7 @@ export default function MobileHeader() {
               alt="Twealth Logo" 
               className="w-8 h-8"
             />
-            <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Twealth</span>
+            <span className="font-bold text-lg text-foreground">Twealth</span>
           </div>
         </Link>
 
@@ -149,7 +149,7 @@ export default function MobileHeader() {
             >
               <div className="flex items-center gap-2 w-full">
                 {logoutMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4" />
                 ) : (
                   <LogOut className="h-4 w-4" />
                 )}

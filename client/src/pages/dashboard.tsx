@@ -134,7 +134,7 @@ export default function Dashboard() {
       </header>
 
       <div 
-        className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 fade-in"
+        className="w-full max-w-full overflow-x-hidden space-y-6 sm:space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8"
       >
         {/* Welcome Message - Clean Professional Design */}
         <div className="border border-border/50 rounded-lg p-5 sm:p-6" role="banner">
@@ -152,9 +152,9 @@ export default function Dashboard() {
           {healthLoading ? (
             <Card className="p-4 sm:p-6">
               <div className="space-y-3">
-                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
-                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
-                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-muted rounded"></div>
+                <div className="h-8 w-16 bg-muted rounded"></div>
+                <div className="h-3 w-24 bg-muted rounded"></div>
               </div>
             </Card>
           ) : (
@@ -178,9 +178,9 @@ export default function Dashboard() {
           {healthLoading ? (
             <Card className="p-4 sm:p-6">
               <div className="space-y-3">
-                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
-                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
-                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-muted rounded"></div>
+                <div className="h-8 w-16 bg-muted rounded"></div>
+                <div className="h-3 w-24 bg-muted rounded"></div>
               </div>
             </Card>
           ) : (
@@ -204,9 +204,9 @@ export default function Dashboard() {
           {healthLoading ? (
             <Card className="p-4 sm:p-6">
               <div className="space-y-3">
-                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
-                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
-                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-muted rounded"></div>
+                <div className="h-8 w-16 bg-muted rounded"></div>
+                <div className="h-3 w-24 bg-muted rounded"></div>
               </div>
             </Card>
           ) : (
@@ -230,9 +230,9 @@ export default function Dashboard() {
           {goalsLoading ? (
             <Card className="p-4 sm:p-6">
               <div className="space-y-3">
-                <div className="h-4 w-20 bg-muted rounded animate-pulse"></div>
-                <div className="h-8 w-16 bg-muted rounded animate-pulse"></div>
-                <div className="h-3 w-24 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-muted rounded"></div>
+                <div className="h-8 w-16 bg-muted rounded"></div>
+                <div className="h-3 w-24 bg-muted rounded"></div>
               </div>
             </Card>
           ) : (

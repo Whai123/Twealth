@@ -97,11 +97,11 @@ export function PWAInstallPrompt() {
 
   return (
     <div className="fixed bottom-24 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-80 z-40">
-      <Card className="shadow-2xl border-2 border-primary/20 bg-gradient-to-br from-white to-purple-50/50 dark:from-gray-800 dark:to-purple-950/20">
+      <Card className="shadow-2xl border-2 border-primary/20 bg-white dark:bg-gray-900 dark:from-gray-800 dark:to-purple-950/20">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-white dark:bg-gray-900 rounded-lg flex items-center justify-center">
                 <Crown className="w-5 h-5 text-white" />
               </div>
               <CardTitle className="text-lg">Install Twealth</CardTitle>
@@ -136,7 +136,7 @@ export function PWAInstallPrompt() {
           <div className="flex gap-2">
             <Button
               onClick={handleInstallClick}
-              className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+              className="flex-1 bg-white dark:bg-gray-900"
               data-testid="button-install-pwa"
             >
               <Download className="w-4 h-4 mr-2" />

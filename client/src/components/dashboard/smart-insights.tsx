@@ -278,10 +278,10 @@ export default function SmartInsights() {
         <Card className="shadow-sm hover-lift">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-white dark:bg-gray-900 rounded-lg flex items-center justify-center">
             <Lightbulb className="text-white" size={18} />
           </div>
-          <CardTitle className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <CardTitle className="text-lg font-semibold text-foreground">
             Smart Financial Insights
           </CardTitle>
         </div>
@@ -318,7 +318,7 @@ export default function SmartInsights() {
               insights.map((insight, index) => (
                 <Card
                   key={index}
-                  className={`p-4 border-l-4 transition-all duration-200 hover:shadow-md ${getPriorityColor(insight.priority)}`}
+                  className={`p-4 border-l-4 transition-all hover:shadow-md ${getPriorityColor(insight.priority)}`}
                   data-testid={`insight-${index}`}
                 >
                   <div className="flex items-start justify-between">

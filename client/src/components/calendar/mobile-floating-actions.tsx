@@ -98,9 +98,9 @@ export default function MobileFloatingActions({
                     size="icon"
                     onClick={action.action}
                     className={`
-                      w-12 h-12 rounded-full shadow-lg text-white transition-all duration-200
+                      w-12 h-12 rounded-full shadow-lg text-white
                       ${action.color}
-                      hover:scale-110 active:scale-95
+                     
                     `}
                     data-testid={`mobile-fab-${action.id}`}
                   >
@@ -121,10 +121,10 @@ export default function MobileFloatingActions({
             size="icon"
             onClick={() => setIsExpanded(!isExpanded)}
             className={`
-              w-14 h-14 rounded-full shadow-xl transition-all duration-300
+              w-14 h-14 rounded-full shadow-xl
               ${isExpanded 
                 ? 'bg-red-500 hover:bg-red-600 rotate-45' 
-                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                : 'bg-white dark:bg-gray-900
               }
               text-white border-4 border-white dark:border-gray-800
             `}

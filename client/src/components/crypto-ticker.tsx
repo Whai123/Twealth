@@ -33,7 +33,7 @@ export default function CryptoTicker() {
         </div>
         <div className="space-y-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between animate-pulse">
+            <div key={i} className="flex items-center justify-between">
               <div className="h-3 bg-muted rounded w-12"></div>
               <div className="h-3 bg-muted rounded w-16"></div>
             </div>
@@ -70,7 +70,7 @@ export default function CryptoTicker() {
   const priceData = prices as any;
 
   return (
-    <div className="bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/20 dark:to-amber-950/20 rounded-lg p-3 border border-orange-100 dark:border-orange-900/30">
+    <div className="bg-white dark:bg-gray-900 dark:from-orange-950/20 dark:to-amber-950/20 rounded-lg p-3 border border-orange-100 dark:border-orange-900/30">
       <div className="flex items-center gap-2 mb-3">
         <Bitcoin className="w-4 h-4 text-orange-500" />
         <h3 className="text-xs font-semibold text-foreground">Live Crypto</h3>

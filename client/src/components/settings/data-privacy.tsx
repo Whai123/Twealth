@@ -347,7 +347,7 @@ export default function DataPrivacy({ }: DataPrivacyProps) {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-2 border-red-200 dark:border-red-900/50 shadow-sm bg-gradient-to-br from-red-50/50 to-orange-50/50 dark:from-red-950/20 dark:to-orange-950/20">
+      <Card className="border-2 border-red-200 dark:border-red-900/50 shadow-sm bg-white dark:bg-gray-900 dark:from-red-950/20 dark:to-orange-950/20">
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl text-red-700 dark:text-red-400">
             <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />

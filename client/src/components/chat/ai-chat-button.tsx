@@ -231,7 +231,7 @@ export default function AIChatButton() {
               {sendMessageMutation.isPending && (
                 <div className="flex justify-start">
                   <div className="bg-muted rounded-lg p-2.5 flex items-center gap-2">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5" />
                     <span className="text-xs text-muted-foreground">Thinking...</span>
                   </div>
                 </div>
@@ -239,7 +239,7 @@ export default function AIChatButton() {
             </div>
           ) : (
             <div className="text-center text-muted-foreground py-4">
-              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+              <Loader2 className="h-6 w-6 mx-auto mb-2" />
               <p className="text-sm">Loading...</p>
             </div>
           )}

@@ -72,7 +72,7 @@ export default function RecentTransactions() {
         {recentTransactions.length === 0 ? (
           <div className="text-center py-12 space-y-4">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-purple-500/10 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
                 <Receipt className="w-8 h-8 text-blue-600" />
               </div>
             </div>

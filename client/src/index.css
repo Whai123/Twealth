@@ -47,42 +47,7 @@
     overflow-x: hidden;
   }
   
-  /* Modern microinteractions and animations */
-  .card-hover {
-    transition: all var(--transition-normal);
-  }
-  .card-hover:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: var(--shadow-xl);
-  }
-  
-  .button-press {
-    transition: all var(--transition-fast);
-  }
-  .button-press:active {
-    transform: scale(0.98);
-  }
-  
-  .fade-in {
-    animation: fadeIn var(--transition-normal) ease-out;
-  }
-  
-  .slide-up {
-    animation: slideUp var(--transition-normal) ease-out;
-  }
-  
-  .pulse-success {
-    animation: pulseSuccess 0.6s ease-out;
-  }
-  
-  .shimmer {
-    background: linear-gradient(90deg, 
-      rgba(255, 255, 255, 0) 0%, 
-      rgba(255, 255, 255, 0.2) 20%, 
-      rgba(255, 255, 255, 0.5) 60%, 
-      rgba(255, 255, 255, 0) 100%);
-    animation: shimmer 2s linear infinite;
-  }
+  /* Removed all animations and transforms for professional design */
   
   /* Improved focus styles for accessibility */
   .focus-ring:focus-visible {
@@ -110,28 +75,7 @@
     border-width: 0;
   }
   
-  /* Modern gradient backgrounds */
-  .bg-gradient-primary {
-    background: var(--gradient-primary);
-  }
-  
-  .bg-gradient-hero {
-    background: var(--gradient-hero);
-  }
-  
-  .bg-gradient-success {
-    background: var(--gradient-success);
-  }
-  
-  /* Progress ring animation */
-  .progress-ring {
-    transition: stroke-dashoffset var(--transition-slow) ease-in-out;
-  }
-  
-  /* Number counter animation */
-  .counter-up {
-    animation: counterUp var(--transition-slow) ease-out;
-  }
+  /* Removed gradient backgrounds and animations for professional design */
   
   /* Enhanced modern utilities */
   .glass-effect {
@@ -148,102 +92,13 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
   }
   
-  .interactive-scale {
-    transition: transform 0.2s ease;
-  }
-  .interactive-scale:hover {
-    transform: scale(1.02);
-  }
-  .interactive-scale:active {
-    transform: scale(0.98);
-  }
+  /* Removed scale animations for professional design */
   
   .glow-primary {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
   }
   
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)) 60%, hsl(var(--primary) / 0.8));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Respect user motion preferences */
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    .fade-in,
-    .slide-up,
-    .shimmer,
-    .pulse-success,
-    .counter-up,
-    .card-hover,
-    .button-press,
-    .progress-ring,
-    .interactive-scale {
-      animation: none !important;
-      transition-duration: 0.001ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-}
-
-/* Keyframe animations for modern microinteractions */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes pulseSuccess {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-
-@keyframes counterUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  /* Removed gradient and animation classes for professional design */
 }
 
 :root {
@@ -279,12 +134,7 @@
   --error: 0 84% 60%;
   --neutral: 220 9% 46%;
   
-  /* Modern Gradients - Enhanced for vibrant design */
-  --gradient-primary: linear-gradient(135deg, hsl(262, 90%, 50%) 0%, hsl(262, 90%, 60%) 100%);
-  --gradient-success: linear-gradient(135deg, hsl(142, 71%, 45%) 0%, hsl(142, 71%, 50%) 100%);
-  --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
-  --gradient-hero: linear-gradient(135deg, hsl(262, 90%, 50%) 0%, hsl(220, 90%, 60%) 100%);
-  --gradient-subtle: linear-gradient(135deg, hsl(262, 90%, 50%) 0%, hsl(262, 90%, 55%) 100%);
+  /* Removed gradient variables for professional design */
   
   --sidebar: hsl(0, 0%, 100%);
   --sidebar-foreground: hsl(220, 15%, 9%);
@@ -373,28 +223,12 @@
     line-height: 1.6;
   }
   
-  /* Premium smooth transitions for all interactive elements */
+  /* Simple transitions for professional design - opacity only */
   button, a, [role="button"], input, textarea, select {
-    transition: transform var(--transition-fast), 
-                box-shadow var(--transition-fast), 
+    transition: opacity var(--transition-fast), 
                 color var(--transition-fast), 
                 background-color var(--transition-fast),
-                border-color var(--transition-fast),
-                opacity var(--transition-fast);
-  }
-  
-  /* Smooth card transitions */
-  [class*="card"], [class*="Card"] {
-    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-  }
-  
-  [class*="card"]:hover, [class*="Card"]:hover {
-    transform: translateY(-2px);
-  }
-  
-  /* Button press effect */
-  button:active, [role="button"]:active {
-    transform: scale(0.98);
+                border-color var(--transition-fast);
   }
   
   /* Modern Typography */
@@ -441,18 +275,7 @@
 }
 
 @layer components {
-  /* Modern Gradients - Static */
-  .brand-gradient {
-    background: var(--gradient-subtle);
-  }
-  
-  .success-gradient {
-    background: var(--gradient-success);
-  }
-  
-  .card-gradient {
-    background: var(--gradient-card);
-  }
+  /* Removed gradient classes for professional design */
   
   /* Simplified Counter */
   .counter-animate {
@@ -495,47 +318,17 @@
   .value-badge-positive { @apply badge-success; }
   .value-badge-negative { @apply badge-error; }
   
-  /* Modern Card System */
+  /* Modern Card System - no hover effects */
   .card-elevated {
     box-shadow: var(--shadow-md);
     border-radius: var(--radius);
-    transition: box-shadow 0.2s ease-in-out;
   }
   
-  .card-elevated:hover {
-    box-shadow: var(--shadow-lg);
-  }
-  
-  /* Loading Shimmer - Simplified */
-  .loading-shimmer {
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s ease-in-out infinite;
-  }
+  /* Removed loading shimmer for professional design */
 }
 
 @layer utilities {
-  /* Essential Animations Only */
-  
-  /* Minimal Animation Classes */
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  /* Subtle Hover Effects */
-  .hover-lift {
-    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-lg);
-  }
+  /* Removed all animations and hover effects for professional design */
   
   /* Status Indicators */
   .status-active {
@@ -546,23 +339,7 @@
     @apply bg-gray-50 border-gray-200 text-gray-600 dark:bg-gray-900/20 dark:border-gray-800 dark:text-gray-400;
   }
   
-  /* Respect reduced motion preferences */
-  @media (prefers-reduced-motion: reduce) {
-    .loading-shimmer,
-    .animate-fade-in {
-      animation: none;
-    }
-    
-    .counter-animate,
-    .hover-lift {
-      transition: none;
-    }
-    
-    .hover-lift:hover {
-      transform: none;
-      box-shadow: none;
-    }
-  }
+  /* Removed motion preferences - all animations already removed */
   
   /* Typography Utilities */
   .text-tabular {

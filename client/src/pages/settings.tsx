@@ -154,9 +154,9 @@ function Settings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
-          <div className="space-y-6 animate-pulse">
+          <div className="space-y-6">
             <div className="h-16 bg-muted rounded-xl" />
             <div className="h-12 bg-muted rounded-lg w-full max-w-2xl" />
             <div className="grid gap-4 sm:gap-6">
@@ -169,13 +169,13 @@ function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Mobile-Optimized Header */}
       <header className="sticky top-0 z-40 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-sm">
         <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
           {/* Compact Header for Mobile */}
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center shadow-lg">
               <Cog className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -190,7 +190,7 @@ function Settings() {
 
           {/* Quick Overview Cards - Hidden on Mobile, Shown on Tablet+ */}
           <div className="hidden md:grid grid-cols-4 gap-3 lg:gap-4 mt-6">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/30 rounded-lg p-3 lg:p-4 border border-blue-200/50 dark:border-blue-800/50">
+            <div className="bg-white dark:bg-gray-900 dark:from-blue-950/50 dark:to-blue-900/30 rounded-lg p-3 lg:p-4 border border-blue-200/50 dark:border-blue-800/50">
               <div className="flex items-center gap-2 mb-2">
                 <User className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600 dark:text-blue-400" />
                 <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Account</span>
@@ -198,7 +198,7 @@ function Settings() {
               <div className="text-sm lg:text-base font-bold text-blue-700 dark:text-blue-300">Personal</div>
             </div>
             
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/50 dark:to-purple-900/30 rounded-lg p-3 lg:p-4 border border-purple-200/50 dark:border-purple-800/50">
+            <div className="bg-white dark:bg-gray-900 dark:from-purple-950/50 dark:to-purple-900/30 rounded-lg p-3 lg:p-4 border border-purple-200/50 dark:border-purple-800/50">
               <div className="flex items-center gap-2 mb-2">
                 <Palette className="w-4 h-4 lg:w-5 lg:h-5 text-purple-600 dark:text-purple-400" />
                 <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Preferences</span>
@@ -206,7 +206,7 @@ function Settings() {
               <div className="text-sm lg:text-base font-bold text-purple-700 dark:text-purple-300">Theme</div>
             </div>
             
-            <div className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/50 dark:to-green-900/30 rounded-lg p-3 lg:p-4 border border-green-200/50 dark:border-green-800/50">
+            <div className="bg-white dark:bg-gray-900 dark:from-green-950/50 dark:to-green-900/30 rounded-lg p-3 lg:p-4 border border-green-200/50 dark:border-green-800/50">
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="w-4 h-4 lg:w-5 lg:h-5 text-green-600 dark:text-green-400" />
                 <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Financial</span>
@@ -214,7 +214,7 @@ function Settings() {
               <div className="text-sm lg:text-base font-bold text-green-700 dark:text-green-300">Goals</div>
             </div>
             
-            <div className="bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/30 rounded-lg p-3 lg:p-4 border border-red-200/50 dark:border-red-800/50">
+            <div className="bg-white dark:bg-gray-900 dark:from-red-950/50 dark:to-red-900/30 rounded-lg p-3 lg:p-4 border border-red-200/50 dark:border-red-800/50">
               <div className="flex items-center gap-2 mb-2">
                 <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-red-600 dark:text-red-400" />
                 <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Privacy</span>
@@ -234,7 +234,7 @@ function Settings() {
               <TabsList className="inline-flex w-auto min-w-full sm:w-full bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700 h-auto">
                 <TabsTrigger 
                   value="account" 
-                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg text-sm sm:text-base font-medium"
+                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
                   data-testid="tab-account"
                 >
                   <User className="w-4 h-4 sm:mr-2" />
@@ -242,7 +242,7 @@ function Settings() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="preferences" 
-                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg text-sm sm:text-base font-medium"
+                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
                   data-testid="tab-preferences"
                 >
                   <Palette className="w-4 h-4 sm:mr-2" />
@@ -250,7 +250,7 @@ function Settings() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="financial" 
-                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg text-sm sm:text-base font-medium"
+                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
                   data-testid="tab-financial"
                 >
                   <CreditCard className="w-4 h-4 sm:mr-2" />
@@ -258,7 +258,7 @@ function Settings() {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="privacy" 
-                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-600 data-[state=active]:to-red-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg text-sm sm:text-base font-medium"
+                  className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
                   data-testid="tab-privacy"
                 >
                   <Shield className="w-4 h-4 sm:mr-2" />
@@ -269,7 +269,7 @@ function Settings() {
           </div>
 
           {/* Account Tab - Mobile-Optimized */}
-          <TabsContent value="account" className="mt-0 animate-in fade-in-50 duration-300">
+          <TabsContent value="account" className="mt-0-50">
             <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
               {/* Settings Form - Full Width on Mobile */}
               <div className="lg:col-span-2">
@@ -431,7 +431,7 @@ function Settings() {
                         {/* Save Button - Full Width, Touch-Friendly */}
                         <Button
                           type="submit"
-                          className="w-full h-12 sm:h-14 text-base sm:text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                          className="w-full h-12 sm:h-14 text-base sm:text-lg bg-white dark:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
                           disabled={isSaving}
                           data-testid="button-save-settings"
                         >
@@ -481,7 +481,7 @@ function Settings() {
                         >
                           {logoutMutation.isPending ? (
                             <>
-                              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                              <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                               Signing out...
                             </>
                           ) : (
@@ -509,19 +509,19 @@ function Settings() {
                   </CardHeader>
                   <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800">
+                      <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-white dark:bg-gray-900 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200 dark:border-blue-800">
                         <span className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">Per Hour</span>
                         <span className="text-base sm:text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-preview-hourly">
                           {formatCurrency(hourlyRate)}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30 border border-green-200 dark:border-green-800">
+                      <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-white dark:bg-gray-900 dark:from-green-950/50 dark:to-green-900/30 border border-green-200 dark:border-green-800">
                         <span className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">Per Day</span>
                         <span className="text-base sm:text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-preview-daily">
                           {formatCurrency(dailyValue)}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800">
+                      <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-white dark:bg-gray-900 dark:from-purple-950/50 dark:to-purple-900/30 border border-purple-200 dark:border-purple-800">
                         <span className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">Per Month</span>
                         <span className="text-base sm:text-lg font-bold text-purple-700 dark:text-purple-300" data-testid="text-preview-monthly">
                           {formatCurrency(monthlyValue)}
@@ -559,17 +559,17 @@ function Settings() {
           </TabsContent>
 
           {/* Preferences Tab */}
-          <TabsContent value="preferences" className="mt-0 animate-in fade-in-50 duration-300">
+          <TabsContent value="preferences" className="mt-0-50">
             <UserPreferences />
           </TabsContent>
 
           {/* Financial Tab */}
-          <TabsContent value="financial" className="mt-0 animate-in fade-in-50 duration-300">
+          <TabsContent value="financial" className="mt-0-50">
             <FinancialPreferences />
           </TabsContent>
 
           {/* Privacy Tab */}
-          <TabsContent value="privacy" className="mt-0 animate-in fade-in-50 duration-300">
+          <TabsContent value="privacy" className="mt-0-50">
             <DataPrivacy />
           </TabsContent>
         </Tabs>

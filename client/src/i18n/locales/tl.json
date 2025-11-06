@@ -445,13 +445,13 @@
     "unlimited": "Walang limitasyon",
     "quotaExceeded": "Naabot mo na ang iyong AI chat limit. Mag-upgrade sa Premium para sa unlimited AI assistance!",
     "runningLow": "Konti na lang ang iyong AI chats. Isaalang-alang ang pag-upgrade sa Premium para sa unlimited access.",
-    "upgradeRequired": "🚀 Kailangan ng Upgrade",
+    "upgradeRequired": "Kailangan ng Upgrade",
     "upgradeButton": "Mag-upgrade sa Premium",
     "chatPlaceholder": "Tanungin mo ako tungkol sa iyong pananalapi...",
     "send": "Ipadala",
     "upgradeToChat": "Mag-upgrade para Makipag-chat",
     "header": {
-      "title": "Intelligent Financial Assistant 🧠"
+      "title": "Intelligent Financial Assistant"
     },
     "stats": {
       "chatUsage": "Paggamit ng Chat",
@@ -474,11 +474,11 @@
       "keepExploring": "Magpatuloy sa paggalugad!"
     },
     "limits": {
-      "chatLimitReached": "🚫 Naabot na ang AI Chat Limit!",
+      "chatLimitReached": "Naabot na ang AI Chat Limit!",
       "allChatsUsed": "Nagamit mo na lahat ng {limit} AI chats para sa buwang ito",
       "upgradeMessage": "Mag-upgrade sa Premium para sa unlimited AI assistance",
       "upgradeNow": "Mag-upgrade Ngayon",
-      "runningLow": "⚠️ Nauubos na ang AI Quota!",
+      "runningLow": "Nauubos na ang AI Quota!",
       "onlyRemaining": "{remaining} AI chats na lang ang natitira. Mag-upgrade para sa unlimited access!",
       "upgrade": "Mag-upgrade"
     },
@@ -655,7 +655,7 @@
     "aiAssistant": {
       "title": "Makilala ang Iyong AI Assistant",
       "description": "Makatanggap ng instant na pinansiyal na payo, pag-optimize ng budget, at mga estratehiya sa layunin",
-      "cardTitle": "🤖 AI Assistant",
+      "cardTitle": "AI Assistant",
       "cardDescription": "Makipag-chat sa AI para sa instant na pinansiyal na payo"
     },
     "trackMoney": {
@@ -665,13 +665,13 @@
     "setGoals": {
       "title": "Magtakda ng Pinansiyal na Layunin",
       "description": "Gumawa ng mga layunin at hayaang imungkahi ng AI ang pinakamahusay na landas para makamit ang mga ito",
-      "cardTitle": "🎯 Matalinong Layunin",
+      "cardTitle": "Matalinong Layunin",
       "cardDescription": "Pagsubaybay sa layunin at mga estratehiya na powered ng AI"
     },
     "groupPlanning": {
       "title": "Magplano kasama ang Mga Grupo",
       "description": "Makipagtulungan sa mga pinansiyal na layuning pinagsasaluhan kasama ang mga kaibigan at pamilya",
-      "cardTitle": "👥 Pagpaplano sa Grupo",
+      "cardTitle": "Pagpaplano sa Grupo",
       "cardDescription": "Makipagtulungan sa mga pinansiyal na layuning pinagsasaluhan"
     },
     "proTips": {

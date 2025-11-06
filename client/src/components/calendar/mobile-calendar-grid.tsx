@@ -84,7 +84,7 @@ export default function MobileCalendarGrid({
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Mobile-Optimized Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
+      <div className="bg-white dark:bg-gray-900 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button 
@@ -166,9 +166,9 @@ export default function MobileCalendarGrid({
                 key={index}
                 className={`
                   relative aspect-square border border-gray-200 dark:border-gray-700 rounded-lg
-                  transition-all duration-200 cursor-pointer
+                  cursor-pointer
                   ${date 
-                    ? 'bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 active:scale-95' 
+                    ? 'bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20' 
                     : 'bg-gray-50 dark:bg-gray-900/50 cursor-not-allowed'
                   }
                   ${isToday ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : ''}
@@ -195,7 +195,7 @@ export default function MobileCalendarGrid({
                           <div 
                             className={`
                               w-5 h-1.5 rounded-full ${getEventIndicator(dayEvents[0]).color}
-                              animate-pulse
+                             
                             `}
                             onClick={(e) => {
                               e.stopPropagation();

@@ -97,7 +97,7 @@ export default function AIInsightsDashboard() {
     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+        <div className="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl flex items-center justify-center">
           <Brain className="w-6 h-6 text-white" />
         </div>
         <div>

@@ -94,16 +94,16 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
   const getCategoryIcon = (category: string) => {
     const icons: any = {
       rent: '🏠',
-      utilities: '⚡',
+      utilities: '',
       groceries: '🛒',
       dining: '🍽️',
       transport: '🚗',
       healthcare: '🏥',
       entertainment: '🎬',
       shopping: '🛍️',
-      other: '💰'
+      other: ''
     };
-    return icons[category] || '💰';
+    return icons[category] || '';
   };
 
   return (
@@ -159,7 +159,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
                 variant={velocityChange === 'increasing' ? 'destructive' : 'secondary'}
                 className="mt-1"
               >
-                {velocityChange === 'increasing' ? '📈 High' : '📊 Stable'}
+                {velocityChange === 'increasing' ? 'High' : 'Stable'}
               </Badge>
             </div>
             <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">

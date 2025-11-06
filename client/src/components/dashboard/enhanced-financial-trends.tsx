@@ -135,32 +135,32 @@ export default function EnhancedFinancialTrends() {
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-muted animate-pulse rounded-lg" />
-              <div className="h-5 bg-muted animate-pulse rounded w-32" />
+              <div className="w-8 h-8 bg-muted rounded-lg" />
+              <div className="h-5 bg-muted rounded w-32" />
             </div>
             <div className="flex gap-2">
-              {[1,2,3].map(i => <div key={i} className="w-12 h-8 bg-muted animate-pulse rounded" />)}
+              {[1,2,3].map(i => <div key={i} className="w-12 h-8 bg-muted rounded" />)}
             </div>
           </div>
-          <div className="h-4 bg-muted animate-pulse rounded w-48 mt-2" />
+          <div className="h-4 bg-muted rounded w-48 mt-2" />
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1,2].map(i => (
               <div key={i} className="p-4 border rounded-lg">
-                <div className="h-4 bg-muted animate-pulse rounded w-24 mb-3" />
-                <div className="h-8 bg-muted animate-pulse rounded w-16 mb-2" />
-                <div className="h-3 bg-muted animate-pulse rounded w-40" />
+                <div className="h-4 bg-muted rounded w-24 mb-3" />
+                <div className="h-8 bg-muted rounded w-16 mb-2" />
+                <div className="h-3 bg-muted rounded w-40" />
               </div>
             ))}
           </div>
           <div className="space-y-4">
-            <div className="h-5 bg-muted animate-pulse rounded w-32" />
+            <div className="h-5 bg-muted rounded w-32" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[1,2,3].map(i => (
                 <div key={i} className="p-4 border rounded-lg">
-                  <div className="h-4 bg-muted animate-pulse rounded w-20 mb-2" />
-                  <div className="h-6 bg-muted animate-pulse rounded w-12" />
+                  <div className="h-4 bg-muted rounded w-20 mb-2" />
+                  <div className="h-6 bg-muted rounded w-12" />
                 </div>
               ))}
             </div>
@@ -206,10 +206,10 @@ export default function EnhancedFinancialTrends() {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <BarChart3 className="text-white" size={18} />
+            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+              <BarChart3 className="text-primary" size={18} />
             </div>
-            <CardTitle className="text-lg font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <CardTitle className="text-lg font-semibold text-foreground">
               Financial Trends
             </CardTitle>
           </div>
@@ -220,7 +220,6 @@ export default function EnhancedFinancialTrends() {
                 variant={period === p ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPeriod(p)}
-                className={period === p ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white" : ""}
                 data-testid={`button-period-${p}`}
               >
                 {p}
@@ -237,7 +236,7 @@ export default function EnhancedFinancialTrends() {
         {/* Trend Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {trends.map((trend, index) => (
-            <Card key={trend.label} className="p-4 border-l-4 border-l-indigo-500 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20">
+            <Card key={trend.label} className="p-4 border-l-4 border-l-indigo-500 bg-white dark:bg-gray-900 dark:from-indigo-950/20 dark:to-purple-950/20">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-sm">{trend.label}</h4>
                 <Badge 
@@ -279,7 +278,7 @@ export default function EnhancedFinancialTrends() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Savings Rate */}
-              <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
+              <Card className="p-4 bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="text-green-600" size={16} />
                   <span className="text-sm font-medium">Savings Rate</span>
@@ -293,7 +292,7 @@ export default function EnhancedFinancialTrends() {
               </Card>
 
               {/* Net Cash Flow */}
-              <Card className={`p-4 border-2 ${spendingInsights.netCashFlow >= 0 ? 'bg-gradient-to-br from-blue-50 to-sky-50 dark:from-blue-950/20 dark:to-sky-950/20 border-blue-200 dark:border-blue-800' : 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20 border-red-200 dark:border-red-800'}`}>
+              <Card className={`p-4 border-2 ${spendingInsights.netCashFlow >= 0 ? 'bg-white dark:bg-gray-900 dark:from-blue-950/20 dark:to-sky-950/20 border-blue-200 dark:border-blue-800' : 'bg-white dark:bg-gray-900 dark:from-red-950/20 dark:to-rose-950/20 border-red-200 dark:border-red-800'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign className={spendingInsights.netCashFlow >= 0 ? "text-blue-600" : "text-red-600"} size={16} />
                   <span className="text-sm font-medium">Net Cash Flow</span>
@@ -307,7 +306,7 @@ export default function EnhancedFinancialTrends() {
               </Card>
 
               {/* Top Spending */}
-              <Card className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
+              <Card className="p-4 bg-white dark:bg-gray-900 dark:from-orange-950/20 dark:to-amber-950/20 border-orange-200 dark:border-orange-800">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="text-orange-600" size={16} />
                   <span className="text-sm font-medium">Top Category</span>

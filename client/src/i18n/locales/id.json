@@ -445,13 +445,13 @@
     "unlimited": "Tidak Terbatas",
     "quotaExceeded": "Anda telah mencapai batas chat AI. Tingkatkan ke Premium untuk bantuan AI tanpa batas!",
     "runningLow": "Chat AI Anda hampir habis. Pertimbangkan untuk meningkatkan ke Premium untuk akses tanpa batas.",
-    "upgradeRequired": "🚀 Peningkatan Diperlukan",
+    "upgradeRequired": "Peningkatan Diperlukan",
     "upgradeButton": "Tingkatkan ke Premium",
     "chatPlaceholder": "Tanyakan apa saja tentang keuangan Anda...",
     "send": "Kirim",
     "upgradeToChat": "Tingkatkan untuk Chat",
     "header": {
-      "title": "Asisten Keuangan Cerdas 🧠"
+      "title": "Asisten Keuangan Cerdas"
     },
     "stats": {
       "chatUsage": "Penggunaan Chat",
@@ -474,11 +474,11 @@
       "keepExploring": "Terus jelajahi!"
     },
     "limits": {
-      "chatLimitReached": "🚫 Batas Chat AI Tercapai!",
+      "chatLimitReached": "Batas Chat AI Tercapai!",
       "allChatsUsed": "Anda telah menggunakan semua {limit} chat AI untuk bulan ini",
       "upgradeMessage": "Tingkatkan ke Premium untuk bantuan AI tanpa batas",
       "upgradeNow": "Tingkatkan Sekarang",
-      "runningLow": "⚠️ Kuota AI Hampir Habis!",
+      "runningLow": "Kuota AI Hampir Habis!",
       "onlyRemaining": "Hanya {remaining} chat AI tersisa. Tingkatkan untuk akses tanpa batas!",
       "upgrade": "Tingkatkan"
     },
@@ -655,7 +655,7 @@
     "aiAssistant": {
       "title": "Temui Asisten AI Anda",
       "description": "Dapatkan saran keuangan instan, optimisasi anggaran, dan strategi tujuan",
-      "cardTitle": "🤖 Asisten AI",
+      "cardTitle": "Asisten AI",
       "cardDescription": "Chat dengan AI untuk saran keuangan instan"
     },
     "trackMoney": {
@@ -665,13 +665,13 @@
     "setGoals": {
       "title": "Tetapkan Tujuan Keuangan",
       "description": "Buat tujuan dan biarkan AI menyarankan jalur terbaik untuk mencapainya",
-      "cardTitle": "🎯 Tujuan Cerdas",
+      "cardTitle": "Tujuan Cerdas",
       "cardDescription": "Pelacakan tujuan dan strategi bertenaga AI"
     },
     "groupPlanning": {
       "title": "Rencanakan dengan Grup",
       "description": "Berkolaborasi pada tujuan keuangan bersama dengan teman dan keluarga",
-      "cardTitle": "👥 Perencanaan Grup",
+      "cardTitle": "Perencanaan Grup",
       "cardDescription": "Berkolaborasi pada tujuan keuangan bersama"
     },
     "proTips": {

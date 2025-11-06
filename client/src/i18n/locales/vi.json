@@ -445,13 +445,13 @@
     "unlimited": "Không giới hạn",
     "quotaExceeded": "Bạn đã đạt giới hạn trò chuyện AI. Nâng cấp lên Premium để được hỗ trợ AI không giới hạn!",
     "runningLow": "Bạn sắp hết lượt trò chuyện AI. Hãy xem xét nâng cấp lên Premium để truy cập không giới hạn.",
-    "upgradeRequired": "🚀 Cần nâng cấp",
+    "upgradeRequired": "Cần nâng cấp",
     "upgradeButton": "Nâng cấp lên Premium",
     "chatPlaceholder": "Hỏi tôi bất cứ điều gì về tài chính của bạn...",
     "send": "Gửi",
     "upgradeToChat": "Nâng cấp để trò chuyện",
     "header": {
-      "title": "Trợ lý tài chính thông minh 🧠"
+      "title": "Trợ lý tài chính thông minh"
     },
     "stats": {
       "chatUsage": "Sử dụng trò chuyện",
@@ -474,11 +474,11 @@
       "keepExploring": "Tiếp tục khám phá!"
     },
     "limits": {
-      "chatLimitReached": "🚫 Đã đạt giới hạn trò chuyện AI!",
+      "chatLimitReached": "Đã đạt giới hạn trò chuyện AI!",
       "allChatsUsed": "Bạn đã sử dụng tất cả {limit} cuộc trò chuyện AI trong tháng này",
       "upgradeMessage": "Nâng cấp lên Premium để được hỗ trợ AI không giới hạn",
       "upgradeNow": "Nâng cấp ngay",
-      "runningLow": "⚠️ Sắp hết hạn mức AI!",
+      "runningLow": "Sắp hết hạn mức AI!",
       "onlyRemaining": "Chỉ còn {remaining} cuộc trò chuyện AI. Nâng cấp để truy cập không giới hạn!",
       "upgrade": "Nâng cấp"
     },
@@ -655,7 +655,7 @@
     "aiAssistant": {
       "title": "Gặp gỡ Trợ lý AI của bạn",
       "description": "Nhận tư vấn tài chính tức thì, tối ưu hóa ngân sách và chiến lược mục tiêu",
-      "cardTitle": "🤖 Trợ lý AI",
+      "cardTitle": "Trợ lý AI",
       "cardDescription": "Trò chuyện với AI để nhận tư vấn tài chính tức thì"
     },
     "trackMoney": {
@@ -665,13 +665,13 @@
     "setGoals": {
       "title": "Đặt Mục tiêu Tài chính",
       "description": "Tạo mục tiêu và để AI đề xuất con đường tốt nhất để đạt được chúng",
-      "cardTitle": "🎯 Mục tiêu Thông minh",
+      "cardTitle": "Mục tiêu Thông minh",
       "cardDescription": "Theo dõi mục tiêu và chiến lược được hỗ trợ bởi AI"
     },
     "groupPlanning": {
       "title": "Lập kế hoạch với Nhóm",
       "description": "Cộng tác về các mục tiêu tài chính chung với bạn bè và gia đình",
-      "cardTitle": "👥 Lập kế hoạch Nhóm",
+      "cardTitle": "Lập kế hoạch Nhóm",
       "cardDescription": "Cộng tác về các mục tiêu tài chính chung"
     },
     "proTips": {

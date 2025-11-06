@@ -171,7 +171,7 @@ export default function PublicCalendar() {
             {isLoading ? (
               <div className="grid grid-cols-7 gap-1">
                 {[...Array(42)].map((_, i) => (
-                  <div key={i} className="min-h-[100px] bg-muted animate-pulse rounded-lg"></div>
+                  <div key={i} className="min-h-[100px] bg-muted rounded-lg"></div>
                 ))}
               </div>
             ) : (

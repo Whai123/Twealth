@@ -235,11 +235,11 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
                   data-testid={`theme-${theme.value}`}
                   onClick={() => handleThemeChange(theme.value as "light" | "dark" | "system")}
                   disabled={updatePreferencesMutation.isPending}
-                  className={`min-h-[88px] sm:min-h-[100px] p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 ${
+                  className={`min-h-[88px] sm:min-h-[100px] p-4 sm:p-5 rounded-xl border-2 transition-all ${
                     preferences.theme === theme.value 
                       ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/30 shadow-md' 
                       : 'border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-600 bg-white dark:bg-slate-800/50'
-                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer[1.02]'}`}
                 >
                   <div className="flex items-center justify-center mb-2 sm:mb-3">
                     <theme.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${preferences.theme === theme.value ? 'text-purple-600' : 'text-slate-400'}`} />
@@ -395,7 +395,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
       </Card>
 
       {/* Financial Profile - New Section */}
-      <Card className="border-2 border-green-200 dark:border-green-900/50 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+      <Card className="border-2 border-green-200 dark:border-green-900/50 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-emerald-950/20">
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
@@ -498,12 +498,12 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
           <Button
             onClick={handleSaveFinancialData}
             disabled={updatePreferencesMutation.isPending}
-            className="w-full h-12 text-base bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+            className="w-full h-12 text-base bg-white dark:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
             data-testid="button-save-financial-profile"
           >
             {updatePreferencesMutation.isPending ? (
               <>
-                <Loader2 className="mr-2 animate-spin w-5 h-5" />
+                <Loader2 className="mr-2 w-5 h-5" />
                 Saving...
               </>
             ) : (
@@ -515,7 +515,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
           </Button>
 
           {(financialData.monthlyIncome && financialData.monthlyExpenses) && (
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
+            <div className="bg-white dark:bg-gray-900 dark:from-purple-950/30 dark:to-blue-950/30 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
               <p className="text-sm font-medium text-purple-900 dark:text-purple-200">
                 Monthly Surplus: {preferences?.currency === 'USD' ? '$' : ''}
                 {(parseFloat(financialData.monthlyIncome) - parseFloat(financialData.monthlyExpenses)).toFixed(2)}
@@ -526,7 +526,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
       </Card>
 
       {/* Crypto & Advanced Features */}
-      <Card className="border-2 border-yellow-200 dark:border-yellow-900/50 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-yellow-50/50 to-orange-50/50 dark:from-yellow-950/20 dark:to-orange-950/20">
+      <Card className="border-2 border-yellow-200 dark:border-yellow-900/50 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-gray-900 dark:from-yellow-950/20 dark:to-orange-950/20">
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-600" />
@@ -537,7 +537,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between min-h-[72px] p-4 sm:p-5 bg-gradient-to-r from-yellow-100/50 to-orange-100/50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border-2 border-yellow-300/50 dark:border-yellow-700/50">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between min-h-[72px] p-4 sm:p-5 bg-white dark:bg-gray-900 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl border-2 border-yellow-300/50 dark:border-yellow-700/50">
             <div className="flex items-start gap-3 mb-3 sm:mb-0">
               <div className="bg-yellow-200 dark:bg-yellow-900/50 p-2 rounded-lg flex-shrink-0">
                 <Zap className="text-yellow-700 dark:text-yellow-400 w-5 h-5" />
@@ -559,7 +559,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
           </div>
 
           {preferences.cryptoEnabled && (
-            <div className="space-y-3 sm:space-y-4 animate-in fade-in-50 duration-300">
+            <div className="space-y-3 sm:space-y-4-50">
               <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 block">Experience Level</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {[
@@ -572,11 +572,11 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
                     data-testid={`experience-${level.value}`}
                     onClick={() => updatePreferencesMutation.mutate({ experienceLevel: level.value as "beginner" | "intermediate" | "advanced" })}
                     disabled={updatePreferencesMutation.isPending}
-                    className={`min-h-[88px] p-4 rounded-xl border-2 transition-all duration-300 ${
+                    className={`min-h-[88px] p-4 rounded-xl border-2 transition-all ${
                       preferences.experienceLevel === level.value 
                         ? 'border-yellow-600 bg-yellow-50 dark:bg-yellow-950/30 shadow-md' 
                         : 'border-slate-200 dark:border-slate-700 hover:border-yellow-400 dark:hover:border-yellow-600 bg-white dark:bg-slate-800/50'
-                    } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                    } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer[1.02]'}`}
                   >
                     <div className="flex items-center justify-center mb-2">
                       <level.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${preferences.experienceLevel === level.value ? 'text-yellow-600' : 'text-slate-400'}`} />
@@ -605,11 +605,11 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
               data-testid="button-save-preferences"
               onClick={handleSaveAll}
               disabled={updatePreferencesMutation.isPending}
-              className="w-full sm:w-auto h-12 sm:h-14 text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+              className="w-full sm:w-auto h-12 sm:h-14 text-base bg-white dark:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
             >
               {updatePreferencesMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 animate-spin w-5 h-5" />
+                  <Loader2 className="mr-2 w-5 h-5" />
                   Saving...
                 </>
               ) : (

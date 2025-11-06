@@ -463,13 +463,13 @@
     "unlimited": "Unlimited",
     "quotaExceeded": "You've reached your AI chat limit. Upgrade to Premium for unlimited AI assistance!",
     "runningLow": "You're running low on AI chats. Consider upgrading to Premium for unlimited access.",
-    "upgradeRequired": "🚀 Upgrade Required",
+    "upgradeRequired": "Premium Required",
     "upgradeButton": "Upgrade to Premium",
     "chatPlaceholder": "Ask me anything about your finances...",
     "send": "Send",
     "upgradeToChat": "Upgrade to Chat",
     "header": {
-      "title": "Intelligent Financial Assistant 🧠"
+      "title": "Intelligent Financial Assistant"
     },
     "stats": {
       "chatUsage": "Chat Usage",
@@ -492,11 +492,11 @@
       "keepExploring": "Keep exploring!"
     },
     "limits": {
-      "chatLimitReached": "🚫 AI Chat Limit Reached!",
+      "chatLimitReached": "AI Chat Limit Reached",
       "allChatsUsed": "You've used all {limit} AI chats for this month",
       "upgradeMessage": "Upgrade to Premium for unlimited AI assistance",
       "upgradeNow": "Upgrade Now",
-      "runningLow": "⚠️ Running Low on AI Quota!",
+      "runningLow": "Running Low on AI Quota",
       "onlyRemaining": "Only {remaining} AI chats remaining. Upgrade for unlimited access!",
       "upgrade": "Upgrade"
     },
@@ -676,7 +676,7 @@
     "aiAssistant": {
       "title": "Meet Your AI Assistant",
       "description": "Get instant financial advice, budget optimization, and goal strategies",
-      "cardTitle": "🤖 AI Assistant",
+      "cardTitle": "AI Assistant",
       "cardDescription": "Chat with AI for instant financial advice"
     },
     "trackMoney": {
@@ -686,13 +686,13 @@
     "setGoals": {
       "title": "Set Financial Goals",
       "description": "Create goals and let AI suggest the best path to achieve them",
-      "cardTitle": "🎯 Smart Goals",
+      "cardTitle": "Smart Goals",
       "cardDescription": "AI-powered goal tracking and strategies"
     },
     "groupPlanning": {
       "title": "Plan with Groups",
       "description": "Collaborate on shared financial goals with friends and family",
-      "cardTitle": "👥 Group Planning",
+      "cardTitle": "Group Planning",
       "cardDescription": "Collaborate on shared financial goals"
     },
     "proTips": {

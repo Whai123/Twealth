@@ -148,11 +148,11 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
                   data-testid={`budget-period-${period.value}`}
                   onClick={() => handleBudgetPeriodChange(period.value as "weekly" | "monthly" | "yearly")}
                   disabled={updatePreferencesMutation.isPending}
-                  className={`min-h-[88px] p-4 rounded-xl border-2 transition-all duration-300 text-left ${
+                  className={`min-h-[88px] p-4 rounded-xl border-2 transition-all text-left ${
                     preferences.defaultBudgetPeriod === period.value 
                       ? 'border-green-600 bg-green-50 dark:bg-green-950/30 shadow-md' 
                       : 'border-slate-200 dark:border-slate-700 hover:border-green-400 dark:hover:border-green-600 bg-white dark:bg-slate-800/50'
-                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                  } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer[1.02]'}`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <period.icon className={`w-5 h-5 ${preferences.defaultBudgetPeriod === period.value ? 'text-green-600' : 'text-slate-400'}`} />
@@ -218,7 +218,7 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
           </div>
 
           {preferences.autoSavingsEnabled && (
-            <div className="space-y-4 animate-in fade-in-50 duration-300 border-l-4 border-blue-500 pl-4 ml-2">
+            <div className="space-y-4-50 border-l-4 border-blue-500 pl-4 ml-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 block">Auto-Savings Amount</label>

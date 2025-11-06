@@ -130,7 +130,7 @@ export function ConversationSidebar({
           fixed lg:sticky top-0 left-0 h-screen
           w-[280px] bg-background border-r border-border
           flex flex-col z-50
-          transform transition-transform duration-300 ease-in-out
+          transform ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >

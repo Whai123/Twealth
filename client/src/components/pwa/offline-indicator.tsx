@@ -35,7 +35,7 @@ export function OfflineIndicator() {
 
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-      <Card className={`transition-all duration-300 ${
+      <Card className={`transition-all ${
         isOnline 
           ? 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800/50' 
           : 'bg-orange-50 border-orange-200 dark:bg-orange-950/20 dark:border-orange-800/50'

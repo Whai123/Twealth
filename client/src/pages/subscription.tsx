@@ -11,676 +11,676 @@ import { useLocation } from "wouter";
 import { getLocalizedPrice, formatCurrency, getCurrencySymbol } from "@/lib/currency";
 
 interface SubscriptionPlan {
-  id: string;
-  name: string;
-  displayName: string;
-  description: string;
-  priceThb: string;
-  priceUsd: string;
-  currency: string;
-  billingInterval: string;
-  aiChatLimit: number;
-  aiDeepAnalysisLimit: number;
-  aiInsightsFrequency: string;
-  isLifetimeLimit: boolean;
-  features: string[];
-  isActive: boolean;
-  sortOrder: number;
+ id: string;
+ name: string;
+ displayName: string;
+ description: string;
+ priceThb: string;
+ priceUsd: string;
+ currency: string;
+ billingInterval: string;
+ aiChatLimit: number;
+ aiDeepAnalysisLimit: number;
+ aiInsightsFrequency: string;
+ isLifetimeLimit: boolean;
+ features: string[];
+ isActive: boolean;
+ sortOrder: number;
 }
 
 interface Subscription {
-  id: string;
-  planId: string;
-  status: string;
-  currentPeriodStart: string;
-  currentPeriodEnd: string;
-  plan: SubscriptionPlan;
+ id: string;
+ planId: string;
+ status: string;
+ currentPeriodStart: string;
+ currentPeriodEnd: string;
+ plan: SubscriptionPlan;
 }
 
 interface SubscriptionData {
-  subscription: Subscription;
-  usage: {
-    aiChatsUsed: number;
-    aiDeepAnalysisUsed: number;
-    aiInsightsGenerated: number;
-    totalTokensUsed: number;
-    estimatedCostUsd: string;
-  };
-  addOns: any[];
+ subscription: Subscription;
+ usage: {
+ aiChatsUsed: number;
+ aiDeepAnalysisUsed: number;
+ aiInsightsGenerated: number;
+ totalTokensUsed: number;
+ estimatedCostUsd: string;
+ };
+ addOns: any[];
 }
 
 interface UsageInfo {
-  chatUsage: {
-    used: number;
-    limit: number;
-    remaining: number;
-    allowed: boolean;
-  };
-  analysisUsage: {
-    used: number;
-    limit: number;
-    remaining: number;
-    allowed: boolean;
-  };
-  insights: number;
-  totalTokens: number;
-  estimatedCost: string;
+ chatUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ allowed: boolean;
+ };
+ analysisUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ allowed: boolean;
+ };
+ insights: number;
+ totalTokens: number;
+ estimatedCost: string;
 }
 
 const formatFeatureName = (feature: string) => {
-  const map: Record<string, string> = {
-    'basic_tracking': 'Basic expense tracking',
-    'ai_chat': 'AI financial assistant',
-    'advanced_goals': 'Advanced goal setting',
-    'group_planning': 'Group event planning',
-    'transaction_import': 'Import transactions',
-    'priority_support': 'Priority support',
-    'advanced_analytics': 'Advanced analytics',
-    'api_access': 'API access'
-  };
-  return map[feature] || feature.replace(/_/g, ' ');
+ const map: Record<string, string> = {
+ 'basic_tracking': 'Basic expense tracking',
+ 'ai_chat': 'AI financial assistant',
+ 'advanced_goals': 'Advanced goal setting',
+ 'group_planning': 'Group event planning',
+ 'transaction_import': 'Import transactions',
+ 'priority_support': 'Priority support',
+ 'advanced_analytics': 'Advanced analytics',
+ 'api_access': 'API access'
+ };
+ return map[feature] || feature.replace(/_/g, ' ');
 };
 
 export default function SubscriptionPage() {
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
+ const { toast } = useToast();
+ const [, setLocation] = useLocation();
 
-  const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
-    queryKey: ["/api/subscription/plans"]
-  });
+ const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
+ queryKey: ["/api/subscription/plans"]
+ });
 
-  const { data: currentSubscription, isLoading: subscriptionLoading } = useQuery<SubscriptionData>({
-    queryKey: ["/api/subscription/current"]
-  });
+ const { data: currentSubscription, isLoading: subscriptionLoading } = useQuery<SubscriptionData>({
+ queryKey: ["/api/subscription/current"]
+ });
 
-  const { data: usage } = useQuery<UsageInfo>({
-    queryKey: ["/api/subscription/usage"],
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
-  });
+ const { data: usage } = useQuery<UsageInfo>({
+ queryKey: ["/api/subscription/usage"],
+ refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+ });
 
-  const { data: userPreferences } = useQuery<{ currency?: string }>({
-    queryKey: ["/api/user-preferences"],
-  });
+ const { data: userPreferences } = useQuery<{ currency?: string }>({
+ queryKey: ["/api/user-preferences"],
+ });
 
-  const handleUpgrade = (planId: string, planName: string) => {
-    // Free plan doesn't need payment
-    if (planName === 'Free') {
-      // Direct upgrade without payment
-      apiRequest("POST", "/api/subscription/upgrade", { planId })
-        .then(() => {
-          toast({
-            title: "Switched to Free Plan",
-            description: "You're now on the Free plan."
-          });
-          queryClient.invalidateQueries({ queryKey: ["/api/subscription/current"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
-        })
-        .catch((error: any) => {
-          toast({
-            title: "Upgrade failed",
-            description: error.message || "Failed to change plan",
-            variant: "destructive"
-          });
-        });
-    } else {
-      // Redirect to Stripe checkout for paid plans
-      setLocation(`/checkout/${planId}`);
-    }
-  };
+ const handleUpgrade = (planId: string, planName: string) => {
+ // Free plan doesn't need payment
+ if (planName === 'Free') {
+ // Direct upgrade without payment
+ apiRequest("POST", "/api/subscription/upgrade", { planId })
+ .then(() => {
+ toast({
+ title: "Switched to Free Plan",
+ description: "You're now on the Free plan."
+ });
+ queryClient.invalidateQueries({ queryKey: ["/api/subscription/current"] });
+ queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
+ })
+ .catch((error: any) => {
+ toast({
+ title: "Upgrade failed",
+ description: error.message || "Failed to change plan",
+ variant: "destructive"
+ });
+ });
+ } else {
+ // Redirect to Stripe checkout for paid plans
+ setLocation(`/checkout/${planId}`);
+ }
+ };
 
-  if (plansLoading || subscriptionLoading) {
-    return (
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-80" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+ if (plansLoading || subscriptionLoading) {
+ return (
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 space-y-6">
+ <div className="space-y-2">
+ <Skeleton className="h-8 w-48" />
+ <Skeleton className="h-4 w-64" />
+ </div>
+ <div className="grid gap-6 md:grid-cols-3">
+ {[1, 2, 3].map(i => (
+ <Skeleton key={i} className="h-80" />
+ ))}
+ </div>
+ </div>
+ );
+ }
 
-  const currentPlan = currentSubscription?.subscription?.plan;
+ const currentPlan = currentSubscription?.subscription?.plan;
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Clean Professional Header */}
-      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
-              Premium Plans
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">Upgrade your account to unlock advanced features</p>
-          </div>
-        </div>
-      </header>
-      
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-10">
+ return (
+ <div className="min-h-screen bg-background">
+ {/* Clean Professional Header */}
+ <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+ <div className="flex-1 min-w-0">
+ <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+ Premium Plans
+ </h1>
+ <p className="text-sm text-muted-foreground mt-1">Upgrade your account to unlock advanced features</p>
+ </div>
+ </div>
+ </header>
+ 
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-10">
 
-      {/* Current Plan Status */}
-      {currentPlan && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div>
-                  <h2 className="text-xl font-semibold">Your Current Plan</h2>
-                  <p className="text-base text-muted-foreground">{currentPlan.displayName}</p>
-                </div>
-              </div>
-              <Badge variant="secondary">Active</Badge>
-            </CardTitle>
-            <CardDescription className="text-base leading-relaxed">
-              {currentPlan.description}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="relative space-y-6">
-            {usage && (
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-blue-500" />
-                        <span className="font-bold">AI Chats</span>
-                      </div>
-                      <span className="font-bold text-lg">
-                        {usage.chatUsage.used} / {usage.chatUsage.limit}
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <Progress 
-                        value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} 
-                        className="h-3 bg-blue-100 dark:bg-blue-900/30"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full opacity-20 animate-pulse" />
-                    </div>
-                    {usage.chatUsage.used >= usage.chatUsage.limit * 0.8 && (
-                      <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
-                        <AlertTriangle className="h-3 w-3" />
-                        <span className="font-medium">Running low on quota - consider upgrading!</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+ {/* Current Plan Status */}
+ {currentPlan && (
+ <Card>
+ <CardHeader>
+ <CardTitle className="flex items-center justify-between">
+ <div className="flex items-center gap-3">
+ <div>
+ <h2 className="text-xl font-semibold">Your Current Plan</h2>
+ <p className="text-base text-muted-foreground">{currentPlan.displayName}</p>
+ </div>
+ </div>
+ <Badge variant="secondary">Active</Badge>
+ </CardTitle>
+ <CardDescription className="text-base leading-relaxed">
+ {currentPlan.description}
+ </CardDescription>
+ </CardHeader>
+ <CardContent className="relative space-y-6">
+ {usage && (
+ <div className="grid gap-6 md:grid-cols-2">
+ <div className="relative group">
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
+ <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm space-y-3">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2">
+ <Sparkles className="w-4 h-4 text-blue-500" />
+ <span className="font-bold">AI Chats</span>
+ </div>
+ <span className="font-bold text-lg">
+ {usage.chatUsage.used} / {usage.chatUsage.limit}
+ </span>
+ </div>
+ <div className="relative">
+ <Progress 
+ value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} 
+ className="h-3 bg-blue-100 dark:bg-blue-900/30"
+ />
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
+ </div>
+ {usage.chatUsage.used >= usage.chatUsage.limit * 0.8 && (
+ <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
+ <AlertTriangle className="h-3 w-3" />
+ <span className="font-medium">Running low on quota - consider upgrading!</span>
+ </div>
+ )}
+ </div>
+ </div>
 
-                <div className="relative group">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4 text-green-500" />
-                        <span className="font-bold">Deep Analysis</span>
-                      </div>
-                      <span className="font-bold text-lg">
-                        {usage.analysisUsage.used} / {usage.analysisUsage.limit}
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <Progress 
-                        value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} 
-                        className="h-3 bg-green-100 dark:bg-green-900/30"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-600 rounded-full opacity-20 animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+ <div className="relative group">
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
+ <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm space-y-3">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2">
+ <TrendingUp className="w-4 h-4 text-green-500" />
+ <span className="font-bold">Deep Analysis</span>
+ </div>
+ <span className="font-bold text-lg">
+ {usage.analysisUsage.used} / {usage.analysisUsage.limit}
+ </span>
+ </div>
+ <div className="relative">
+ <Progress 
+ value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} 
+ className="h-3 bg-green-100 dark:bg-green-900/30"
+ />
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
+ </div>
+ </div>
+ </div>
+ </div>
+ )}
 
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50">
-                <div className="text-2xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent">
-                  {usage?.insights || 0}
-                </div>
-                <div className="text-sm font-medium text-muted-foreground">Insights Generated</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
-                <div className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  {usage?.totalTokens?.toLocaleString() || 0}
-                </div>
-                <div className="text-sm font-medium text-muted-foreground">Tokens Used</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-xl border border-green-200/50 dark:border-green-800/50">
-                <div className="text-2xl font-bold bg-gradient-to-r from-green-500 to-blue-500 bg-clip-text text-transparent">
-                  ${usage?.estimatedCost || '0.000'}
-                </div>
-                <div className="text-sm font-medium text-muted-foreground">AI Costs This Month</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+ <div className="grid gap-4 md:grid-cols-3">
+ <div className="text-center p-4 bg-white dark:bg-gray-900 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50">
+ <div className="text-2xl font-bold text-foreground">
+ {usage?.insights || 0}
+ </div>
+ <div className="text-sm font-medium text-muted-foreground">Insights Generated</div>
+ </div>
+ <div className="text-center p-4 bg-white dark:bg-gray-900 dark:from-purple-950/20 dark:to-pink-950/20 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
+ <div className="text-2xl font-bold text-foreground">
+ {usage?.totalTokens?.toLocaleString() || 0}
+ </div>
+ <div className="text-sm font-medium text-muted-foreground">Tokens Used</div>
+ </div>
+ <div className="text-center p-4 bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-blue-950/20 rounded-xl border border-green-200/50 dark:border-green-800/50">
+ <div className="text-2xl font-bold text-foreground">
+ ${usage?.estimatedCost || '0.000'}
+ </div>
+ <div className="text-sm font-medium text-muted-foreground">AI Costs This Month</div>
+ </div>
+ </div>
+ </CardContent>
+ </Card>
+ )}
 
-      {/* Enhanced Pricing Plans */}
-      <div className="space-y-8">
-        <div className="text-center space-y-4">
-          <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            Choose Your Perfect Plan
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Start free, upgrade anytime. All plans include our core financial tracking features.
-          </p>
-          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Check className="w-4 h-4 text-green-500" />
-              <span>Cancel anytime</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Check className="w-4 h-4 text-green-500" />
-              <span>Instant activation</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Check className="w-4 h-4 text-green-500" />
-              <span>No setup fees</span>
-            </div>
-          </div>
-        </div>
-        <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
-          {plans?.filter(p => p.name === 'Free' || p.name === 'Pro').map((plan, index) => {
-            const isCurrentPlan = currentPlan?.id === plan.id;
-            const isPremium = plan.name === 'Pro';
-            const isMostPopular = plan.name === 'Pro';
-            
-            return (
-              <Card 
-                key={plan.id} 
-                className={`relative group cursor-pointer transition-all duration-500 hover:scale-105 hover:-translate-y-4 ${
-                  isMostPopular 
-                    ? 'border-0 shadow-2xl bg-gradient-to-br from-primary/10 via-purple-500/10 to-pink-500/10 ring-2 ring-primary/50' 
-                    : isPremium 
-                    ? 'border-primary/30 hover:border-primary shadow-lg hover:shadow-xl' 
-                    : 'hover:shadow-lg'
-                } ${isCurrentPlan ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' : ''}
-                animate-in fade-in slide-in-from-bottom duration-500`}
-                style={{ animationDelay: `${index * 150}ms` }}
-                data-testid={`card-plan-${plan.name.toLowerCase()}`}
-              >
-                {isMostPopular && (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 blur-xl opacity-50 animate-pulse" />
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold shadow-sm z-10">
-                      MOST POPULAR
-                    </Badge>
-                  </>
-                )}
-                {isPremium && !isMostPopular && (
-                  <Badge className="absolute -top-2 left-4 bg-gradient-to-r from-blue-500 to-green-500 text-white px-3 py-1 text-xs font-bold shadow-md">
-                    Recommended
-                  </Badge>
-                )}
-                
-                <CardHeader className="relative space-y-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className={`text-2xl font-bold ${
-                      isMostPopular ? 'bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent' : ''
-                    }`}>
-                      {plan.displayName}
-                    </CardTitle>
-                    {isCurrentPlan && (
-                      <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-3 py-1 text-xs font-bold animate-pulse">
-                        Active
-                      </Badge>
-                    )}
-                  </div>
-                  <CardDescription className="text-base leading-relaxed">{plan.description}</CardDescription>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-baseline gap-2">
-                      {(() => {
-                        // Get user's preferred currency or default to USD
-                        const userCurrency = userPreferences?.currency || 'USD';
-                        
-                        if (plan.priceUsd === '0.00') {
-                          return (
-                            <span className="text-5xl font-bold">Free</span>
-                          );
-                        }
+ {/* Enhanced Pricing Plans */}
+ <div className="space-y-8">
+ <div className="text-center space-y-4">
+ <h2 className="text-2xl md:text-4xl font-bold text-foreground">
+ Choose Your Perfect Plan
+ </h2>
+ <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+ Start free, upgrade anytime. All plans include our core financial tracking features.
+ </p>
+ <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Cancel anytime</span>
+ </div>
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Instant activation</span>
+ </div>
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>No setup fees</span>
+ </div>
+ </div>
+ </div>
+ <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+ {plans?.filter(p => p.name === 'Free' || p.name === 'Pro').map((plan, index) => {
+ const isCurrentPlan = currentPlan?.id === plan.id;
+ const isPremium = plan.name === 'Pro';
+ const isMostPopular = plan.name === 'Pro';
+ 
+ return (
+ <Card 
+ key={plan.id} 
+ className={`relative group cursor-pointer ${
+ isMostPopular 
+ ? 'border-0 shadow-2xl bg-primary/10 ring-2 ring-primary/50' 
+ : isPremium 
+ ? 'border-primary/30 hover:border-primary shadow-lg ' 
+ : ''
+ } ${isCurrentPlan ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' : ''}
+ `}
+ style={{ animationDelay: `${index * 150}ms` }}
+ data-testid={`card-plan-${plan.name.toLowerCase()}`}
+ >
+ {isMostPopular && (
+ <>
+ <div className="absolute inset-0 bg-primary/20 blur-xl opacity-50" />
+ <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold shadow-sm z-10">
+ MOST POPULAR
+ </Badge>
+ </>
+ )}
+ {isPremium && !isMostPopular && (
+ <Badge className="absolute -top-2 left-4 bg-white dark:bg-gray-900 text-white px-3 py-1 text-xs font-bold shadow-md">
+ Recommended
+ </Badge>
+ )}
+ 
+ <CardHeader className="relative space-y-4">
+ <div className="flex items-center justify-between">
+ <CardTitle className={`text-2xl font-bold ${
+ isMostPopular ? 'text-foreground' : ''
+ }`}>
+ {plan.displayName}
+ </CardTitle>
+ {isCurrentPlan && (
+ <Badge className="bg-white dark:bg-gray-900 text-white px-3 py-1 text-xs font-bold">
+ Active
+ </Badge>
+ )}
+ </div>
+ <CardDescription className="text-base leading-relaxed">{plan.description}</CardDescription>
+ 
+ <div className="space-y-2">
+ <div className="flex items-baseline gap-2">
+ {(() => {
+ // Get user's preferred currency or default to USD
+ const userCurrency = userPreferences?.currency || 'USD';
+ 
+ if (plan.priceUsd === '0.00') {
+ return (
+ <span className="text-5xl font-bold">Free</span>
+ );
+ }
 
-                        // Get localized pricing
-                        const basePrice = parseFloat(plan.priceUsd);
-                        const localizedPrice = getLocalizedPrice(basePrice, userCurrency);
-                        
-                        return (
-                          <>
-                            <div className="flex items-end gap-2">
-                              <span className={`text-5xl font-bold ${
-                                isMostPopular ? 'bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent' : ''
-                              }`}>
-                                {localizedPrice.currency.symbol}{Math.round(localizedPrice.amount)}
-                              </span>
-                              <span className="text-muted-foreground text-lg">/month</span>
-                            </div>
-                            {localizedPrice.isDiscounted && localizedPrice.originalAmount && (
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-sm text-muted-foreground line-through">
-                                  {formatCurrency(localizedPrice.originalAmount, userCurrency)}
-                                </span>
-                                <Badge className="bg-green-500 text-white text-xs">
-                                  {Math.round((1 - localizedPrice.amount / localizedPrice.originalAmount) * 100)}% OFF
-                                </Badge>
-                              </div>
-                            )}
-                            {userCurrency !== 'USD' && (
-                              <div className="text-sm text-muted-foreground mt-1">
-                                ~${basePrice.toFixed(2)} USD
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
-                    {plan.priceUsd === '0.00' && (
-                      <div className="text-sm text-green-600 dark:text-green-400 font-medium">
-                        Perfect for getting started!
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
+ // Get localized pricing
+ const basePrice = parseFloat(plan.priceUsd);
+ const localizedPrice = getLocalizedPrice(basePrice, userCurrency);
+ 
+ return (
+ <>
+ <div className="flex items-end gap-2">
+ <span className={`text-5xl font-bold ${
+ isMostPopular ? 'text-foreground' : ''
+ }`}>
+ {localizedPrice.currency.symbol}{Math.round(localizedPrice.amount)}
+ </span>
+ <span className="text-muted-foreground text-lg">/month</span>
+ </div>
+ {localizedPrice.isDiscounted && localizedPrice.originalAmount && (
+ <div className="flex items-center gap-2 mt-1">
+ <span className="text-sm text-muted-foreground line-through">
+ {formatCurrency(localizedPrice.originalAmount, userCurrency)}
+ </span>
+ <Badge className="bg-green-500 text-white text-xs">
+ {Math.round((1 - localizedPrice.amount / localizedPrice.originalAmount) * 100)}% OFF
+ </Badge>
+ </div>
+ )}
+ {userCurrency !== 'USD' && (
+ <div className="text-sm text-muted-foreground mt-1">
+ ~${basePrice.toFixed(2)} USD
+ </div>
+ )}
+ </>
+ );
+ })()}
+ </div>
+ {plan.priceUsd === '0.00' && (
+ <div className="text-sm text-green-600 dark:text-green-400 font-medium">
+ Perfect for getting started!
+ </div>
+ )}
+ </div>
+ </CardHeader>
 
-                <CardContent className="relative space-y-6">
-                  {/* AI Features Highlights */}
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-lg flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-primary" />
-                      AI Features
-                    </h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg">
-                        <span className="font-medium">AI Chats</span>
-                        <div className="text-right">
-                          <span className="font-bold text-lg text-primary block" data-testid={`text-${plan.name.toLowerCase()}-chat-limit`}>
-                            {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {plan.isLifetimeLimit ? 'lifetime total' : 'per month'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg">
-                        <span className="font-medium">Deep Analysis</span>
-                        <span className="font-bold text-lg text-primary">
-                          {plan.aiDeepAnalysisLimit === 999999 ? 'Unlimited' : plan.aiDeepAnalysisLimit}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-lg">
-                        <span className="font-medium">AI Insights</span>
-                        <span className="font-bold text-lg text-primary capitalize">
-                          {plan.aiInsightsFrequency}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+ <CardContent className="relative space-y-6">
+ {/* AI Features Highlights */}
+ <div className="space-y-4">
+ <h4 className="font-bold text-lg flex items-center gap-2">
+ <Sparkles className="w-5 h-5 text-primary" />
+ AI Features
+ </h4>
+ <div className="space-y-3">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-blue-950/20 dark:to-purple-950/20 rounded-lg">
+ <span className="font-medium">AI Chats</span>
+ <div className="text-right">
+ <span className="font-bold text-lg text-primary block" data-testid={`text-${plan.name.toLowerCase()}-chat-limit`}>
+ {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
+ </span>
+ <span className="text-xs text-muted-foreground">
+ {plan.isLifetimeLimit ? 'lifetime total' : 'per month'}
+ </span>
+ </div>
+ </div>
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-green-950/20 dark:to-blue-950/20 rounded-lg">
+ <span className="font-medium">Deep Analysis</span>
+ <span className="font-bold text-lg text-primary">
+ {plan.aiDeepAnalysisLimit === 999999 ? 'Unlimited' : plan.aiDeepAnalysisLimit}
+ </span>
+ </div>
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-lg">
+ <span className="font-medium">AI Insights</span>
+ <span className="font-bold text-lg text-primary capitalize">
+ {plan.aiInsightsFrequency}
+ </span>
+ </div>
+ </div>
+ </div>
 
-                  {/* Core Features */}
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-base flex items-center gap-2">
-                      <Check className="w-5 h-5 text-green-500" />
-                      Everything Included
-                    </h4>
-                    <ul className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-3 text-sm">
-                          <div className="p-1 bg-gradient-to-br from-green-500 to-blue-500 rounded-full">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="font-medium">{formatFeatureName(feature)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+ {/* Core Features */}
+ <div className="space-y-3">
+ <h4 className="font-bold text-base flex items-center gap-2">
+ <Check className="w-5 h-5 text-green-500" />
+ Everything Included
+ </h4>
+ <ul className="space-y-2">
+ {plan.features.map((feature, index) => (
+ <li key={index} className="flex items-center gap-3 text-sm">
+ <div className="p-1 bg-white dark:bg-gray-900 rounded-full">
+ <Check className="w-3 h-3 text-white" />
+ </div>
+ <span className="font-medium">{formatFeatureName(feature)}</span>
+ </li>
+ ))}
+ </ul>
+ </div>
 
-                  {/* Enhanced CTA Button */}
-                  <Button
-                    className={`w-full h-14 text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                      isCurrentPlan 
-                        ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white' 
-                        : isMostPopular 
-                        ? 'bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white' 
-                        : isPremium 
-                        ? 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white'
-                        : 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white'
-                    }`}
-                    disabled={isCurrentPlan}
-                    onClick={() => handleUpgrade(plan.id, plan.name)}
-                    data-testid={`button-upgrade-${plan.name.toLowerCase()}`}
-                  >
-                    {isCurrentPlan ? (
-                      <>
-                        <Crown className="w-5 h-5 mr-2" />
-                        Your Current Plan
-                      </>
-                    ) : plan.name === 'Free' ? (
-                      <>
-                        <span>Start Free Today</span>
-                        <Sparkles className="w-5 h-5 ml-2" />
-                      </>
-                    ) : (
-                      <>
-                        <span>Upgrade to {plan.name}</span>
-                        <Crown className="w-5 h-5 ml-2" />
-                      </>
-                    )}
-                  </Button>
-                  
-                  {isMostPopular && (
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">
-                        Save 60% compared to competitors
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-        
-        {/* Premium ROI Calculator */}
-        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-green-950/10 dark:via-blue-950/10 dark:to-purple-950/10 max-w-4xl mx-auto">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
-          <CardHeader className="text-center relative">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <TrendingUp className="w-8 h-8 text-green-600" />
-              <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                Premium users save an average of $347/month
-              </CardTitle>
-            </div>
-            <CardDescription className="text-base">
-              That's 13.8x your subscription cost - real savings from better financial management
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="relative">
-            <div className="grid md:grid-cols-3 gap-6 mb-6">
-              <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-2">AI Time Savings</div>
-                <div className="text-3xl font-bold text-blue-600">+$100</div>
-                <div className="text-xs text-muted-foreground mt-1">Auto-categorization & insights</div>
-              </div>
-              <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-2">Budget Optimization</div>
-                <div className="text-3xl font-bold text-green-600">+$197</div>
-                <div className="text-xs text-muted-foreground mt-1">Reduced overspending</div>
-              </div>
-              <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
-                <div className="text-sm text-muted-foreground mb-2">Goal Achievement</div>
-                <div className="text-3xl font-bold text-purple-600">+$50</div>
-                <div className="text-xs text-muted-foreground mt-1">Stay on track value</div>
-              </div>
-            </div>
+ {/* Enhanced CTA Button */}
+ <Button
+ className={`w-full h-14 text-lg font-bold transform shadow-lg ${
+ isCurrentPlan 
+ ? 'bg-white dark:bg-gray-900 text-white' 
+ : isMostPopular 
+ ? 'bg-white dark:bg-gray-900 text-white' 
+ : isPremium 
+ ? 'bg-white dark:bg-gray-900 text-white'
+ : 'bg-white dark:bg-gray-900 text-white'
+ }`}
+ disabled={isCurrentPlan}
+ onClick={() => handleUpgrade(plan.id, plan.name)}
+ data-testid={`button-upgrade-${plan.name.toLowerCase()}`}
+ >
+ {isCurrentPlan ? (
+ <>
+ <Crown className="w-5 h-5 mr-2" />
+ Your Current Plan
+ </>
+ ) : plan.name === 'Free' ? (
+ <>
+ <span>Start Free Today</span>
+ <Sparkles className="w-5 h-5 ml-2" />
+ </>
+ ) : (
+ <>
+ <span>Upgrade to {plan.name}</span>
+ <Crown className="w-5 h-5 ml-2" />
+ </>
+ )}
+ </Button>
+ 
+ {isMostPopular && (
+ <div className="text-center">
+ <p className="text-sm text-muted-foreground">
+ Save 60% compared to competitors
+ </p>
+ </div>
+ )}
+ </CardContent>
+ </Card>
+ );
+ })}
+ </div>
+ 
+ {/* Premium ROI Calculator */}
+ <Card className="relative overflow-hidden border-primary/20 bg-green-50 dark:bg-green-950/10 max-w-4xl mx-auto">
+ <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+ <CardHeader className="text-center relative">
+ <div className="flex items-center justify-center gap-3 mb-2">
+ <TrendingUp className="w-8 h-8 text-green-600" />
+ <CardTitle className="text-2xl md:text-3xl font-bold text-foreground">
+ Premium users save an average of $347/month
+ </CardTitle>
+ </div>
+ <CardDescription className="text-base">
+ That's 13.8x your subscription cost - real savings from better financial management
+ </CardDescription>
+ </CardHeader>
+ <CardContent className="relative">
+ <div className="grid md:grid-cols-3 gap-6 mb-6">
+ <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
+ <div className="text-sm text-muted-foreground mb-2">AI Time Savings</div>
+ <div className="text-3xl font-bold text-blue-600">+$100</div>
+ <div className="text-xs text-muted-foreground mt-1">Auto-categorization & insights</div>
+ </div>
+ <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
+ <div className="text-sm text-muted-foreground mb-2">Budget Optimization</div>
+ <div className="text-3xl font-bold text-green-600">+$197</div>
+ <div className="text-xs text-muted-foreground mt-1">Reduced overspending</div>
+ </div>
+ <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
+ <div className="text-sm text-muted-foreground mb-2">Goal Achievement</div>
+ <div className="text-3xl font-bold text-purple-600">+$50</div>
+ <div className="text-xs text-muted-foreground mt-1">Stay on track value</div>
+ </div>
+ </div>
 
-            <div className="bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-950/30 dark:to-blue-950/30 rounded-xl p-6 border-2 border-green-300/50 dark:border-green-700/50">
-              <div className="flex items-center justify-between text-lg mb-3">
-                <span className="font-semibold">Total Value Per Month</span>
-                <span className="text-2xl font-bold text-green-600">+$347</span>
-              </div>
-              <div className="flex items-center justify-between text-lg mb-3">
-                <span className="font-semibold">Premium Subscription</span>
-                <span className="text-2xl font-bold text-red-600">-$25</span>
-              </div>
-              <div className="h-px bg-border/50 my-4"></div>
-              <div className="flex items-center justify-between">
-                <span className="text-xl font-bold">Net Benefit</span>
-                <span className="text-4xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">+$322</span>
-              </div>
-              <p className="text-sm text-center text-muted-foreground mt-4">
-                Premium pays for itself 13.8x over every single month
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+ <div className="bg-white dark:bg-gray-900 dark:from-green-950/30 dark:to-blue-950/30 rounded-xl p-6 border-2 border-green-300/50 dark:border-green-700/50">
+ <div className="flex items-center justify-between text-lg mb-3">
+ <span className="font-semibold">Total Value Per Month</span>
+ <span className="text-2xl font-bold text-green-600">+$347</span>
+ </div>
+ <div className="flex items-center justify-between text-lg mb-3">
+ <span className="font-semibold">Premium Subscription</span>
+ <span className="text-2xl font-bold text-red-600">-$25</span>
+ </div>
+ <div className="h-px bg-border/50 my-4"></div>
+ <div className="flex items-center justify-between">
+ <span className="text-xl font-bold">Net Benefit</span>
+ <span className="text-4xl font-bold text-foreground">+$322</span>
+ </div>
+ <p className="text-sm text-center text-muted-foreground mt-4">
+ Premium pays for itself 13.8x over every single month
+ </p>
+ </div>
+ </CardContent>
+ </Card>
 
-        {/* Enterprise Card */}
-        <Card className="relative overflow-hidden border-2 border-dashed border-primary/50 bg-gradient-to-br from-primary/5 to-purple-500/5 max-w-5xl mx-auto mt-8">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-              Need More? Enterprise Solution
-            </CardTitle>
-            <CardDescription className="text-base">
-              Custom pricing for institutions, heavy users, and API access
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="flex items-center justify-center gap-8 text-sm">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Unlimited everything</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>API access</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Priority support</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Data export</span>
-              </div>
-            </div>
-            <Button 
-              className="bg-gradient-to-r from-primary to-purple-600 text-white hover:opacity-90"
-              onClick={() => window.location.href = 'mailto:enterprise@twealth.com?subject=Enterprise Plan Inquiry'}
-            >
-              Contact Sales Team
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+ {/* Enterprise Card */}
+ <Card className="relative overflow-hidden border-2 border-dashed border-primary/50 bg-white dark:bg-gray-900 max-w-5xl mx-auto mt-8">
+ <CardHeader className="text-center">
+ <CardTitle className="text-2xl font-bold text-foreground">
+ Need More? Enterprise Solution
+ </CardTitle>
+ <CardDescription className="text-base">
+ Custom pricing for institutions, heavy users, and API access
+ </CardDescription>
+ </CardHeader>
+ <CardContent className="text-center space-y-4">
+ <div className="flex items-center justify-center gap-8 text-sm">
+ <div className="flex items-center gap-2">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Unlimited everything</span>
+ </div>
+ <div className="flex items-center gap-2">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>API access</span>
+ </div>
+ <div className="flex items-center gap-2">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Priority support</span>
+ </div>
+ <div className="flex items-center gap-2">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Data export</span>
+ </div>
+ </div>
+ <Button 
+ className="bg-white dark:bg-gray-900 text-white hover:opacity-90"
+ onClick={() => window.location.href = 'mailto:enterprise@twealth.com?subject=Enterprise Plan Inquiry'}
+ >
+ Contact Sales Team
+ </Button>
+ </CardContent>
+ </Card>
+ </div>
 
-      {/* Enhanced Value Proposition */}
-      <Card className="relative overflow-hidden border-0 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-blue-500/20 to-purple-500/20 animate-gradient-x" />
-        <div className="absolute inset-0 bg-gradient-to-br from-green-600/10 to-blue-600/10 backdrop-blur-xl" />
-        <CardContent className="relative p-8">
-          <div className="text-center space-y-6">
-            <div className="flex items-center justify-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl shadow-lg animate-bounce">
-                <Zap className="h-10 w-10 text-white" />
-              </div>
-              <div>
-                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-                  Why Choose Twealth AI?
-                </h3>
-                <p className="text-lg text-muted-foreground">
-                  Advanced AI technology at unbeatable prices
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50">
-                <div className="text-3xl md:text-4xl font-bold text-green-600">25x</div>
-                <div className="font-semibold">More Cost-Effective</div>
-                <div className="text-sm text-muted-foreground">Than traditional financial advisors</div>
-              </div>
-              
-              <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
-                <div className="text-3xl md:text-4xl font-bold text-blue-600">24/7</div>
-                <div className="font-semibold">AI Assistant</div>
-                <div className="text-sm text-muted-foreground">Always available when you need help</div>
-              </div>
-              
-              <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
-                <div className="text-3xl md:text-4xl font-bold text-purple-600">$25</div>
-                <div className="font-semibold">Affordable Premium</div>
-                <div className="text-sm text-muted-foreground">Less than a coffee per day</div>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-xl p-6">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Zap className="w-8 h-8 text-blue-500" />
-                <h4 className="text-xl font-bold">Powered by Groq & Llama 4 Scout</h4>
-                <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
-              </div>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                Lightning-fast AI responses powered by Groq's cutting-edge infrastructure and Meta's Llama 4 Scout model. 
-                <span className="font-semibold text-foreground">You get enterprise-level AI intelligence without enterprise-level prices!</span>
-              </p>
-            </div>
-            
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>No hidden fees</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Cancel anytime</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Instant AI access</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>30-day money-back guarantee</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Call to Action Banner */}
-      <Card className="relative overflow-hidden border-0 bg-gradient-to-r from-primary via-purple-600 to-pink-600 text-white">
-        <CardContent className="relative p-8 text-center">
-          <div className="absolute inset-0 bg-black/10" />
-          <div className="relative space-y-4">
-            <h3 className="text-2xl md:text-3xl font-bold">Ready to Transform Your Financial Future?</h3>
-            <p className="text-xl opacity-90 max-w-2xl mx-auto">
-              Join thousands of users who are already saving money and reaching their financial goals with AI-powered insights.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-              <Button 
-                size="lg" 
-                className="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-4 text-lg shadow-xl transform hover:scale-105 transition-all duration-300"
-                onClick={() => setLocation('/ai-assistant')}
-              >
-                <Sparkles className="w-5 h-5 mr-2" />
-                Try AI Assistant Now
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10 font-bold px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300"
-                onClick={() => setLocation('/dashboard')}
-              >
-                <TrendingUp className="w-5 h-5 mr-2" />
-                View Dashboard
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      </div>
-    </div>
-  );
+ {/* Enhanced Value Proposition */}
+ <Card className="relative overflow-hidden border-0 shadow-2xl">
+ <div className="absolute inset-0 bg-green-500/20 " />
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 backdrop-blur-xl" />
+ <CardContent className="relative p-8">
+ <div className="text-center space-y-6">
+ <div className="flex items-center justify-center gap-4">
+ <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg animate-bounce">
+ <Zap className="h-10 w-10 text-white" />
+ </div>
+ <div>
+ <h3 className="text-2xl md:text-3xl font-bold text-foreground">
+ Why Choose Twealth AI?
+ </h3>
+ <p className="text-lg text-muted-foreground">
+ Advanced AI technology at unbeatable prices
+ </p>
+ </div>
+ </div>
+ 
+ <div className="grid gap-6 md:grid-cols-3">
+ <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50">
+ <div className="text-3xl md:text-4xl font-bold text-green-600">25x</div>
+ <div className="font-semibold">More Cost-Effective</div>
+ <div className="text-sm text-muted-foreground">Than traditional financial advisors</div>
+ </div>
+ 
+ <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+ <div className="text-3xl md:text-4xl font-bold text-blue-600">24/7</div>
+ <div className="font-semibold">AI Assistant</div>
+ <div className="text-sm text-muted-foreground">Always available when you need help</div>
+ </div>
+ 
+ <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
+ <div className="text-3xl md:text-4xl font-bold text-purple-600">$25</div>
+ <div className="font-semibold">Affordable Premium</div>
+ <div className="text-sm text-muted-foreground">Less than a coffee per day</div>
+ </div>
+ </div>
+ 
+ <div className="bg-white dark:bg-gray-900 dark:from-blue-950/30 dark:to-green-950/30 rounded-xl p-6">
+ <div className="flex items-center justify-center gap-3 mb-4">
+ <Zap className="w-8 h-8 text-blue-500" />
+ <h4 className="text-xl font-bold">Powered by Groq & Llama 4 Scout</h4>
+ <Sparkles className="w-6 h-6 text-yellow-500" />
+ </div>
+ <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+ Lightning-fast AI responses powered by Groq's cutting-edge infrastructure and Meta's Llama 4 Scout model. 
+ <span className="font-semibold text-foreground">You get enterprise-level AI intelligence without enterprise-level prices!</span>
+ </p>
+ </div>
+ 
+ <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>No hidden fees</span>
+ </div>
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Cancel anytime</span>
+ </div>
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>Instant AI access</span>
+ </div>
+ <div className="flex items-center gap-1">
+ <Check className="w-4 h-4 text-green-500" />
+ <span>30-day money-back guarantee</span>
+ </div>
+ </div>
+ </div>
+ </CardContent>
+ </Card>
+ 
+ {/* Call to Action Banner */}
+ <Card className="relative overflow-hidden border-0 bg-primary text-white">
+ <CardContent className="relative p-8 text-center">
+ <div className="absolute inset-0 bg-black/10" />
+ <div className="relative space-y-4">
+ <h3 className="text-2xl md:text-3xl font-bold">Ready to Transform Your Financial Future?</h3>
+ <p className="text-xl opacity-90 max-w-2xl mx-auto">
+ Join thousands of users who are already saving money and reaching their financial goals with AI-powered insights.
+ </p>
+ <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+ <Button 
+ size="lg" 
+ className="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-4 text-lg shadow-xl transform transition-all"
+ onClick={() => setLocation('/ai-assistant')}
+ >
+ <Sparkles className="w-5 h-5 mr-2" />
+ Try AI Assistant Now
+ </Button>
+ <Button 
+ size="lg" 
+ variant="outline" 
+ className="border-white text-white hover:bg-white/10 font-bold px-8 py-4 text-lg transform transition-all"
+ onClick={() => setLocation('/dashboard')}
+ >
+ <TrendingUp className="w-5 h-5 mr-2" />
+ View Dashboard
+ </Button>
+ </div>
+ </div>
+ </CardContent>
+ </Card>
+ </div>
+ </div>
+ );
 }

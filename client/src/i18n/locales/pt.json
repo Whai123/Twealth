@@ -445,13 +445,13 @@
     "unlimited": "Ilimitado",
     "quotaExceeded": "Você atingiu seu limite de chats com IA. Faça upgrade para Premium para assistência ilimitada!",
     "runningLow": "Você está ficando sem chats com IA. Considere fazer upgrade para Premium para acesso ilimitado.",
-    "upgradeRequired": "🚀 Upgrade Necessário",
+    "upgradeRequired": "Upgrade Necessário",
     "upgradeButton": "Fazer Upgrade para Premium",
     "chatPlaceholder": "Pergunte-me qualquer coisa sobre suas finanças...",
     "send": "Enviar",
     "upgradeToChat": "Fazer Upgrade para Conversar",
     "header": {
-      "title": "Assistente Financeiro Inteligente 🧠"
+      "title": "Assistente Financeiro Inteligente"
     },
     "stats": {
       "chatUsage": "Uso de Chat",
@@ -474,11 +474,11 @@
       "keepExploring": "Continue explorando!"
     },
     "limits": {
-      "chatLimitReached": "🚫 Limite de Chat IA Atingido!",
+      "chatLimitReached": "Limite de Chat IA Atingido!",
       "allChatsUsed": "Você usou todos os {limit} chats com IA deste mês",
       "upgradeMessage": "Faça upgrade para Premium para assistência IA ilimitada",
       "upgradeNow": "Fazer Upgrade Agora",
-      "runningLow": "⚠️ Poucos Chats IA Restantes!",
+      "runningLow": "Poucos Chats IA Restantes!",
       "onlyRemaining": "Apenas {remaining} chats com IA restantes. Faça upgrade para acesso ilimitado!",
       "upgrade": "Fazer Upgrade"
     },
@@ -655,7 +655,7 @@
     "aiAssistant": {
       "title": "Conheça seu Assistente IA",
       "description": "Receba conselhos financeiros instantâneos, otimização de orçamento e estratégias de metas",
-      "cardTitle": "🤖 Assistente IA",
+      "cardTitle": "Assistente IA",
       "cardDescription": "Converse com IA para obter conselhos financeiros instantâneos"
     },
     "trackMoney": {
@@ -665,13 +665,13 @@
     "setGoals": {
       "title": "Defina Metas Financeiras",
       "description": "Crie metas e deixe a IA sugerir o melhor caminho para alcançá-las",
-      "cardTitle": "🎯 Metas Inteligentes",
+      "cardTitle": "Metas Inteligentes",
       "cardDescription": "Acompanhamento de metas e estratégias com IA"
     },
     "groupPlanning": {
       "title": "Planeje com Grupos",
       "description": "Colabore em metas financeiras compartilhadas com amigos e família",
-      "cardTitle": "👥 Planejamento em Grupo",
+      "cardTitle": "Planejamento em Grupo",
       "cardDescription": "Colabore em metas financeiras compartilhadas"
     },
     "proTips": {

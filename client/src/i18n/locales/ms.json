@@ -445,13 +445,13 @@
     "unlimited": "Tanpa Had",
     "quotaExceeded": "Anda telah mencapai had sembang AI. Naik taraf ke Premium untuk bantuan AI tanpa had!",
     "runningLow": "Sembang AI anda hampir habis. Pertimbangkan naik taraf ke Premium untuk akses tanpa had.",
-    "upgradeRequired": "🚀 Naik Taraf Diperlukan",
+    "upgradeRequired": "Naik Taraf Diperlukan",
     "upgradeButton": "Naik Taraf ke Premium",
     "chatPlaceholder": "Tanya saya apa sahaja tentang kewangan anda...",
     "send": "Hantar",
     "upgradeToChat": "Naik Taraf untuk Sembang",
     "header": {
-      "title": "Pembantu Kewangan Pintar 🧠"
+      "title": "Pembantu Kewangan Pintar"
     },
     "stats": {
       "chatUsage": "Penggunaan Sembang",
@@ -474,11 +474,11 @@
       "keepExploring": "Terus terokai!"
     },
     "limits": {
-      "chatLimitReached": "🚫 Had Sembang AI Dicapai!",
+      "chatLimitReached": "Had Sembang AI Dicapai!",
       "allChatsUsed": "Anda telah menggunakan semua {limit} sembang AI untuk bulan ini",
       "upgradeMessage": "Naik taraf ke Premium untuk bantuan AI tanpa had",
       "upgradeNow": "Naik Taraf Sekarang",
-      "runningLow": "⚠️ Kuota AI Hampir Habis!",
+      "runningLow": "Kuota AI Hampir Habis!",
       "onlyRemaining": "Hanya {remaining} sembang AI berbaki. Naik taraf untuk akses tanpa had!",
       "upgrade": "Naik Taraf"
     },
@@ -655,7 +655,7 @@
     "aiAssistant": {
       "title": "Temui Pembantu AI Anda",
       "description": "Dapatkan nasihat kewangan segera, pengoptimuman belanjawan dan strategi matlamat",
-      "cardTitle": "🤖 Pembantu AI",
+      "cardTitle": "Pembantu AI",
       "cardDescription": "Sembang dengan AI untuk nasihat kewangan segera"
     },
     "trackMoney": {
@@ -665,13 +665,13 @@
     "setGoals": {
       "title": "Tetapkan Matlamat Kewangan",
       "description": "Cipta matlamat dan biarkan AI mencadangkan jalan terbaik untuk mencapainya",
-      "cardTitle": "🎯 Matlamat Pintar",
+      "cardTitle": "Matlamat Pintar",
       "cardDescription": "Penjejakan matlamat dan strategi berkuasa AI"
     },
     "groupPlanning": {
       "title": "Rancang dengan Kumpulan",
       "description": "Bekerjasama pada matlamat kewangan bersama dengan rakan dan keluarga",
-      "cardTitle": "👥 Perancangan Kumpulan",
+      "cardTitle": "Perancangan Kumpulan",
       "cardDescription": "Bekerjasama pada matlamat kewangan bersama"
     },
     "proTips": {

@@ -339,7 +339,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
       </CardHeader>
       <CardContent>
         {/* Achievement Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-white dark:bg-gray-900 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">
               {milestones.filter(m => m.status === 'completed').length}
@@ -418,7 +418,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
                             onClick={() => onCelebrate?.(milestone)}
                             data-testid={`button-celebrate-${milestone.id}`}
                           >
-                            🎉 Celebrate
+                            Celebrate
                           </Button>
                           <ShareButton
                             shareData={getAchievementShareContent({
