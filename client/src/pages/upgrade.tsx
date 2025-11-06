@@ -236,9 +236,9 @@ export default function UpgradePage() {
                   Choose Your Plan
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                  <Zap className="w-5 h-5 text-yellow-500 animate-bounce" />
+                  <Zap className="w-5 h-5 text-yellow-500" />
                   <span className="text-lg text-muted-foreground">Unlock powerful AI features to supercharge your finances</span>
-                  <Zap className="w-5 h-5 text-yellow-500 animate-bounce delay-300" />
+                  <Zap className="w-5 h-5 text-yellow-500 delay-300" />
                 </div>
               </div>
             </div>

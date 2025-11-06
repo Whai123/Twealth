@@ -431,7 +431,7 @@ function Settings() {
                         {/* Save Button - Full Width, Touch-Friendly */}
                         <Button
                           type="submit"
-                          className="w-full h-12 sm:h-14 text-base sm:text-lg bg-white dark:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+                          className="w-full h-12 sm:h-14 text-base sm:text-lg bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all font-semibold"
                           disabled={isSaving}
                           data-testid="button-save-settings"
                         >

@@ -145,7 +145,7 @@ export default function MobileFloatingActions({
 
           {/* Pulse Animation Ring */}
           {!isExpanded && (
-            <div className="absolute inset-0 rounded-full animate-ping bg-blue-400 opacity-20" />
+            <div className="absolute inset-0 rounded-full bg-blue-400 opacity-20" />
           )}
         </motion.div>
       </div>

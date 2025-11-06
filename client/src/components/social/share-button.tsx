@@ -105,7 +105,7 @@ export default function ShareButton({
  variant={variant}
  size={size}
  disabled={isLoading}
- className={`${achievement ? 'bg-white dark:bg-gray-900 text-white border-0' : ''} ${className}`}
+ className={`${achievement ? 'bg-primary text-primary-foreground border-0' : ''} ${className}`}
  data-testid="button-native-share"
  >
  {achievement && <Sparkles className="w-4 h-4 mr-2" />}
@@ -123,7 +123,7 @@ export default function ShareButton({
  variant={variant}
  size={size}
  disabled={isLoading}
- className={`${achievement ? 'bg-white dark:bg-gray-900 text-white border-0' : ''} ${className}`}
+ className={`${achievement ? 'bg-primary text-primary-foreground border-0' : ''} ${className}`}
  data-testid="button-share-dropdown"
  >
  {achievement && <Sparkles className="w-4 h-4 mr-2" />}

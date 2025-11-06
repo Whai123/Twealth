@@ -498,7 +498,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
           <Button
             onClick={handleSaveFinancialData}
             disabled={updatePreferencesMutation.isPending}
-            className="w-full h-12 text-base bg-white dark:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+            className="w-full h-12 text-base bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all font-semibold"
             data-testid="button-save-financial-profile"
           >
             {updatePreferencesMutation.isPending ? (
@@ -605,7 +605,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
               data-testid="button-save-preferences"
               onClick={handleSaveAll}
               disabled={updatePreferencesMutation.isPending}
-              className="w-full sm:w-auto h-12 sm:h-14 text-base bg-white dark:bg-gray-900 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
+              className="w-full sm:w-auto h-12 sm:h-14 text-base bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all font-semibold"
             >
               {updatePreferencesMutation.isPending ? (
                 <>

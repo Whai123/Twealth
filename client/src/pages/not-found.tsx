@@ -57,7 +57,7 @@ export default function NotFound() {
  <Button 
  onClick={handleGoHome}
  size="lg"
- className="bg-white dark:bg-gray-900 text-white shadow-lg "
+ className="bg-primary text-primary-foreground shadow-lg "
  data-testid="button-go-home"
  >
  <Home className="w-5 h-5 mr-2" />

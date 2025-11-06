@@ -311,7 +311,7 @@ export default function SubscriptionPage() {
  </>
  )}
  {isPremium && !isMostPopular && (
- <Badge className="absolute -top-2 left-4 bg-white dark:bg-gray-900 text-white px-3 py-1 text-xs font-bold shadow-md">
+ <Badge className="absolute -top-2 left-4 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold shadow-md">
  Recommended
  </Badge>
  )}
@@ -324,7 +324,7 @@ export default function SubscriptionPage() {
  {plan.displayName}
  </CardTitle>
  {isCurrentPlan && (
- <Badge className="bg-white dark:bg-gray-900 text-white px-3 py-1 text-xs font-bold">
+ <Badge className="bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
  Active
  </Badge>
  )}
@@ -440,12 +440,12 @@ export default function SubscriptionPage() {
  <Button
  className={`w-full h-14 text-lg font-bold transform shadow-lg ${
  isCurrentPlan 
- ? 'bg-white dark:bg-gray-900 text-white' 
+ ? 'bg-primary text-primary-foreground' 
  : isMostPopular 
- ? 'bg-white dark:bg-gray-900 text-white' 
+ ? 'bg-primary text-primary-foreground' 
  : isPremium 
- ? 'bg-white dark:bg-gray-900 text-white'
- : 'bg-white dark:bg-gray-900 text-white'
+ ? 'bg-primary text-primary-foreground'
+ : 'bg-primary text-primary-foreground'
  }`}
  disabled={isCurrentPlan}
  onClick={() => handleUpgrade(plan.id, plan.name)}
@@ -566,7 +566,7 @@ export default function SubscriptionPage() {
  </div>
  </div>
  <Button 
- className="bg-white dark:bg-gray-900 text-white hover:opacity-90"
+ className="bg-primary text-primary-foreground hover:opacity-90"
  onClick={() => window.location.href = 'mailto:enterprise@twealth.com?subject=Enterprise Plan Inquiry'}
  >
  Contact Sales Team
@@ -582,7 +582,7 @@ export default function SubscriptionPage() {
  <CardContent className="relative p-8">
  <div className="text-center space-y-6">
  <div className="flex items-center justify-center gap-4">
- <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg animate-bounce">
+ <div className="p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg">
  <Zap className="h-10 w-10 text-white" />
  </div>
  <div>

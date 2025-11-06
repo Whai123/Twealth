@@ -260,25 +260,25 @@ export default function Planning() {
  <CardContent>
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
  <Link href="/money-tracking?budget=1" className="group">
- <div className="bg-white dark:bg-gray-900 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-create-budget">
+ <div className="bg-primary text-primary-foreground rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-create-budget">
  <Target className="w-6 h-6 mb-2 " />
  <span className="font-semibold">Create Budget</span>
  </div>
  </Link>
  <Link href="/financial-goals" className="group">
- <div className="bg-white dark:bg-gray-900 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-review-goals">
+ <div className="bg-primary text-primary-foreground rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-review-goals">
  <TrendingUp className="w-6 h-6 mb-2 " />
  <span className="font-semibold">Review Goals</span>
  </div>
  </Link>
  <Link href="/calendar?create=1" className="group">
- <div className="bg-white dark:bg-gray-900 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-schedule-review">
+ <div className="bg-primary text-primary-foreground rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-schedule-review">
  <Calendar className="w-6 h-6 mb-2 " />
  <span className="font-semibold">Schedule Review</span>
  </div>
  </Link>
  <Link href="/financial-goals" className="group">
- <div className="bg-white dark:bg-gray-900 text-white rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-optimize-savings">
+ <div className="bg-primary text-primary-foreground rounded-xl p-6 h-24 flex flex-col justify-center items-center text-center shadow-lg cursor-pointer" data-testid="button-optimize-savings">
  <Lightbulb className="w-6 h-6 mb-2 " />
  <span className="font-semibold">Optimize Savings</span>
  </div>

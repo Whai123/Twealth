@@ -190,7 +190,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  <div className="pt-4">
  <Button 
  onClick={() => setStep(2)}
- className="w-full bg-white dark:bg-gray-900 text-white font-semibold h-12"
+ className="w-full bg-primary text-primary-foreground font-semibold h-12"
  data-testid="button-start-onboarding"
  >
  Get Started
@@ -427,7 +427,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  {step === 4 && (
  <Card className="border-2 shadow-xl">
  <CardHeader className="text-center pb-4">
- <div className="mx-auto mb-4 w-16 h-16 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center shadow-lg animate-bounce">
+ <div className="mx-auto mb-4 w-16 h-16 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center shadow-lg">
  <CheckCircle2 className="w-8 h-8 text-white" />
  </div>
  <CardTitle className="text-3xl font-bold text-foreground">
@@ -464,7 +464,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
 
  <Button
  onClick={handleComplete}
- className="w-full bg-white dark:bg-gray-900 text-white font-semibold h-12"
+ className="w-full bg-primary text-primary-foreground font-semibold h-12"
  data-testid="button-go-to-dashboard"
  >
  <Sparkles className="mr-2 w-5 h-5" />

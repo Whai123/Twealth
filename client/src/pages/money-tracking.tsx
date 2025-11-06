@@ -408,7 +408,7 @@ export default function MoneyTracking() {
  <Button
  onClick={() => bulkCategorizeMutation.mutate()}
  disabled={bulkCategorizeMutation.isPending}
- className="bg-white dark:bg-gray-900 text-white font-semibold flex-shrink-0"
+ className="bg-primary text-primary-foreground font-semibold flex-shrink-0"
  data-testid="button-fix-categories"
  >
  {bulkCategorizeMutation.isPending ? (

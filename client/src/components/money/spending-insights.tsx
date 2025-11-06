@@ -383,7 +383,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
                     </p>
                   </div>
                 </div>
-                <Button className="bg-white dark:bg-gray-900 text-white" size="sm">
+                <Button className="bg-primary text-primary-foreground" size="sm">
                   {rec.action}
                   <ArrowRight className="ml-1" size={14} />
                 </Button>

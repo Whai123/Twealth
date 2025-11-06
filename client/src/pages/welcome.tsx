@@ -324,7 +324,7 @@ export default function WelcomePage() {
  <Button
  onClick={handleNext}
  disabled={completeOnboardingMutation.isPending}
- className="px-8 py-6 text-lg font-semibold bg-white dark:bg-gray-900 text-white rounded-xl shadow-lg "
+ className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg "
  data-testid="button-start-onboarding"
  >
  {completeOnboardingMutation.isPending ? "Starting..." : currentStepData.action}
@@ -429,7 +429,7 @@ export default function WelcomePage() {
  <Button
  onClick={() => handleActionClick(currentStepData)}
  disabled={completeOnboardingMutation.isPending}
- className="px-8 py-6 text-lg font-semibold bg-white dark:bg-gray-900 text-white rounded-xl shadow-lg "
+ className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg "
  data-testid={`button-${currentStepData.id}`}
  >
  {completeOnboardingMutation.isPending ? "Loading..." : currentStepData.action}
@@ -456,7 +456,7 @@ export default function WelcomePage() {
  <Button
  onClick={() => handleActionClick(currentStepData)}
  disabled={completeOnboardingMutation.isPending}
- className="px-8 py-6 text-lg font-semibold bg-white dark:bg-gray-900 text-white rounded-xl shadow-lg "
+ className="px-8 py-6 text-lg font-semibold bg-primary text-primary-foreground rounded-xl shadow-lg "
  data-testid={`button-${currentStepData.id}`}
  >
  {currentStepData.action}

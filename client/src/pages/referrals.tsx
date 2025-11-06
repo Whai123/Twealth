@@ -333,7 +333,7 @@ export default function ReferralsPage() {
 
  <Button 
  onClick={shareReferralCode} 
- className="w-full bg-white dark:bg-gray-900 text-white font-semibold py-3 h-12 shadow-lg "
+ className="w-full bg-primary text-primary-foreground font-semibold py-3 h-12 shadow-lg "
  data-testid="button-share-code"
  >
  <Share2 className="h-5 w-5 mr-2" />
@@ -373,7 +373,7 @@ export default function ReferralsPage() {
  <Button 
  onClick={handleUseCode}
  disabled={!shareCode.trim() || useCodeMutation.isPending}
- className="w-full bg-white dark:bg-gray-900 text-white font-semibold py-3 h-12 shadow-lg disabled:opacity-50 disabled: disabled:hover:translate-y-0"
+ className="w-full bg-primary text-primary-foreground font-semibold py-3 h-12 shadow-lg disabled:opacity-50 disabled: disabled:hover:translate-y-0"
  data-testid="button-use-code"
  >
  {useCodeMutation.isPending ? (
