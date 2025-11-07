@@ -2402,15 +2402,178 @@ export class DatabaseStorage implements IStorage {
     const newNotifications: Notification[] = [];
     
     // Check various conditions and generate notifications
+    const dailyBriefing = await this.generateDailyBriefing(userId);
     const deadlineNotifications = await this.checkGoalDeadlines(userId);
     const transactionNotifications = await this.checkTransactionReminders(userId);
     const budgetNotifications = await this.checkBudgetWarnings(userId);
     const completionNotifications = await this.checkGoalCompletions(userId);
+    const riskAlerts = await this.checkFinancialRisks(userId);
 
+    if (dailyBriefing) newNotifications.push(dailyBriefing);
     newNotifications.push(...deadlineNotifications);
     newNotifications.push(...transactionNotifications);
     newNotifications.push(...budgetNotifications);
     newNotifications.push(...completionNotifications);
+    newNotifications.push(...riskAlerts);
+
+    return newNotifications;
+  }
+
+  async generateDailyBriefing(userId: string): Promise<Notification | null> {
+    // Check if we've already sent a daily briefing today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Query for daily briefings created today (not just last 10)
+    const todaysBriefings = await db
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.type, 'daily_briefing'),
+          gte(notifications.createdAt, today)
+        )
+      )
+      .limit(1);
+
+    if (todaysBriefings.length > 0) return null;
+
+    // Get financial data
+    const transactions = await this.getTransactionsByUserId(userId, 100);
+    const goals = await this.getFinancialGoalsByUserId(userId);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentTransactions = transactions.filter(t => new Date(t.date) >= thirtyDaysAgo);
+
+    const totalIncome = recentTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    
+    const totalExpenses = recentTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+
+    const netSavings = totalIncome - totalExpenses;
+    const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
+
+    const activeGoals = goals.filter(g => g.status === 'active').length;
+    const completedGoals = goals.filter(g => g.status === 'completed').length;
+
+    // Generate intelligent briefing based on financial state
+    let title = '';
+    let message = '';
+    let priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal';
+
+    if (savingsRate >= 20) {
+      title = 'Financial Health: Strong';
+      message = `Your savings rate is ${savingsRate.toFixed(0)}%, well above the recommended 20%. You're on track with ${activeGoals} active goals. Net savings this month: $${netSavings.toFixed(2)}.`;
+      priority = 'low';
+    } else if (savingsRate >= 10) {
+      title = 'Financial Health: Good';
+      message = `Your savings rate is ${savingsRate.toFixed(0)}%. Consider increasing to 20% for stronger financial security. Net savings this month: $${netSavings.toFixed(2)}.`;
+      priority = 'normal';
+    } else if (savingsRate >= 0) {
+      title = 'Financial Health: Needs Attention';
+      message = `Your savings rate is ${savingsRate.toFixed(0)}%, below the recommended 20%. Review your expenses to identify savings opportunities. Net savings this month: $${netSavings.toFixed(2)}.`;
+      priority = 'high';
+    } else {
+      title = 'Financial Alert: Negative Cash Flow';
+      message = `You're spending $${Math.abs(netSavings).toFixed(2)} more than you're earning this month. Immediate action needed to prevent debt accumulation.`;
+      priority = 'urgent';
+    }
+
+    return await this.createNotification({
+      userId,
+      type: 'daily_briefing',
+      title,
+      message,
+      priority,
+      category: 'suggestions',
+      data: { 
+        savingsRate,
+        totalIncome,
+        totalExpenses,
+        netSavings,
+        activeGoals,
+        completedGoals
+      },
+      actionType: 'view_transactions',
+      actionData: { period: '30d' }
+    });
+  }
+
+  async checkFinancialRisks(userId: string): Promise<Notification[]> {
+    const newNotifications: Notification[] = [];
+    const transactions = await this.getTransactionsByUserId(userId, 100);
+    const goals = await this.getFinancialGoalsByUserId(userId);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const recentTransactions = transactions.filter(t => new Date(t.date) >= thirtyDaysAgo);
+
+    // Risk 1: High expense volatility (spending varies drastically)
+    const weeklyExpenses: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      const weekStart = new Date(Date.now() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
+      const weekEnd = new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000);
+      const weekExpense = transactions
+        .filter(t => {
+          const tDate = new Date(t.date);
+          return t.type === 'expense' && tDate >= weekStart && tDate < weekEnd;
+        })
+        .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+      weeklyExpenses.push(weekExpense);
+    }
+
+    if (weeklyExpenses.length >= 3) {
+      const avgWeekly = weeklyExpenses.reduce((a, b) => a + b, 0) / weeklyExpenses.length;
+      const maxDeviation = Math.max(...weeklyExpenses.map(w => Math.abs(w - avgWeekly)));
+      const volatilityPercent = avgWeekly > 0 ? (maxDeviation / avgWeekly) * 100 : 0;
+
+      if (volatilityPercent > 50 && avgWeekly > 100) {
+        newNotifications.push(await this.createNotification({
+          userId,
+          type: 'risk_alert',
+          title: 'Risk Alert: Irregular Spending Pattern',
+          message: `Your weekly expenses vary by up to ${volatilityPercent.toFixed(0)}%. Establishing a consistent budget can improve financial stability.`,
+          priority: 'normal',
+          category: 'budget',
+          data: { volatilityPercent, avgWeekly, weeklyExpenses },
+          actionType: 'view_transactions',
+          actionData: { period: '30d' }
+        }));
+      }
+    }
+
+    // Risk 2: No emergency fund with active expenses
+    const totalIncome = recentTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    const totalExpenses = recentTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    
+    const hasEmergencyGoal = goals.some(g => 
+      g.status === 'active' && 
+      (g.title.toLowerCase().includes('emergency') || g.category?.toLowerCase().includes('emergency'))
+    );
+
+    if (!hasEmergencyGoal && totalExpenses > 1000) {
+      const recommendedFund = totalExpenses; // 1 month of expenses minimum
+      newNotifications.push(await this.createNotification({
+        userId,
+        type: 'risk_alert',
+        title: 'Risk Alert: No Emergency Fund',
+        message: `You don't have an emergency fund goal. Financial experts recommend saving at least $${recommendedFund.toFixed(2)} (one month of expenses) for unexpected costs.`,
+        priority: 'high',
+        category: 'suggestions',
+        data: { recommendedFund, monthlyExpenses: totalExpenses },
+        actionType: 'create_goal',
+        actionData: { 
+          title: 'Emergency Fund',
+          targetAmount: recommendedFund,
+          category: 'emergency'
+        }
+      }));
+    }
 
     return newNotifications;
   }
@@ -2437,7 +2600,7 @@ export class DatabaseStorage implements IStorage {
         const notification = await this.createNotification({
           userId,
           type: 'goal_deadline',
-          title: `Goal "${goal.title}" needs attention! 📅`,
+          title: `Goal "${goal.title}" needs attention`,
           message: `Only ${daysUntilDeadline} days left and you're ${progressPercent.toFixed(0)}% complete. Consider adding $${suggestedDaily.toFixed(2)} daily to reach your goal.`,
           priority: 'high',
           category: 'goals',
@@ -2468,7 +2631,7 @@ export class DatabaseStorage implements IStorage {
       const notification = await this.createNotification({
         userId,
         type: 'transaction_reminder',
-        title: `Don't forget to track your expenses! 💰`,
+        title: `Don't forget to track your expenses`,
         message: `You haven't added any transactions in the last 7 days. Keep track of your spending to stay on top of your financial goals.`,
         priority: 'normal',
         category: 'transactions',
@@ -2507,7 +2670,7 @@ export class DatabaseStorage implements IStorage {
       const notification = await this.createNotification({
         userId,
         type: 'budget_warning',
-        title: `Budget Alert: Spending Exceeds Income! ⚠️`,
+        title: `Budget Alert: Spending Exceeds Income`,
         message: `Your expenses ($${totalExpenses.toFixed(2)}) exceeded your income ($${totalIncome.toFixed(2)}) by $${overspend.toFixed(2)} (${overspendPercent}%) this month.`,
         priority: 'urgent',
         category: 'budget',
@@ -2540,8 +2703,8 @@ export class DatabaseStorage implements IStorage {
         const notification = await this.createNotification({
           userId,
           type: 'goal_almost_complete',
-          title: `Almost there! Goal "${goal.title}" is ${progressPercent.toFixed(0)}% complete! 🎯`,
-          message: `You're so close! Just $${remainingAmount.toFixed(2)} more to reach your ${goal.title} goal. Keep it up!`,
+          title: `Almost there: "${goal.title}" is ${progressPercent.toFixed(0)}% complete`,
+          message: `You're so close. Just $${remainingAmount.toFixed(2)} more to reach your ${goal.title} goal.`,
           priority: 'normal',
           category: 'achievements',
           data: { goalId: goal.id, progressPercent, remainingAmount },
@@ -2556,8 +2719,8 @@ export class DatabaseStorage implements IStorage {
         const notification = await this.createNotification({
           userId,
           type: 'goal_complete',
-          title: `🎉 Congratulations! You completed "${goal.title}"!`,
-          message: `Amazing work! You've reached your ${goal.title} goal of $${targetAmount.toFixed(2)}. Time to set a new financial goal!`,
+          title: `Goal completed: "${goal.title}"`,
+          message: `You've reached your ${goal.title} goal of $${targetAmount.toFixed(2)}. Time to set a new financial goal.`,
           priority: 'high',
           category: 'achievements',
           data: { goalId: goal.id, completedAmount: targetAmount },
