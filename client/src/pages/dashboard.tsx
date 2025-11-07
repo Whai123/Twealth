@@ -29,6 +29,7 @@ import AIInsightsCard from"@/components/dashboard/ai-insights-card";
 import CryptoPortfolioWidget from"@/components/dashboard/crypto-portfolio-widget";
 import MultiCurrencyCalculator from"@/components/wealth/multi-currency-calculator";
 import PremiumROIWidget from"@/components/dashboard/premium-roi-widget";
+import InsightsFeedWidget from"@/components/dashboard/insights-feed-widget";
 import OnboardingWizard from"@/components/onboarding/onboarding-wizard";
 import { useOnboarding } from"@/hooks/use-onboarding";
 import { UserPreferences } from"@shared/schema";
@@ -255,6 +256,9 @@ export default function Dashboard() {
 
     {/* Quick Stats Cards */}
     <QuickStats />
+
+    {/* Rotating Insights Feed - Achievements, anomalies, benchmarks */}
+    <InsightsFeedWidget />
 
     {/* Premium ROI Widget - Show value for premium users */}
     <PremiumROIWidget />
