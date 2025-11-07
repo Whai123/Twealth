@@ -97,6 +97,8 @@ export const transactions = pgTable("transactions", {
   goalId: varchar("goal_id").references(() => financialGoals.id, { onDelete: "cascade" }),
   destination: text("destination"), // For transfer/savings: emergency_fund, general_savings, investment_account, etc.
   date: timestamp("date").notNull(),
+  isArchived: boolean("is_archived").default(false),
+  isFlagged: boolean("is_flagged").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("idx_transactions_user_id").on(table.userId),

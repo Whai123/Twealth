@@ -1385,6 +1385,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Transaction archive route
+  app.patch("/api/transactions/:id/archive", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const transaction = await storage.getTransaction(req.params.id);
+      
+      if (!transaction || transaction.userId !== userId) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      
+      const updated = await storage.updateTransaction(req.params.id, { 
+        isArchived: !transaction.isArchived 
+      });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Transaction flag route
+  app.patch("/api/transactions/:id/flag", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const transaction = await storage.getTransaction(req.params.id);
+      
+      if (!transaction || transaction.userId !== userId) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      
+      const updated = await storage.updateTransaction(req.params.id, { 
+        isFlagged: !transaction.isFlagged 
+      });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Budget routes
   app.get("/api/budgets", isAuthenticated, async (req: any, res) => {
     try {

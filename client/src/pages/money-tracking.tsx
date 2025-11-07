@@ -14,6 +14,7 @@ import TransactionForm from"@/components/forms/transaction-form";
 import AdvancedSpendingAnalytics from"@/components/money/advanced-spending-analytics";
 import SmartBudgetManagement from"@/components/money/smart-budget-management";
 import SpendingInsights from"@/components/money/spending-insights";
+import { SwipeableTransactionItem } from"@/components/transactions/swipeable-transaction-item";
 
 const TRANSACTION_CATEGORIES = {
  income: ["salary","freelance","investment","gift","other"],
@@ -76,6 +77,50 @@ export default function MoneyTracking() {
  toast({
  title:"Error",
  description: error.message ||"Failed to categorize transactions",
+ variant:"destructive",
+ });
+ },
+ });
+
+ // Archive transaction mutation
+ const archiveTransactionMutation = useMutation({
+ mutationFn: async (id: number) => {
+ const response = await apiRequest('PATCH', `/api/transactions/${id}/archive`);
+ return await response.json();
+ },
+ onSuccess: () => {
+ queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+ toast({
+ title:"Transaction Archived",
+ description:"Transaction has been archived successfully",
+ });
+ },
+ onError: (error: any) => {
+ toast({
+ title:"Error",
+ description: error.message ||"Failed to archive transaction",
+ variant:"destructive",
+ });
+ },
+ });
+
+ // Flag transaction mutation
+ const flagTransactionMutation = useMutation({
+ mutationFn: async (id: number) => {
+ const response = await apiRequest('PATCH', `/api/transactions/${id}/flag`);
+ return await response.json();
+ },
+ onSuccess: () => {
+ queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+ toast({
+ title:"Transaction Flagged",
+ description:"Transaction has been flagged for review",
+ });
+ },
+ onError: (error: any) => {
+ toast({
+ title:"Error",
+ description: error.message ||"Failed to flag transaction",
  variant:"destructive",
  });
  },
@@ -499,49 +544,12 @@ export default function MoneyTracking() {
  ) : (
  <div style={{ gap: 'var(--space-3)' }} className="flex flex-col">
  {filteredTransactions.map((transaction: any) => (
- <div 
- key={transaction.id} 
- className="flex items-center justify-between border rounded-lg hover:bg-muted/50 transition-colors"
- style={{ padding: 'var(--space-3)' }}
- >
- <div className="flex items-center min-w-0 flex-1" style={{ gap: 'var(--space-3)' }}>
- <div 
- className="bg-muted rounded-lg flex items-center justify-center flex-shrink-0"
- style={{ width: '32px', height: '32px' }}
- >
- {getTransactionIcon(transaction.type)}
- </div>
- <div className="flex-1 min-w-0">
- <h4 
- className="font-medium text-foreground truncate" 
- data-testid={`text-transaction-${transaction.id}`}
- style={{ fontSize: 'var(--text-sm)' }}
- title={transaction.description || transaction.category}
- >
- {transaction.description || transaction.category}
- </h4>
- <div className="flex items-center text-muted-foreground" style={{ gap: 'var(--space-2)', fontSize: 'var(--text-xs)' }}>
- <span>{new Date(transaction.date).toLocaleDateString()}</span>
- <span>•</span>
- <span className="capitalize">
- {transaction.category.replace('_', ' ')}
- </span>
- </div>
- </div>
- </div>
- <div className="text-right flex-shrink-0">
- <span 
- className={`font-semibold whitespace-nowrap ${getAmountColor(transaction.type)}`}
- style={{ fontSize: 'var(--text-base)' }}
- data-testid={`text-amount-${transaction.id}`}
- >
- {transaction.type ==="income" ?"+" :"-"}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
- </span>
- {transaction.goalId && (
- <p className="text-muted-foreground whitespace-nowrap" style={{ fontSize: 'var(--text-xs)' }}>Goal contribution</p>
- )}
- </div>
- </div>
+ <SwipeableTransactionItem
+ key={transaction.id}
+ transaction={transaction}
+ onArchive={(id) => archiveTransactionMutation.mutate(id)}
+ onFlag={(id) => flagTransactionMutation.mutate(id)}
+ />
  ))}
  </div>
  )}
