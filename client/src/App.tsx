@@ -33,6 +33,8 @@ const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
 const Login = lazy(() => import("./pages/login"));
 const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
+const PredictiveInsights = lazy(() => import("./pages/predictive-insights"));
+import FloatingAIWidget from "./components/ai/floating-ai-widget";
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
@@ -148,6 +150,7 @@ function Router() {
          <Route path="/friends" component={Friends} />
          <Route path="/ai-assistant" component={AIAssistant} />
          <Route path="/ai-insights" component={AIInsights} />
+         <Route path="/predictive-insights" component={PredictiveInsights} />
          <Route path="/investments" component={InvestmentIntelligence} />
          <Route path="/referrals" component={Referrals} />
          <Route path="/subscription" component={Subscription} />
@@ -163,6 +166,9 @@ function Router() {
      
      {/* Mobile Navigation - shown only on mobile and not on welcome page */}
      {location !=="/welcome" && <MobileNavigation />}
+     
+     {/* Floating AI Widget - accessible from any page except welcome */}
+     {location !=="/welcome" && <FloatingAIWidget />}
     </div>
    </SidebarProvider>
   </OnboardingRedirect>

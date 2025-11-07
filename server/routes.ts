@@ -54,6 +54,7 @@ import { spendingPatternService } from "./spendingPatternService";
 import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
 import { generateProactiveInsights } from './proactiveInsightsService';
+import { predictiveAnalyticsService } from './predictiveAnalyticsService';
 import Stripe from "stripe";
 import { log } from "./vite";
 
@@ -4343,6 +4344,58 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         insight: "Focus on tracking your spending patterns this week.",
         error: error.message 
       });
+    }
+  });
+
+  // Predictive Analytics API routes
+  app.get("/api/predictive/spending-forecast", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const days = parseInt(req.query.days || '30') as 30 | 90;
+      const forecast = await predictiveAnalyticsService.forecastSpending(userId, days);
+      res.json(forecast);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/predictive/goal-predictions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const predictions = await predictiveAnalyticsService.predictGoalAchievement(userId);
+      res.json(predictions);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/predictive/cash-flow-forecast", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const forecast = await predictiveAnalyticsService.forecastCashFlow(userId);
+      res.json(forecast);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/predictive/anomalies", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const anomalies = await predictiveAnalyticsService.detectAnomalies(userId);
+      res.json(anomalies);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/predictive/savings-opportunities", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const opportunities = await predictiveAnalyticsService.identifySavingsOpportunities(userId);
+      res.json(opportunities);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
