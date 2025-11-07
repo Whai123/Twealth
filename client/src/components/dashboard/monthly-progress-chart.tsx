@@ -76,7 +76,7 @@ export default function MonthlyProgressChart() {
   <Card className="p-6 shadow-sm">
    <CardHeader className="p-0 mb-6">
     <div className="flex items-center justify-between">
-     <CardTitle className="text-lg font-semibold">Monthly Financial Progress</CardTitle>
+     <CardTitle className="text-xl font-semibold">Monthly Financial Progress</CardTitle>
      <Select value={period} onValueChange={setPeriod}>
       <SelectTrigger className="w-40" data-testid="select-period">
        <SelectValue />

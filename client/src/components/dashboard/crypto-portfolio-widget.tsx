@@ -42,7 +42,7 @@ export default function CryptoPortfolioWidget() {
     <div className="flex items-center justify-between">
      <div className="flex items-center gap-2">
       <Bitcoin className="w-5 h-5 text-orange-500" />
-      <CardTitle className="text-lg font-semibold">Crypto Portfolio</CardTitle>
+      <CardTitle className="text-xl font-semibold">Crypto Portfolio</CardTitle>
      </div>
      <Button variant="ghost" size="sm" data-testid="button-view-crypto" asChild>
       <Link href="/crypto">View All</Link>

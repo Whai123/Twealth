@@ -136,7 +136,7 @@ export default function GroupsOverview() {
   <Card className="p-6 shadow-sm">
    <CardHeader className="p-0 mb-6">
     <div className="flex items-center justify-between">
-     <CardTitle className="text-lg font-semibold">Collaborative Events</CardTitle>
+     <CardTitle className="text-xl font-semibold">Collaborative Events</CardTitle>
      <Button variant="ghost" size="sm" data-testid="button-manage-groups" asChild>
       <Link href="/groups">View Events</Link>
      </Button>

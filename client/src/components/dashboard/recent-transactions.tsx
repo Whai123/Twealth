@@ -64,7 +64,7 @@ export default function RecentTransactions() {
   <Card className="p-6 shadow-sm">
    <CardHeader className="p-0 mb-6">
     <div className="flex items-center justify-between">
-     <CardTitle className="text-lg font-semibold">Recent Transactions</CardTitle>
+     <CardTitle className="text-xl font-semibold">Recent Transactions</CardTitle>
      <Button variant="ghost" size="sm" data-testid="button-view-all-transactions" asChild>
       <Link href="/money-tracking">View All</Link>
      </Button>

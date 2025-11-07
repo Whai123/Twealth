@@ -54,7 +54,7 @@ export default function FinancialGoalsProgress() {
   <Card className="p-6 shadow-sm">
    <CardHeader className="p-0 mb-6">
     <div className="flex items-center justify-between">
-     <CardTitle className="text-lg font-semibold">Financial Goals Progress</CardTitle>
+     <CardTitle className="text-xl font-semibold">Financial Goals Progress</CardTitle>
      <Button variant="ghost" size="sm" data-testid="button-view-all-goals" asChild>
       <Link href="/financial-goals">View All</Link>
      </Button>
