@@ -2,6 +2,7 @@ import { useState } from"react";
 import { useQuery, useMutation } from"@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
+import EmptyState from"@/components/ui/empty-state";
 import { Badge } from"@/components/ui/badge";
 import { Progress } from"@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from"@/components/ui/dialog";
@@ -317,14 +318,14 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  {isLoading ? (
  <p className="text-muted-foreground">Loading budgets...</p>
  ) : budgetData.length === 0 ? (
- <div className="text-center py-8">
- <PiggyBank className="mx-auto mb-4 text-muted-foreground" size={48} />
- <p className="text-muted-foreground mb-4">No budgets created yet</p>
- <Button onClick={() => setIsAddDialogOpen(true)} data-testid="button-create-first-budget">
- <Plus className="mr-2" size={16} />
- Create Your First Budget
- </Button>
- </div>
+ <EmptyState
+  illustration="budgets"
+  title="No Budgets Created Yet"
+  description="Set up your first budget to track spending and stay on top of your finances."
+  actionLabel="Create Your First Budget"
+  onAction={() => setIsAddDialogOpen(true)}
+  actionTestId="button-create-first-budget"
+ />
  ) : (
  <div className="space-y-4">
  {budgetData.map((budget) => (

@@ -1,8 +1,9 @@
 import { useQuery } from"@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
+import EmptyState from"@/components/ui/empty-state";
 import { Plus, ArrowDown, ArrowUp, Home, ShoppingCart, PiggyBank, Receipt } from"lucide-react";
-import { Link } from"wouter";
+import { Link, useLocation } from"wouter";
 
 const getTransactionIcon = (category: string, type: string) => {
  if (type ==="income") return ArrowDown;
@@ -26,6 +27,8 @@ const getTransactionColor = (type: string) => {
 };
 
 export default function RecentTransactions() {
+ const [, setLocation] = useLocation();
+ 
  const { data: transactions, isLoading } = useQuery({
   queryKey: ["/api/transactions"],
   queryFn: () => fetch("/api/transactions?limit=10").then(res => res.json()),
@@ -70,25 +73,14 @@ export default function RecentTransactions() {
    
    <CardContent className="p-0">
     {recentTransactions.length === 0 ? (
-     <div className="text-center py-12 space-y-4">
-      <div className="flex justify-center">
-       <div className="w-16 h-16 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center">
-        <Receipt className="w-8 h-8 text-blue-600" />
-       </div>
-      </div>
-      <div className="space-y-2">
-       <h3 className="text-lg font-semibold text-foreground">No Transactions Yet</h3>
-       <p className="text-sm text-muted-foreground max-w-md mx-auto">
-        Start tracking your spending and income to gain insights into your finances
-       </p>
-      </div>
-      <Button data-testid="button-add-first-transaction" asChild className="shadow-sm hover:shadow-md transition-shadow">
-       <Link href="/money-tracking?add=1">
-        <Plus size={16} className="mr-2" />
-        Add Your First Transaction
-       </Link>
-      </Button>
-     </div>
+     <EmptyState
+      illustration="transactions"
+      title="No Transactions Yet"
+      description="Start tracking your spending and income to gain insights into your finances."
+      actionLabel="Add Your First Transaction"
+      onAction={() => setLocation("/money-tracking?add=1")}
+      actionTestId="button-add-first-transaction"
+     />
     ) : (
      <div className="space-y-4">
       {recentTransactions.slice(0, 4).map((transaction: any) => {

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings, Share2, CheckCircle2, AlertCircle } from"lucide-react";
 import { Button } from"@/components/ui/button";
+import EmptyState from"@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Progress } from"@/components/ui/progress";
 import { Badge } from"@/components/ui/badge";
@@ -308,6 +309,19 @@ export default function FinancialGoals() {
 
  return (
   <div className="min-h-screen bg-background">
+   {/* First Goal Drawer - Must be mounted before empty state renders */}
+   <Drawer open={isFirstGoalDialogOpen} onOpenChange={setIsFirstGoalDialogOpen}>
+    <DrawerContent className="max-h-[90vh]">
+     <div className="p-4 pb-6">
+      <DrawerTitle className="text-xl font-semibold mb-2">Create Your First Goal</DrawerTitle>
+      <DrawerDescription className="text-muted-foreground mb-4">
+       Start your financial journey by setting up your first savings goal
+      </DrawerDescription>
+      <GoalForm onSuccess={() => setIsFirstGoalDialogOpen(false)} />
+     </div>
+    </DrawerContent>
+   </Drawer>
+   
    {/* Clean Professional Header - Stripe/Coinbase Style */}
    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
@@ -368,31 +382,15 @@ export default function FinancialGoals() {
      <TabsContent value="overview" className="space-y-6">
       {/* Goals Grid */}
       {financialGoals.length === 0 ? (
-    <div className="text-center py-12">
-     <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-     <h3 className="text-lg font-semibold mb-2">No financial goals yet</h3>
-     <p className="text-muted-foreground mb-6">
-      Create your first financial goal to start tracking your savings progress
-     </p>
-     <Drawer open={isFirstGoalDialogOpen} onOpenChange={setIsFirstGoalDialogOpen}>
-      <DrawerTrigger asChild>
-       <Button data-testid="button-create-first-goal" className="min-h-[44px]">
-        <Plus size={16} className="mr-2" />
-        Create Your First Goal
-       </Button>
-      </DrawerTrigger>
-      <DrawerContent className="max-h-[90vh]">
-       <div className="p-4 pb-6">
-        <DrawerTitle className="text-xl font-semibold mb-2">Create Your First Goal</DrawerTitle>
-        <DrawerDescription className="text-muted-foreground mb-4">
-         Start your financial journey by setting up your first savings goal
-        </DrawerDescription>
-        <GoalForm onSuccess={() => setIsFirstGoalDialogOpen(false)} />
-       </div>
-      </DrawerContent>
-     </Drawer>
-    </div>
-   ) : (
+       <EmptyState
+        illustration="goals"
+        title="No Financial Goals Yet"
+        description="Create your first financial goal to start tracking your savings progress and build your future."
+        actionLabel="Create Your First Goal"
+        onAction={() => setIsFirstGoalDialogOpen(true)}
+        actionTestId="button-create-first-goal"
+       />
+      ) : (
     <>
      {/* Premium Summary Cards - Mobile Optimized */}
      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -710,6 +708,7 @@ export default function FinancialGoals() {
      </div>
     </DialogContent>
    </Dialog>
+   
    </Tabs>
    </div>
   </div>
