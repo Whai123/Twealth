@@ -1913,6 +1913,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Onboarding progress route
+  app.put("/api/user-preferences/onboarding", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { onboardingStep, onboardingData } = req.body;
+      
+      // Get current preferences to merge onboarding data
+      const currentPrefs = await storage.getUserPreferences(userId);
+      const mergedData = {
+        ...currentPrefs?.onboardingData as any,
+        ...onboardingData
+      } as any;
+      
+      const preferences = await storage.updateUserPreferences(userId, {
+        onboardingStep,
+        onboardingData: mergedData
+      });
+      
+      res.json(preferences);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Financial Preferences Routes
   app.get("/api/financial-preferences", isAuthenticated, async (req: any, res) => {
     try {

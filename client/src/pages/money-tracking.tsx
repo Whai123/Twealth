@@ -15,6 +15,7 @@ import AdvancedSpendingAnalytics from"@/components/money/advanced-spending-analy
 import SmartBudgetManagement from"@/components/money/smart-budget-management";
 import SpendingInsights from"@/components/money/spending-insights";
 import { SwipeableTransactionItem } from"@/components/transactions/swipeable-transaction-item";
+import { ResponsiveTransactionDialog } from"@/components/dialogs/responsive-transaction-dialog";
 
 const TRANSACTION_CATEGORIES = {
  income: ["salary","freelance","investment","gift","other"],
@@ -251,21 +252,10 @@ export default function MoneyTracking() {
  <p className="text-sm text-muted-foreground mt-1">Monitor your income, expenses, and cash flow</p>
  </div>
  
- <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
- <DialogTrigger asChild>
- <Button 
- className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm min-h-[44px]"
- data-testid="button-add-transaction"
- >
- <Plus className="h-4 w-4 sm:mr-2" />
- <span className="hidden sm:inline">Add Transaction</span>
- <span className="sm:hidden">Add</span>
- </Button>
- </DialogTrigger>
- <DialogContent className="max-w-md">
- <TransactionForm onSuccess={() => setIsCreateDialogOpen(false)} />
- </DialogContent>
- </Dialog>
+ <ResponsiveTransactionDialog 
+ open={isCreateDialogOpen} 
+ onOpenChange={setIsCreateDialogOpen}
+ />
  </div>
  </div>
  </header>

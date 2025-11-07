@@ -310,6 +310,18 @@ export const userPreferences = pgTable("user_preferences", {
   dateFormat: text("date_format").default("MM/dd/yyyy"),
   currency: text("currency").default("USD"),
   hasCompletedOnboarding: boolean("has_completed_onboarding").default(false),
+  onboardingStep: integer("onboarding_step"), // 1: Profile, 2: Goals, 3: AI Preferences, null: not started or completed
+  onboardingData: jsonb("onboarding_data").$type<{
+    fullName?: string;
+    incomeRange?: string; // 'under_30k', '30k-60k', '60k-100k', '100k-200k', 'over_200k'
+    riskTolerance?: string; // 'conservative', 'moderate', 'aggressive'
+    savingsTarget?: number;
+    savingsTimeline?: string; // '3months', '6months', '1year', '3years', '5years+'
+    financialPriorities?: string[]; // 'emergency_fund', 'retirement', 'debt_payoff', 'investment', 'major_purchase'
+    notificationFrequency?: string; // 'daily', 'weekly', 'monthly', 'never'
+    adviceStyle?: string; // 'detailed', 'concise', 'conversational'
+    preferredLanguage?: string; // 'en', 'es', 'ar', etc.
+  }>(),
   emailNotifications: boolean("email_notifications").default(true),
   pushNotifications: boolean("push_notifications").default(true),
   marketingEmails: boolean("marketing_emails").default(false),
