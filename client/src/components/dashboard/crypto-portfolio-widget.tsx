@@ -12,7 +12,7 @@ export default function CryptoPortfolioWidget() {
  if (isLoading) {
   return (
    <Card className="p-6 shadow-sm">
-    <div className="animate-pulse">
+    <div>
      <div className="h-6 bg-muted rounded w-1/2 mb-6"></div>
      <div className="space-y-4">
       {[...Array(3)].map((_, i) => (

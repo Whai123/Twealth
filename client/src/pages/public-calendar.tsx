@@ -236,7 +236,7 @@ export default function PublicCalendar() {
       {isLoading ? (
        <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
-         <div key={i} className="animate-pulse">
+         <div key={i}>
           <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
           <div className="h-3 bg-muted rounded w-1/2"></div>
          </div>

@@ -23,7 +23,7 @@ export default function TimeValueInsights() {
  if (isLoading) {
   return (
    <Card className="p-6 shadow-sm">
-    <div className="animate-pulse">
+    <div>
      <div className="h-6 bg-muted rounded w-1/3 mb-6"></div>
      <div className="space-y-4">
       <div className="h-64 bg-muted rounded"></div>

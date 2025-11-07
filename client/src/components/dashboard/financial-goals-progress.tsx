@@ -16,7 +16,7 @@ export default function FinancialGoalsProgress() {
  if (isLoading) {
   return (
    <Card className="p-6 shadow-sm">
-    <div className="animate-pulse">
+    <div>
      <div className="h-6 bg-muted rounded w-1/3 mb-6"></div>
      <div className="space-y-6">
       {[...Array(3)].map((_, i) => (

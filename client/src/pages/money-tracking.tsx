@@ -181,7 +181,7 @@ export default function MoneyTracking() {
  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
  {[...Array(4)].map((_, i) => (
  <Card key={i} className="p-6">
- <div className="animate-pulse">
+ <div>
  <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
  <div className="h-8 bg-muted rounded w-3/4"></div>
  </div>

@@ -167,7 +167,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
  if (userLoading) {
   return (
    <div className="p-6">
-    <div className="animate-pulse">
+    <div>
      <div className="h-6 bg-muted rounded w-3/4 mb-4"></div>
      <div className="h-10 bg-muted rounded mb-4"></div>
      <div className="h-10 bg-muted rounded mb-4"></div>
