@@ -19,7 +19,8 @@ import {
  Wallet,
  BarChart3,
  LogOut,
- Loader2
+ Loader2,
+ LineChart
 } from"lucide-react";
 import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import { cn } from"@/lib/utils";
@@ -70,6 +71,12 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  href:"/ai-insights", 
  icon: BarChart3,
  description: t('navigation.descriptions.aiInsights')
+ },
+ { 
+ name:"Predictive Insights", 
+ href:"/predictive-insights", 
+ icon: LineChart,
+ description:"AI-powered spending forecasts, goal predictions, and cash flow analysis"
  },
  ]
  },

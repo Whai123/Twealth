@@ -12,7 +12,8 @@ import {
  Crown,
  Gift,
  Bitcoin,
- BarChart3
+ BarChart3,
+ LineChart
 } from"lucide-react";
 import { cn } from"../lib/utils";
 import { Button } from"./ui/button";
@@ -30,7 +31,7 @@ import EventForm from"./forms/event-form";
 const getNavigation = (t: (key: string) => string) => [
  { name: t('navigation.dashboard'), href:"/", icon: Home, label: t('navigation.labels.home') },
  { name: t('navigation.aiAssistant'), href:"/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
- { name: t('navigation.aiInsights'), href:"/ai-insights", icon: BarChart3, label: t('navigation.labels.insights') },
+ { name:"Predictive", href:"/predictive-insights", icon: LineChart, label:"Predict" },
  { name: t('navigation.calendar'), href:"/calendar", icon: Calendar, label: t('navigation.labels.calendar') },
  { name: t('navigation.premium'), href:"/subscription", icon: Crown, label: t('navigation.labels.premium') },
 ];
