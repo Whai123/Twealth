@@ -1,0 +1,94 @@
+Problem:
+The current AI generates incorrect financial advice because it does not read or store real financial data from the user. It uses placeholder or guessed values (example: monthly expenses = $30), which makes the financial plans useless. The AI must request, store, remember, and reuse the user’s financial information.
+
+Goal:
+Upgrade the Twealth AI so that it:
+
+Collects real financial data from the user.
+
+Saves it in the database under the user account.
+
+Always uses the stored data when calculating anything.
+
+Asks the user to confirm or update data when needed.
+
+Generates accurate, personalized, actionable wealth plans.
+
+Data to Store (User Financial Profile Model)
+
+Store and persist these fields:
+
+monthly_income
+monthly_expenses (broken down by categories)
+current_savings
+debts (amount + interest + monthly payments)
+assets (type + value)
+investment_contributions (monthly)
+financial_goals (name, target, deadline)
+
+
+These values must be editable by the user at any time.
+
+Required Behavior Logic
+
+On first interaction:
+
+If any data is missing → AI must ask for it.
+
+If values appear unrealistic (ex: expenses < $200/month) → AI must request confirmation.
+
+On every calculation request:
+
+AI retrieves stored data from the user profile.
+
+AI uses that data to calculate all results.
+
+If data is missing or outdated → ask user to update.
+
+When the user updates values:
+
+Immediately write changes to the database.
+
+AI Output Style:
+
+Always show numeric breakdown.
+
+Always end with one clear next step.
+
+Technical Tasks
+
+Implement/update financial profile storage in DB.
+
+Create APIs / endpoints for:
+
+GET /user/financial-profile
+
+POST /user/financial-profile/update
+
+Update AI pipeline to:
+
+Pull profile data before generating any response.
+
+Request missing values if needed.
+
+Create or update modules:
+
+financial_planner.(ts|py)
+
+data_validation.(ts|py)
+
+Definition of Done
+
+User enters financial values once.
+
+Values are saved and remembered.
+
+AI always uses stored data when calculating.
+
+Outputs are accurate, personalized, and do not rely on assumed values.
+
+AI automatically updates the user's wealth plan when financial inputs change.
+
+Final Instruction
+
+Continue iterating until the Twealth AI operates like a Personal CFO that remembers and manages the user’s financial life automatically.

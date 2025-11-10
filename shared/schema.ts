@@ -440,6 +440,62 @@ export const eventExpenseShares = pgTable("event_expense_shares", {
   };
 });
 
+// User Financial Profile - Core financial data for Personal CFO AI
+export const userFinancialProfiles = pgTable("user_financial_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  monthlyIncome: decimal("monthly_income", { precision: 10, scale: 2 }).notNull(),
+  monthlyExpensesTotal: decimal("monthly_expenses_total", { precision: 10, scale: 2 }).notNull(),
+  currentSavings: decimal("current_savings", { precision: 10, scale: 2 }).notNull(),
+  monthlyInvestmentContribution: decimal("monthly_investment_contribution", { precision: 10, scale: 2 }).notNull().default("0"),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_financial_profiles_user_id").on(table.userId),
+]);
+
+// User Expense Categories - Monthly expense breakdown by category
+export const userExpenseCategories = pgTable("user_expense_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  category: text("category").notNull(), // Food & Dining, Transportation, Shopping, etc.
+  monthlyAmount: decimal("monthly_amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_expense_categories_user_id").on(table.userId),
+  unique("unique_user_expense_category").on(table.userId, table.category),
+]);
+
+// User Debts - Individual debts with interest rates and payments
+export const userDebts = pgTable("user_debts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // "Credit Card", "Student Loan", "Car Loan", etc.
+  balance: decimal("balance", { precision: 10, scale: 2 }).notNull(),
+  interestRate: decimal("interest_rate", { precision: 5, scale: 2 }).notNull(), // APR as percentage (e.g., 4.5 for 4.5%)
+  minimumPayment: decimal("minimum_payment", { precision: 10, scale: 2 }).notNull(),
+  monthlyPayment: decimal("monthly_payment", { precision: 10, scale: 2 }).notNull(), // actual payment user makes
+  dueDate: integer("due_date"), // day of month (1-31)
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_debts_user_id").on(table.userId),
+]);
+
+// User Assets - Individual assets with type and value
+export const userAssets = pgTable("user_assets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(), // "Primary Home", "Investment Portfolio", "Savings Account", etc.
+  type: text("type").notNull(), // real_estate, investment, savings, vehicle, other
+  value: decimal("value", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_assets_user_id").on(table.userId),
+]);
+
 // Insert schemas for Replit Auth
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -690,6 +746,46 @@ export const insertEventTimeLogSchema = createInsertSchema(eventTimeLogs).omit({
   source: z.enum(["timer", "manual"]).default("timer"),
 });
 
+// Financial Profile Insert Schemas
+export const insertUserFinancialProfileSchema = createInsertSchema(userFinancialProfiles).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+}).extend({
+  monthlyIncome: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  monthlyExpensesTotal: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  currentSavings: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  monthlyInvestmentContribution: z.union([z.string(), z.number()]).transform(val => val.toString()).optional(),
+});
+
+export const insertUserExpenseCategorySchema = createInsertSchema(userExpenseCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  monthlyAmount: z.union([z.string(), z.number()]).transform(val => val.toString()),
+});
+
+export const insertUserDebtSchema = createInsertSchema(userDebts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  balance: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  interestRate: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  minimumPayment: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  monthlyPayment: z.union([z.string(), z.number()]).transform(val => val.toString()),
+});
+
+export const insertUserAssetSchema = createInsertSchema(userAssets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  value: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  type: z.enum(["real_estate", "investment", "savings", "vehicle", "other"]),
+});
+
 // Move this down after notifications table is defined
 
 // Event attendee schema for type consistency
@@ -779,11 +875,23 @@ export type InsertPrivacySettings = z.infer<typeof insertPrivacySettingsSchema>;
 export type EventTimeLog = typeof eventTimeLogs.$inferSelect;
 export type InsertEventTimeLog = z.infer<typeof insertEventTimeLogSchema>;
 
+export type UserFinancialProfile = typeof userFinancialProfiles.$inferSelect;
+export type InsertUserFinancialProfile = z.infer<typeof insertUserFinancialProfileSchema>;
+
+export type UserExpenseCategory = typeof userExpenseCategories.$inferSelect;
+export type InsertUserExpenseCategory = z.infer<typeof insertUserExpenseCategorySchema>;
+
+export type UserDebt = typeof userDebts.$inferSelect;
+export type InsertUserDebt = z.infer<typeof insertUserDebtSchema>;
+
+export type UserAsset = typeof userAssets.$inferSelect;
+export type InsertUserAsset = z.infer<typeof insertUserAssetSchema>;
+
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   groups: many(groups),
   groupMemberships: many(groupMembers),
   events: many(events),
@@ -797,6 +905,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   receivedFriendRequests: many(friendRequests, { relationName: "toUser" }),
   friendships: many(friendships, { relationName: "userFriends" }),
   friendOf: many(friendships, { relationName: "friendOf" }),
+  financialProfile: one(userFinancialProfiles),
+  expenseCategories: many(userExpenseCategories),
+  debts: many(userDebts),
+  assets: many(userAssets),
 }));
 
 export const friendRequestsRelations = relations(friendRequests, ({ one }) => ({
@@ -962,6 +1074,34 @@ export const financialGoalsRelations = relations(financialGoals, ({ one, many })
   transactions: many(transactions),
   contributions: many(goalContributions),
   linkedEvents: many(events, { relationName: "linkedGoal" }),
+}));
+
+export const userFinancialProfilesRelations = relations(userFinancialProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [userFinancialProfiles.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userExpenseCategoriesRelations = relations(userExpenseCategories, ({ one }) => ({
+  user: one(users, {
+    fields: [userExpenseCategories.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userDebtsRelations = relations(userDebts, ({ one }) => ({
+  user: one(users, {
+    fields: [userDebts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userAssetsRelations = relations(userAssets, ({ one }) => ({
+  user: one(users, {
+    fields: [userAssets.userId],
+    references: [users.id],
+  }),
 }));
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
