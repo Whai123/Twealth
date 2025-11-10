@@ -97,15 +97,11 @@ export default function MobileNavigation() {
  <Button
  size="lg"
  onClick={() => setIsQuickActionsOpen(true)}
- className="w-14 h-14 rounded-full shadow-xl bg-primary text-primary-foreground border-0 ring-2 ring-primary/20 ring-offset-2 ring-offset-background"
- style={{ 
- boxShadow: '0 10px 25px -5px hsl(var(--primary) / 0.3), 0 10px 10px -5px hsl(var(--primary) / 0.1)',
- background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.95), hsl(var(--primary) / 0.9))'
- }}
+ className="w-14 h-14 rounded-full shadow-xl bg-primary text-primary-foreground border-0"
  aria-label={t('quickActions.addNew')}
  data-testid="fab-add"
  >
- <Plus size={24} className="drop-shadow-sm" />
+ <Plus size={24} />
  </Button>
  </div>
  )}
@@ -188,12 +184,11 @@ export default function MobileNavigation() {
  </DrawerContent>
  </Drawer>
 
- {/* Bottom Tab Bar - Modern Design with Gradient Theme */}
+ {/* Bottom Tab Bar - Modern Design */}
  <nav 
- className="fixed bottom-0 left-0 right-0 bg-background/98 backdrop-blur-lg border-t border-border/30 md:hidden z-40 shadow-lg"
+ className="fixed bottom-0 left-0 right-0 bg-background backdrop-blur-lg border-t border-border md:hidden z-40 shadow-lg"
  style={{ 
- paddingBottom: 'env(safe-area-inset-bottom, 8px)',
- background: 'linear-gradient(to top, hsl(var(--background)), hsl(var(--background) / 0.98), hsl(var(--background) / 0.95))'
+ paddingBottom: 'env(safe-area-inset-bottom, 8px)'
  }}
  >
  <div className="flex items-center justify-around px-1 py-2">
@@ -221,13 +216,12 @@ export default function MobileNavigation() {
  }}
  data-testid={`mobile-nav-${item.name.toLowerCase()}`}
  >
- {/* Active indicator with gradient background */}
+ {/* Active indicator */}
  {isActive && (
  <div 
  className="absolute inset-0 bg-primary/10 rounded-2xl shadow-sm"
  style={{ 
- borderRadius: '16px',
- background: 'linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05))'
+ borderRadius: '16px'
  }}
  />
  )}
