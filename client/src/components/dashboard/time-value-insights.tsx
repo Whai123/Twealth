@@ -67,10 +67,10 @@ export default function TimeValueInsights() {
    <CardHeader className="pb-4">
     <div className="flex items-center justify-between">
      <div className="flex items-center gap-2">
-      <div className="w-8 h-8 productivity-gradient rounded-lg flex items-center justify-center">
-       <BarChart3 className="text-white" size={18} />
+      <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+       <BarChart3 className="text-primary-foreground" size={18} />
       </div>
-      <CardTitle className="text-lg font-semibold time-money-gradient">
+      <CardTitle className="text-lg font-semibold">
        Time = Money Insights
       </CardTitle>
      </div>
@@ -81,7 +81,7 @@ export default function TimeValueInsights() {
         variant={range === r ?"default" :"outline"}
         size="sm"
         onClick={() => setRange(r)}
-        className={range === r ?"productivity-gradient text-white" :""}
+        className=""
         data-testid={`button-range-${r}`}
        >
         {r}

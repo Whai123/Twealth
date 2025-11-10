@@ -354,7 +354,7 @@ export default function PredictiveInsightsDashboard() {
               ) : (
                 <div className="space-y-4">
                   {savingsOpportunities.map((opportunity, idx) => (
-                    <div key={idx} className="p-4 border rounded-lg bg-gradient-to-r from-green-50 to-transparent dark:from-green-950/20">
+                    <div key={idx} className="p-4 border rounded-lg bg-green-50 dark:bg-green-950/20">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Lightbulb className="h-5 w-5 text-green-600" />

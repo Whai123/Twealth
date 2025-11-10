@@ -230,17 +230,17 @@ export function AchievementShareCard({ achievement, shareData }: AchievementShar
  const Icon = achievement.icon;
  
  const categoryColors = {
- bronze: 'from-orange-400 to-amber-600',
- silver: 'from-gray-300 to-gray-500', 
- gold: 'from-yellow-400 to-yellow-600',
- platinum: 'from-purple-400 to-purple-600'
+ bronze: 'bg-orange-500',
+ silver: 'bg-gray-400', 
+ gold: 'bg-yellow-500',
+ platinum: 'bg-purple-500'
  };
 
- const categoryEmojis = {
- bronze: '🥉',
- silver: '🥈',
- gold: '🥇', 
- platinum: '👑'
+ const categoryLabels = {
+ bronze: 'Bronze',
+ silver: 'Silver',
+ gold: 'Gold', 
+ platinum: 'Platinum'
  };
 
  return (
@@ -260,7 +260,7 @@ export function AchievementShareCard({ achievement, shareData }: AchievementShar
  <div className="flex items-center gap-2">
  <h3 className="font-bold text-lg">{achievement.title}</h3>
  <Badge className="text-xs">
- {categoryEmojis[achievement.category]} {achievement.category.toUpperCase()}
+ {categoryLabels[achievement.category]} 
  </Badge>
  </div>
  <p className="text-sm text-muted-foreground">

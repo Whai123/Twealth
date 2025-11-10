@@ -87,18 +87,18 @@ const RISK_TEXT_COLORS: Record<string, string> = {
 
 const TIME_HORIZON_ICONS: Record<string, string> = {
  short:"Short-term",
- medium:"📅",
+ medium:"Medium-term",
  long:"Long-term",
 };
 
-const EMOJI_BY_CATEGORY: Record<string, string> = {
- stocks:"📈",
- bonds:"🛡️",
- real_estate:"🏢",
- crypto:"₿",
- savings:"🏦",
- digital_products:"📦",
- content_creation:"🎥",
+const LABEL_BY_CATEGORY: Record<string, string> = {
+ stocks:"Stocks",
+ bonds:"Bonds",
+ real_estate:"Real Estate",
+ crypto:"Crypto",
+ savings:"Savings",
+ digital_products:"Digital Products",
+ content_creation:"Content Creation",
  investments:"Investments",
 };
 
@@ -392,7 +392,7 @@ export default function InvestmentIntelligence() {
            <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
              <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{EMOJI_BY_CATEGORY[strategy.category] ||"Investments"}</span>
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{LABEL_BY_CATEGORY[strategy.category] ||"Investments"}</span>
               <Badge className={RISK_COLORS[strategy.riskLevel]}>
                {strategy.riskLevel.replace("_","").toUpperCase()}
               </Badge>
@@ -580,7 +580,7 @@ export default function InvestmentIntelligence() {
              <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">{EMOJI_BY_CATEGORY[strategy.category] ||"Investments"}</span>
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{LABEL_BY_CATEGORY[strategy.category] ||"Investments"}</span>
                 <Badge variant="outline" className="capitalize">
                  {strategy.category.replace("_","")}
                 </Badge>
@@ -947,7 +947,7 @@ export default function InvestmentIntelligence() {
              <div className="flex items-start justify-between gap-2">
               <div className="flex-1">
                <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">{EMOJI_BY_CATEGORY[opportunity.category] ||"Investments"}</span>
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{LABEL_BY_CATEGORY[opportunity.category] ||"Investments"}</span>
                 <Badge variant="outline" className="capitalize">
                  {opportunity.category.replace("_","")}
                 </Badge>

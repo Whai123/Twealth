@@ -44,52 +44,52 @@ export const getSocialShareUrls = (data: ShareData) => {
 export const getAchievementShareContent = (achievement: AchievementShareData): ShareData => {
  const { achievementType, value, goalTitle, category, progress } = achievement;
  
- // Get appropriate emojis based on category
- const categoryEmoji = {
-  bronze: '🥉',
-  silver: '🥈', 
-  gold: '🥇',
-  platinum: '👑'
+ // Get appropriate category labels based on tier
+ const categoryLabel = {
+  bronze: 'Bronze',
+  silver: 'Silver', 
+  gold: 'Gold',
+  platinum: 'Platinum'
  }[category || 'bronze'];
 
  // Generate content based on achievement type
  switch (achievementType) {
   case 'milestone':
    return {
-    title: `${categoryEmoji} Achievement unlocked! ${progress}% progress towards"${goalTitle}"`,
-    description: `I'm making great progress on my financial goals with Twealth's AI assistant! ${progress}% closer to achieving"${goalTitle}". Join me on this journey to financial success! 🎯💰`,
+    title: `${categoryLabel} Achievement unlocked! ${progress}% progress towards "${goalTitle}"`,
+    description: `I'm making great progress on my financial goals with Twealth's AI assistant! ${progress}% closer to achieving "${goalTitle}". Join me on this journey to financial success!`,
     hashtags: ['FinancialGoals', 'Achievement', 'Savings', 'TwealthAI', 'MoneyGoals'],
     via: 'TwealthApp'
    };
 
   case 'goal_completed':
    return {
-    title: `🎉 Goal achieved! I just completed"${goalTitle}" with Twealth!`,
-    description: `Another financial goal conquered! 🏆 Just saved ${value} for"${goalTitle}" using Twealth's AI-powered financial planning. Ready to tackle the next one! 💪`,
+    title: `Goal achieved! I just completed "${goalTitle}" with Twealth!`,
+    description: `Another financial goal conquered! Just saved ${value} for "${goalTitle}" using Twealth's AI-powered financial planning. Ready to tackle the next one!`,
     hashtags: ['GoalAchieved', 'FinancialSuccess', 'Savings', 'TwealthAI', 'MoneyWins'],
     via: 'TwealthApp'
    };
 
   case 'streak':
    return {
-    title: `🔥 ${value}-day savings streak! Consistency is key! 💪`,
-    description: `I've been consistently saving towards my goals for ${value} days straight using Twealth! The AI insights make it so much easier to stay on track. 📈✨`,
+    title: `${value}-day savings streak! Consistency is key!`,
+    description: `I've been consistently saving towards my goals for ${value} days straight using Twealth! The AI insights make it so much easier to stay on track.`,
     hashtags: ['SavingsStreak', 'Consistency', 'FinancialHabits', 'TwealthAI', 'MoneyMotivation'],
     via: 'TwealthApp'
    };
 
   case 'ai_insight':
    return {
-    title: `💡 AI-powered insight:"${achievement.title}"`,
-    description: `Twealth's AI just gave me this brilliant financial insight:"${achievement.description}" 🤖💰 These personalized tips are game-changers for my money management!`,
+    title: `AI-powered insight: "${achievement.title}"`,
+    description: `Twealth's AI just gave me this brilliant financial insight: "${achievement.description}" These personalized tips are game-changers for my money management!`,
     hashtags: ['AIInsights', 'SmartMoney', 'FinancialTips', 'TwealthAI', 'MoneyHacks'],
     via: 'TwealthApp'
    };
 
   default:
    return {
-    title: `🎯 Making progress with Twealth!`,
-    description: `I'm using Twealth's AI-powered financial planning to achieve my goals! The insights and tracking make saving so much easier. 💰✨`,
+    title: `Making progress with Twealth!`,
+    description: `I'm using Twealth's AI-powered financial planning to achieve my goals! The insights and tracking make saving so much easier.`,
     hashtags: ['FinancialGoals', 'TwealthAI', 'MoneyManagement'],
     via: 'TwealthApp'
    };
@@ -107,11 +107,11 @@ export const getGoalProgressShareContent = (goal: {
  daysRemaining?: number;
 }): ShareData => {
  const { title, currentAmount, targetAmount, progress, daysRemaining } = goal;
- const progressEmoji = progress >= 75 ? '🎯' : progress >= 50 ? '📈' : progress >= 25 ? '🚀' : '🌱';
+ const progressLabel = progress >= 75 ? 'Nearly there' : progress >= 50 ? 'Halfway' : progress >= 25 ? 'Making progress' : 'Just started';
  
  return {
-  title: `${progressEmoji} ${Math.round(progress)}% towards my"${title}" goal!`,
-  description: `Making solid progress! 💪 I've saved $${currentAmount.toLocaleString()} out of $${targetAmount.toLocaleString()} for"${title}" using Twealth's AI assistant.${daysRemaining ? ` ${daysRemaining} days to go!` : ''} 🎯✨`,
+  title: `${progressLabel}: ${Math.round(progress)}% towards my "${title}" goal!`,
+  description: `Making solid progress! I've saved $${currentAmount.toLocaleString()} out of $${targetAmount.toLocaleString()} for "${title}" using Twealth's AI assistant.${daysRemaining ? ` ${daysRemaining} days to go!` : ''}`,
   hashtags: ['ProgressUpdate', 'FinancialGoals', 'Savings', 'TwealthAI', 'MoneyProgress'],
   via: 'TwealthApp'
  };
@@ -124,8 +124,8 @@ export const getReferralShareContent = (referralCode: string, bonusAmount: numbe
  const referralUrl = `${window.location.origin}?ref=${referralCode}`;
  
  return {
-  title: `💰 Get ${bonusAmount} FREE AI chats with Twealth!`,
-  description: `I'm loving Twealth for managing my finances with AI! 🤖✨ Use my code"${referralCode}" to get ${bonusAmount} free AI financial consultations and start your journey to financial success! 🚀💪`,
+  title: `Get ${bonusAmount} FREE AI chats with Twealth!`,
+  description: `I'm loving Twealth for managing my finances with AI! Use my code "${referralCode}" to get ${bonusAmount} free AI financial consultations and start your journey to financial success!`,
   url: referralUrl,
   hashtags: ['FreeAI', 'FinancialPlanning', 'TwealthAI', 'MoneyManagement', 'FreeCredits'],
   via: 'TwealthApp'
@@ -144,8 +144,8 @@ export const getGroupAchievementShareContent = (group: {
  const { name, achievement, memberCount, totalSaved } = group;
  
  return {
-  title: `🏆 Group Achievement:"${achievement}" with ${name}!`,
-  description: `Our group"${name}" just achieved"${achievement}"! 👥 ${memberCount} members collaborating towards our financial goals${totalSaved ? `, saving a total of $${totalSaved.toLocaleString()}` : ''}. Teamwork makes the dream work! 💪`,
+  title: `Group Achievement: "${achievement}" with ${name}!`,
+  description: `Our group "${name}" just achieved "${achievement}"! ${memberCount} members collaborating towards our financial goals${totalSaved ? `, saving a total of $${totalSaved.toLocaleString()}` : ''}. Teamwork makes the dream work!`,
   hashtags: ['GroupGoals', 'TeamWork', 'FinancialSuccess', 'TwealthAI', 'CollaborativeSaving'],
   via: 'TwealthApp'
  };

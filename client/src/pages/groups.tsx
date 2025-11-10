@@ -524,9 +524,9 @@ export default function Groups() {
  }
  
  const getViabilityColor = (score: number) => {
- if (score >= 80) return { bg:"bg-green-100 dark:bg-green-900/30", text:"text-green-800 dark:text-green-200", icon:"✓" };
- if (score >= 60) return { bg:"bg-yellow-100 dark:bg-yellow-900/30", text:"text-yellow-800 dark:text-yellow-200", icon:"~" };
- return { bg:"bg-red-100 dark:bg-red-900/30", text:"text-red-800 dark:text-red-200", icon:"!" };
+ if (score >= 80) return { bg:"bg-green-100 dark:bg-green-900/30", text:"text-green-800 dark:text-green-200", label:"High" };
+ if (score >= 60) return { bg:"bg-yellow-100 dark:bg-yellow-900/30", text:"text-yellow-800 dark:text-yellow-200", label:"Medium" };
+ return { bg:"bg-red-100 dark:bg-red-900/30", text:"text-red-800 dark:text-red-200", label:"Low" };
  };
  
  const viability = getViabilityColor(eventData.viabilityScore);

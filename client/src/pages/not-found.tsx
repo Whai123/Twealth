@@ -12,10 +12,10 @@ export default function NotFound() {
  const handleGoBack = () => window.history.back();
 
  const quickActions = [
- { icon: Home, label: t('navigation.dashboard'), path:"/", color:"from-blue-500 to-purple-600" },
- { icon: TrendingUp, label: t('navigation.money'), path:"/money-tracking", color:"from-green-500 to-blue-500" },
- { icon: Sparkles, label: t('navigation.aiAssistant'), path:"/ai-assistant", color:"from-purple-500 to-pink-500" },
- { icon: Compass, label: t('navigation.goals'), path:"/financial-goals", color:"from-orange-500 to-red-500" }
+ { icon: Home, label: t('navigation.dashboard'), path:"/", color:"bg-blue-500" },
+ { icon: TrendingUp, label: t('navigation.money'), path:"/money-tracking", color:"bg-green-500" },
+ { icon: Sparkles, label: t('navigation.aiAssistant'), path:"/ai-assistant", color:"bg-purple-500" },
+ { icon: Compass, label: t('navigation.goals'), path:"/financial-goals", color:"bg-orange-500" }
  ];
 
  return (
@@ -77,8 +77,8 @@ export default function NotFound() {
  className="h-auto p-4 flex flex-col items-center gap-2 transition-all"
  data-testid={`button-quick-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
  >
- <div className={`w-10 h-10 rounded-lg ${action.color.split("")[0]} flex items-center justify-center`}>
- <action.icon className="w-5 h-5 text-white" />
+ <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
+ <action.icon className="w-5 h-5 text-white dark:text-white" />
  </div>
  <span className="text-sm font-medium">{action.label}</span>
  </Button>
