@@ -31,7 +31,7 @@ const InvitePage = lazy(() => import("./pages/invite"));
 const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
-const Login = lazy(() => import("./pages/login"));
+const Login = lazy(() => import("./pages/login.tsx"));
 const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
 const PredictiveInsights = lazy(() => import("./pages/predictive-insights"));
 import FloatingAIWidget from "./components/ai/floating-ai-widget";
