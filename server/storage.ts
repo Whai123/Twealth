@@ -80,6 +80,14 @@ import {
   type InsertInvestmentStrategy,
   type PassiveIncomeOpportunity,
   type InsertPassiveIncomeOpportunity,
+  type UserFinancialProfile,
+  type InsertUserFinancialProfile,
+  type UserExpenseCategory,
+  type InsertUserExpenseCategory,
+  type UserDebt,
+  type InsertUserDebt,
+  type UserAsset,
+  type InsertUserAsset,
   users,
   groups,
   groupMembers,
@@ -119,7 +127,11 @@ import {
   cryptoPriceAlerts,
   cryptoTransactions,
   investmentStrategies,
-  passiveIncomeOpportunities
+  passiveIncomeOpportunities,
+  userFinancialProfiles,
+  userExpenseCategories,
+  userDebts,
+  userAssets
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -454,6 +466,27 @@ export interface IStorage {
       change24h: number;
     }>;
   }>;
+
+  // Financial Profile methods
+  getUserFinancialProfile(userId: string): Promise<UserFinancialProfile | undefined>;
+  createUserFinancialProfile(profile: InsertUserFinancialProfile): Promise<UserFinancialProfile>;
+  updateUserFinancialProfile(userId: string, updates: Partial<UserFinancialProfile>): Promise<UserFinancialProfile>;
+  
+  // Expense Categories methods
+  getUserExpenseCategories(userId: string): Promise<UserExpenseCategory[]>;
+  updateUserExpenseCategories(userId: string, categories: InsertUserExpenseCategory[]): Promise<UserExpenseCategory[]>;
+  
+  // Debts methods
+  getUserDebts(userId: string): Promise<UserDebt[]>;
+  createUserDebt(debt: InsertUserDebt): Promise<UserDebt>;
+  updateUserDebt(id: string, updates: Partial<UserDebt>): Promise<UserDebt>;
+  deleteUserDebt(id: string): Promise<void>;
+  
+  // Assets methods
+  getUserAssets(userId: string): Promise<UserAsset[]>;
+  createUserAsset(asset: InsertUserAsset): Promise<UserAsset>;
+  updateUserAsset(id: string, updates: Partial<UserAsset>): Promise<UserAsset>;
+  deleteUserAsset(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3626,6 +3659,131 @@ export class DatabaseStorage implements IStorage {
       .from(passiveIncomeOpportunities)
       .where(eq(passiveIncomeOpportunities.category, category))
       .orderBy(passiveIncomeOpportunities.monthlyEarningsMax);
+  }
+
+  // ===== Financial Profile Methods =====
+
+  async getUserFinancialProfile(userId: string): Promise<UserFinancialProfile | undefined> {
+    const [profile] = await db.select().from(userFinancialProfiles)
+      .where(eq(userFinancialProfiles.userId, userId));
+    return profile;
+  }
+
+  async createUserFinancialProfile(profile: InsertUserFinancialProfile): Promise<UserFinancialProfile> {
+    const [result] = await db.insert(userFinancialProfiles)
+      .values(profile)
+      .returning();
+    return result;
+  }
+
+  async updateUserFinancialProfile(userId: string, updates: Partial<UserFinancialProfile>): Promise<UserFinancialProfile> {
+    const [result] = await db.update(userFinancialProfiles)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(userFinancialProfiles.userId, userId))
+      .returning();
+    
+    if (!result) {
+      throw new Error('Financial profile not found');
+    }
+    return result;
+  }
+
+  async getUserExpenseCategories(userId: string): Promise<UserExpenseCategory[]> {
+    return await db.select()
+      .from(userExpenseCategories)
+      .where(eq(userExpenseCategories.userId, userId));
+  }
+
+  async updateUserExpenseCategories(userId: string, categories: InsertUserExpenseCategory[]): Promise<UserExpenseCategory[]> {
+    return await db.transaction(async (tx) => {
+      // Delete existing categories
+      await tx.delete(userExpenseCategories)
+        .where(eq(userExpenseCategories.userId, userId));
+      
+      // Insert new categories with userId
+      if (categories.length > 0) {
+        const valuesToInsert = categories.map(cat => ({
+          ...cat,
+          userId
+        }));
+        await tx.insert(userExpenseCategories).values(valuesToInsert);
+      }
+      
+      // Return updated list
+      return await tx.select()
+        .from(userExpenseCategories)
+        .where(eq(userExpenseCategories.userId, userId));
+    });
+  }
+
+  async getUserDebts(userId: string): Promise<UserDebt[]> {
+    return await db.select()
+      .from(userDebts)
+      .where(eq(userDebts.userId, userId));
+  }
+
+  async createUserDebt(debt: InsertUserDebt): Promise<UserDebt> {
+    const [result] = await db.insert(userDebts)
+      .values(debt)
+      .returning();
+    return result;
+  }
+
+  async updateUserDebt(id: string, updates: Partial<UserDebt>): Promise<UserDebt> {
+    const [result] = await db.update(userDebts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userDebts.id, id))
+      .returning();
+    
+    if (!result) {
+      throw new Error('Debt not found');
+    }
+    return result;
+  }
+
+  async deleteUserDebt(id: string): Promise<void> {
+    const result = await db.delete(userDebts)
+      .where(eq(userDebts.id, id))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Debt not found');
+    }
+  }
+
+  async getUserAssets(userId: string): Promise<UserAsset[]> {
+    return await db.select()
+      .from(userAssets)
+      .where(eq(userAssets.userId, userId));
+  }
+
+  async createUserAsset(asset: InsertUserAsset): Promise<UserAsset> {
+    const [result] = await db.insert(userAssets)
+      .values(asset)
+      .returning();
+    return result;
+  }
+
+  async updateUserAsset(id: string, updates: Partial<UserAsset>): Promise<UserAsset> {
+    const [result] = await db.update(userAssets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userAssets.id, id))
+      .returning();
+    
+    if (!result) {
+      throw new Error('Asset not found');
+    }
+    return result;
+  }
+
+  async deleteUserAsset(id: string): Promise<void> {
+    const result = await db.delete(userAssets)
+      .where(eq(userAssets.id, id))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Asset not found');
+    }
   }
 }
 

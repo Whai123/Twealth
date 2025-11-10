@@ -43,7 +43,11 @@ import {
   insertSharedBudgetSchema,
   insertSharedBudgetExpenseSchema,
   sharedBudgetExpenses,
-  friendGroupInvitations
+  friendGroupInvitations,
+  insertUserFinancialProfileSchema,
+  insertUserExpenseCategorySchema,
+  insertUserDebtSchema,
+  insertUserAssetSchema
 } from "@shared/schema";
 import { aiService, type UserContext } from "./aiService";
 import { extractAndUpdateMemory, getMemoryContext } from './conversationMemoryService';
@@ -155,6 +159,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Financial Profile routes - Composite endpoint for AI consumption
+  app.get("/api/user/financial-profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      
+      // Fetch all financial profile data
+      const [profile, expenseCategories, debts, assets] = await Promise.all([
+        storage.getUserFinancialProfile(userId),
+        storage.getUserExpenseCategories(userId),
+        storage.getUserDebts(userId),
+        storage.getUserAssets(userId)
+      ]);
+      
+      res.json({
+        profile: profile || null,
+        expenseCategories,
+        debts,
+        assets
+      });
+    } catch (error: any) {
+      console.error('[/api/user/financial-profile GET] Error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/user/financial-profile", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { profile, expenseCategories, debts, assets } = req.body;
+      
+      // Validate and create/update profile if provided
+      let savedProfile = null;
+      if (profile) {
+        const validatedProfile = insertUserFinancialProfileSchema.parse({ ...profile, userId });
+        const existingProfile = await storage.getUserFinancialProfile(userId);
+        
+        if (existingProfile) {
+          savedProfile = await storage.updateUserFinancialProfile(userId, validatedProfile);
+        } else {
+          savedProfile = await storage.createUserFinancialProfile(validatedProfile);
+        }
+      }
+      
+      // Update expense categories if provided
+      let savedCategories: any[] = [];
+      if (expenseCategories && Array.isArray(expenseCategories)) {
+        const validatedCategories = expenseCategories.map(cat => 
+          insertUserExpenseCategorySchema.parse({ ...cat, userId })
+        );
+        savedCategories = await storage.updateUserExpenseCategories(userId, validatedCategories);
+      }
+      
+      // Update debts if provided
+      if (debts && Array.isArray(debts)) {
+        // Delete existing debts and create new ones
+        const existingDebts = await storage.getUserDebts(userId);
+        for (const debt of existingDebts) {
+          await storage.deleteUserDebt(debt.id);
+        }
+        for (const debt of debts) {
+          const validatedDebt = insertUserDebtSchema.parse({ ...debt, userId });
+          await storage.createUserDebt(validatedDebt);
+        }
+      }
+      
+      // Update assets if provided
+      if (assets && Array.isArray(assets)) {
+        // Delete existing assets and create new ones
+        const existingAssets = await storage.getUserAssets(userId);
+        for (const asset of existingAssets) {
+          await storage.deleteUserAsset(asset.id);
+        }
+        for (const asset of assets) {
+          const validatedAsset = insertUserAssetSchema.parse({ ...asset, userId });
+          await storage.createUserAsset(validatedAsset);
+        }
+      }
+      
+      // Return updated composite profile
+      const [updatedProfile, updatedCategories, updatedDebts, updatedAssets] = await Promise.all([
+        savedProfile ? Promise.resolve(savedProfile) : storage.getUserFinancialProfile(userId),
+        storage.getUserExpenseCategories(userId),
+        storage.getUserDebts(userId),
+        storage.getUserAssets(userId)
+      ]);
+      
+      res.json({
+        profile: updatedProfile || null,
+        expenseCategories: updatedCategories,
+        debts: updatedDebts,
+        assets: updatedAssets
+      });
+    } catch (error: any) {
+      console.error('[/api/user/financial-profile POST] Error:', error);
+      res.status(400).json({ message: error.message });
     }
   });
 
