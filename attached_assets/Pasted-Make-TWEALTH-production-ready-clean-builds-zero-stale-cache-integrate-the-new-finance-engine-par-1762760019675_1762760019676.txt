@@ -1,0 +1,127 @@
+Make TWEALTH production-ready: clean builds, zero stale cache, integrate the new finance engine (parseTransactions.ts, categorize.ts, forecast.ts, insights.ts) into UI, add basic tests, tighten performance, and ship a verified deployment.
+
+Project context
+
+Frontend: client/src/* with pages like dashboard.tsx, money-tracking.tsx, ai-insights.tsx, welcome.tsx.
+
+Finance engine: client/src/lib/finance/{parseTransactions,categorize,forecast,insights}.ts.
+
+Server serves static from dist/public (see vite.config.ts + server config).
+
+Production domains shown in Publishing panel (*.replit.app + twealth.ltd).
+
+Do this in order (no skipping):
+
+Reset & Build Fresh
+
+Stop any running process safely.
+
+Delete caches: .vite/ and client/dist/ (or dist/ if at repo root per config).
+
+npm ci (no npm i).
+
+Run type checks: npm run typecheck (or tsc --noEmit).
+
+Dev build: npm run dev to verify local serve.
+
+Prod build: npm run build and confirm the output path matches dist/public.
+
+Wire the Finance Engine to UI
+
+On money-tracking.tsx or dashboard.tsx, add a CSV upload (or paste) widget using parseCSV() → categorizeAll() → forecastCashflow() → generateInsights().
+
+Render:
+
+A category totals table,
+
+30-day cashflow projection (line chart),
+
+Top 3 insights (from generateInsights).
+
+Add graceful empty-state UI.
+
+Add a Minimal Test Harness
+
+Create client/src/lib/finance/__tests__/finance.test.ts with tests for:
+
+CSV parsing (simple sample lines).
+
+Categorization keyword hit.
+
+Cashflow forecast length/values.
+
+Insight triggers for overspending.
+
+Add script "test": "vitest run --passWithNoTests=false" (or jest if you already use it).
+
+Run tests and make them pass.
+
+Performance & UX Polish
+
+Remove emoji/checkmarks from UI text (keep “zero-emoji” rule).
+
+Ensure no console errors/warnings at runtime.
+
+Code-split large routes (e.g., ai-insights.tsx, dashboard.tsx) with React.lazy.
+
+Preload critical fonts; verify CWV basics (fast TTI on dev tools).
+
+Add loading/skeleton states for data panels.
+
+Config & Secrets Sanity
+
+Verify environment variables used in client/server; no secrets in client bundle.
+
+Confirm service worker sw.js registers only in production and won’t cache stale HTML.
+
+Publish & Verify
+
+Use Publishing → Republish.
+
+If publishing picks up stale code, re-clear .vite and dist then rebuild.
+
+After deploy: open both production URLs, run smoke-tests:
+
+Landing page loads.
+
+Upload CSV → see categories, chart, and insights.
+
+No console errors.
+
+Refresh hard (⌘-Shift-R) to ensure fresh assets.
+
+Acceptance Criteria (must satisfy to finish):
+
+npm run build completes cleanly.
+
+npm run test passes with ≥4 tests.
+
+UI shows: upload → categories table → 30-day chart → top 3 insights.
+
+No emojis/checkmarks in UI copy.
+
+Production URL works and mirrors the latest code (no stale cache).
+
+Provide a summary PR/commit list + screenshots (dashboard with chart & insights).
+
+Guardrails
+
+Do not change billing or external services.
+
+Do not add third-party SDKs without a clear note.
+
+If you hit a blocking error, print the exact file:line and the fix you’ll apply, then continue.
+
+Deliverables
+
+List of files changed.
+
+Test output summary.
+
+Lighthouse (or DevTools) quick notes on performance.
+
+Final deployed links and screenshots.
+
+ถ้าชอบแบบสั้น ๆ สำหรับกดใช้ทันที:
+
+“Clean caches (.vite, dist), fresh install, typecheck, build. Wire client/src/lib/finance/* into money-tracking.tsx with CSV upload → categorize → forecast(30d) → insights(Top3). Add tests under lib/finance/__tests__. Remove emojis, add skeletons, split heavy routes. Republish and verify no stale code. Return changed files, test output, and live URLs with screenshots.”
