@@ -60,7 +60,6 @@ export default function WelcomePage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Express Start */}
           <Card 
             className="border-2 hover:border-primary transition-colors cursor-pointer" 
             onClick={handleExpressStart}
@@ -99,7 +98,6 @@ export default function WelcomePage() {
             </CardContent>
           </Card>
 
-          {/* Guided Setup */}
           <Card 
             className="border-2 hover:border-primary transition-colors cursor-pointer" 
             onClick={() => setMode('full')}
