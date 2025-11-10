@@ -445,9 +445,11 @@ export const userFinancialProfiles = pgTable("user_financial_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
   monthlyIncome: decimal("monthly_income", { precision: 10, scale: 2 }).notNull(),
-  monthlyExpensesTotal: decimal("monthly_expenses_total", { precision: 10, scale: 2 }).notNull(),
-  currentSavings: decimal("current_savings", { precision: 10, scale: 2 }).notNull(),
-  monthlyInvestmentContribution: decimal("monthly_investment_contribution", { precision: 10, scale: 2 }).notNull().default("0"),
+  monthlyExpenses: decimal("monthly_expenses", { precision: 10, scale: 2 }).notNull(),
+  monthlySavings: decimal("monthly_savings", { precision: 10, scale: 2 }).notNull(),
+  totalSavings: decimal("total_savings", { precision: 10, scale: 2 }).notNull(),
+  savingsGoal: decimal("savings_goal", { precision: 10, scale: 2 }).notNull(),
+  emergencyFund: decimal("emergency_fund", { precision: 10, scale: 2 }).notNull(),
   lastUpdated: timestamp("last_updated").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
@@ -753,9 +755,11 @@ export const insertUserFinancialProfileSchema = createInsertSchema(userFinancial
   lastUpdated: true,
 }).extend({
   monthlyIncome: z.union([z.string(), z.number()]).transform(val => val.toString()),
-  monthlyExpensesTotal: z.union([z.string(), z.number()]).transform(val => val.toString()),
-  currentSavings: z.union([z.string(), z.number()]).transform(val => val.toString()),
-  monthlyInvestmentContribution: z.union([z.string(), z.number()]).transform(val => val.toString()).optional(),
+  monthlyExpenses: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  monthlySavings: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  totalSavings: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  savingsGoal: z.union([z.string(), z.number()]).transform(val => val.toString()),
+  emergencyFund: z.union([z.string(), z.number()]).transform(val => val.toString()),
 });
 
 export const insertUserExpenseCategorySchema = createInsertSchema(userExpenseCategories).omit({

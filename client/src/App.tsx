@@ -18,6 +18,7 @@ const FinancialGoals = lazy(() => import("./pages/financial-goals"));
 const MoneyTracking = lazy(() => import("./pages/money-tracking"));
 const Planning = lazy(() => import("./pages/planning"));
 const Settings = lazy(() => import("./pages/settings"));
+const FinancialProfile = lazy(() => import("./pages/financial-profile"));
 const Subscription = lazy(() => import("./pages/subscription"));
 const Checkout = lazy(() => import("./pages/checkout"));
 const Upgrade = lazy(() => import("./pages/upgrade"));
@@ -158,6 +159,7 @@ function Router() {
          <Route path="/upgrade" component={Upgrade} />
          <Route path="/pricing" component={Pricing} />
          <Route path="/settings" component={Settings} />
+         <Route path="/financial-profile" component={FinancialProfile} />
          <Route component={NotFound} />
         </Switch>
        </Suspense>
