@@ -124,8 +124,7 @@ export default function MobileFloatingActions({
        w-14 h-14 rounded-full shadow-xl
        ${isExpanded 
         ? 'bg-red-500 hover:bg-red-600 rotate-45' 
-        : 'bg-white dark:bg-gray-900
-       }
+        : 'bg-white dark:bg-gray-900'}
        text-white border-4 border-white dark:border-gray-800
       `}
       data-testid="mobile-fab-main"

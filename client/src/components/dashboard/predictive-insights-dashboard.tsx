@@ -287,7 +287,7 @@ export default function PredictiveInsightsDashboard() {
                           </div>
                         </div>
                         <div className="p-3 bg-muted rounded-lg text-sm">
-                          <div className="font-medium mb-1">💡 Recommendation:</div>
+                          <div className="font-medium mb-1">Recommendation:</div>
                           <div className="text-muted-foreground">{prediction.recommendedAction}</div>
                         </div>
                       </div>
