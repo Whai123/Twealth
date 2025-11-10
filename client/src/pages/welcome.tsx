@@ -78,18 +78,9 @@ export default function WelcomePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span>
-                  Start tracking immediately
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span>
-                  AI learns as you use the app
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span>
-                  Customize anytime in settings
-                </p>
+                <p>Start tracking immediately</p>
+                <p>AI learns as you use the app</p>
+                <p>Customize anytime in settings</p>
               </div>
               <Button className="w-full" size="lg" data-testid="button-express-start">
                 Start Now
@@ -116,18 +107,9 @@ export default function WelcomePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span>
-                  Set your financial goals
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span>
-                  Configure AI preferences
-                </p>
-                <p className="flex items-center gap-2">
-                  <span className="text-green-600">✓</span>
-                  Get tailored insights faster
-                </p>
+                <p>Set your financial goals</p>
+                <p>Configure AI preferences</p>
+                <p>Get tailored insights faster</p>
               </div>
               <Button className="w-full" variant="outline" size="lg" data-testid="button-guided-setup">
                 Customize Now
