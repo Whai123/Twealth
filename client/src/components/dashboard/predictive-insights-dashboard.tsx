@@ -212,16 +212,16 @@ export default function PredictiveInsightsDashboard() {
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
                           <div className="text-muted-foreground">Historical Avg</div>
-                          <div className="font-semibold">${forecast.historicalAverage.toFixed(0)}</div>
+                          <div className="font-semibold">${forecast.historicalAverage?.toFixed(0) ?? '0'}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Predicted</div>
-                          <div className="font-semibold text-primary">${forecast.predictedAmount.toFixed(0)}</div>
+                          <div className="font-semibold text-primary">${forecast.predictedAmount?.toFixed(0) ?? '0'}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Change</div>
-                          <div className={`font-semibold ${forecast.percentChange > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                            {forecast.percentChange > 0 ? '+' : ''}{forecast.percentChange.toFixed(1)}%
+                          <div className={`font-semibold ${(forecast.percentChange ?? 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {(forecast.percentChange ?? 0) > 0 ? '+' : ''}{forecast.percentChange?.toFixed(1) ?? '0.0'}%
                           </div>
                         </div>
                       </div>
@@ -279,11 +279,11 @@ export default function PredictiveInsightsDashboard() {
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <div className="text-muted-foreground">Current Progress</div>
-                            <div className="font-semibold">{prediction.currentProgress.toFixed(0)}%</div>
+                            <div className="font-semibold">{prediction.currentProgress?.toFixed(0) ?? '0'}%</div>
                           </div>
                           <div>
                             <div className="text-muted-foreground">Monthly Required</div>
-                            <div className="font-semibold">${prediction.requiredMonthlyContribution.toFixed(0)}</div>
+                            <div className="font-semibold">${prediction.requiredMonthlyContribution?.toFixed(0) ?? '0'}</div>
                           </div>
                         </div>
                         <div className="p-3 bg-muted rounded-lg text-sm">
@@ -320,7 +320,7 @@ export default function PredictiveInsightsDashboard() {
                         <div>
                           <div className="font-semibold">{new Date(forecast.date).toLocaleDateString()}</div>
                           <div className="text-sm text-muted-foreground">
-                            ${forecast.projectedBalance.toLocaleString()} balance
+                            ${(forecast.projectedBalance ?? 0).toLocaleString()} balance
                           </div>
                         </div>
                       </div>
@@ -373,7 +373,7 @@ export default function PredictiveInsightsDashboard() {
                           {opportunity.difficulty} to implement
                         </Badge>
                         <Badge variant="outline">
-                          {(opportunity.confidence * 100).toFixed(0)}% confidence
+                          {((opportunity.confidence ?? 0) * 100).toFixed(0)}% confidence
                         </Badge>
                       </div>
                     </div>
