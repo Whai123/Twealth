@@ -2647,12 +2647,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Build user context for AI
-      const [stats, goals, recentTransactions, upcomingEvents, userPreferences] = await Promise.all([
+      const [stats, goals, recentTransactions, upcomingEvents, userPreferences, financialProfile, expenseCategories, userDebts, userAssets] = await Promise.all([
         storage.getUserStats(userId),
         storage.getFinancialGoalsByUserId(userId),
         storage.getTransactionsByUserId(userId, 10),
         storage.getUpcomingEvents(userId, 5),
-        storage.getUserPreferences(userId)
+        storage.getUserPreferences(userId),
+        storage.getUserFinancialProfile(userId),
+        storage.getUserExpenseCategories(userId),
+        storage.getUserDebts(userId),
+        storage.getUserAssets(userId)
       ]);
 
       // Calculate monthly expenses from transactions or use estimate
@@ -2683,6 +2687,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: e.title,
           date: e.startTime.toISOString(),
           estimatedValue: parseFloat(e.budget || '0')
+        })),
+        financialProfile: financialProfile ? {
+          monthlyIncome: parseFloat(financialProfile.monthlyIncome || '0'),
+          monthlyExpenses: parseFloat(financialProfile.monthlyExpenses || '0'),
+          monthlySavings: parseFloat(financialProfile.monthlySavings || '0'),
+          totalSavings: parseFloat(financialProfile.totalSavings || '0'),
+          savingsGoal: parseFloat(financialProfile.savingsGoal || '0'),
+          emergencyFund: parseFloat(financialProfile.emergencyFund || '0')
+        } : undefined,
+        expenseCategories: expenseCategories.map(cat => ({
+          category: cat.category,
+          monthlyBudget: parseFloat(cat.monthlyBudget)
+        })),
+        debts: userDebts.map(debt => ({
+          name: debt.name,
+          totalAmount: parseFloat(debt.totalAmount),
+          remainingAmount: parseFloat(debt.remainingAmount),
+          monthlyPayment: parseFloat(debt.monthlyPayment),
+          interestRate: parseFloat(debt.interestRate || '0'),
+          type: debt.type || 'other'
+        })),
+        assets: userAssets.map(asset => ({
+          name: asset.name,
+          type: asset.type,
+          currentValue: parseFloat(asset.currentValue),
+          purchasePrice: parseFloat(asset.purchasePrice || '0')
         }))
       };
 

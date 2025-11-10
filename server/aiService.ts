@@ -133,6 +133,32 @@ export interface UserContext {
     date: string;
     estimatedValue: number;
   }>;
+  financialProfile?: {
+    monthlyIncome: number;
+    monthlyExpenses: number;
+    monthlySavings: number;
+    totalSavings: number;
+    savingsGoal: number;
+    emergencyFund: number;
+  };
+  expenseCategories?: Array<{
+    category: string;
+    monthlyBudget: number;
+  }>;
+  debts?: Array<{
+    name: string;
+    totalAmount: number;
+    remainingAmount: number;
+    monthlyPayment: number;
+    interestRate: number;
+    type: string;
+  }>;
+  assets?: Array<{
+    name: string;
+    type: string;
+    currentValue: number;
+    purchasePrice: number;
+  }>;
 }
 
 export interface ChatMessage {
@@ -1121,6 +1147,33 @@ Net Worth: $${netWorth.toLocaleString()} | Savings Rate: ${!isNaN(savingsRate) &
 Emergency Fund: $${netWorth.toLocaleString()} / $${emergencyFund.toLocaleString()} | ${stockAllocation}% stocks/${100-stockAllocation}% bonds
 ${context.recentTransactions.length > 0 ? `Recent: ${context.recentTransactions.slice(0, 2).map(t => `$${t.amount} ${t.category}`).join(', ')}` : ''}
 
+${context.financialProfile ? `
+COMPREHENSIVE FINANCIAL PROFILE (Database - AUTHORITATIVE):
+Monthly Income: $${context.financialProfile.monthlyIncome.toLocaleString()}
+Monthly Expenses: $${context.financialProfile.monthlyExpenses.toLocaleString()}
+Monthly Savings: $${context.financialProfile.monthlySavings.toLocaleString()}
+Total Savings: $${context.financialProfile.totalSavings.toLocaleString()}
+Savings Goal: $${context.financialProfile.savingsGoal.toLocaleString()}
+Emergency Fund: $${context.financialProfile.emergencyFund.toLocaleString()}
+→ USE THESE AUTHORITATIVE VALUES for all calculations. Do not estimate or guess.
+` : ''}
+${context.expenseCategories && context.expenseCategories.length > 0 ? `
+EXPENSE BREAKDOWN (Real Data):
+${context.expenseCategories.map(cat => `• ${cat.category}: $${cat.monthlyBudget.toLocaleString()}/mo`).join('\n')}
+→ Use these category budgets when analyzing spending patterns or recommending budget adjustments.
+` : ''}
+${context.debts && context.debts.length > 0 ? `
+OUTSTANDING DEBTS (Real Data):
+${context.debts.map(debt => `• ${debt.name} (${debt.type}): $${debt.remainingAmount.toLocaleString()} remaining of $${debt.totalAmount.toLocaleString()} total | $${debt.monthlyPayment.toLocaleString()}/mo @ ${debt.interestRate}% APR`).join('\n')}
+Total Debt Payments: $${context.debts.reduce((sum, d) => sum + d.monthlyPayment, 0).toLocaleString()}/mo
+→ Factor these debt obligations into all budget and savings recommendations. Prioritize high-interest debt payoff.
+` : ''}
+${context.assets && context.assets.length > 0 ? `
+ASSETS (Real Data):
+${context.assets.map(asset => `• ${asset.name} (${asset.type}): Current value $${asset.currentValue.toLocaleString()} (Purchased at $${asset.purchasePrice.toLocaleString()})`).join('\n')}
+Total Asset Value: $${context.assets.reduce((sum, a) => sum + a.currentValue, 0).toLocaleString()}
+→ Include these assets in net worth calculations and investment portfolio recommendations.
+` : ''}
 ${cryptoContext}
 ${marketContext}
 ${taxContext}
