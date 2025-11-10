@@ -1,7 +1,7 @@
-import { useState, useEffect } from"react";
+import { useState, useEffect, lazy, Suspense } from"react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle } from"lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Badge } from"@/components/ui/badge";
@@ -16,6 +16,8 @@ import SmartBudgetManagement from"@/components/money/smart-budget-management";
 import SpendingInsights from"@/components/money/spending-insights";
 import { SwipeableTransactionItem } from"@/components/transactions/swipeable-transaction-item";
 import { ResponsiveTransactionDialog } from"@/components/dialogs/responsive-transaction-dialog";
+
+const CSVAnalysisPanel = lazy(() => import("@/components/money/csv-analysis-panel"));
 
 const TRANSACTION_CATEGORIES = {
  income: ["salary","freelance","investment","gift","other"],
@@ -263,7 +265,7 @@ export default function MoneyTracking() {
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
  {/* Modern Tab Interface */}
  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
- <TabsList className="grid w-full grid-cols-4 mb-6 p-1">
+ <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 p-1">
  <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-overview">
  <DollarSign size={16} className="flex-shrink-0" />
  <span className="hidden sm:inline truncate">Overview</span>
@@ -279,6 +281,10 @@ export default function MoneyTracking() {
  <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-insights">
  <Lightbulb size={16} className="flex-shrink-0" />
  <span className="hidden sm:inline truncate">Insights</span>
+ </TabsTrigger>
+ <TabsTrigger value="csv-analyzer" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-csv-analyzer">
+ <FileText size={16} className="flex-shrink-0" />
+ <span className="hidden sm:inline truncate">CSV Analyzer</span>
  </TabsTrigger>
  </TabsList>
 
@@ -569,6 +575,16 @@ export default function MoneyTracking() {
  transactions={filteredTransactions || []} 
  timeRange={timeRange} 
  />
+ </TabsContent>
+
+ <TabsContent value="csv-analyzer" className="space-y-6">
+ <Suspense fallback={
+ <Card className="p-12">
+ <div className="text-center text-muted-foreground">Loading CSV Analyzer...</div>
+ </Card>
+ }>
+ <CSVAnalysisPanel />
+ </Suspense>
  </TabsContent>
  </Tabs>
  </div>
