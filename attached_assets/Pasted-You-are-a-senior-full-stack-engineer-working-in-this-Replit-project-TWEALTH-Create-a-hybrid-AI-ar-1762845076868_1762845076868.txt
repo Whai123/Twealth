@@ -1,0 +1,74 @@
+You are a senior full-stack engineer working in this Replit project (TWEALTH). Create a hybrid AI architecture where a fast “Scout” model handles 90–95% of traffic and a deep “Reasoning Brain” model handles complex CFO-level analysis.
+
+Outcomes:
+
+* Smart routing that decides Scout vs Reasoning based on intent/escalation rules.
+* Cost tracking & observability on every AI call.
+* Premium gate for deep analyses (upsell path).
+* Clean, tested code with small composable modules.
+
+Models (configurable):
+
+* SCOUT: Groq “Llama Scout 4” (or nearest Groq Llama model available via Replit AI Integrations).
+* REASONING: Anthropic Claude Opus 4.1 (fallback: Claude 3.5 Sonnet) via Replit AI Integrations.
+
+Create a task list to:
+
+1. CONFIG
+
+   * Add / update env & config: AI_SCOUT_PROVIDER, AI_SCOUT_MODEL, AI_REASON_PROVIDER, AI_REASON_MODEL, AI_MAX_TOKENS, AI_TEMPERATURE.
+   * Add a simple `modelCostTable` (est USD per 1K tokens) for current choices so we can compute cost per call.
+2. AI CLIENTS
+
+   * Implement `src/ai/clients.ts` with thin wrappers for Scout and Reasoning (providers picked from config; auto-detect available Replit integrations). Standardize the return shape {text, tokensIn, tokensOut, cost}.
+3. SMART ROUTER
+
+   * Implement `src/ai/router.ts`:
+
+     * `shouldEscalate(intent, complexitySignals): boolean`
+     * Escalation triggers: multi-year projections, 3+ debts payoff ordering, invest-vs-payoff simulations, tax strategy, retirement glidepath, portfolio optimization, 2+ scenario comparisons.
+     * Default to Scout. Escalate when triggers fire.
+4. ORCHESTRATORS (deep analysis)
+
+   * `src/ai/orchestrators/debt.ts`
+   * `src/ai/orchestrators/retirement.ts`
+   * `src/ai/orchestrators/tax.ts`
+   * `src/ai/orchestrators/portfolio.ts`
+     Each module: input schema, data normalization, prompt builder, call Reasoning client, structured JSON result + human summary.
+5. CONTEXT BUILDER
+
+   * `src/ai/contextBuilder.ts` to normalize user financial data (transactions, balances, goals) for both Scout and Reasoning.
+6. API
+
+   * `src/server/api/advise.ts` (route: `POST /api/ai/advise`):
+
+     * Accept {message, userId, …}.
+     * Detect intent + complexity → route to Scout or Reasoning.
+     * Log tokens & cost using modelCostTable.
+     * Return {answer, modelUsed, tokens, cost, escalated}.
+7. UI ENHANCEMENTS
+
+   * In the chat UI, show badges: “Scout” vs “Deep analysis (Reasoning)”.
+   * Add spinner “Running deep analysis…” when escalated.
+   * If user is not premium and escalation fires, show a premium gate modal with short value prop and CTA.
+8. TESTS
+
+   * Add smoke tests in `tests/ai/*.test.ts` with fixtures:
+
+     * Simple: “What’s my savings rate?” → Scout.
+     * Complex: “Debt vs invest over 10 years” → Reasoning.
+     * Multi-loan payoff ordering → Reasoning.
+     * Tax strategy Roth vs Traditional → Reasoning.
+9. DOCS
+
+   * `docs/ai-architecture.md` explaining routing, costs, env, and how to add new orchestrators.
+
+Definition of Done:
+
+* All files created & wired.
+* `POST /api/ai/advise` returns valid answers for both simple and escalated cases.
+* Costs logged per call with modelUsed + tokens.
+* Premium gate appears on escalation for non-premium accounts.
+* All smoke tests pass.
+
+Keep changes small and incremental. Report progress and any assumptions you must make (e.g., exact model IDs availab

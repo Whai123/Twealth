@@ -1,0 +1,186 @@
+oal: Add a hybrid AI layer where a Reasoning Model (Brain) handles deep CFO-level analysis and a Scout model handles fast, cheap queries. Include smart routing, observability, and UI hooks.
+
+Constraints & Context
+
+Codebase: TWEALTH on Replit (Typescript/Node, Vite front-end, server in server/).
+
+Existing files of interest: parseTransactions.ts, categorize.ts, forecast.ts, insights.ts.
+
+Keep costs low: Scout for 80–95% of traffic; Reasoning for complex cases.
+
+The “Scout 4” that already exists stays the default lightweight model. We’ll make the heavy model configurable as REASONING_MODEL (Anthropic Claude Opus 4.1 or latest available).
+
+No breaking changes to deploy. Add feature-flag and env-driven config.
+
+Deliverables (Acceptance Criteria)
+
+Config & Secrets
+
+Add .env entries:
+
+ANTHROPIC_API_KEY=
+
+GROQ_API_KEY= (or your current provider for Scout)
+
+SCOUT_MODEL_ID= (current “Scout 4” id here)
+
+REASONING_MODEL_ID= (e.g., claude-opus-4.1 or latest equivalent)
+
+AI_REASONING_ENABLED=true
+
+Create server/config/ai.ts exporting a typed config object that reads these envs safely.
+
+AI Client Layer
+
+Create server/ai/clients.ts:
+
+getScoutClient() and getReasoningClient() with proper headers and base URLs for the providers in use.
+
+Each client wraps a chat({system, messages, tools?, maxTokens?, temperature?}) function returning { text, usage, model }.
+
+Routing (Brain vs Scout)
+
+Create server/ai/router.ts with:
+
+shouldEscalate(userIntent, context): boolean — rule-based first pass.
+
+Rules to escalate if prompt includes: multi-year plan, debt payoff ordering across multiple accounts, tax bracket optimization, portfolio optimization, retirement planning, scenario comparison (≥2 scenarios), or if input context > N tokens.
+
+routeToModel(payload): "scout" | "reasoning".
+
+Add a cost/latency guard: if queue is busy or request is too large, either (a) summarize with Scout first, then escalate, or (b) prompt the user to refine.
+
+Analysis Orchestrators
+
+Create server/ai/orchestrators/:
+
+quickInsights.ts (Scout): spending summary, anomalies, savings rate, last-30-days, category breakdown.
+
+deepFinance.ts (Reasoning):
+
+Debt snowball/avalanche comparison with APR, min payments, time-to-zero.
+
+Invest vs payoff simulation (10–30y), expected value under risk bands.
+
+Retirement glidepath suggestions (age, horizon, target income).
+
+Tax strategy suggestions (Roth vs Traditional, brackets, carryovers — return guidance, not legal advice).
+
+Both accept a normalized FinancialContext (see Step 5) and return a structured result with: summary, findings[], actions[], assumptions, confidence, disclaimers.
+
+Data Prep (very important)
+
+Create server/ai/buildContext.ts:
+
+Build FinancialContext from existing modules (parseTransactions.ts, categorize.ts, forecast.ts, insights.ts).
+
+Shape:
+
+export interface FinancialContext {
+  user: { id: string; region?: string; age?: number; riskTolerance?: "low"|"med"|"high" };
+  income: { monthlyNet: number; sources: Array<{name:string; amount:number}> };
+  expenses: { monthly: number; byCategory: Record<string, number> };
+  debts: Array<{ name:string; balance:number; apr:number; min:number }>;
+  assets: Array<{ name:string; value:number; type:"cash"|"equity"|"crypto"|"bond"|"other" }>;
+  goals: Array<{ name:string; horizonMonths:number; target:number }>;
+  recentTransactionsSample: Array<{ date:string; desc:string; amount:number; category?:string }>;
+}
+
+
+Ensure amounts are cleaned (currency, signs), categories mapped, and totals computed.
+
+Server API
+
+Add POST /api/ai/advise:
+
+body: { userId, question, flags? }
+
+Pipeline:
+
+Build FinancialContext
+
+Classify intent → shouldEscalate
+
+Route to Scout or Reasoning orchestrator
+
+Return { route, model, latencyMs, usage, costEstimateUsd, result }
+
+Add usage/cost estimation:
+
+naive: tokens_in+tokens_out × provider rate (keep rates in server/ai/rates.ts).
+
+log each call in DB table ai_usage with columns: ts, userId, route, model, tokens_in, tokens_out, cost_usd, latency_ms.
+
+Front-End UX Hooks
+
+In the chat UI (welcome/Playground), when calling /api/ai/advise:
+
+If route === "reasoning", show “Running deep analysis…” spinner and explain it may take longer.
+
+Render result.summary plus expandable sections for findings, actions, assumptions, disclaimers.
+
+Show a tiny badge “Powered by Reasoning Model” when escalated; otherwise “Scout”.
+
+Add Premium gate: if deep analysis and user is not premium → show upsell modal; still allow a short “Scout preview”.
+
+Safety & Disclaimers
+
+Append a standard disclaimer to Reasoning results: “Educational information, not financial advice. Consider consulting a licensed professional.”
+
+Mask PII in logs, never store raw documents.
+
+Tests & QA
+
+Create test prompts in server/ai/testVectors/:
+
+debt_vs_invest_10y.json
+
+retirement_15y_glidepath.json
+
+tax_strategy_bracket_change.json
+
+Add a script npm run ai:smoke that runs each through the API locally and prints latency, route, cost.
+
+Docs
+
+Add docs/ai-architecture.md:
+
+Diagram of flow (User → Scout Router → Scout or Reasoning → Result).
+
+Env setup, model IDs, rate config, and how to add new analysis patterns.
+
+Escalation Rules (first pass, implement now)
+
+Escalate to Reasoning if any of:
+
+Mentions: retire, portfolio, optimize, tax, Roth, Traditional, debt payoff order, invest vs pay off, 10 years, 20 years, scenario.
+
+More than 1 debt account present OR both debts + investment assets present.
+
+question.length > 220 chars and FinancialContext has debts or assets.
+
+Otherwise keep in Scout.
+
+System Prompts (use these as base)
+
+Scout system prompt (concise):
+“You are TWEALTH’s fast ‘Scout’ model. Answer quickly and safely. If the user asks for multi-year plans, debt payoff ordering, tax strategy, retirement planning, or portfolio optimization, STOP and signal escalation. Otherwise, compute short summaries (savings rate, recent spending, anomalies) from the FinancialContext and return concise results.”
+
+Reasoning system prompt (deep):
+“You are TWEALTH’s Reasoning Brain. Do multi-step, CFO-level analysis with explicit assumptions. Produce: Summary, Findings (numbered), Action Steps (bullet list), Assumptions, Confidence (0–100%). Keep numbers consistent, show key formulas when helpful, and clearly state trade-offs. Educational use only; not financial advice.”
+
+Implementation Order
+
+Config & clients → 2) Router → 3) Orchestrators + Context → 4) API & logging → 5) Front-end UX → 6) Tests → 7) Docs.
+
+After Build — Demo Scenarios (must work)
+
+“Should I pay off my 3 credit cards or invest in an index fund for 10 years?” → Reasoning
+
+“What’s my savings rate and biggest category last month?” → Scout
+
+“Roth vs Traditional if my income grows 10%/yr for 5 years?” → Reasoning
+
+“Show me anomalies this week.” → Scout
+
+Ship it when all acceptance criteria pass and ai:smoke succeeds. If any provider/model is unavailable, fall back to the nearest equivalent and keep the model IDs configurable via env.
