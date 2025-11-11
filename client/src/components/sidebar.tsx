@@ -78,6 +78,12 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  icon: LineChart,
  description:"AI-powered spending forecasts, goal predictions, and cash flow analysis"
  },
+ { 
+ name:"Hybrid AI Demo", 
+ href:"/hybrid-ai", 
+ icon: Brain,
+ description:"Explore Scout (fast) vs Reasoning (deep CFO analysis) AI models"
+ },
  ]
  },
  {

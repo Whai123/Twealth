@@ -11,14 +11,14 @@
 // Model cost table (USD per 1K tokens)
 // Based on provider pricing as of 2025
 export const MODEL_COST_TABLE = {
-  // Scout models (Groq)
-  'llama-4-scout-17b': {
-    input: 0.00005,  // $0.05 per 1M tokens
-    output: 0.00008, // $0.08 per 1M tokens
+  // Scout models (Groq) - Updated pricing per Groq's published rates
+  'llama-3.1-70b-versatile': {
+    input: 0.00059,  // $0.59 per 1M tokens
+    output: 0.00079, // $0.79 per 1M tokens
   },
   'llama-3.3-70b-versatile': {
-    input: 0.00005,
-    output: 0.00008,
+    input: 0.00059,
+    output: 0.00079,
   },
   
   // Reasoning models (Anthropic via Replit AI Integrations)
@@ -69,8 +69,8 @@ export interface AIConfig {
  * Load AI configuration from environment variables
  */
 export function loadAIConfig(): AIConfig {
-  // Scout config (Groq Llama 3.3)
-  const scoutModel = process.env.AI_SCOUT_MODEL || 'llama-3.3-70b-versatile';
+  // Scout config (Groq Llama 3.1)
+  const scoutModel = process.env.AI_SCOUT_MODEL || 'llama-3.1-70b-versatile';
   const scoutApiKey = process.env.GROQ_API_KEY || '';
   
   // Reasoning config (Anthropic via Replit AI Integrations)

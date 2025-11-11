@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Brain, Zap, Send, Loader2, TrendingUp, DollarSign, PiggyBank, CreditCard } from "lucide-react";
+import { Brain, Zap, Send, Loader2, TrendingUp, DollarSign, PiggyBank, CreditCard, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Separator } from "@/components/ui/separator";
 import { PremiumGateModal } from "@/components/modals/PremiumGateModal";
+import { motion } from "framer-motion";
 
 interface HybridAIResponse {
   answer: string;
