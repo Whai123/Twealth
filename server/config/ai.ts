@@ -22,15 +22,15 @@ export const MODEL_COST_TABLE = {
   },
   
   // Reasoning models (Anthropic via Replit AI Integrations)
-  'claude-opus-4-1': {
+  'claude-opus-4-20250514': {
     input: 0.015,    // $15 per 1M input tokens
     output: 0.075,   // $75 per 1M output tokens
   },
-  'claude-sonnet-4-5': {
+  'claude-3-5-sonnet-20241022': {
     input: 0.003,    // $3 per 1M input tokens
     output: 0.015,   // $15 per 1M output tokens
   },
-  'claude-haiku-4-5': {
+  'claude-3-5-haiku-20241022': {
     input: 0.0008,   // $0.80 per 1M input tokens
     output: 0.004,   // $4 per 1M output tokens
   },
@@ -69,12 +69,12 @@ export interface AIConfig {
  * Load AI configuration from environment variables
  */
 export function loadAIConfig(): AIConfig {
-  // Scout config (Groq Llama 4)
-  const scoutModel = process.env.AI_SCOUT_MODEL || 'llama-4-scout-17b';
+  // Scout config (Groq Llama 3.3)
+  const scoutModel = process.env.AI_SCOUT_MODEL || 'llama-3.3-70b-versatile';
   const scoutApiKey = process.env.GROQ_API_KEY || '';
   
   // Reasoning config (Anthropic via Replit AI Integrations)
-  const reasoningModel = process.env.AI_REASON_MODEL || 'claude-opus-4-1';
+  const reasoningModel = process.env.AI_REASON_MODEL || 'claude-3-5-sonnet-20241022';
   const reasoningApiKey = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || '';
   const reasoningBaseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL || '';
   

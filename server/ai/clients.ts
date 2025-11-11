@@ -49,7 +49,7 @@ export class ScoutClient {
     const {
       messages,
       system,
-      tools,
+      tools, // Tools are ignored for Scout - it only returns text
       maxTokens = this.config.maxTokens,
       temperature = this.config.temperature,
     } = options;
@@ -69,12 +69,13 @@ export class ScoutClient {
     }
     
     try {
+      // Scout NEVER uses tools - only returns plain text for fast queries
       const completion = await this.groq.chat.completions.create({
         model: this.config.model,
         messages: groqMessages,
         max_tokens: maxTokens,
         temperature,
-        tools: tools as any,
+        // tools: DISABLED - Scout is text-only for speed
       });
       
       const text = completion.choices[0]?.message?.content || '';
