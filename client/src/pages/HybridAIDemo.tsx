@@ -128,35 +128,54 @@ export default function HybridAIDemo() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <div className="mb-8">
+    <motion.div 
+      className="container mx-auto py-8 px-4 max-w-5xl"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="mb-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
         <div className="flex items-center gap-3 mb-2">
-          <Brain className="h-8 w-8 text-black dark:text-white" />
-          <h1 className="text-3xl font-bold">Hybrid AI System</h1>
+          <Sparkles className="h-8 w-8 text-black dark:text-white" />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-black to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+            Hybrid AI System
+          </h1>
         </div>
         <p className="text-muted-foreground">
-          Scout (Llama 4) handles fast queries. Claude Opus 4.1 provides deep CFO-level analysis for complex scenarios.
+          Scout (Llama 3.1) handles fast queries. Claude 3.5 Sonnet provides deep CFO-level analysis for complex scenarios.
         </p>
-      </div>
+      </motion.div>
 
       {/* Sample Queries */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Try Sample Queries</CardTitle>
-          <CardDescription>Click to test Scout vs Reasoning routing</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {sampleQueries.map((sample, idx) => {
-              const Icon = sample.icon;
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleSampleQuery(sample.query)}
-                  disabled={adviceMutation.isPending}
-                  className="text-left p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  data-testid={`sample-query-${idx}`}
-                >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <Card className="mb-6 border-2 hover:border-black/20 dark:hover:border-white/20 transition-colors">
+          <CardHeader>
+            <CardTitle className="text-lg">Try Sample Queries</CardTitle>
+            <CardDescription>Click to test Scout vs Reasoning routing</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {sampleQueries.map((sample, idx) => {
+                const Icon = sample.icon;
+                return (
+                  <motion.button
+                    key={idx}
+                    onClick={() => handleSampleQuery(sample.query)}
+                    disabled={adviceMutation.isPending}
+                    className="text-left p-4 border border-border rounded-lg hover:bg-muted/50 hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    data-testid={`sample-query-${idx}`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                   <div className="flex items-start gap-3">
                     <Icon className="h-5 w-5 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -177,19 +196,25 @@ export default function HybridAIDemo() {
                       <p className="text-xs text-muted-foreground line-clamp-2">{sample.query}</p>
                     </div>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </motion.div>
 
       {/* Query Input */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Ask Your Question</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
+        <Card className="mb-6 border-2 hover:border-black/20 dark:hover:border-white/20 transition-colors">
+          <CardHeader>
+            <CardTitle className="text-lg">Ask Your Question</CardTitle>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={handleSubmit} className="space-y-3">
             <Textarea
               value={query}
@@ -219,7 +244,8 @@ export default function HybridAIDemo() {
             </Button>
           </form>
         </CardContent>
-      </Card>
+        </Card>
+      </motion.div>
 
       {/* Loading State */}
       {adviceMutation.isPending && (
@@ -243,20 +269,25 @@ export default function HybridAIDemo() {
 
       {/* Response */}
       {response && (
-        <Card className="mb-6" data-testid="response-card">
-          <CardHeader>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="mb-6 border-2 border-black/10 dark:border-white/10 shadow-lg" data-testid="response-card">
+            <CardHeader>
             <div className="flex items-center justify-between mb-2">
               <CardTitle className="text-lg">AI Response</CardTitle>
               <div className="flex items-center gap-2">
                 {response.modelUsed === 'scout' ? (
-                  <Badge variant="outline" className="gap-1.5" data-testid="badge-model-scout">
-                    <Zap className="h-3.5 w-3.5" />
-                    Scout (Llama 4)
+                  <Badge variant="outline" className="gap-1.5 border-2" data-testid="badge-model-scout">
+                    <Zap className="h-3.5 w-3.5 text-yellow-500" />
+                    Scout ⚡
                   </Badge>
                 ) : (
-                  <Badge variant="default" className="gap-1.5 bg-black dark:bg-white text-white dark:text-black" data-testid="badge-model-reasoning">
+                  <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-black to-gray-700 dark:from-white dark:to-gray-300 text-white dark:text-black border-2" data-testid="badge-model-reasoning">
                     <Brain className="h-3.5 w-3.5" />
-                    Deep Analysis (Claude Opus 4.1)
+                    Reasoning 🧠
                   </Badge>
                 )}
               </div>
@@ -324,6 +355,7 @@ export default function HybridAIDemo() {
             </div>
           </CardContent>
         </Card>
+        </motion.div>
       )}
 
       {/* Error State */}
@@ -373,18 +405,18 @@ export default function HybridAIDemo() {
           <div className="flex items-start gap-3">
             <Zap className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
             <div>
-              <p className="font-medium mb-1">Scout (Llama 4 via Groq)</p>
+              <p className="font-medium mb-1">Scout (Llama 3.1 70B via Groq)</p>
               <p className="text-muted-foreground text-xs">
-                Handles 90-95% of queries. Fast, cost-effective answers for simple questions.
+                Handles 90-95% of queries. Fast, cost-effective answers for simple questions. ~$0.0007 per query.
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Brain className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
             <div>
-              <p className="font-medium mb-1">Deep Analysis (Claude Opus 4.1 via Anthropic)</p>
+              <p className="font-medium mb-1">Deep Analysis (Claude 3.5 Sonnet via Anthropic)</p>
               <p className="text-muted-foreground text-xs">
-                CFO-level analysis for complex scenarios: multi-year plans, 3+ debts, tax strategy, portfolio optimization, retirement planning.
+                CFO-level analysis for complex scenarios: multi-year plans, 3+ debts, tax strategy, portfolio optimization, retirement planning. ~$0.01 per query.
               </p>
             </div>
           </div>
@@ -402,6 +434,6 @@ export default function HybridAIDemo() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
