@@ -59,6 +59,7 @@ import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
 import { generateProactiveInsights } from './proactiveInsightsService';
 import { predictiveAnalyticsService } from './predictiveAnalyticsService';
+import { generateHybridAdvice } from './ai/hybridAIService';
 import Stripe from "stripe";
 import { log } from "./vite";
 
@@ -4285,6 +4286,33 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
+  // ===== Hybrid AI Endpoint (Scout + Reasoning) =====
+  app.post("/api/ai/advise", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { message } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      console.log(`🧠 [Hybrid AI] Request from user ${userId}: "${message.substring(0, 100)}..."`);
+      
+      // Call hybrid AI service
+      const response = await generateHybridAdvice(userId, message, storage);
+      
+      console.log(`✅ [Hybrid AI] Response: model=${response.modelUsed}, escalated=${response.escalated}, cost=$${response.cost.toFixed(6)}`);
+      
+      res.json(response);
+    } catch (error: any) {
+      console.error('[Hybrid AI] Error:', error);
+      res.status(500).json({ 
+        message: error.message || "Failed to generate advice",
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  });
+  
   // Cost optimization stats endpoint
   app.get("/api/ai/cost-stats", async (req, res) => {
     try {
