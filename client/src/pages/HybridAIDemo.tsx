@@ -1,0 +1,331 @@
+import { useState } from "react";
+import { Brain, Zap, Send, Loader2, TrendingUp, DollarSign, PiggyBank, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Separator } from "@/components/ui/separator";
+
+interface HybridAIResponse {
+  answer: string;
+  modelUsed: 'scout' | 'reasoning';
+  tokensIn: number;
+  tokensOut: number;
+  cost: number;
+  escalated: boolean;
+  escalationReason?: string;
+  orchestratorUsed?: string;
+  structuredData?: any;
+}
+
+const sampleQueries = [
+  {
+    icon: DollarSign,
+    title: "Quick Budget Check",
+    query: "What's a good monthly budget for someone earning $5,000?",
+    complexity: "simple"
+  },
+  {
+    icon: CreditCard,
+    title: "Debt Strategy",
+    query: "I have 3 credit cards: Card A $5,000 @ 18% APR, Card B $3,000 @ 22% APR, Card C $2,000 @ 15% APR. Should I pay them off smallest to largest or highest interest first?",
+    complexity: "complex"
+  },
+  {
+    icon: TrendingUp,
+    title: "Retirement Planning",
+    query: "I'm 35 years old with $50,000 saved. How much should I save monthly to retire at 65 with $1.5M?",
+    complexity: "complex"
+  },
+  {
+    icon: PiggyBank,
+    title: "Tax Optimization",
+    query: "Should I contribute to a Roth IRA or Traditional IRA if I earn $80,000 per year?",
+    complexity: "complex"
+  }
+];
+
+export default function HybridAIDemo() {
+  const [query, setQuery] = useState("");
+  const [response, setResponse] = useState<HybridAIResponse | null>(null);
+
+  const adviceMutation = useMutation({
+    mutationFn: async (message: string): Promise<HybridAIResponse> => {
+      const res = await apiRequest("POST", "/api/ai/advise", { message });
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      setResponse(data);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    setResponse(null);
+    adviceMutation.mutate(query);
+  };
+
+  const handleSampleQuery = (sampleQuery: string) => {
+    setQuery(sampleQuery);
+    setResponse(null);
+    adviceMutation.mutate(sampleQuery);
+  };
+
+  return (
+    <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <Brain className="h-8 w-8 text-black dark:text-white" />
+          <h1 className="text-3xl font-bold">Hybrid AI System</h1>
+        </div>
+        <p className="text-muted-foreground">
+          Scout (Llama 4) handles fast queries. Claude Opus 4.1 provides deep CFO-level analysis for complex scenarios.
+        </p>
+      </div>
+
+      {/* Sample Queries */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Try Sample Queries</CardTitle>
+          <CardDescription>Click to test Scout vs Reasoning routing</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {sampleQueries.map((sample, idx) => {
+              const Icon = sample.icon;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => handleSampleQuery(sample.query)}
+                  disabled={adviceMutation.isPending}
+                  className="text-left p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  data-testid={`sample-query-${idx}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Icon className="h-5 w-5 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-sm">{sample.title}</p>
+                        {sample.complexity === 'complex' ? (
+                          <Badge variant="secondary" className="text-xs">
+                            <Brain className="h-3 w-3 mr-1" />
+                            Deep
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            <Zap className="h-3 w-3 mr-1" />
+                            Fast
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{sample.query}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Query Input */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Ask Your Question</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <Textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ask about debt payoff, retirement planning, tax optimization, or portfolio allocation..."
+              className="min-h-[100px]"
+              disabled={adviceMutation.isPending}
+              data-testid="input-hybrid-query"
+            />
+            <Button
+              type="submit"
+              disabled={!query.trim() || adviceMutation.isPending}
+              className="w-full"
+              data-testid="button-submit-query"
+            >
+              {adviceMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Get AI Advice
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Loading State */}
+      {adviceMutation.isPending && (
+        <Card className="mb-6">
+          <CardContent className="py-12">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="relative">
+                <Brain className="h-12 w-12 text-muted-foreground animate-pulse" />
+                <Loader2 className="h-6 w-6 absolute -top-1 -right-1 animate-spin text-black dark:text-white" />
+              </div>
+              <div className="text-center">
+                <p className="font-medium mb-1">Analyzing your query...</p>
+                <p className="text-sm text-muted-foreground">
+                  Determining optimal AI routing
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Response */}
+      {response && (
+        <Card className="mb-6" data-testid="response-card">
+          <CardHeader>
+            <div className="flex items-center justify-between mb-2">
+              <CardTitle className="text-lg">AI Response</CardTitle>
+              <div className="flex items-center gap-2">
+                {response.modelUsed === 'scout' ? (
+                  <Badge variant="outline" className="gap-1.5" data-testid="badge-model-scout">
+                    <Zap className="h-3.5 w-3.5" />
+                    Scout (Llama 4)
+                  </Badge>
+                ) : (
+                  <Badge variant="default" className="gap-1.5 bg-black dark:bg-white text-white dark:text-black" data-testid="badge-model-reasoning">
+                    <Brain className="h-3.5 w-3.5" />
+                    Deep Analysis (Claude Opus 4.1)
+                  </Badge>
+                )}
+              </div>
+            </div>
+            {response.escalated && response.escalationReason && (
+              <div className="flex items-start gap-2 bg-muted p-3 rounded-lg" data-testid="escalation-reason">
+                <Brain className="h-4 w-4 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium mb-1">Escalated to Deep Analysis</p>
+                  <p className="text-xs text-muted-foreground">{response.escalationReason}</p>
+                </div>
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Answer */}
+            <div>
+              <h3 className="font-semibold mb-2 text-sm">Answer</h3>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed" data-testid="text-answer">
+                  {response.answer}
+                </p>
+              </div>
+            </div>
+
+            {/* Structured Data */}
+            {response.orchestratorUsed && response.structuredData && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="font-semibold mb-2 text-sm flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {response.orchestratorUsed.toUpperCase()}
+                    </Badge>
+                    Structured Analysis
+                  </h3>
+                  <div className="bg-muted rounded-lg p-4">
+                    <pre className="text-xs overflow-x-auto" data-testid="structured-data">
+                      {JSON.stringify(response.structuredData, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Metadata */}
+            <Separator />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground text-xs mb-1">Tokens In</p>
+                <p className="font-mono font-medium" data-testid="text-tokens-in">{response.tokensIn.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs mb-1">Tokens Out</p>
+                <p className="font-mono font-medium" data-testid="text-tokens-out">{response.tokensOut.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs mb-1">Cost</p>
+                <p className="font-mono font-medium" data-testid="text-cost">${response.cost.toFixed(4)}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs mb-1">Escalated</p>
+                <p className="font-medium">{response.escalated ? '✓ Yes' : '✗ No'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error State */}
+      {adviceMutation.isError && (
+        <Card className="mb-6 border-destructive">
+          <CardContent className="py-8">
+            <div className="text-center text-destructive">
+              <p className="font-medium mb-1">Error</p>
+              <p className="text-sm">
+                {(adviceMutation.error as any)?.message || "Failed to get AI advice"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">How It Works</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <div className="flex items-start gap-3">
+            <Zap className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="font-medium mb-1">Scout (Llama 4 via Groq)</p>
+              <p className="text-muted-foreground text-xs">
+                Handles 90-95% of queries. Fast, cost-effective answers for simple questions.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Brain className="h-5 w-5 mt-0.5 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="font-medium mb-1">Deep Analysis (Claude Opus 4.1 via Anthropic)</p>
+              <p className="text-muted-foreground text-xs">
+                CFO-level analysis for complex scenarios: multi-year plans, 3+ debts, tax strategy, portfolio optimization, retirement planning.
+              </p>
+            </div>
+          </div>
+          <Separator />
+          <div className="text-xs text-muted-foreground">
+            <p className="font-medium mb-1">Auto-escalation triggers:</p>
+            <ul className="list-disc list-inside space-y-0.5 ml-2">
+              <li>3+ debts (automatic regardless of keywords)</li>
+              <li>Multi-year financial planning</li>
+              <li>Invest vs. pay-off scenarios</li>
+              <li>Tax optimization strategy</li>
+              <li>Portfolio analysis & rebalancing</li>
+              <li>Retirement glidepath planning</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
