@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Separator } from "@/components/ui/separator";
+import { PremiumGateModal } from "@/components/modals/PremiumGateModal";
 
 interface HybridAIResponse {
   answer: string;
@@ -51,6 +52,15 @@ const sampleQueries = [
 export default function HybridAIDemo() {
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState<HybridAIResponse | null>(null);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [pendingQuery, setPendingQuery] = useState<string | null>(null);
+
+  // Check subscription status
+  const { data: subscription, refetch: refetchSubscription } = useQuery<{ tier?: string }>({
+    queryKey: ["/api/subscription/current"],
+  });
+
+  const isPremium = subscription?.tier === 'premium' || subscription?.tier === 'pro';
 
   const adviceMutation = useMutation({
     mutationFn: async (message: string): Promise<HybridAIResponse> => {
@@ -59,20 +69,61 @@ export default function HybridAIDemo() {
     },
     onSuccess: (data) => {
       setResponse(data);
+      setPendingQuery(null);
+      
+      // Show premium gate if non-premium user got escalated
+      if (data.escalated && !isPremium) {
+        setShowPremiumGate(true);
+      }
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
+    
+    // Detect if this would likely escalate (simple heuristic)
+    const wouldEscalate = detectLikelyEscalation(query);
+    
+    if (wouldEscalate && !isPremium) {
+      // Show premium gate before making request
+      setPendingQuery(query);
+      setShowPremiumGate(true);
+      return;
+    }
+    
     setResponse(null);
     adviceMutation.mutate(query);
   };
 
   const handleSampleQuery = (sampleQuery: string) => {
     setQuery(sampleQuery);
+    
+    // Detect if this would likely escalate
+    const wouldEscalate = detectLikelyEscalation(sampleQuery);
+    
+    if (wouldEscalate && !isPremium) {
+      // Show premium gate before making request
+      setPendingQuery(sampleQuery);
+      setShowPremiumGate(true);
+      return;
+    }
+    
     setResponse(null);
     adviceMutation.mutate(sampleQuery);
+  };
+
+  // Simple heuristic to detect likely escalation (client-side preview)
+  const detectLikelyEscalation = (text: string): boolean => {
+    const lower = text.toLowerCase();
+    const triggers = [
+      'debt', 'debts', 'credit card', 
+      'retire', 'retirement', '401k', 'ira',
+      'tax', 'roth', 'traditional',
+      'portfolio', 'asset allocation', 'rebalance',
+      'multi-year', 'invest vs pay'
+    ];
+    return triggers.some(trigger => lower.includes(trigger)) || text.length > 200;
   };
 
   return (
@@ -287,6 +338,30 @@ export default function HybridAIDemo() {
           </CardContent>
         </Card>
       )}
+
+      {/* Premium Gate Modal */}
+      <PremiumGateModal
+        isOpen={showPremiumGate}
+        onClose={async () => {
+          setShowPremiumGate(false);
+          
+          // If we have a pending query, refetch subscription to check if user upgraded
+          if (pendingQuery) {
+            const { data: freshSubscription } = await refetchSubscription();
+            const isNowPremium = freshSubscription?.tier === 'premium' || freshSubscription?.tier === 'pro';
+            
+            // Execute pending query if user is now premium
+            if (isNowPremium) {
+              setResponse(null);
+              adviceMutation.mutate(pendingQuery);
+            }
+          }
+          
+          setPendingQuery(null);
+        }}
+        trigger="deep_analysis"
+        orchestratorType={response?.orchestratorUsed}
+      />
 
       {/* Info */}
       <Card>
