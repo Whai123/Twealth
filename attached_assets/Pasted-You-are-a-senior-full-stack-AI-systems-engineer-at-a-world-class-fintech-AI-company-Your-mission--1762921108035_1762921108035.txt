@@ -1,0 +1,102 @@
+You are a senior full-stack + AI systems engineer at a world-class fintech-AI company.
+Your mission: build and deploy the TWEALTH Hybrid AI System — a scalable platform offering both personal and enterprise AI financial analysis.
+
+🎯 Objectives
+
+Implement a hybrid AI router (Scout 4 + Sonnet 3.5 + Opus 4.1 Enterprise).
+
+Add tier-based access and pricing logic.
+
+Integrate Stripe/Replit Billing for subscriptions.
+
+Polish the UI/UX to match big-tech visual and performance standards.
+
+Deploy a stable, production-ready build with cost tracking and analytics.
+
+💵 Pricing & Feature Tiers
+Plan	Price	Target User	AI Model Access	Core Features	Limits / Notes
+Free	$0	New users, students	🟢 Scout 4 only	Quick Budget Check • Transaction Categorization • Spending Breakdown	50 queries/month • Basic UI
+Pro	$9.99 / month	Individuals / Freelancers	🟢 Scout 4 + 🟣 Sonnet 3.5 (reasoning)	Everything in Free + Goal Forecast • Investment Insights • Tax Suggestions • AI Budget Chat	200 Scout + 25 Sonnet queries
+Enterprise	$49.99 / month	SMEs • Startups • Finance Teams	🟢 Scout 4 + 🟣 Sonnet 3.5 + ⚫ Opus 4.1 (CFO-level reasoning)	All Pro features + Multi-user accounts • AI CFO Reports • Forecast Simulator • API Access • Advanced Dashboard • Custom Branding	300 Scout + 60 Sonnet + 20 Opus queries per month (default)
+
+Overages auto-bill at $0.001 / Scout query, $0.03 / Sonnet query, $0.15 / Opus query.
+
+🏗️ Architecture Tasks
+
+AI Routing Engine
+
+server/aiRouter.ts decides which model to use by complexity.
+
+Track cost + usage per user and plan.
+
+Log into ai_usage table (PostgreSQL via Prisma/Supabase).
+
+Subscription & Access Control
+
+Middleware checks plan before AI call.
+
+Add /api/billing/webhook for Stripe events.
+
+Store plan_type, query_quota, usage_count.
+
+Enterprise Dashboard
+
+/dashboard/enterprise.tsx: financial charts + AI CFO report generator.
+
+Export to PDF/CSV.
+
+“Invite Team” function (up to 10 members per org).
+
+UI/UX Enhancements
+
+Polished cards with Framer Motion animations.
+
+Model Badges (“⚡ Scout • 🧠 Sonnet • 🚀 Opus”).
+
+Real-time cost meter and “Running Deep Analysis” loader.
+
+Light/dark theme switch.
+
+Analytics & Cost Tracking
+
+/server/metrics.ts → admin dashboard for usage stats, profit per tier, conversion rates.
+
+Show user’s remaining quota in UI.
+
+Security / Compliance
+
+Use .env for keys.
+
+Add rate limits and financial-advice disclaimer.
+
+GDPR / PDPA notice modal.
+
+🖌️ Design Standards
+
+Frameworks: Next.js / Vite + TypeScript + Tailwind + Shadcn UI
+
+Colors: Primary #6C63FF • Accent #1E88E5 • Gold #FFD700 • Background #F9FAFB
+
+Typography: Inter / Manrope • consistent hierarchy.
+
+Animations: Framer Motion for transitions.
+
+Responsiveness: Mobile-first, enterprise-grade scalability.
+
+📊 Deliverables
+
+✅ Hybrid AI Router with quota control
+
+✅ Subscription plans + Stripe integration
+
+✅ Enterprise dashboard w/ CFO simulation
+
+✅ Model usage telemetry + profit analytics
+
+✅ Full UI polish + deployment ready build
+
+🚀 Final Command
+
+“Build this entire Hybrid AI & Enterprise System for TWEALTH inside the Replit project.
+Use production-grade code and clean architecture.
+After implementation, summarize the file structure, API routes, and deployment steps.”
