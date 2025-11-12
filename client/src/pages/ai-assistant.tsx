@@ -518,7 +518,6 @@ export default function AIAssistantPage() {
  )}
 
  {!hasMessages ? (
- /* Empty State */}
  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-black dark:bg-white rounded-xl flex items-center justify-center mb-6 border border-border/40">
  <Brain className="w-7 h-7 sm:w-8 sm:h-8 text-white dark:text-black" />
@@ -552,7 +551,6 @@ export default function AIAssistantPage() {
  </div>
  </div>
  ) : (
- /* Messages */
  <div className="space-y-4 sm:space-y-6">
  {messages.map((message, index) => (
  <MessageBubble
