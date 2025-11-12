@@ -105,28 +105,36 @@ export class ScoutClient {
 }
 
 /**
- * Reasoning Client (Anthropic Claude Opus 4.1)
- * Deep CFO-level analysis for 5-10% of traffic
+ * Anthropic Client (Claude Sonnet 4.5 and Opus 4.1)
+ * Flexible client that supports both Pro and Enterprise tier models
  */
-export class ReasoningClient {
+export class AnthropicClient {
   private anthropic: Anthropic;
-  private config = getAIConfig().reasoning;
+  private model: string;
+  private modelType: 'opus' | 'sonnet'; // Track which type for config lookup
   
-  constructor() {
-    // Using Replit AI Integrations (no API key needed, billed to credits)
+  constructor(model: 'claude-sonnet-4-5' | 'claude-opus-4-1') {
+    const config = getAIConfig();
+    this.modelType = model.includes('opus') ? 'opus' : 'sonnet';
+    const modelConfig = this.modelType === 'opus' ? config.opus : config.sonnet;
+    
+    this.model = modelConfig.model;
     this.anthropic = new Anthropic({
-      apiKey: this.config.apiKey,
-      baseURL: this.config.baseURL,
+      apiKey: modelConfig.apiKey,
+      baseURL: modelConfig.baseURL,
     });
   }
   
   async chat(options: ChatOptions): Promise<AIResponse> {
+    const config = getAIConfig();
+    const modelConfig = this.modelType === 'opus' ? config.opus : config.sonnet;
+    
     const {
       messages,
       system,
       tools,
-      maxTokens = this.config.maxTokens,
-      temperature = this.config.temperature,
+      maxTokens = modelConfig.maxTokens,
+      temperature = modelConfig.temperature,
     } = options;
     
     // Build Anthropic message format (exclude system messages from messages array)
@@ -139,7 +147,7 @@ export class ReasoningClient {
     
     try {
       const message = await this.anthropic.messages.create({
-        model: this.config.model,
+        model: this.model,
         max_tokens: maxTokens,
         temperature,
         system: system || undefined,
@@ -155,9 +163,8 @@ export class ReasoningClient {
       const tokensOut = message.usage.output_tokens || 0;
       
       // Calculate cost
-      const aiConfig = getAIConfig();
-      const cost = aiConfig.estimateCost(
-        this.config.model as ModelId,
+      const cost = config.estimateCost(
+        this.model as ModelId,
         tokensIn,
         tokensOut
       );
@@ -167,17 +174,29 @@ export class ReasoningClient {
         tokensIn,
         tokensOut,
         cost,
-        model: this.config.model,
+        model: this.model,
       };
     } catch (error) {
-      console.error('[ReasoningClient] Error:', error);
-      throw new Error(`Reasoning client error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('[AnthropicClient] Error:', error);
+      throw new Error(`Anthropic client error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+}
+
+/**
+ * Legacy Reasoning Client - For backward compatibility
+ * @deprecated Use AnthropicClient directly or getOpusClient()
+ */
+export class ReasoningClient extends AnthropicClient {
+  constructor() {
+    super('claude-opus-4-1');
   }
 }
 
 // Singleton instances
 let scoutClient: ScoutClient | null = null;
+let sonnetClient: AnthropicClient | null = null;
+let opusClient: AnthropicClient | null = null;
 let reasoningClient: ReasoningClient | null = null;
 
 /**
@@ -191,7 +210,30 @@ export function getScoutClient(): ScoutClient {
 }
 
 /**
+ * Get Sonnet client (cached singleton)
+ * For Pro tier - Claude Sonnet 4.5
+ */
+export function getSonnetClient(): AnthropicClient {
+  if (!sonnetClient) {
+    sonnetClient = new AnthropicClient('claude-sonnet-4-5');
+  }
+  return sonnetClient;
+}
+
+/**
+ * Get Opus client (cached singleton)
+ * For Enterprise tier - Claude Opus 4.1
+ */
+export function getOpusClient(): AnthropicClient {
+  if (!opusClient) {
+    opusClient = new AnthropicClient('claude-opus-4-1');
+  }
+  return opusClient;
+}
+
+/**
  * Get Reasoning client (cached singleton)
+ * @deprecated Use getOpusClient() for Enterprise tier or getSonnetClient() for Pro tier
  */
 export function getReasoningClient(): ReasoningClient {
   if (!reasoningClient) {

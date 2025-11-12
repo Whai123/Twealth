@@ -1221,7 +1221,11 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   priceUsd: decimal("price_usd", { precision: 10, scale: 2 }).notNull(), // Price in USD
   currency: text("currency").default("USD"),
   billingInterval: text("billing_interval").notNull(), // "monthly", "yearly", "lifetime"
-  // AI Usage Limits
+  // AI Usage Limits - Hybrid AI System (Scout/Sonnet/Opus)
+  scoutLimit: integer("scout_limit").default(0), // Scout queries per period
+  sonnetLimit: integer("sonnet_limit").default(0), // Sonnet (reasoning) queries per period
+  opusLimit: integer("opus_limit").default(0), // Opus (enterprise CFO) queries per period
+  // Legacy AI Limits (for backward compatibility)
   aiChatLimit: integer("ai_chat_limit").default(0), // Messages per period (monthly or lifetime)
   aiDeepAnalysisLimit: integer("ai_deep_analysis_limit").default(0), // Complex queries per period
   aiInsightsFrequency: text("ai_insights_frequency").default("never"), // "never", "weekly", "daily"
@@ -1260,7 +1264,11 @@ export const usageTracking = pgTable("usage_tracking", {
   // Tracking period
   periodStart: timestamp("period_start").notNull(),
   periodEnd: timestamp("period_end").notNull(),
-  // AI Usage counters
+  // Hybrid AI Usage counters (Scout/Sonnet/Opus)
+  scoutQueriesUsed: integer("scout_queries_used").default(0),
+  sonnetQueriesUsed: integer("sonnet_queries_used").default(0),
+  opusQueriesUsed: integer("opus_queries_used").default(0),
+  // Legacy AI Usage counters (for backward compatibility)
   aiChatsUsed: integer("ai_chats_used").default(0),
   aiDeepAnalysisUsed: integer("ai_deep_analysis_used").default(0),
   aiInsightsGenerated: integer("ai_insights_generated").default(0),
@@ -1370,6 +1378,40 @@ export const cryptoTransactions = pgTable("crypto_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI Usage Logs - Detailed tracking of individual AI queries
+export const aiUsageLogs = pgTable("ai_usage_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  subscriptionId: varchar("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
+  // Query details
+  query: text("query").notNull(), // User's question
+  response: text("response"), // AI's response (optional, can be large)
+  // Model & routing
+  modelUsed: text("model_used").notNull(), // "scout", "sonnet", "opus"
+  modelName: text("model_name").notNull(), // Full model name (e.g., "meta-llama/llama-4-scout-17b-16e-instruct")
+  escalated: boolean("escalated").default(false), // Was it escalated from Scout to Reasoning?
+  escalationReason: text("escalation_reason"), // Why was it escalated?
+  orchestratorUsed: text("orchestrator_used"), // debt, retirement, tax, portfolio, etc.
+  // Token usage
+  tokensIn: integer("tokens_in").notNull(),
+  tokensOut: integer("tokens_out").notNull(),
+  totalTokens: integer("total_tokens").notNull(),
+  // Cost tracking
+  costUsd: decimal("cost_usd", { precision: 10, scale: 6 }).notNull(), // Cost in USD
+  // Performance
+  responseTimeMs: integer("response_time_ms"), // How long the query took
+  // Subscription tier at time of query
+  tierAtQuery: text("tier_at_query"), // "free", "pro", "enterprise"
+  // Metadata
+  ipAddress: text("ip_address"), // For abuse detection
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_ai_logs_user_id").on(table.userId),
+  index("idx_ai_logs_model_used").on(table.modelUsed),
+  index("idx_ai_logs_created_at").on(table.createdAt),
+]);
+
 // Subscription schema exports
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true });
@@ -1385,6 +1427,9 @@ export const insertBonusCreditSchema = createInsertSchema(bonusCredits).omit({ i
 export const insertCryptoHoldingSchema = createInsertSchema(cryptoHoldings).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertCryptoPriceAlertSchema = createInsertSchema(cryptoPriceAlerts).omit({ id: true, createdAt: true });
 export const insertCryptoTransactionSchema = createInsertSchema(cryptoTransactions).omit({ id: true, createdAt: true });
+
+// AI Usage Logs schema exports
+export const insertAiUsageLogSchema = createInsertSchema(aiUsageLogs).omit({ id: true, createdAt: true });
 
 // Subscription types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -1414,6 +1459,10 @@ export type CryptoTransaction = typeof cryptoTransactions.$inferSelect;
 export type InsertCryptoHolding = z.infer<typeof insertCryptoHoldingSchema>;
 export type InsertCryptoPriceAlert = z.infer<typeof insertCryptoPriceAlertSchema>;
 export type InsertCryptoTransaction = z.infer<typeof insertCryptoTransactionSchema>;
+
+// AI Usage Logs types
+export type AiUsageLog = typeof aiUsageLogs.$inferSelect;
+export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
 
 // Subscription relations
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({

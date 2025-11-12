@@ -426,6 +426,11 @@ export interface IStorage {
   initializeDefaultSubscription(userId: string): Promise<Subscription>;
   checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }>;
   resetUsage(userId: string): Promise<void>;
+  
+  // Tier-aware AI methods
+  getUserSubscriptionWithUsage(userId: string): Promise<{ subscription: Subscription; usage: UsageTracking | null; plan: SubscriptionPlan } | null>;
+  incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'opus'): Promise<void>;
+  insertAIUsageLog(log: Omit<InsertAiUsageLog, 'id' | 'createdAt'>): Promise<void>;
 
   // Referral methods
   getUserReferralCode(userId: string): Promise<ReferralCode | undefined>;
@@ -3376,6 +3381,67 @@ export class DatabaseStorage implements IStorage {
         aiInsightsGenerated: 0,
       });
     }
+  }
+
+  // Tier-aware AI methods
+  async getUserSubscriptionWithUsage(userId: string): Promise<{ subscription: Subscription; usage: UsageTracking | null; plan: SubscriptionPlan } | null> {
+    const subscription = await this.getUserSubscription(userId);
+    if (!subscription) {
+      return null;
+    }
+
+    const usage = await this.getUserUsage(userId);
+
+    return {
+      subscription,
+      usage: usage || null,
+      plan: subscription.plan,
+    };
+  }
+
+  async incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'opus'): Promise<void> {
+    let usage = await this.getUserUsage(userId);
+    const subscription = await this.getUserSubscription(userId);
+    const isLifetime = subscription?.plan?.isLifetimeLimit || false;
+
+    if (!usage) {
+      // Create new usage record with appropriate counters
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const periodStart = isLifetime ? now : startOfMonth;
+      const periodEnd = isLifetime ? new Date('2099-12-31') : endOfMonth;
+
+      await this.createUsageRecord({
+        userId,
+        subscriptionId,
+        periodStart,
+        periodEnd,
+        scoutQueriesUsed: modelType === 'scout' ? 1 : 0,
+        sonnetQueriesUsed: modelType === 'sonnet' ? 1 : 0,
+        opusQueriesUsed: modelType === 'opus' ? 1 : 0,
+        aiChatsUsed: 0,
+        aiDeepAnalysisUsed: 0,
+        aiInsightsGenerated: 0,
+      });
+    } else {
+      // Update existing counters
+      const updates: Partial<UsageTracking> = {};
+      if (modelType === 'scout') {
+        updates.scoutQueriesUsed = (usage.scoutQueriesUsed || 0) + 1;
+      } else if (modelType === 'sonnet') {
+        updates.sonnetQueriesUsed = (usage.sonnetQueriesUsed || 0) + 1;
+      } else if (modelType === 'opus') {
+        updates.opusQueriesUsed = (usage.opusQueriesUsed || 0) + 1;
+      }
+
+      await this.updateUsageRecord(usage.id, updates);
+    }
+  }
+
+  async insertAIUsageLog(log: Omit<InsertAiUsageLog, 'id' | 'createdAt'>): Promise<void> {
+    await db.insert(aiUsageLogs).values(log);
   }
 
   // Referral methods

@@ -60,6 +60,7 @@ import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
 import { generateProactiveInsights } from './proactiveInsightsService';
 import { predictiveAnalyticsService } from './predictiveAnalyticsService';
 import { generateHybridAdvice } from './ai/hybridAIService';
+import { routeWithTierCheck, type QuotaExceededError } from './ai/tierAwareRouter';
 import Stripe from "stripe";
 import { log } from "./vite";
 
@@ -4286,7 +4287,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
-  // ===== Hybrid AI Endpoint (Scout + Reasoning) =====
+  // ===== Tier-Aware Hybrid AI Endpoint (Scout + Sonnet + Opus) =====
   app.post("/api/ai/advise", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
@@ -4296,16 +4297,36 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         return res.status(400).json({ message: "Message is required" });
       }
       
-      console.log(`🧠 [Hybrid AI] Request from user ${userId}: "${message.substring(0, 100)}..."`);
+      console.log(`🧠 [TierAI] Request from user ${userId}: "${message.substring(0, 100)}..."`);
       
-      // Call hybrid AI service
-      const response = await generateHybridAdvice(userId, message, storage);
+      // Call tier-aware router for quota enforcement
+      const response = await routeWithTierCheck(userId, message, storage);
       
-      console.log(`✅ [Hybrid AI] Response: model=${response.modelUsed}, escalated=${response.escalated}, cost=$${response.cost.toFixed(6)}`);
+      // Check if quota exceeded
+      if ('type' in response && response.type === 'quota_exceeded') {
+        const quotaError = response as QuotaExceededError;
+        console.log(`⚠️  [TierAI] Quota exceeded: model=${quotaError.model}, used=${quotaError.used}/${quotaError.limit}`);
+        
+        // Return 429 Too Many Requests with upgrade CTA
+        return res.status(429).json({
+          ...quotaError,
+          message: `You've reached your ${quotaError.model} quota (${quotaError.used}/${quotaError.limit}).`,
+          upgradeCta: quotaError.nextTier ? `Upgrade to ${quotaError.nextTier} for more AI queries.` : 'You are on the highest tier.',
+        });
+      }
+      
+      // Success - log tier/model/quota context
+      console.log(
+        `✅ [TierAI] Response: model=${response.modelSlug}, ` +
+        `escalated=${response.escalated}, ` +
+        `tokens=${response.tokensIn}+${response.tokensOut}, ` +
+        `cost=$${response.cost.toFixed(6)}, ` +
+        `downgraded=${response.tierDowngraded || false}`
+      );
       
       res.json(response);
     } catch (error: any) {
-      console.error('[Hybrid AI] Error:', error);
+      console.error('[TierAI] Error:', error);
       res.status(500).json({ 
         message: error.message || "Failed to generate advice",
         error: process.env.NODE_ENV === 'development' ? error.stack : undefined

@@ -1,38 +1,48 @@
 /**
  * AI Configuration for Hybrid Scout + Reasoning Architecture
  * 
- * This config manages two AI models:
- * - Scout (Groq Llama 4): Fast, cheap queries (90-95% of traffic)
- * - Reasoning (Anthropic Claude Opus 4.1): Deep CFO-level analysis (5-10% of traffic)
+ * Three-tier AI system:
+ * - Scout 4 (Llama 4): Fast queries for Free/Pro/Enterprise (90-95% of traffic)
+ * - Sonnet 3.5: CFO-level analysis for Pro/Enterprise (5-10% of traffic)
+ * - Opus 4.1: Advanced CFO analysis for Enterprise only (2-5% of traffic)
  * 
  * Using Replit AI Integrations for Anthropic (no API key needed, billed to credits)
  */
 
 // Model cost table (USD per 1K tokens)
-// Based on provider pricing as of 2025
+// Based on provider pricing as of November 2025
 export const MODEL_COST_TABLE = {
-  // Scout models (Groq) - Updated pricing per Groq's published rates
-  'llama-3.1-70b-versatile': {
-    input: 0.00059,  // $0.59 per 1M tokens
-    output: 0.00079, // $0.79 per 1M tokens
-  },
-  'llama-3.3-70b-versatile': {
-    input: 0.00059,
-    output: 0.00079,
+  // Scout models (Groq Llama 4)
+  'meta-llama/llama-4-scout-17b-16e-instruct': {
+    input: 0.00011,  // $0.11 per 1M tokens
+    output: 0.00034, // $0.34 per 1M tokens
   },
   
   // Reasoning models (Anthropic via Replit AI Integrations)
-  'claude-opus-4-20250514': {
+  // Enterprise tier - Opus 4.1 (most powerful, released Aug 2025)
+  'claude-opus-4-1-20250805': {
     input: 0.015,    // $15 per 1M input tokens
     output: 0.075,   // $75 per 1M output tokens
   },
-  'claude-3-5-sonnet-20241022': {
+  'claude-opus-4-1': {
+    input: 0.015,
+    output: 0.075,
+  },
+  
+  // Pro tier - Sonnet 4.5 (best coding model, released Sep 2025)
+  'claude-sonnet-4-5-20250929': {
     input: 0.003,    // $3 per 1M input tokens
     output: 0.015,   // $15 per 1M output tokens
   },
-  'claude-3-5-haiku-20241022': {
-    input: 0.0008,   // $0.80 per 1M input tokens
-    output: 0.004,   // $4 per 1M output tokens
+  'claude-sonnet-4-5': {
+    input: 0.003,
+    output: 0.015,
+  },
+  
+  // Fallback - Sonnet 3.5 (still supported)
+  'claude-3-5-sonnet-20241022': {
+    input: 0.003,
+    output: 0.015,
   },
 } as const;
 
@@ -69,12 +79,13 @@ export interface AIConfig {
  * Load AI configuration from environment variables
  */
 export function loadAIConfig(): AIConfig {
-  // Scout config (Groq Llama 3.1)
-  const scoutModel = process.env.AI_SCOUT_MODEL || 'llama-3.1-70b-versatile';
+  // Scout config (Groq Llama 4)
+  const scoutModel = process.env.AI_SCOUT_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct';
   const scoutApiKey = process.env.GROQ_API_KEY || '';
   
   // Reasoning config (Anthropic via Replit AI Integrations)
-  const reasoningModel = process.env.AI_REASON_MODEL || 'claude-3-5-sonnet-20241022';
+  // Default to Sonnet 4.5 for Pro tier, Opus 4.1 available for Enterprise
+  const reasoningModel = process.env.AI_REASON_MODEL || 'claude-sonnet-4-5';
   const reasoningApiKey = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || '';
   const reasoningBaseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL || '';
   

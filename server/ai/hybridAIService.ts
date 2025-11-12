@@ -9,20 +9,35 @@
  */
 
 import type { IStorage } from '../storage';
-import { buildFinancialContext, estimateContextTokens } from './contextBuilder';
+import { buildFinancialContext, estimateContextTokens, type FinancialContext } from './contextBuilder';
 import { shouldEscalate, routeToModel, getRoutingReason, type ComplexitySignals } from './router';
-import { getScoutClient, getReasoningClient } from './clients';
+import { getScoutClient, getSonnetClient, getOpusClient, getReasoningClient } from './clients';
 import { analyzeDebt } from './orchestrators/debt';
 import { analyzeRetirement } from './orchestrators/retirement';
 import { analyzeTax } from './orchestrators/tax';
 import { analyzePortfolio } from './orchestrators/portfolio';
 
 /**
+ * Model access levels (matches tier system)
+ */
+export type ModelAccess = 'scout' | 'sonnet' | 'opus';
+
+/**
+ * Options for generating AI advice
+ */
+export interface GenerateAdviceOptions {
+  forceModel?: ModelAccess; // Override auto-escalation with tier-selected model
+  preselectedContext?: FinancialContext; // Pre-built context to avoid double assembly
+  skipAutoEscalation?: boolean; // Disable internal escalation logic
+}
+
+/**
  * Structured response from hybrid AI service
  */
 export interface HybridAIResponse {
   answer: string; // Natural language response
-  modelUsed: 'scout' | 'reasoning'; // Which model was used
+  modelUsed: 'scout' | 'reasoning'; // Which model was used (legacy)
+  modelSlug: string; // Exact model identifier (e.g., 'meta-llama/llama-4-scout-17b-16e-instruct')
   tokensIn: number; // Input tokens
   tokensOut: number; // Output tokens
   cost: number; // Cost in USD
@@ -30,6 +45,7 @@ export interface HybridAIResponse {
   escalationReason?: string; // Why it was escalated (if applicable)
   orchestratorUsed?: string; // Which orchestrator was called (if any)
   structuredData?: any; // Structured data from orchestrator (if any)
+  tierDowngraded?: boolean; // Whether tier logic downgraded the model
 }
 
 /**
@@ -38,39 +54,55 @@ export interface HybridAIResponse {
  * @param userId - User ID for context building
  * @param userMessage - User's question/request
  * @param storage - Storage interface for data access
+ * @param options - Optional configuration for forced model selection
  * @returns Structured AI response with metadata
  */
 export async function generateHybridAdvice(
   userId: string,
   userMessage: string,
-  storage: IStorage
+  storage: IStorage,
+  options: GenerateAdviceOptions = {}
 ): Promise<HybridAIResponse> {
-  // Step 1: Build financial context
-  const context = await buildFinancialContext(userId, storage);
+  const { forceModel, preselectedContext, skipAutoEscalation } = options;
   
-  // Step 2: Estimate context size for routing
-  const contextTokens = estimateContextTokens(context);
+  // Step 1: Build or use pre-selected financial context
+  const context = preselectedContext || await buildFinancialContext(userId, storage);
   
-  // Step 3: Determine escalation
-  const signals: ComplexitySignals = {
-    message: userMessage,
-    debtsCount: context.debts.length,
-    assetsCount: context.assets.length,
-    messageLength: userMessage.length,
-    contextTokens,
-  };
+  // Step 2: Determine which model to use
+  let targetModel: ModelAccess;
+  let routingReason: string | undefined;
   
-  const escalate = shouldEscalate(signals);
-  const model = routeToModel(signals);
-  const routingReason = escalate ? getRoutingReason(signals) : undefined;
-  
-  // Step 4: Route to appropriate model/orchestrator
-  if (escalate) {
-    // Deep CFO-level analysis with Claude Opus 4.1
-    return await handleReasoningQuery(userMessage, context, routingReason);
+  if (forceModel) {
+    // Tier-aware router has pre-selected the model
+    targetModel = forceModel;
+    routingReason = `Tier-enforced model: ${forceModel}`;
+  } else if (skipAutoEscalation) {
+    // Skip escalation logic, use Scout
+    targetModel = 'scout';
   } else {
-    // Fast query with Scout (Llama 4)
+    // Auto-escalation based on complexity
+    const contextTokens = estimateContextTokens(context);
+    const signals: ComplexitySignals = {
+      message: userMessage,
+      debtsCount: context.debts.length,
+      assetsCount: context.assets.length,
+      messageLength: userMessage.length,
+      contextTokens,
+    };
+    
+    const escalate = shouldEscalate(signals);
+    routingReason = escalate ? getRoutingReason(signals) : undefined;
+    
+    // Default to Scout for simple, Opus for complex (legacy behavior)
+    targetModel = escalate ? 'opus' : 'scout';
+  }
+  
+  // Step 3: Route to appropriate model/orchestrator
+  if (targetModel === 'scout') {
     return await handleScoutQuery(userMessage, context);
+  } else {
+    // Sonnet or Opus - both use reasoning path
+    return await handleReasoningQuery(userMessage, context, routingReason, targetModel);
   }
 }
 
@@ -98,6 +130,7 @@ async function handleScoutQuery(
   return {
     answer: response.text,
     modelUsed: 'scout',
+    modelSlug: response.model,
     tokensIn: response.tokensIn,
     tokensOut: response.tokensOut,
     cost: response.cost,
@@ -106,22 +139,23 @@ async function handleScoutQuery(
 }
 
 /**
- * Handle complex queries with Reasoning (Claude Opus 4.1) + orchestrators
+ * Handle complex queries with Reasoning (Claude Sonnet or Opus) + orchestrators
  */
 async function handleReasoningQuery(
   userMessage: string,
   context: any,
-  routingReason?: string
+  routingReason?: string,
+  targetModel: ModelAccess = 'opus'
 ): Promise<HybridAIResponse> {
   // Detect which orchestrator to use based on keywords
   const orchestrator = detectOrchestrator(userMessage, context);
   
   if (orchestrator) {
     // Call specialized orchestrator
-    return await callOrchestrator(orchestrator, userMessage, context, routingReason);
+    return await callOrchestrator(orchestrator, userMessage, context, routingReason, targetModel);
   } else {
     // Generic reasoning query (no specific orchestrator)
-    return await handleGenericReasoningQuery(userMessage, context, routingReason);
+    return await handleGenericReasoningQuery(userMessage, context, routingReason, targetModel);
   }
 }
 
@@ -176,12 +210,16 @@ async function callOrchestrator(
   orchestrator: string,
   userMessage: string,
   context: any,
-  routingReason?: string
+  routingReason?: string,
+  targetModel: ModelAccess = 'opus'
 ): Promise<HybridAIResponse> {
   let structuredData: any;
   let tokensIn = 0;
   let tokensOut = 0;
   let cost = 0;
+  
+  // Determine model slug for the target model
+  const modelSlug = targetModel === 'sonnet' ? 'claude-sonnet-4-5' : 'claude-opus-4-1';
   
   try {
     switch (orchestrator) {
@@ -190,28 +228,34 @@ async function callOrchestrator(
         // Estimate tokens (rough approximation)
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * 0.015 + (tokensOut / 1000) * 0.075; // Claude Opus 4.1 pricing
+        // Use pricing for the actual model
+        const inputCost = targetModel === 'sonnet' ? 0.003 : 0.015; // $3 vs $15 per 1M
+        const outputCost = targetModel === 'sonnet' ? 0.015 : 0.075; // $15 vs $75 per 1M
+        cost = (tokensIn / 1000) * inputCost + (tokensOut / 1000) * outputCost;
         break;
       
       case 'retirement':
         structuredData = await analyzeRetirement(context, userMessage);
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * 0.015 + (tokensOut / 1000) * 0.075;
+        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) + 
+               (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
         break;
       
       case 'tax':
         structuredData = await analyzeTax(context, userMessage);
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * 0.015 + (tokensOut / 1000) * 0.075;
+        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) + 
+               (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
         break;
       
       case 'portfolio':
         structuredData = await analyzePortfolio(context, userMessage);
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * 0.015 + (tokensOut / 1000) * 0.075;
+        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) + 
+               (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
         break;
       
       default:
@@ -221,6 +265,7 @@ async function callOrchestrator(
     return {
       answer: structuredData.summary,
       modelUsed: 'reasoning',
+      modelSlug,
       tokensIn,
       tokensOut,
       cost,
@@ -232,7 +277,7 @@ async function callOrchestrator(
   } catch (error) {
     // If orchestrator fails, fall back to generic reasoning query
     console.error(`Orchestrator ${orchestrator} failed:`, error);
-    return await handleGenericReasoningQuery(userMessage, context, routingReason);
+    return await handleGenericReasoningQuery(userMessage, context, routingReason, targetModel);
   }
 }
 
@@ -242,9 +287,11 @@ async function callOrchestrator(
 async function handleGenericReasoningQuery(
   userMessage: string,
   context: any,
-  routingReason?: string
+  routingReason?: string,
+  targetModel: ModelAccess = 'opus'
 ): Promise<HybridAIResponse> {
-  const client = getReasoningClient();
+  // Select the appropriate client based on target model
+  const client = targetModel === 'sonnet' ? getSonnetClient() : getOpusClient();
   
   // Build comprehensive prompt with context
   const systemPrompt = buildReasoningSystemPrompt(context);
@@ -261,6 +308,7 @@ async function handleGenericReasoningQuery(
   return {
     answer: response.text,
     modelUsed: 'reasoning',
+    modelSlug: response.model,
     tokensIn: response.tokensIn,
     tokensOut: response.tokensOut,
     cost: response.cost,
