@@ -178,52 +178,47 @@ export default function SubscriptionPage() {
  </div>
  </header>
  
- <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-10">
+ <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
 
  {/* Current Plan Status */}
  {currentPlan && (
- <Card>
- <CardHeader>
+ <Card className="border-border/40">
+ <CardHeader className="space-y-4">
  <CardTitle className="flex items-center justify-between">
  <div className="flex items-center gap-3">
  <div>
  <h2 className="text-xl font-semibold">Your Current Plan</h2>
- <p className="text-base text-muted-foreground">{currentPlan.displayName}</p>
+ <p className="text-sm text-muted-foreground mt-1">{currentPlan.displayName}</p>
  </div>
  </div>
- <Badge variant="secondary">Active</Badge>
+ <Badge variant="secondary" className="text-xs font-medium">Active</Badge>
  </CardTitle>
- <CardDescription className="text-base leading-relaxed">
+ <CardDescription className="text-sm leading-relaxed">
  {currentPlan.description}
  </CardDescription>
  </CardHeader>
- <CardContent className="relative space-y-6">
+ <CardContent className="relative space-y-8">
  {usage && (
- <div className="grid gap-6 md:grid-cols-3">
+ <div className="grid gap-4 md:grid-cols-3">
  {/* Scout Queries - Available for all tiers */}
- <div className="relative group">
- <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
- <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm space-y-3">
+ <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-blue-200/30 dark:border-blue-800/30 space-y-4">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Zap className="w-4 h-4 text-blue-500" />
- <span className="font-bold">Scout Queries</span>
+ <Zap className="w-4 h-4 text-blue-600" />
+ <span className="text-sm font-semibold">Scout Queries</span>
  </div>
  <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Scout</Badge>
  </div>
  <div className="flex items-baseline gap-1">
- <span className="font-bold text-2xl">
+ <span className="text-2xl font-bold text-blue-600">
  {usage.scoutUsage.used}
  </span>
  <span className="text-muted-foreground text-sm">/ {usage.scoutUsage.limit}</span>
  </div>
- <div className="relative">
  <Progress 
  value={(usage.scoutUsage.used / usage.scoutUsage.limit) * 100} 
- className="h-3 bg-blue-100 dark:bg-blue-900/30"
+ className="h-2 bg-blue-100 dark:bg-blue-900/30"
  />
- <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
- </div>
  {usage.scoutUsage.used >= usage.scoutUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
  <AlertTriangle className="h-3 w-3" />
@@ -235,29 +230,24 @@ export default function SubscriptionPage() {
 
  {/* Sonnet Queries - Available for Pro/Enterprise only */}
  {usage.sonnetUsage.limit > 0 && (
- <div className="relative group">
- <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
- <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm space-y-3">
+ <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-purple-200/30 dark:border-purple-800/30 space-y-4">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <TrendingUp className="w-4 h-4 text-purple-500" />
- <span className="font-bold">Sonnet Queries</span>
+ <TrendingUp className="w-4 h-4 text-purple-600" />
+ <span className="text-sm font-semibold">Sonnet Queries</span>
  </div>
  <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Sonnet</Badge>
  </div>
  <div className="flex items-baseline gap-1">
- <span className="font-bold text-2xl">
+ <span className="text-2xl font-bold text-purple-600">
  {usage.sonnetUsage.used}
  </span>
  <span className="text-muted-foreground text-sm">/ {usage.sonnetUsage.limit}</span>
  </div>
- <div className="relative">
  <Progress 
  value={(usage.sonnetUsage.used / usage.sonnetUsage.limit) * 100} 
- className="h-3 bg-purple-100 dark:bg-purple-900/30"
+ className="h-2 bg-purple-100 dark:bg-purple-900/30"
  />
- <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
- </div>
  {usage.sonnetUsage.used >= usage.sonnetUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
  <AlertTriangle className="h-3 w-3" />
@@ -265,34 +255,28 @@ export default function SubscriptionPage() {
  </div>
  )}
  </div>
- </div>
  )}
 
  {/* Opus Queries - Available for Enterprise only */}
  {usage.opusUsage.limit > 0 && (
- <div className="relative group">
- <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
- <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50 backdrop-blur-sm space-y-3">
+ <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-amber-200/30 dark:border-amber-800/30 space-y-4">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Crown className="w-4 h-4 text-yellow-500" />
- <span className="font-bold">Opus Queries</span>
+ <Crown className="w-4 h-4 text-amber-600" />
+ <span className="text-sm font-semibold">Opus Queries</span>
  </div>
- <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs px-2 py-0.5">Opus</Badge>
+ <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">Opus</Badge>
  </div>
  <div className="flex items-baseline gap-1">
- <span className="font-bold text-2xl">
+ <span className="text-2xl font-bold text-amber-600">
  {usage.opusUsage.used}
  </span>
  <span className="text-muted-foreground text-sm">/ {usage.opusUsage.limit}</span>
  </div>
- <div className="relative">
  <Progress 
  value={(usage.opusUsage.used / usage.opusUsage.limit) * 100} 
- className="h-3 bg-yellow-100 dark:bg-yellow-900/30"
+ className="h-2 bg-amber-100 dark:bg-amber-900/30"
  />
- <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
- </div>
  {usage.opusUsage.used >= usage.opusUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
  <AlertTriangle className="h-3 w-3" />
@@ -300,29 +284,28 @@ export default function SubscriptionPage() {
  </div>
  )}
  </div>
- </div>
  )}
  </div>
  )}
 
  <div className="grid gap-4 md:grid-cols-3">
- <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50">
+ <div className="text-center p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-border/30">
  <div className="text-2xl font-bold text-foreground">
  {usage?.insights || 0}
  </div>
- <div className="text-sm font-medium text-muted-foreground">Insights Generated</div>
+ <div className="text-xs text-muted-foreground mt-1">Insights Generated</div>
  </div>
- <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
+ <div className="text-center p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-border/30">
  <div className="text-2xl font-bold text-foreground">
  {usage?.totalTokens?.toLocaleString() || 0}
  </div>
- <div className="text-sm font-medium text-muted-foreground">Tokens Used</div>
+ <div className="text-xs text-muted-foreground mt-1">Tokens Used</div>
  </div>
- <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-xl border border-green-200/50 dark:border-green-800/50">
+ <div className="text-center p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-border/30">
  <div className="text-2xl font-bold text-foreground">
  ${usage?.estimatedCost || '0.000'}
  </div>
- <div className="text-sm font-medium text-muted-foreground">AI Costs This Month</div>
+ <div className="text-xs text-muted-foreground mt-1">AI Costs This Month</div>
  </div>
  </div>
  </CardContent>
@@ -330,12 +313,12 @@ export default function SubscriptionPage() {
  )}
 
  {/* Enhanced Pricing Plans */}
- <div className="space-y-8">
+ <div className="space-y-12">
  <div className="text-center space-y-4">
- <h2 className="text-2xl md:text-4xl font-bold text-foreground">
+ <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
  Choose Your Perfect Plan
  </h2>
- <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+ <p className="text-base text-muted-foreground max-w-2xl mx-auto">
  Start free, upgrade anytime. All plans include our core financial tracking features.
  </p>
  <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
@@ -353,7 +336,7 @@ export default function SubscriptionPage() {
  </div>
  </div>
  </div>
- <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
+ <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
  {plans?.filter(p => p.name === 'Free' || p.name === 'Pro').map((plan, index) => {
  const isCurrentPlan = currentPlan?.id === plan.id;
  const isPremium = plan.name === 'Pro';
@@ -362,45 +345,32 @@ export default function SubscriptionPage() {
  return (
  <Card 
  key={plan.id} 
- className={`relative group cursor-pointer ${
+ className={`relative transition-all ${
  isMostPopular 
- ? 'border-0 shadow-2xl bg-primary/10 ring-2 ring-primary/50' 
- : isPremium 
- ? 'border-primary/30 hover:border-primary shadow-lg ' 
- : ''
- } ${isCurrentPlan ? 'ring-2 ring-green-500 bg-green-50/30 dark:bg-green-950/20' : ''}
+ ? 'border-primary/40 shadow-lg ring-1 ring-primary/20' 
+ : 'border-border/40 hover:border-border shadow-sm'
+ } ${isCurrentPlan ? 'ring-2 ring-primary bg-primary/5' : ''}
  `}
- style={{ animationDelay: `${index * 150}ms` }}
  data-testid={`card-plan-${plan.name.toLowerCase()}`}
  >
  {isMostPopular && (
- <>
- <div className="absolute inset-0 bg-primary/20 blur-xl opacity-50" />
- <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold shadow-sm z-10">
+ <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 text-xs font-medium z-10">
  MOST POPULAR
- </Badge>
- </>
- )}
- {isPremium && !isMostPopular && (
- <Badge className="absolute -top-2 left-4 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold shadow-md">
- Recommended
  </Badge>
  )}
  
- <CardHeader className="relative space-y-4">
+ <CardHeader className="relative space-y-4 p-4 sm:p-6">
  <div className="flex items-center justify-between">
- <CardTitle className={`text-2xl font-bold ${
- isMostPopular ? 'text-foreground' : ''
- }`}>
+ <CardTitle className="text-lg font-bold">
  {plan.displayName}
  </CardTitle>
  {isCurrentPlan && (
- <Badge className="bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
+ <Badge className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium">
  Active
  </Badge>
  )}
  </div>
- <CardDescription className="text-base leading-relaxed">{plan.description}</CardDescription>
+ <CardDescription className="text-sm leading-relaxed">{plan.description}</CardDescription>
  
  <div className="space-y-2">
  <div className="flex items-baseline gap-2">
@@ -455,23 +425,23 @@ export default function SubscriptionPage() {
  </div>
  </CardHeader>
 
- <CardContent className="relative space-y-6">
+ <CardContent className="relative space-y-6 p-4 sm:p-6">
  {/* AI Model Quotas */}
  <div className="space-y-4">
- <h4 className="font-bold text-lg flex items-center gap-2">
- <Sparkles className="w-5 h-5 text-primary" />
+ <h4 className="text-base font-semibold flex items-center gap-2">
+ <Sparkles className="w-4 h-4 text-primary" />
  AI Model Quotas
  </h4>
  <div className="space-y-3">
  {/* Scout Queries - Available for all plans */}
  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
  <div className="flex items-center gap-2">
- <Zap className="w-4 h-4 text-blue-500" />
- <span className="font-medium">Scout Queries</span>
+ <Zap className="w-4 h-4 text-blue-600" />
+ <span className="text-sm font-medium">Scout Queries</span>
  <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Fast</Badge>
  </div>
  <div className="text-right">
- <span className="font-bold text-lg text-blue-600 block" data-testid={`text-${plan.name.toLowerCase()}-scout-limit`}>
+ <span className="text-base font-bold text-blue-600 block" data-testid={`text-${plan.name.toLowerCase()}-scout-limit`}>
  {plan.scoutLimit === 999999 ? 'Unlimited' : plan.scoutLimit}
  </span>
  <span className="text-xs text-muted-foreground">
@@ -484,12 +454,12 @@ export default function SubscriptionPage() {
  {plan.sonnetLimit > 0 && (
  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
  <div className="flex items-center gap-2">
- <TrendingUp className="w-4 h-4 text-purple-500" />
- <span className="font-medium">Sonnet Queries</span>
+ <TrendingUp className="w-4 h-4 text-purple-600" />
+ <span className="text-sm font-medium">Sonnet Queries</span>
  <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Advanced</Badge>
  </div>
  <div className="text-right">
- <span className="font-bold text-lg text-purple-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
+ <span className="text-base font-bold text-purple-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
  {plan.sonnetLimit === 999999 ? 'Unlimited' : plan.sonnetLimit}
  </span>
  <span className="text-xs text-muted-foreground">per month</span>
@@ -499,14 +469,14 @@ export default function SubscriptionPage() {
 
  {/* Opus Queries - Enterprise only */}
  {plan.opusLimit > 0 && (
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-yellow-200/30 dark:border-yellow-800/30">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-amber-200/30 dark:border-amber-800/30">
  <div className="flex items-center gap-2">
- <Crown className="w-4 h-4 text-yellow-500" />
- <span className="font-medium">Opus Queries</span>
- <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs px-2 py-0.5">Premium</Badge>
+ <Crown className="w-4 h-4 text-amber-600" />
+ <span className="text-sm font-medium">Opus Queries</span>
+ <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">Premium</Badge>
  </div>
  <div className="text-right">
- <span className="font-bold text-lg text-yellow-600 block" data-testid={`text-${plan.name.toLowerCase()}-opus-limit`}>
+ <span className="text-base font-bold text-amber-600 block" data-testid={`text-${plan.name.toLowerCase()}-opus-limit`}>
  {plan.opusLimit === 999999 ? 'Unlimited' : plan.opusLimit}
  </span>
  <span className="text-xs text-muted-foreground">per month</span>
@@ -515,12 +485,12 @@ export default function SubscriptionPage() {
  )}
 
  {/* AI Insights */}
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-green-200/30 dark:border-green-800/30">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-border/30">
  <div className="flex items-center gap-2">
- <Sparkles className="w-4 h-4 text-green-500" />
- <span className="font-medium">AI Insights</span>
+ <Sparkles className="w-4 h-4 text-primary" />
+ <span className="text-sm font-medium">AI Insights</span>
  </div>
- <span className="font-bold text-lg text-green-600 capitalize">
+ <span className="text-base font-bold capitalize">
  {plan.aiInsightsFrequency}
  </span>
  </div>

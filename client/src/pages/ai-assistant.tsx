@@ -359,30 +359,30 @@ export default function AIAssistantPage() {
  {/* Main Chat Area */}
  <div className="flex-1 flex flex-col h-full overflow-hidden">
  {/* Header */}
- <header className="shrink-0 border-b border-border bg-white dark:bg-black">
- <div className="flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}>
+ <header className="shrink-0 border-b border-border/40 bg-white dark:bg-black">
+ <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
  <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
  <div className="flex items-center gap-2 min-w-0">
- <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-black dark:text-white shrink-0" />
- <h1 className="text-sm sm:text-lg font-semibold truncate">Twealth AI</h1>
+ <Brain className="w-5 h-5 text-black dark:text-white shrink-0" />
+ <h1 className="text-base sm:text-xl font-semibold truncate">Twealth AI</h1>
  </div>
  
  {/* Mode Selector */}
  <Select value={analysisMode} onValueChange={(v: 'quick' | 'deep') => setAnalysisMode(v)}>
- <SelectTrigger className="w-[120px] sm:w-[160px] h-11 sm:h-9 text-xs sm:text-sm" data-testid="select-analysis-mode">
+ <SelectTrigger className="w-[130px] sm:w-[160px] h-9 text-xs sm:text-sm" data-testid="select-analysis-mode">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
  <SelectItem value="quick">
  <div className="flex items-center gap-2">
- <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
- <span className="text-xs sm:text-sm">Quick Chat</span>
+ <Zap className="w-4 h-4" />
+ <span className="text-sm">Quick Chat</span>
  </div>
  </SelectItem>
  <SelectItem value="deep">
  <div className="flex items-center gap-2">
- <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
- <span className="text-xs sm:text-sm">Deep Analysis</span>
+ <BarChart3 className="w-4 h-4" />
+ <span className="text-sm">Deep Analysis</span>
  </div>
  </SelectItem>
  </SelectContent>
@@ -391,14 +391,14 @@ export default function AIAssistantPage() {
 
  {/* Tier Badge & Quota Indicator */}
  {usage && (
- <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+ <div className="flex items-center gap-3 shrink-0">
  <Badge 
  variant={tier === 'Enterprise' ? 'default' : tier === 'Pro' ? 'secondary' : 'outline'}
  className={`
- text-xs font-medium px-2 py-0.5
+ text-xs font-medium px-2.5 py-0.5
  ${tier === 'Enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white border-0' : ''}
  ${tier === 'Pro' ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0' : ''}
- ${tier === 'Free' ? 'border-border' : ''}
+ ${tier === 'Free' ? 'border-border/50' : ''}
  `}
  data-testid="badge-tier"
  >
@@ -423,62 +423,62 @@ export default function AIAssistantPage() {
  </header>
 
  {/* Messages Area - Scrollable flex-grow container */}
- <div className="flex-1 overflow-y-auto px-3 sm:px-4">
- <div className="max-w-3xl mx-auto py-4 sm:py-8 pb-4 sm:pb-6">
+ <div className="flex-1 overflow-y-auto px-4 sm:px-6">
+ <div className="max-w-3xl mx-auto py-6 sm:py-8 space-y-6">
  {/* Model Quota Display */}
  {usage && (
- <Card className="mb-4 sm:mb-6 border border-border bg-white dark:bg-black" data-testid="quota-display">
- <div className="p-3 sm:p-4">
- <div className="flex items-center justify-between mb-3">
- <h3 className="text-sm font-semibold">AI Model Quotas</h3>
+ <Card className="border border-border/40 bg-white dark:bg-black" data-testid="quota-display">
+ <div className="p-4 sm:p-6">
+ <div className="flex items-center justify-between mb-4">
+ <h3 className="text-base font-semibold">AI Model Quotas</h3>
  <Button
  variant="ghost"
  size="sm"
- className="text-xs h-7 px-2"
+ className="text-xs h-8 px-3"
  onClick={() => window.location.href = '/subscription'}
  data-testid="button-view-plans"
  >
  View Plans
  </Button>
  </div>
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
  {/* Scout - Always visible */}
- <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-border bg-muted/30" data-testid="quota-scout">
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-blue-200/30 dark:border-blue-800/30 bg-white dark:bg-gray-900" data-testid="quota-scout">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
  <div>
- <p className="text-xs font-medium">Scout</p>
- <p className="text-[10px] sm:text-xs text-muted-foreground">Fast responses</p>
+ <p className="text-sm font-medium">Scout</p>
+ <p className="text-xs text-muted-foreground">Fast responses</p>
  </div>
  </div>
  <div className="text-right">
- <p className="text-sm font-bold">{usage.scoutUsage?.remaining || 0}</p>
- <p className="text-[10px] text-muted-foreground">left</p>
+ <p className="text-base font-bold text-blue-600">{usage.scoutUsage?.remaining || 0}</p>
+ <p className="text-xs text-muted-foreground">remaining</p>
  </div>
  </div>
 
  {/* Sonnet - Only if limit > 0 */}
  {usage.sonnetUsage && usage.sonnetUsage.limit > 0 ? (
- <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-border bg-muted/30" data-testid="quota-sonnet">
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-purple-200/30 dark:border-purple-800/30 bg-white dark:bg-gray-900" data-testid="quota-sonnet">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
  <div>
- <p className="text-xs font-medium">Sonnet</p>
- <p className="text-[10px] sm:text-xs text-muted-foreground">Deep analysis</p>
+ <p className="text-sm font-medium">Sonnet</p>
+ <p className="text-xs text-muted-foreground">Deep analysis</p>
  </div>
  </div>
  <div className="text-right">
- <p className="text-sm font-bold">{usage.sonnetUsage.remaining}</p>
- <p className="text-[10px] text-muted-foreground">left</p>
+ <p className="text-base font-bold text-purple-600">{usage.sonnetUsage.remaining}</p>
+ <p className="text-xs text-muted-foreground">remaining</p>
  </div>
  </div>
  ) : (
- <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-sonnet-locked">
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-sonnet-locked">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-purple-300"></div>
  <div>
- <p className="text-xs font-medium text-muted-foreground">Sonnet</p>
- <p className="text-[10px] text-muted-foreground">Pro tier</p>
+ <p className="text-sm font-medium text-muted-foreground">Sonnet</p>
+ <p className="text-xs text-muted-foreground">Pro tier</p>
  </div>
  </div>
  <Crown className="w-4 h-4 text-muted-foreground" />
@@ -487,26 +487,26 @@ export default function AIAssistantPage() {
 
  {/* Opus - Only if limit > 0 */}
  {usage.opusUsage && usage.opusUsage.limit > 0 ? (
- <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-border bg-muted/30" data-testid="quota-opus">
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-amber-200/30 dark:border-amber-800/30 bg-white dark:bg-gray-900" data-testid="quota-opus">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
  <div>
- <p className="text-xs font-medium">Opus</p>
- <p className="text-[10px] sm:text-xs text-muted-foreground">Advanced CFO</p>
+ <p className="text-sm font-medium">Opus</p>
+ <p className="text-xs text-muted-foreground">Advanced CFO</p>
  </div>
  </div>
  <div className="text-right">
- <p className="text-sm font-bold">{usage.opusUsage.remaining}</p>
- <p className="text-[10px] text-muted-foreground">left</p>
+ <p className="text-base font-bold text-amber-600">{usage.opusUsage.remaining}</p>
+ <p className="text-xs text-muted-foreground">remaining</p>
  </div>
  </div>
  ) : (
- <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-opus-locked">
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-opus-locked">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-amber-300"></div>
  <div>
- <p className="text-xs font-medium text-muted-foreground">Opus</p>
- <p className="text-[10px] text-muted-foreground">Enterprise</p>
+ <p className="text-sm font-medium text-muted-foreground">Opus</p>
+ <p className="text-xs text-muted-foreground">Enterprise</p>
  </div>
  </div>
  <Gem className="w-4 h-4 text-muted-foreground" />
@@ -518,33 +518,33 @@ export default function AIAssistantPage() {
  )}
 
  {!hasMessages ? (
- /* Empty State */
- <div className="flex flex-col items-center justify-center min-h-[40vh] sm:min-h-[50vh] text-center px-4">
- <div className="w-12 h-12 sm:w-16 sm:h-16 bg-black dark:bg-white rounded-lg flex items-center justify-center mb-4 sm:mb-6 border border-border">
- <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-white dark:text-black" />
+ /* Empty State */}
+ <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">
+ <div className="w-14 h-14 sm:w-16 sm:h-16 bg-black dark:bg-white rounded-xl flex items-center justify-center mb-6 border border-border/40">
+ <Brain className="w-7 h-7 sm:w-8 sm:h-8 text-white dark:text-black" />
  </div>
- <h2 className="text-xl sm:text-3xl font-bold mb-2">Your Personal CFO</h2>
- <p className="text-muted-foreground text-sm sm:text-lg mb-1 sm:mb-2 max-w-md">
+ <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Your Personal CFO</h2>
+ <p className="text-muted-foreground text-base mb-2 max-w-md">
  Expert financial advice powered by AI
  </p>
- <p className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-8 max-w-md">
+ <p className="text-sm text-muted-foreground mb-8 max-w-md">
  Ask me anything about budgeting, investing, debt payoff, retirement, or financial planning
  </p>
 
  {/* Starter Prompts Grid */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 w-full max-w-4xl">
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-4xl">
  {starterPrompts.map((prompt, index) => (
  <button
  key={index}
  onClick={() => setCurrentMessage(prompt.prompt)}
- className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 text-left rounded-lg border border-border hover:bg-muted/50 min-h-[44px] transition-all"
+ className="flex items-start gap-3 p-4 text-left rounded-lg border border-border/40 hover:border-border hover:bg-muted/30 min-h-[44px] transition-all"
  data-testid={`starter-prompt-${index}`}
  >
  <div className="text-black dark:text-white shrink-0">
  {prompt.icon}
  </div>
  <div className="flex-1 min-w-0">
- <p className="font-medium text-xs sm:text-sm mb-0.5 sm:mb-1">{prompt.title}</p>
+ <p className="font-medium text-sm mb-1">{prompt.title}</p>
  <p className="text-xs text-muted-foreground line-clamp-2">{prompt.prompt}</p>
  </div>
  </button>
@@ -580,8 +580,8 @@ export default function AIAssistantPage() {
  </div>
 
  {/* Input Area - Flex item at bottom, always visible */}
- <div className="shrink-0 border-t border-border bg-white dark:bg-black pb-20 sm:pb-4" style={{ paddingBottom: 'max(5rem, calc(5rem + env(safe-area-inset-bottom)))' }}>
- <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-3 sm:pt-4">
+ <div className="shrink-0 border-t border-border/40 bg-white dark:bg-black pb-20 sm:pb-4" style={{ paddingBottom: 'max(5rem, calc(5rem + env(safe-area-inset-bottom)))' }}>
+ <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
  <div className="relative">
  <Textarea
  ref={textareaRef}
@@ -589,7 +589,7 @@ export default function AIAssistantPage() {
  onChange={(e) => setCurrentMessage(e.target.value)}
  onKeyDown={handleKeyDown}
  placeholder="Message Twealth AI..."
- className="min-h-[48px] sm:min-h-[52px] max-h-[120px] sm:max-h-[200px] resize-none pr-12 sm:pr-14 text-sm sm:text-base w-full"
+ className="min-h-[52px] max-h-[150px] sm:max-h-[200px] resize-none pr-14 text-base w-full"
  rows={1}
  data-testid="input-message"
  />
@@ -597,18 +597,18 @@ export default function AIAssistantPage() {
  onClick={handleSendMessage}
  disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
  size="icon"
- className="absolute right-2 bottom-2 h-12 w-12 sm:h-10 sm:w-10"
+ className="absolute right-2 bottom-2 h-10 w-10"
  data-testid="button-send-message"
  title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
  >
  {rateLimitRetryAfter > 0 ? (
  <span className="text-xs font-medium">{rateLimitRetryAfter}s</span>
  ) : (
- <Send className="w-4 h-4 sm:w-4 sm:h-4" />
+ <Send className="w-4 h-4" />
  )}
  </Button>
  </div>
- <p className="text-xs text-muted-foreground mt-2 text-center hidden sm:block">
+ <p className="text-xs text-muted-foreground mt-3 text-center hidden sm:block">
  Twealth AI can make mistakes. Consider checking important information.
  </p>
  </div>
