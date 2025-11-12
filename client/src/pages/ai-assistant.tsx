@@ -21,15 +21,38 @@ import {
  TrendingUp,
  PiggyBank,
  Target,
- DollarSign
+ DollarSign,
+ Shield,
+ Gem
 } from"lucide-react";
 import { useToast } from"@/hooks/use-toast";
 import { ToastAction } from"@/components/ui/toast";
 import { apiRequest, queryClient, RateLimitError } from"@/lib/queryClient";
 import { ConversationSidebar } from"@/components/chat/conversation-sidebar";
 import { MessageBubble, TypingIndicator } from"@/components/chat/message-bubble";
+import { Badge } from"@/components/ui/badge";
+import { Progress } from"@/components/ui/progress";
+import { Card } from"@/components/ui/card";
 
 interface UsageInfo {
+ scoutUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ allowed: boolean;
+ };
+ sonnetUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ allowed: boolean;
+ };
+ opusUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ allowed: boolean;
+ };
  chatUsage: {
  used: number;
  limit: number;
@@ -136,6 +159,41 @@ export default function AIAssistantPage() {
  return () => textarea.removeEventListener('focus', handleFocus);
  }, []);
 
+ // Helper function to determine current tier
+ const getCurrentTier = () => {
+ if (!usage) return 'Free';
+ if (usage.opusUsage && usage.opusUsage.limit > 0) return 'Enterprise';
+ if (usage.sonnetUsage && usage.sonnetUsage.limit > 0) return 'Pro';
+ return 'Free';
+ };
+
+ // Helper function to get upgrade benefits based on exceeded model
+ const getUpgradeMessage = (exceededModel?: string) => {
+ const tier = getCurrentTier();
+ 
+ if (exceededModel === 'opus' || tier === 'Enterprise') {
+ return {
+ title: "Opus Quota Exceeded",
+ description: "You've used all your Enterprise Opus queries. Your queries will use Sonnet until quota resets.",
+ benefits: "Opus provides the most advanced analysis for complex financial decisions."
+ };
+ }
+ 
+ if (exceededModel === 'sonnet' || tier === 'Pro') {
+ return {
+ title: "Upgrade to Enterprise",
+ description: "Unlock Opus for the most sophisticated financial analysis and unlimited queries.",
+ benefits: "Enterprise includes: Unlimited Opus queries, Priority support, Advanced portfolio optimization"
+ };
+ }
+ 
+ return {
+ title: "Upgrade to Pro",
+ description: "Get access to Sonnet for deeper financial analysis with 50 queries/month.",
+ benefits: "Pro includes: Sonnet AI (50/mo), Advanced insights, Goal optimization, Priority responses"
+ };
+ };
+
  // Send message mutation
  const sendMessageMutation = useMutation({
  mutationFn: async (content: string) => {
@@ -157,7 +215,8 @@ export default function AIAssistantPage() {
  
  if (messageResponse.status === 429) {
  const errorData = await messageResponse.json();
- throw new Error(errorData.message || 'Quota exceeded');
+ const exceededModel = errorData.exceededModel;
+ throw { isQuotaError: true, exceededModel, message: errorData.message };
  }
  
  return await messageResponse.json();
@@ -177,13 +236,17 @@ export default function AIAssistantPage() {
  variant:"destructive",
  duration: error.retryAfter * 1000,
  });
- } else if (error.message.includes("limit exceeded") || error.message.includes("Quota")) {
+ } else if (error.isQuotaError) {
+ const upgradeMsg = getUpgradeMessage(error.exceededModel);
+ const tier = getCurrentTier();
+ const needsUpgrade = tier === 'Free' || (tier === 'Pro' && error.exceededModel === 'sonnet');
+ 
  toast({
- title:"Upgrade Required",
- description:"You've reached your AI chat limit. Upgrade to continue.",
+ title: upgradeMsg.title,
+ description: upgradeMsg.description,
  variant:"destructive",
- duration: 8000,
- action: (
+ duration: 10000,
+ action: needsUpgrade ? (
  <ToastAction 
  altText="Upgrade"
  onClick={() => window.location.href = '/subscription'}
@@ -191,7 +254,7 @@ export default function AIAssistantPage() {
  <Crown className="w-4 h-4 mr-2" />
  Upgrade
  </ToastAction>
- )
+ ) : undefined
  });
  } else {
  toast({
@@ -277,6 +340,11 @@ export default function AIAssistantPage() {
  const messages = currentConversation?.messages || [];
  const hasMessages = messages.length > 0;
 
+ const tier = getCurrentTier();
+ const totalUsed = usage ? (usage.scoutUsage?.used || 0) + (usage.sonnetUsage?.used || 0) + (usage.opusUsage?.used || 0) : 0;
+ const totalLimit = usage ? (usage.scoutUsage?.limit || 0) + (usage.sonnetUsage?.limit || 0) + (usage.opusUsage?.limit || 0) : 0;
+ const usagePercentage = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
+
  return (
  <div className="flex h-screen bg-background" style={{ height: '100dvh' }}>
  {/* Sidebar */}
@@ -321,11 +389,34 @@ export default function AIAssistantPage() {
  </Select>
  </div>
 
- {/* Usage Counter */}
+ {/* Tier Badge & Quota Indicator */}
  {usage && (
- <div className="text-xs sm:text-sm text-muted-foreground shrink-0">
- <span className="font-medium">{usage.chatUsage.used}/{usage.chatUsage.limit}</span>
- <span className="hidden sm:inline"> chats used</span>
+ <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+ <Badge 
+ variant={tier === 'Enterprise' ? 'default' : tier === 'Pro' ? 'secondary' : 'outline'}
+ className={`
+ text-xs font-medium px-2 py-0.5
+ ${tier === 'Enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white border-0' : ''}
+ ${tier === 'Pro' ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0' : ''}
+ ${tier === 'Free' ? 'border-border' : ''}
+ `}
+ data-testid="badge-tier"
+ >
+ {tier === 'Enterprise' && <Gem className="w-3 h-3 mr-1" />}
+ {tier === 'Pro' && <Crown className="w-3 h-3 mr-1" />}
+ {tier === 'Free' && <Shield className="w-3 h-3 mr-1" />}
+ {tier}
+ </Badge>
+ <div className="hidden sm:flex flex-col gap-1 min-w-[100px]" data-testid="quota-indicator">
+ <div className="flex items-center justify-between text-xs">
+ <span className="text-muted-foreground">Quota</span>
+ <span className="font-medium">{totalLimit - totalUsed}/{totalLimit}</span>
+ </div>
+ <Progress 
+ value={100 - usagePercentage} 
+ className="h-1.5"
+ />
+ </div>
  </div>
  )}
  </div>
@@ -334,9 +425,101 @@ export default function AIAssistantPage() {
  {/* Messages Area - Scrollable flex-grow container */}
  <div className="flex-1 overflow-y-auto px-3 sm:px-4">
  <div className="max-w-3xl mx-auto py-4 sm:py-8 pb-4 sm:pb-6">
+ {/* Model Quota Display */}
+ {usage && (
+ <Card className="mb-4 sm:mb-6 border border-border bg-white dark:bg-black" data-testid="quota-display">
+ <div className="p-3 sm:p-4">
+ <div className="flex items-center justify-between mb-3">
+ <h3 className="text-sm font-semibold">AI Model Quotas</h3>
+ <Button
+ variant="ghost"
+ size="sm"
+ className="text-xs h-7 px-2"
+ onClick={() => window.location.href = '/subscription'}
+ data-testid="button-view-plans"
+ >
+ View Plans
+ </Button>
+ </div>
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+ {/* Scout - Always visible */}
+ <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-border bg-muted/30" data-testid="quota-scout">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+ <div>
+ <p className="text-xs font-medium">Scout</p>
+ <p className="text-[10px] sm:text-xs text-muted-foreground">Fast responses</p>
+ </div>
+ </div>
+ <div className="text-right">
+ <p className="text-sm font-bold">{usage.scoutUsage?.remaining || 0}</p>
+ <p className="text-[10px] text-muted-foreground">left</p>
+ </div>
+ </div>
+
+ {/* Sonnet - Only if limit > 0 */}
+ {usage.sonnetUsage && usage.sonnetUsage.limit > 0 ? (
+ <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-border bg-muted/30" data-testid="quota-sonnet">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+ <div>
+ <p className="text-xs font-medium">Sonnet</p>
+ <p className="text-[10px] sm:text-xs text-muted-foreground">Deep analysis</p>
+ </div>
+ </div>
+ <div className="text-right">
+ <p className="text-sm font-bold">{usage.sonnetUsage.remaining}</p>
+ <p className="text-[10px] text-muted-foreground">left</p>
+ </div>
+ </div>
+ ) : (
+ <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-sonnet-locked">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-purple-300"></div>
+ <div>
+ <p className="text-xs font-medium text-muted-foreground">Sonnet</p>
+ <p className="text-[10px] text-muted-foreground">Pro tier</p>
+ </div>
+ </div>
+ <Crown className="w-4 h-4 text-muted-foreground" />
+ </div>
+ )}
+
+ {/* Opus - Only if limit > 0 */}
+ {usage.opusUsage && usage.opusUsage.limit > 0 ? (
+ <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-border bg-muted/30" data-testid="quota-opus">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+ <div>
+ <p className="text-xs font-medium">Opus</p>
+ <p className="text-[10px] sm:text-xs text-muted-foreground">Advanced CFO</p>
+ </div>
+ </div>
+ <div className="text-right">
+ <p className="text-sm font-bold">{usage.opusUsage.remaining}</p>
+ <p className="text-[10px] text-muted-foreground">left</p>
+ </div>
+ </div>
+ ) : (
+ <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-opus-locked">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-amber-300"></div>
+ <div>
+ <p className="text-xs font-medium text-muted-foreground">Opus</p>
+ <p className="text-[10px] text-muted-foreground">Enterprise</p>
+ </div>
+ </div>
+ <Gem className="w-4 h-4 text-muted-foreground" />
+ </div>
+ )}
+ </div>
+ </div>
+ </Card>
+ )}
+
  {!hasMessages ? (
  /* Empty State */
- <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[60vh] text-center px-4">
+ <div className="flex flex-col items-center justify-center min-h-[40vh] sm:min-h-[50vh] text-center px-4">
  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-black dark:bg-white rounded-lg flex items-center justify-center mb-4 sm:mb-6 border border-border">
  <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-white dark:text-black" />
  </div>

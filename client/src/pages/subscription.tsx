@@ -19,6 +19,9 @@ interface SubscriptionPlan {
  priceUsd: string;
  currency: string;
  billingInterval: string;
+ scoutLimit: number;
+ sonnetLimit: number;
+ opusLimit: number;
  aiChatLimit: number;
  aiDeepAnalysisLimit: number;
  aiInsightsFrequency: string;
@@ -50,6 +53,21 @@ interface SubscriptionData {
 }
 
 interface UsageInfo {
+ scoutUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ };
+ sonnetUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ };
+ opusUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ };
  chatUsage: {
  used: number;
  limit: number;
@@ -181,56 +199,109 @@ export default function SubscriptionPage() {
  </CardHeader>
  <CardContent className="relative space-y-6">
  {usage && (
- <div className="grid gap-6 md:grid-cols-2">
+ <div className="grid gap-6 md:grid-cols-3">
+ {/* Scout Queries - Available for all tiers */}
  <div className="relative group">
  <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
  <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm space-y-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Sparkles className="w-4 h-4 text-blue-500" />
- <span className="font-bold">AI Chats</span>
+ <Zap className="w-4 h-4 text-blue-500" />
+ <span className="font-bold">Scout Queries</span>
  </div>
- <span className="font-bold text-lg">
- {usage.chatUsage.used} / {usage.chatUsage.limit}
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Scout</Badge>
+ </div>
+ <div className="flex items-baseline gap-1">
+ <span className="font-bold text-2xl">
+ {usage.scoutUsage.used}
  </span>
+ <span className="text-muted-foreground text-sm">/ {usage.scoutUsage.limit}</span>
  </div>
  <div className="relative">
  <Progress 
- value={(usage.chatUsage.used / usage.chatUsage.limit) * 100} 
+ value={(usage.scoutUsage.used / usage.scoutUsage.limit) * 100} 
  className="h-3 bg-blue-100 dark:bg-blue-900/30"
  />
  <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
  </div>
- {usage.chatUsage.used >= usage.chatUsage.limit * 0.8 && (
+ {usage.scoutUsage.used >= usage.scoutUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
  <AlertTriangle className="h-3 w-3" />
- <span className="font-medium">Running low on quota - consider upgrading!</span>
+ <span className="font-medium">Running low on quota!</span>
  </div>
  )}
  </div>
  </div>
 
+ {/* Sonnet Queries - Available for Pro/Enterprise only */}
+ {usage.sonnetUsage.limit > 0 && (
  <div className="relative group">
  <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
- <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm space-y-3">
+ <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50 backdrop-blur-sm space-y-3">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <TrendingUp className="w-4 h-4 text-green-500" />
- <span className="font-bold">Deep Analysis</span>
+ <TrendingUp className="w-4 h-4 text-purple-500" />
+ <span className="font-bold">Sonnet Queries</span>
  </div>
- <span className="font-bold text-lg">
- {usage.analysisUsage.used} / {usage.analysisUsage.limit}
+ <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Sonnet</Badge>
+ </div>
+ <div className="flex items-baseline gap-1">
+ <span className="font-bold text-2xl">
+ {usage.sonnetUsage.used}
  </span>
+ <span className="text-muted-foreground text-sm">/ {usage.sonnetUsage.limit}</span>
  </div>
  <div className="relative">
  <Progress 
- value={(usage.analysisUsage.used / usage.analysisUsage.limit) * 100} 
- className="h-3 bg-green-100 dark:bg-green-900/30"
+ value={(usage.sonnetUsage.used / usage.sonnetUsage.limit) * 100} 
+ className="h-3 bg-purple-100 dark:bg-purple-900/30"
  />
  <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
  </div>
+ {usage.sonnetUsage.used >= usage.sonnetUsage.limit * 0.8 && (
+ <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
+ <AlertTriangle className="h-3 w-3" />
+ <span className="font-medium">Running low on quota!</span>
+ </div>
+ )}
  </div>
  </div>
+ )}
+
+ {/* Opus Queries - Available for Enterprise only */}
+ {usage.opusUsage.limit > 0 && (
+ <div className="relative group">
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
+ <div className="relative p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-yellow-200/50 dark:border-yellow-800/50 backdrop-blur-sm space-y-3">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2">
+ <Crown className="w-4 h-4 text-yellow-500" />
+ <span className="font-bold">Opus Queries</span>
+ </div>
+ <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs px-2 py-0.5">Opus</Badge>
+ </div>
+ <div className="flex items-baseline gap-1">
+ <span className="font-bold text-2xl">
+ {usage.opusUsage.used}
+ </span>
+ <span className="text-muted-foreground text-sm">/ {usage.opusUsage.limit}</span>
+ </div>
+ <div className="relative">
+ <Progress 
+ value={(usage.opusUsage.used / usage.opusUsage.limit) * 100} 
+ className="h-3 bg-yellow-100 dark:bg-yellow-900/30"
+ />
+ <div className="absolute inset-0 bg-white dark:bg-gray-900 rounded-full opacity-20" />
+ </div>
+ {usage.opusUsage.used >= usage.opusUsage.limit * 0.8 && (
+ <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
+ <AlertTriangle className="h-3 w-3" />
+ <span className="font-medium">Running low on quota!</span>
+ </div>
+ )}
+ </div>
+ </div>
+ )}
  </div>
  )}
 
@@ -385,33 +456,71 @@ export default function SubscriptionPage() {
  </CardHeader>
 
  <CardContent className="relative space-y-6">
- {/* AI Features Highlights */}
+ {/* AI Model Quotas */}
  <div className="space-y-4">
  <h4 className="font-bold text-lg flex items-center gap-2">
  <Sparkles className="w-5 h-5 text-primary" />
- AI Features
+ AI Model Quotas
  </h4>
  <div className="space-y-3">
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg">
- <span className="font-medium">AI Chats</span>
+ {/* Scout Queries - Available for all plans */}
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
+ <div className="flex items-center gap-2">
+ <Zap className="w-4 h-4 text-blue-500" />
+ <span className="font-medium">Scout Queries</span>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Fast</Badge>
+ </div>
  <div className="text-right">
- <span className="font-bold text-lg text-primary block" data-testid={`text-${plan.name.toLowerCase()}-chat-limit`}>
- {plan.aiChatLimit === 999999 ? 'Unlimited' : plan.aiChatLimit}
+ <span className="font-bold text-lg text-blue-600 block" data-testid={`text-${plan.name.toLowerCase()}-scout-limit`}>
+ {plan.scoutLimit === 999999 ? 'Unlimited' : plan.scoutLimit}
  </span>
  <span className="text-xs text-muted-foreground">
  {plan.isLifetimeLimit ? 'lifetime total' : 'per month'}
  </span>
  </div>
  </div>
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg">
- <span className="font-medium">Deep Analysis</span>
- <span className="font-bold text-lg text-primary">
- {plan.aiDeepAnalysisLimit === 999999 ? 'Unlimited' : plan.aiDeepAnalysisLimit}
- </span>
+
+ {/* Sonnet Queries - Pro/Enterprise only */}
+ {plan.sonnetLimit > 0 && (
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
+ <div className="flex items-center gap-2">
+ <TrendingUp className="w-4 h-4 text-purple-500" />
+ <span className="font-medium">Sonnet Queries</span>
+ <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Advanced</Badge>
  </div>
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg">
+ <div className="text-right">
+ <span className="font-bold text-lg text-purple-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
+ {plan.sonnetLimit === 999999 ? 'Unlimited' : plan.sonnetLimit}
+ </span>
+ <span className="text-xs text-muted-foreground">per month</span>
+ </div>
+ </div>
+ )}
+
+ {/* Opus Queries - Enterprise only */}
+ {plan.opusLimit > 0 && (
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-yellow-200/30 dark:border-yellow-800/30">
+ <div className="flex items-center gap-2">
+ <Crown className="w-4 h-4 text-yellow-500" />
+ <span className="font-medium">Opus Queries</span>
+ <Badge className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-xs px-2 py-0.5">Premium</Badge>
+ </div>
+ <div className="text-right">
+ <span className="font-bold text-lg text-yellow-600 block" data-testid={`text-${plan.name.toLowerCase()}-opus-limit`}>
+ {plan.opusLimit === 999999 ? 'Unlimited' : plan.opusLimit}
+ </span>
+ <span className="text-xs text-muted-foreground">per month</span>
+ </div>
+ </div>
+ )}
+
+ {/* AI Insights */}
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-green-200/30 dark:border-green-800/30">
+ <div className="flex items-center gap-2">
+ <Sparkles className="w-4 h-4 text-green-500" />
  <span className="font-medium">AI Insights</span>
- <span className="font-bold text-lg text-primary capitalize">
+ </div>
+ <span className="font-bold text-lg text-green-600 capitalize">
  {plan.aiInsightsFrequency}
  </span>
  </div>

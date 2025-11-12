@@ -2555,22 +2555,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Conversation:', conversationId);
       console.log('Message:', req.body.content?.substring(0, 100));
       
-      // Ensure user has a subscription before checking limits
+      // Ensure user has a subscription
       let subscription = await storage.getUserSubscription(userId);
       if (!subscription) {
         await storage.initializeDefaultSubscription(userId);
-      }
-      
-      // Check usage limit before processing - strict enforcement
-      const usageCheck = await storage.checkUsageLimit(userId, 'aiChatsUsed');
-      if (!usageCheck.allowed) {
-        return res.status(429).json({ 
-          message: "AI chat limit exceeded. Upgrade your plan to continue chatting.",
-          usage: usageCheck.usage,
-          limit: usageCheck.limit,
-          upgradeRequired: true,
-          type: 'quota_exceeded'
-        });
       }
       
       // Validate conversation exists and belongs to user
@@ -2580,24 +2568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userMessage = req.body.content;
-      const isDeepAnalysis = req.body.isDeepAnalysis || false; // Complex queries flag
       
       if (!userMessage || typeof userMessage !== 'string') {
         return res.status(400).json({ message: "Message content is required" });
-      }
-
-      // Check deep analysis quota if this is a complex query
-      if (isDeepAnalysis) {
-        const deepAnalysisCheck = await storage.checkUsageLimit(userId, 'aiDeepAnalysisUsed');
-        if (!deepAnalysisCheck.allowed) {
-          return res.status(429).json({ 
-            message: "Deep analysis limit exceeded. Upgrade your plan for more advanced AI features.",
-            usage: deepAnalysisCheck.usage,
-            limit: deepAnalysisCheck.limit,
-            upgradeRequired: true,
-            type: 'deep_analysis_quota_exceeded'
-          });
-        }
       }
 
       // Save user message
@@ -2726,11 +2699,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         timestamp: m.createdAt || new Date()
       }));
 
-      // Track usage immediately (regardless of AI success/failure)
-      await storage.incrementUsage(userId, 'aiChatsUsed');
-      if (isDeepAnalysis) {
-        await storage.incrementUsage(userId, 'aiDeepAnalysisUsed');
-      }
+      // Usage tracking now handled by tier-aware router
 
       // 🚨 CODE-LEVEL IMPOSSIBILITY CHECK (Pre-AI Validation)
       // Detect if user is discussing a purchase/goal and calculate feasibility BEFORE AI sees it
@@ -2846,8 +2815,24 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           ? { ...userContext, impossibleGoalWarning: impossibleGoalFlag }
           : userContext;
         
-        // Generate AI response with potential tool calls
-        const aiResult = await aiService.generateAdvice(userMessage, enhancedContext, conversationHistory, memoryContext);
+        // Use tier-aware AI router for intelligent model selection and quota enforcement
+        const tierResult = await routeWithTierCheck(userId, userMessage, storage);
+        
+        // Handle quota exceeded response
+        if (tierResult.type === 'quota_exceeded') {
+          return res.status(429).json({
+            message: `AI ${tierResult.model} quota exceeded. You've used ${tierResult.used}/${tierResult.limit} queries.`,
+            usage: tierResult.used,
+            limit: tierResult.limit,
+            upgradeRequired: tierResult.upgradeRequired,
+            type: tierResult.type,
+            model: tierResult.model,
+            nextTier: tierResult.nextTier
+          });
+        }
+        
+        // Extract AI result from successful response
+        const aiResult = tierResult;
         
         // HALLUCINATION CHECK: Warn if AI claims action but no tools called
         const lowerResponse = aiResult.response.toLowerCase();
@@ -4668,24 +4653,61 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   app.get("/api/subscription/usage", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      const [chatCheck, analysisCheck, usage] = await Promise.all([
-        storage.checkUsageLimit(userId, 'aiChatsUsed'),
-        storage.checkUsageLimit(userId, 'aiDeepAnalysisUsed'),
-        storage.getUserUsage(userId)
-      ]);
+      
+      // Get subscription with usage data
+      const subData = await storage.getUserSubscriptionWithUsage(userId);
+      
+      if (!subData) {
+        return res.status(404).json({ message: "Subscription not found" });
+      }
+      
+      const { plan, usage } = subData;
+      
+      // Calculate usage for each model tier
+      const scoutUsed = usage?.scoutQueriesUsed || 0;
+      const sonnetUsed = usage?.sonnetQueriesUsed || 0;
+      const opusUsed = usage?.opusQueriesUsed || 0;
+      
+      const scoutLimit = plan.scoutLimit || 0;
+      const sonnetLimit = plan.sonnetLimit || 0;
+      const opusLimit = plan.opusLimit || 0;
+      
+      // Also provide legacy format for backward compatibility
+      const totalUsed = scoutUsed + sonnetUsed + opusUsed;
+      const totalLimit = scoutLimit + sonnetLimit + opusLimit;
 
       res.json({
+        // New tier-aware quota structure
+        scoutUsage: {
+          used: scoutUsed,
+          limit: scoutLimit,
+          remaining: Math.max(0, scoutLimit - scoutUsed),
+          allowed: scoutUsed < scoutLimit
+        },
+        sonnetUsage: {
+          used: sonnetUsed,
+          limit: sonnetLimit,
+          remaining: Math.max(0, sonnetLimit - sonnetUsed),
+          allowed: sonnetUsed < sonnetLimit
+        },
+        opusUsage: {
+          used: opusUsed,
+          limit: opusLimit,
+          remaining: Math.max(0, opusLimit - opusUsed),
+          allowed: opusUsed < opusLimit
+        },
+        // Legacy format for backward compatibility
         chatUsage: {
-          used: chatCheck.usage,
-          limit: chatCheck.limit,
-          remaining: Math.max(0, chatCheck.limit - chatCheck.usage),
-          allowed: chatCheck.allowed
+          used: totalUsed,
+          limit: totalLimit,
+          remaining: Math.max(0, totalLimit - totalUsed),
+          allowed: totalUsed < totalLimit
         },
         analysisUsage: {
-          used: analysisCheck.usage,
-          limit: analysisCheck.limit,
-          remaining: Math.max(0, analysisCheck.limit - analysisCheck.usage),
-          allowed: analysisCheck.allowed
+          used: sonnetUsed + opusUsed, // Deep analysis = Sonnet + Opus
+          limit: sonnetLimit + opusLimit,
+          remaining: Math.max(0, (sonnetLimit + opusLimit) - (sonnetUsed + opusUsed)),
+          allowed: (sonnetUsed + opusUsed) < (sonnetLimit + opusLimit)
         },
         insights: usage?.aiInsightsGenerated || 0,
         totalTokens: usage?.totalTokensUsed || 0,
