@@ -226,7 +226,6 @@ export default function SubscriptionPage() {
  </div>
  )}
  </div>
- </div>
 
  {/* Sonnet Queries - Available for Pro/Enterprise only */}
  {usage.sonnetUsage.limit > 0 && (
