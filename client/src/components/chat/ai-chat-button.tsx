@@ -131,22 +131,18 @@ export default function AIChatButton() {
  if (!isOpen) {
   return (
    <div className="fixed bottom-24 left-4 md:bottom-6 md:right-6 md:left-auto z-50 group" style={{ bottom: 'max(6rem, calc(6rem + env(safe-area-inset-bottom)))' }}>
-    {/* Pulsing glow ring */}
-    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 animate-pulse opacity-40 blur-lg"></div>
-    
     <Button
      onClick={() => setIsOpen(true)}
-     className="relative h-14 w-14 md:h-16 md:w-16 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 border-2 border-white/20 dark:border-white/30"
+     className="h-14 w-14 md:h-16 md:w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
      data-testid="button-open-chat"
     >
-     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent"></div>
-     <MessageCircle className="h-6 w-6 md:h-7 md:w-7 text-white relative z-10 drop-shadow-lg" />
+     <MessageCircle className="h-6 w-6 text-gray-900 dark:text-gray-100" />
     </Button>
     
     {/* Tooltip */}
-    <div className="hidden md:block absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none transform group-hover:translate-y-0 translate-y-1">
-     <div className="bg-gradient-to-br from-violet-600 to-purple-700 text-white text-sm font-medium rounded-lg px-4 py-2 whitespace-nowrap shadow-xl border border-white/20">
-      💬 Chat with AI
+    <div className="hidden md:block absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+     <div className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-medium rounded-md px-3 py-1.5 whitespace-nowrap shadow-lg">
+      AI Assistant
      </div>
     </div>
    </div>
