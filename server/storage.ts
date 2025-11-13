@@ -88,6 +88,10 @@ import {
   type InsertUserDebt,
   type UserAsset,
   type InsertUserAsset,
+  type AiUsageLog,
+  type InsertAiUsageLog,
+  type Playbook,
+  type InsertPlaybook,
   users,
   groups,
   groupMembers,
@@ -131,7 +135,9 @@ import {
   userFinancialProfiles,
   userExpenseCategories,
   userDebts,
-  userAssets
+  userAssets,
+  aiUsageLogs,
+  playbooks
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
