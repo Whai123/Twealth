@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from"@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
+import EmptyState from"@/components/ui/empty-state";
 import { Input } from"@/components/ui/input";
 import { Label } from"@/components/ui/label";
 import {
@@ -272,21 +273,14 @@ export default function CryptoPage() {
  {/* Mobile-First Holdings Grid */}
  {holdingsList.length === 0 ? (
  <Card className="p-8 sm:p-12">
- <div className="text-center">
- <Bitcoin className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
- <h3 className="text-lg sm:text-xl font-semibold mb-2">No Crypto Holdings Yet</h3>
- <p className="text-sm sm:text-base text-muted-foreground mb-6">
- Start building your crypto portfolio by adding your first cryptocurrency
- </p>
- <Button 
- onClick={() => setIsAddDialogOpen(true)} 
- data-testid="button-add-first-crypto"
- className="min-h-[44px] h-11 sm:h-12"
- >
- <Plus className="w-4 h-4 mr-2" />
- Add Your First Crypto
- </Button>
- </div>
+ <EmptyState
+ icon={Bitcoin}
+ title="No Crypto Holdings Yet"
+ description="Start building your crypto portfolio by adding your first cryptocurrency"
+ actionLabel="Add Your First Crypto"
+ onAction={() => setIsAddDialogOpen(true)}
+ actionTestId="button-add-first-crypto"
+ />
  </Card>
  ) : (
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

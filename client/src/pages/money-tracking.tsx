@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText } from"lucide-react";
 import { Button } from"@/components/ui/button";
+import EmptyState from"@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Badge } from"@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from"@/components/ui/dialog";
@@ -477,57 +478,14 @@ export default function MoneyTracking() {
  <CardContent className="p-0">
  {filteredTransactions.length === 0 ? (
  transactions?.length === 0 ? (
- <div className="text-center py-16">
- <div className="relative mb-10">
- <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl"></div>
- <div className="relative bg-blue-500 rounded-3xl p-6 w-32 h-32 mx-auto flex items-center justify-center shadow-2xl">
- <DollarSign className="h-16 w-16 text-white" />
- </div>
- </div>
- 
- <h3 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-3">
- Start Your Financial Journey
- </h3>
- <p className="text-muted-foreground text-lg mb-4 max-w-lg mx-auto">
- Track every dollar and watch your wealth grow with AI-powered insights
- </p>
- 
- <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
- <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
- <BarChart3 className="h-6 w-6 text-white" />
- </div>
- <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Smart Insights</h4>
- <p className="text-sm text-blue-600 dark:text-blue-300">AI analyzes spending patterns</p>
- </div>
- 
- <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-cyan-200/50 dark:border-cyan-700/50">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
- <Target className="h-6 w-6 text-white" />
- </div>
- <h4 className="font-bold mb-2 text-cyan-800 dark:text-cyan-200">Budget Tracking</h4>
- <p className="text-sm text-cyan-600 dark:text-cyan-300">Stay on top of spending goals</p>
- </div>
- 
- <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-200/50 dark:border-green-700/50">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
- <TrendingUp className="h-6 w-6 text-white" />
- </div>
- <h4 className="font-bold mb-2 text-green-800 dark:text-green-200">Cash Flow</h4>
- <p className="text-sm text-green-600 dark:text-green-300">Visualize income vs expenses</p>
- </div>
- </div>
- 
- <Button 
- data-testid="button-add-first-transaction"
- onClick={() => setIsCreateDialogOpen(true)}
- size="lg"
- className="bg-blue-500 text-white font-semibold px-8 h-14 text-lg shadow-lg transition-all"
- >
- <Plus size={20} className="mr-2" />
- Add Your First Transaction
- </Button>
- </div>
+ <EmptyState
+ illustration="transactions"
+ title="No Transactions Yet"
+ description="Start tracking your financial journey by adding your first transaction. Every dollar tracked brings you closer to your goals."
+ actionLabel="Add Your First Transaction"
+ onAction={() => setIsCreateDialogOpen(true)}
+ actionTestId="button-add-first-transaction"
+ />
  ) : (
  <div className="text-center py-12">
  <DollarSign className="mx-auto h-12 w-12 text-muted-foreground mb-4" />

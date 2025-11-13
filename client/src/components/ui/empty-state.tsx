@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { LucideIcon } from "lucide-react";
 
 interface EmptyStateProps {
-  illustration: 'transactions' | 'goals' | 'budgets';
+  illustration?: 'transactions' | 'goals' | 'budgets';
+  icon?: LucideIcon;
   title: string;
   description: string;
   actionLabel?: string;
@@ -11,6 +13,7 @@ interface EmptyStateProps {
 
 export default function EmptyState({
   illustration,
+  icon: Icon,
   title,
   description,
   actionLabel,
@@ -19,11 +22,14 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center" data-testid="empty-state">
-      {/* SVG Illustration */}
+      {/* SVG Illustration or Icon */}
       <div className="mb-6">
         {illustration === 'transactions' && <TransactionsIllustration />}
         {illustration === 'goals' && <GoalsIllustration />}
         {illustration === 'budgets' && <BudgetsIllustration />}
+        {Icon && !illustration && (
+          <Icon className="w-16 h-16 text-muted-foreground/40" />
+        )}
       </div>
 
       {/* Text Content */}

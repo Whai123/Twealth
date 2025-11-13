@@ -1,9 +1,10 @@
 import { useState } from"react";
-import { Link } from"wouter";
+import { Link, useLocation } from"wouter";
 import { useQuery } from"@tanstack/react-query";
 import { Lightbulb, TrendingUp, Calendar, Target, AlertTriangle, CheckCircle, Clock, Brain, Zap, Star, Rocket, Award, BarChart3, DollarSign, Sparkles } from"lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
+import EmptyState from"@/components/ui/empty-state";
 import { Progress } from"@/components/ui/progress";
 import { Badge } from"@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
@@ -20,6 +21,7 @@ interface Suggestion {
 
 export default function Planning() {
  const [activeTab, setActiveTab] = useState("suggestions");
+ const [, setLocation] = useLocation();
 
  const { data: goals = [] } = useQuery<any[]>({
  queryKey: ["/api/financial-goals"],
@@ -485,10 +487,14 @@ export default function Planning() {
  })}
  </div>
  ) : (
- <div className="text-center py-8">
- <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
- <p className="text-muted-foreground">No active goals to project</p>
- </div>
+ <EmptyState
+ icon={Target}
+ title="No Active Goals"
+ description="Create a financial goal to see projections and track your progress toward achieving it."
+ actionLabel="Create Your First Goal"
+ onAction={() => setLocation('/financial-goals?create=1')}
+ actionTestId="button-create-goal-from-planning"
+ />
  )}
  </CardContent>
  </Card>
