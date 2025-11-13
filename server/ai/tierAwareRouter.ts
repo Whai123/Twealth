@@ -73,10 +73,10 @@ function getModelsByPriority(tier: SubscriptionTier): ModelAccess[] {
 /**
  * Build fallback list starting from preferred model, cascading to lower tiers
  * 
- * Examples:
- * - Enterprise simple query: preferred=scout → [scout]
- * - Enterprise complex query: preferred=opus → [opus, sonnet, scout]
- * - Pro complex query: preferred=sonnet → [sonnet, scout]
+ * NEW Examples:
+ * - Enterprise simple query: preferred=gpt5 → [gpt5]
+ * - Enterprise complex query: preferred=opus → [opus, gpt5]
+ * - Pro/Free any query: preferred=gpt5 → [gpt5]
  */
 function buildFallbackList(preferredModel: ModelAccess, tier: SubscriptionTier): ModelAccess[] {
   const allModelsPriority = getModelsByPriority(tier);
@@ -135,10 +135,10 @@ function hasQuota(
 /**
  * Select the best model based on complexity and tier (ignoring quotas)
  * 
- * Strategy:
- * - Enterprise: Opus for complex, Scout for simple
- * - Pro: Sonnet for complex, Scout for simple
- * - Free: Always Scout
+ * NEW Strategy (GPT-5 migration):
+ * - Enterprise: Opus for complex, GPT-5 for simple
+ * - Pro: Always GPT-5 (no escalation)
+ * - Free: Always GPT-5
  * 
  * Quota checking happens separately in routeWithTierCheck
  */
@@ -148,23 +148,23 @@ function selectModelForTier(
 ): ModelAccess {
   const shouldEsc = shouldEscalate(signals);
   
-  // Free tier: Always Scout
+  // Free tier: Always GPT-5
   if (tier === 'free') {
-    return 'scout';
+    return 'gpt5';
   }
   
-  // Pro tier: Sonnet for complex, Scout for simple
+  // Pro tier: Always GPT-5 (no Sonnet escalation anymore)
   if (tier === 'pro') {
-    return shouldEsc ? 'sonnet' : 'scout';
+    return 'gpt5';
   }
   
-  // Enterprise tier: Opus for complex, Scout for simple
+  // Enterprise tier: Opus for complex, GPT-5 for simple
   if (tier === 'enterprise') {
-    return shouldEsc ? 'opus' : 'scout';
+    return shouldEsc ? 'opus' : 'gpt5';
   }
   
   // Default fallback
-  return 'scout';
+  return 'gpt5';
 }
 
 /**
@@ -292,22 +292,30 @@ export async function routeWithTierCheck(
 
 /**
  * Determine model type from model slug
+ * NEW: Maps GPT-5 to scout quota counter for backward compatibility
  * Throws error for unknown models to prevent silent quota theft
  */
 function determineModelFromSlug(modelSlug: string): 'scout' | 'sonnet' | 'opus' {
   const slug = modelSlug.toLowerCase();
   
-  // Scout (Groq Llama models)
+  // GPT-5 (OpenAI models) - map to scout quota for backward compat
+  if (slug.includes('gpt-5') || slug.includes('gpt5') || slug.includes('openai')) {
+    return 'scout'; // Uses scoutUsed/scoutLimit counters
+  }
+  
+  // Scout (Groq Llama models) - LEGACY, should not be reached
   if (slug.includes('llama') || slug.includes('scout') || slug.includes('groq')) {
+    console.warn(`[TierAwareRouter] LEGACY Scout model used: ${modelSlug}. Should use GPT-5 instead.`);
     return 'scout';
   }
   
-  // Sonnet (Claude Sonnet models)
+  // Sonnet (Claude Sonnet models) - DEPRECATED, should not be reached
   if (slug.includes('sonnet')) {
+    console.warn(`[TierAwareRouter] DEPRECATED Sonnet model used: ${modelSlug}. Should use GPT-5 instead.`);
     return 'sonnet';
   }
   
-  // Opus (Claude Opus models)
+  // Opus (Claude Opus models) - ENTERPRISE ONLY
   if (slug.includes('opus')) {
     return 'opus';
   }

@@ -24,7 +24,6 @@ import GoalForm from"@/components/forms/goal-form";
 import NotificationsBell from"@/components/dashboard/notifications-bell";
 import SmartInsights from"@/components/dashboard/smart-insights";
 import EnhancedFinancialTrends from"@/components/dashboard/enhanced-financial-trends";
-import AIChatButton from"@/components/chat/ai-chat-button";
 import AIInsightsCard from"@/components/dashboard/ai-insights-card";
 import CryptoPortfolioWidget from"@/components/dashboard/crypto-portfolio-widget";
 import MultiCurrencyCalculator from"@/components/wealth/multi-currency-calculator";
@@ -90,9 +89,6 @@ export default function Dashboard() {
 
  return (
   <>
-   {/* AI Chat Button - Floating */}
-   <AIChatButton />
-   
    {/* Clean Stripe-style Header */}
    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">

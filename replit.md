@@ -13,7 +13,7 @@ Twealth is a full-stack web application for comprehensive schedule management, f
 - **Pro ($9.99)**: 200 GPT-5 queries/month
 - **Enterprise ($49.99)**: 300 GPT-5 queries/month + 20 Opus 4.1 queries/month
 
-**Legacy Models (Deprecated)**: Scout (Llama 4 via Groq), Sonnet 4.5 - being phased out in favor of GPT-5's cost-effectiveness and performance.
+**Legacy Models (Fully Deprecated)**: Scout (Llama 4 via Groq), Sonnet 4.5 - completely replaced by GPT-5. All user-facing references removed from subscription pages, dashboard, and UI. Internal quota tracking maintains backward compatibility by mapping GPT-5 usage to scoutUsed counters.
 
 # User Preferences
 

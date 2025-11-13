@@ -36,8 +36,8 @@ export interface GenerateAdviceOptions {
  */
 export interface HybridAIResponse {
   answer: string; // Natural language response
-  modelUsed: 'scout' | 'reasoning'; // Which model was used (legacy)
-  modelSlug: string; // Exact model identifier (e.g., 'meta-llama/llama-4-scout-17b-16e-instruct')
+  modelUsed: 'scout' | 'reasoning'; // Which model was used (legacy, maps to quota counter)
+  modelSlug: string; // Exact model identifier (e.g., 'gpt-5', 'claude-opus-4-1')
   tokensIn: number; // Input tokens
   tokensOut: number; // Output tokens
   cost: number; // Cost in USD
@@ -46,6 +46,7 @@ export interface HybridAIResponse {
   orchestratorUsed?: string; // Which orchestrator was called (if any)
   structuredData?: any; // Structured data from orchestrator (if any)
   tierDowngraded?: boolean; // Whether tier logic downgraded the model
+  actualModel?: 'gpt5' | 'scout' | 'sonnet' | 'opus'; // NEW: Actual model used for analytics
 }
 
 /**
@@ -130,12 +131,13 @@ async function handleGPT5Query(
   
   return {
     answer: response.text,
-    modelUsed: 'scout', // Legacy field for backward compat
+    modelUsed: 'scout', // Maps to scoutUsed quota counter for backward compat
     modelSlug: response.model,
     tokensIn: response.tokensIn,
     tokensOut: response.tokensOut,
     cost: response.cost,
     escalated: false,
+    actualModel: 'gpt5', // Track actual model used
   };
 }
 
@@ -307,6 +309,7 @@ async function callOrchestrator(
       escalationReason: routingReason,
       orchestratorUsed: orchestrator,
       structuredData,
+      actualModel: targetModel === 'sonnet' ? 'sonnet' : 'opus', // Track actual model for analytics
     };
   } catch (error) {
     // If orchestrator fails, fall back to generic reasoning query
@@ -348,6 +351,7 @@ async function handleGenericReasoningQuery(
     cost: response.cost,
     escalated: true,
     escalationReason: routingReason,
+    actualModel: targetModel === 'sonnet' ? 'sonnet' : 'opus', // Track actual model for analytics
   };
 }
 
