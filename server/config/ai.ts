@@ -12,14 +12,25 @@
 // Model cost table (USD per 1K tokens)
 // Based on provider pricing as of November 2025
 export const MODEL_COST_TABLE = {
-  // Scout models (Groq Llama 4)
+  // GPT-5 (OpenAI via Replit AI Integrations) - NEW DEFAULT
+  // 13x cheaper than Opus, superior math/reasoning, 90% token savings
+  'gpt-5': {
+    input: 0.00125,  // $1.25 per 1M input tokens
+    output: 0.01,    // $10 per 1M output tokens (includes reasoning tokens)
+  },
+  'gpt-5-mini': {
+    input: 0.00025,  // $0.25 per 1M tokens
+    output: 0.002,   // $2 per 1M tokens
+  },
+  
+  // Scout models (Groq Llama 4) - LEGACY, being phased out
   'meta-llama/llama-4-scout-17b-16e-instruct': {
     input: 0.00011,  // $0.11 per 1M tokens
     output: 0.00034, // $0.34 per 1M tokens
   },
   
   // Reasoning models (Anthropic via Replit AI Integrations)
-  // Enterprise tier - Opus 4.1 (most powerful, released Aug 2025)
+  // Enterprise tier ONLY - Opus 4.1 for precision-critical work
   'claude-opus-4-1-20250805': {
     input: 0.015,    // $15 per 1M input tokens
     output: 0.075,   // $75 per 1M output tokens
@@ -29,7 +40,7 @@ export const MODEL_COST_TABLE = {
     output: 0.075,
   },
   
-  // Pro tier - Sonnet 4.5 (best coding model, released Sep 2025)
+  // Pro tier - Sonnet 4.5 (DEPRECATED, replaced by GPT-5)
   'claude-sonnet-4-5-20250929': {
     input: 0.003,    // $3 per 1M input tokens
     output: 0.015,   // $15 per 1M output tokens

@@ -1,6 +1,19 @@
 # Overview
 
-Twealth is a full-stack web application for comprehensive schedule management, financial tracking, and goal setting. It offers a unified platform for personal and collaborative financial organization, featuring CFO-level AI financial advice, specialized cryptocurrency tools, and de-dollarization insights. The project aims to deliver an intuitive, globally accessible, production-ready product with premium design quality and a professional user experience to empower users in managing finances, achieving goals, and gaining actionable financial insights.
+Twealth is a full-stack web application for comprehensive schedule management, financial tracking, and goal setting. It offers a unified platform for personal and collaborative financial organization, featuring CFO-level AI financial advice powered by GPT-5 and Claude Opus 4.1, specialized cryptocurrency tools, and de-dollarization insights. The project aims to deliver an intuitive, globally accessible, production-ready product with premium design quality and a professional user experience to empower users in managing finances, achieving goals, and gaining actionable financial insights.
+
+## AI Architecture (Updated November 2025)
+
+**Primary Model: GPT-5** - 13x cheaper than Claude Opus 4.1 ($1.25 vs $15 per 1M input tokens), superior mathematical reasoning (94.6% AIME 2025), 90% token efficiency gains. Used for Free/Pro/Enterprise tiers.
+
+**Enterprise Precision: Claude Opus 4.1** - Reserved for Enterprise tier precision-critical work. Superior for multi-file code refactoring, compliance, and zero-error requirements.
+
+**Three-Tier System:**
+- **Free ($0)**: 50 GPT-5 queries/month  
+- **Pro ($9.99)**: 200 GPT-5 queries/month
+- **Enterprise ($49.99)**: 300 GPT-5 queries/month + 20 Opus 4.1 queries/month
+
+**Legacy Models (Deprecated)**: Scout (Llama 4 via Groq), Sonnet 4.5 - being phased out in favor of GPT-5's cost-effectiveness and performance.
 
 # User Preferences
 

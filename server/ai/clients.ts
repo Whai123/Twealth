@@ -1,5 +1,5 @@
 /**
- * AI Clients - Thin wrappers for Scout (Groq) and Reasoning (Anthropic)
+ * AI Clients - GPT-5 (primary), Opus 4.1 (Enterprise precision)
  * 
  * Standardized interface for both providers with cost tracking
  * Return shape: { text, tokensIn, tokensOut, cost }
@@ -7,6 +7,7 @@
 
 import Groq from "groq-sdk";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { getAIConfig, type ModelId } from '../config/ai';
 
 // Standardized response shape
@@ -32,8 +33,81 @@ export interface ChatOptions {
 }
 
 /**
- * Scout Client (Groq Llama 4)
- * Fast, cheap queries for 90-95% of traffic
+ * GPT-5 Client (OpenAI via Replit AI Integrations)
+ * Primary model for Free/Pro/Enterprise - 13x cheaper than Opus, superior reasoning
+ */
+export class GPT5Client {
+  private openai: OpenAI;
+  private model = 'gpt-5';
+  
+  constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || '',
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || 'https://api.openai.com/v1',
+    });
+  }
+  
+  async chat(options: ChatOptions): Promise<AIResponse> {
+    const {
+      messages,
+      system,
+      tools,
+      maxTokens = 8192,
+      temperature = 0.7,
+    } = options;
+    
+    // Build OpenAI message format
+    const openaiMessages = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+    
+    // Add system message if provided
+    if (system) {
+      openaiMessages.unshift({
+        role: 'system' as const,
+        content: system,
+      });
+    }
+    
+    try {
+      const completion = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: openaiMessages,
+        max_tokens: maxTokens,
+        temperature,
+        tools: tools as any,
+      });
+      
+      const text = completion.choices[0]?.message?.content || '';
+      const tokensIn = completion.usage?.prompt_tokens || 0;
+      const tokensOut = completion.usage?.completion_tokens || 0;
+      
+      // Calculate cost (GPT-5 includes reasoning tokens in output)
+      const aiConfig = getAIConfig();
+      const cost = aiConfig.estimateCost(
+        'gpt-5' as ModelId,
+        tokensIn,
+        tokensOut
+      );
+      
+      return {
+        text,
+        tokensIn,
+        tokensOut,
+        cost,
+        model: this.model,
+      };
+    } catch (error) {
+      console.error('[GPT5Client] Error:', error);
+      throw new Error(`GPT-5 client error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+}
+
+/**
+ * Scout Client (Groq Llama 4) - LEGACY
+ * @deprecated Use GPT5Client instead - GPT-5 is faster, cheaper, better reasoning
  */
 export class ScoutClient {
   private groq: Groq;
@@ -49,7 +123,7 @@ export class ScoutClient {
     const {
       messages,
       system,
-      tools, // Tools are ignored for Scout - it only returns text
+      tools,
       maxTokens = this.config.maxTokens,
       temperature = this.config.temperature,
     } = options;
@@ -69,13 +143,11 @@ export class ScoutClient {
     }
     
     try {
-      // Scout NEVER uses tools - only returns plain text for fast queries
       const completion = await this.groq.chat.completions.create({
         model: this.config.model,
         messages: groqMessages,
         max_tokens: maxTokens,
         temperature,
-        // tools: DISABLED - Scout is text-only for speed
       });
       
       const text = completion.choices[0]?.message?.content || '';
@@ -116,9 +188,9 @@ export class AnthropicClient {
   constructor(model: 'claude-sonnet-4-5' | 'claude-opus-4-1') {
     const config = getAIConfig();
     this.modelType = model.includes('opus') ? 'opus' : 'sonnet';
-    const modelConfig = this.modelType === 'opus' ? config.opus : config.sonnet;
+    const modelConfig = config.reasoning; // Both use the same reasoning config
     
-    this.model = modelConfig.model;
+    this.model = model; // Use exact model name passed in
     this.anthropic = new Anthropic({
       apiKey: modelConfig.apiKey,
       baseURL: modelConfig.baseURL,
@@ -127,7 +199,7 @@ export class AnthropicClient {
   
   async chat(options: ChatOptions): Promise<AIResponse> {
     const config = getAIConfig();
-    const modelConfig = this.modelType === 'opus' ? config.opus : config.sonnet;
+    const modelConfig = config.reasoning;
     
     const {
       messages,
@@ -194,13 +266,26 @@ export class ReasoningClient extends AnthropicClient {
 }
 
 // Singleton instances
+let gpt5Client: GPT5Client | null = null;
 let scoutClient: ScoutClient | null = null;
 let sonnetClient: AnthropicClient | null = null;
 let opusClient: AnthropicClient | null = null;
 let reasoningClient: ReasoningClient | null = null;
 
 /**
+ * Get GPT-5 client (cached singleton)
+ * PRIMARY MODEL for Free/Pro/Enterprise tiers
+ */
+export function getGPT5Client(): GPT5Client {
+  if (!gpt5Client) {
+    gpt5Client = new GPT5Client();
+  }
+  return gpt5Client;
+}
+
+/**
  * Get Scout client (cached singleton)
+ * @deprecated Use getGPT5Client() instead
  */
 export function getScoutClient(): ScoutClient {
   if (!scoutClient) {

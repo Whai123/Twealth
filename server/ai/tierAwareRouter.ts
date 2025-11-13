@@ -37,34 +37,36 @@ export type TierAwareResponse = HybridAIResponse | QuotaExceededError;
 
 /**
  * Map subscription tier to allowed models (in ascending order)
+ * NEW: GPT-5 replaces Scout/Sonnet (13x cheaper, better reasoning)
  */
 export function resolveAllowedModels(tier: SubscriptionTier): ModelAccess[] {
   switch (tier) {
     case 'free':
-      return ['scout'];
+      return ['gpt5'];
     case 'pro':
-      return ['scout', 'sonnet'];
+      return ['gpt5'];
     case 'enterprise':
-      return ['scout', 'sonnet', 'opus'];
+      return ['gpt5', 'opus']; // GPT-5 for speed, Opus for precision
     default:
-      return ['scout']; // Default to most restrictive
+      return ['gpt5']; // Default to most cost-effective
   }
 }
 
 /**
  * Get models in descending priority order (highest to lowest)
  * Used for cascading fallback when preferred model lacks quota
+ * NEW: GPT-5 is primary, Opus for Enterprise precision work only
  */
 function getModelsByPriority(tier: SubscriptionTier): ModelAccess[] {
   switch (tier) {
     case 'free':
-      return ['scout'];
+      return ['gpt5'];
     case 'pro':
-      return ['sonnet', 'scout']; // Try Sonnet first, fall back to Scout
+      return ['gpt5'];
     case 'enterprise':
-      return ['opus', 'sonnet', 'scout']; // Try Opus, then Sonnet, then Scout
+      return ['opus', 'gpt5']; // Try Opus for complex tasks, fall back to GPT-5
     default:
-      return ['scout'];
+      return ['gpt5'];
   }
 }
 
@@ -109,6 +111,7 @@ function getNextTier(currentTier: SubscriptionTier): SubscriptionTier | null {
 
 /**
  * Check if user has quota remaining for a specific model
+ * NEW: GPT-5 uses scoutLimit for backward compatibility
  */
 function hasQuota(
   usage: { scoutUsed: number; sonnetUsed: number; opusUsed: number },
@@ -116,6 +119,8 @@ function hasQuota(
   model: ModelAccess
 ): boolean {
   switch (model) {
+    case 'gpt5':
+      return usage.scoutUsed < limits.scoutLimit; // Reuse scout quota for GPT-5
     case 'scout':
       return usage.scoutUsed < limits.scoutLimit;
     case 'sonnet':

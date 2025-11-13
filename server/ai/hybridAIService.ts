@@ -11,7 +11,7 @@
 import type { IStorage } from '../storage';
 import { buildFinancialContext, estimateContextTokens, type FinancialContext } from './contextBuilder';
 import { shouldEscalate, routeToModel, getRoutingReason, type ComplexitySignals } from './router';
-import { getScoutClient, getSonnetClient, getOpusClient, getReasoningClient } from './clients';
+import { getGPT5Client, getScoutClient, getSonnetClient, getOpusClient, getReasoningClient } from './clients';
 import { analyzeDebt } from './orchestrators/debt';
 import { analyzeRetirement } from './orchestrators/retirement';
 import { analyzeTax } from './orchestrators/tax';
@@ -20,7 +20,7 @@ import { analyzePortfolio } from './orchestrators/portfolio';
 /**
  * Model access levels (matches tier system)
  */
-export type ModelAccess = 'scout' | 'sonnet' | 'opus';
+export type ModelAccess = 'gpt5' | 'scout' | 'sonnet' | 'opus';
 
 /**
  * Options for generating AI advice
@@ -93,12 +93,14 @@ export async function generateHybridAdvice(
     const escalate = shouldEscalate(signals);
     routingReason = escalate ? getRoutingReason(signals) : undefined;
     
-    // Default to Scout for simple, Opus for complex (legacy behavior)
-    targetModel = escalate ? 'opus' : 'scout';
+    // Default to GPT-5 for simple, Opus for complex
+    targetModel = escalate ? 'opus' : 'gpt5';
   }
   
   // Step 3: Route to appropriate model/orchestrator
-  if (targetModel === 'scout') {
+  if (targetModel === 'gpt5') {
+    return await handleGPT5Query(userMessage, context);
+  } else if (targetModel === 'scout') {
     return await handleScoutQuery(userMessage, context);
   } else {
     // Sonnet or Opus - both use reasoning path
@@ -107,7 +109,39 @@ export async function generateHybridAdvice(
 }
 
 /**
- * Handle simple/fast queries with Scout (Llama 4 via Groq)
+ * Handle queries with GPT-5 (OpenAI via Replit AI Integrations)
+ * PRIMARY MODEL - 13x cheaper than Opus, superior financial reasoning
+ */
+async function handleGPT5Query(
+  userMessage: string,
+  context: any
+): Promise<HybridAIResponse> {
+  const client = getGPT5Client();
+  
+  // Build optimized prompt with financial context
+  const systemPrompt = buildGPT5SystemPrompt(context);
+  
+  const response = await client.chat({
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage },
+    ],
+  });
+  
+  return {
+    answer: response.text,
+    modelUsed: 'scout', // Legacy field for backward compat
+    modelSlug: response.model,
+    tokensIn: response.tokensIn,
+    tokensOut: response.tokensOut,
+    cost: response.cost,
+    escalated: false,
+  };
+}
+
+/**
+ * Handle simple/fast queries with Scout (Llama 4 via Groq) - LEGACY
+ * @deprecated Use handleGPT5Query instead
  */
 async function handleScoutQuery(
   userMessage: string,
@@ -318,7 +352,35 @@ async function handleGenericReasoningQuery(
 }
 
 /**
- * Build system prompt for Scout (simple queries)
+ * Build system prompt for GPT-5 (optimized for financial reasoning)
+ */
+function buildGPT5SystemPrompt(context: any): string {
+  const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
+  const monthlyExpenses = context.expenses.monthly;
+  const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
+  const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
+  
+  return `You are an expert CFO-level financial advisor powered by GPT-5. Provide clear, actionable, data-driven advice.
+
+**User Financial Profile:**
+- Monthly Income: $${monthlyIncome.toLocaleString()}
+- Monthly Expenses: $${monthlyExpenses.toLocaleString()}
+- Net Monthly: $${(monthlyIncome - monthlyExpenses).toLocaleString()}
+- Total Debts: $${totalDebts.toLocaleString()}
+- Total Assets: $${totalAssets.toLocaleString()}
+- Net Worth: $${(totalAssets - totalDebts).toLocaleString()}
+
+**Your Strengths:**
+- Superior mathematical reasoning (94.6% on AIME 2025)
+- Complex multi-variable financial analysis
+- Fast, accurate quantitative modeling
+
+Keep responses concise, actionable, and focused on measurable outcomes.`;
+}
+
+/**
+ * Build system prompt for Scout (simple queries) - LEGACY
+ * @deprecated Use buildGPT5SystemPrompt instead
  */
 function buildScoutSystemPrompt(context: any): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
