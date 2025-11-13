@@ -1412,6 +1412,46 @@ export const aiUsageLogs = pgTable("ai_usage_logs", {
   index("idx_ai_logs_created_at").on(table.createdAt),
 ]);
 
+// AI Financial Playbooks - Weekly automated insights
+export const playbooks = pgTable("playbooks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  subscriptionId: varchar("subscription_id").references(() => subscriptions.id, { onDelete: "set null" }),
+  // Time period
+  weekStartDate: timestamp("week_start_date").notNull(), // Monday of the week
+  weekEndDate: timestamp("week_end_date").notNull(), // Sunday of the week
+  // Financial Pulse (Hero Card)
+  financialHealthScore: integer("financial_health_score").notNull(), // 0-100
+  scoreDelta: integer("score_delta").notNull(), // Change from last week
+  confidenceBand: text("confidence_band"), // "improving", "stable", "declining"
+  // Insight Highlights (JSON array)
+  insights: jsonb("insights").notNull(), // [{text: string, tag: string, severity: "high"|"medium"|"low"}]
+  insightsCount: integer("insights_count").notNull(), // 2/5/7 based on tier
+  // Action Queue (JSON array)
+  actions: jsonb("actions").notNull(), // [{title: string, description: string, effort: "low"|"medium"|"high", impact: "low"|"medium"|"high", deepLink: string}]
+  actionsCount: integer("actions_count").default(3), // Top 3 prioritized
+  // Measurable Impact
+  roiSavings: decimal("roi_savings", { precision: 10, scale: 2 }).default("0"), // Money saved this week from AI advice
+  cumulativeRoi: decimal("cumulative_roi", { precision: 10, scale: 2 }).default("0"), // Total savings to date
+  forecastLift: text("forecast_lift"), // e.g., "+5% net worth by year-end"
+  // Generation metadata
+  tier: text("tier").notNull(), // "free", "pro", "enterprise"
+  generatedBy: text("generated_by").notNull(), // "gpt5", "opus"
+  generationTimeMs: integer("generation_time_ms"),
+  tokensUsed: integer("tokens_used"),
+  // Engagement tracking
+  isViewed: boolean("is_viewed").default(false),
+  viewedAt: timestamp("viewed_at"),
+  actionsCompleted: integer("actions_completed").default(0), // How many actions user marked done
+  shareCount: integer("share_count").default(0), // Times user shared playbook
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_playbooks_user_id").on(table.userId),
+  index("idx_playbooks_week_start").on(table.weekStartDate),
+  index("idx_playbooks_created_at").on(table.createdAt),
+]);
+
 // Subscription schema exports
 export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({ id: true, createdAt: true });
 export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({ id: true, createdAt: true });
@@ -1430,6 +1470,9 @@ export const insertCryptoTransactionSchema = createInsertSchema(cryptoTransactio
 
 // AI Usage Logs schema exports
 export const insertAiUsageLogSchema = createInsertSchema(aiUsageLogs).omit({ id: true, createdAt: true });
+
+// Playbooks schema exports
+export const insertPlaybookSchema = createInsertSchema(playbooks).omit({ id: true, createdAt: true, viewedAt: true });
 
 // Subscription types
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
@@ -1463,6 +1506,10 @@ export type InsertCryptoTransaction = z.infer<typeof insertCryptoTransactionSche
 // AI Usage Logs types
 export type AiUsageLog = typeof aiUsageLogs.$inferSelect;
 export type InsertAiUsageLog = z.infer<typeof insertAiUsageLogSchema>;
+
+// Playbooks types
+export type Playbook = typeof playbooks.$inferSelect;
+export type InsertPlaybook = z.infer<typeof insertPlaybookSchema>;
 
 // Subscription relations
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({
