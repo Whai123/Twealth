@@ -687,21 +687,21 @@ export default function SubscriptionPage() {
  </div>
  
  <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
- <div className="text-3xl md:text-4xl font-bold text-purple-600">$25</div>
+ <div className="text-3xl md:text-4xl font-bold text-purple-600">$9.99</div>
  <div className="font-semibold">Affordable Premium</div>
- <div className="text-sm text-muted-foreground">Less than a coffee per day</div>
+ <div className="text-sm text-muted-foreground">Pro tier starting price</div>
  </div>
  </div>
  
  <div className="bg-white dark:bg-gray-900 rounded-xl p-6">
  <div className="flex items-center justify-center gap-3 mb-4">
  <Zap className="w-8 h-8 text-blue-500" />
- <h4 className="text-xl font-bold">Powered by Groq & Llama 4 Scout</h4>
+ <h4 className="text-xl font-bold">Powered by GPT-5 & Claude Opus 4.1</h4>
  <Sparkles className="w-6 h-6 text-yellow-500" />
  </div>
  <p className="text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
- Lightning-fast AI responses powered by Groq's cutting-edge infrastructure and Meta's Llama 4 Scout model. 
- <span className="font-semibold text-foreground">You get enterprise-level AI intelligence without enterprise-level prices!</span>
+ Advanced AI reasoning powered by OpenAI's GPT-5 (13x cheaper, 94.6% AIME 2025 math) and Claude Opus 4.1 for Enterprise precision. 
+ <span className="font-semibold text-foreground">You get CFO-level AI intelligence at breakthrough prices!</span>
  </p>
  </div>
  
