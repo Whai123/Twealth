@@ -9,6 +9,7 @@ import { useToast } from"@/hooks/use-toast";
 import { queryClient, apiRequest } from"@/lib/queryClient";
 import { useLocation } from"wouter";
 import { getLocalizedPrice, formatCurrency, getCurrencySymbol } from"@/lib/currency";
+import AIROICalculator from"@/components/ai-roi-calculator";
 
 interface SubscriptionPlan {
  id: string;
@@ -282,6 +283,15 @@ export default function SubscriptionPage() {
  </CardContent>
  </Card>
  )}
+
+ {/* ROI Calculator */}
+ <AIROICalculator 
+ userCurrency={userPreferences?.currency || 'USD'}
+ currentTier={
+ currentPlan?.name === 'Enterprise' ? 'enterprise' :
+ currentPlan?.name === 'Pro' ? 'pro' : 'free'
+ }
+ />
 
  {/* Enhanced Pricing Plans */}
  <div className="space-y-12">
