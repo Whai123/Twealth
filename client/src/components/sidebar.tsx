@@ -64,25 +64,7 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  name: t('navigation.aiAssistant'), 
  href:"/ai-assistant", 
  icon: Brain,
- description: t('navigation.descriptions.aiAssistant')
- },
- { 
- name: t('navigation.aiInsights'), 
- href:"/ai-insights", 
- icon: BarChart3,
- description: t('navigation.descriptions.aiInsights')
- },
- { 
- name:"Predictive Insights", 
- href:"/predictive-insights", 
- icon: LineChart,
- description:"AI-powered spending forecasts, goal predictions, and cash flow analysis"
- },
- { 
- name:"Hybrid AI Demo", 
- href:"/hybrid-ai", 
- icon: Brain,
- description:"Explore Scout (fast) vs Reasoning (deep CFO analysis) AI models"
+ description:"GPT-5 & Opus 4.1 financial intelligence with analytics and predictions"
  },
  ]
  },
@@ -99,42 +81,19 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  name: t('navigation.money'), 
  href:"/money-tracking", 
  icon: Wallet,
- description: t('navigation.descriptions.money')
+ description:"Track income, expenses, and budgets"
  },
  { 
  name:"Investments", 
  href:"/investments", 
  icon: TrendingUp,
- description:"AI-powered investment recommendations and passive income opportunities"
- },
- { 
- name: t('navigation.crypto'), 
- href:"/crypto", 
- icon: Bitcoin,
- description: t('navigation.descriptions.crypto')
- },
- ]
- },
- {
- title: t('navigation.sections.social'),
- items: [
- { 
- name: t('navigation.friends'), 
- href:"/friends", 
- icon: UserPlus,
- description: t('navigation.descriptions.friends')
- },
- { 
- name: t('navigation.groups'), 
- href:"/groups", 
- icon: Users,
- description: t('navigation.descriptions.groups')
+ description:"Stocks, crypto, and passive income opportunities"
  },
  { 
  name: t('navigation.calendar'), 
  href:"/calendar", 
  icon: Calendar,
- description: t('navigation.descriptions.calendar')
+ description:"Schedule and group events"
  },
  ]
  },
@@ -142,22 +101,16 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  title: t('navigation.sections.more'),
  items: [
  { 
- name: t('navigation.planning'), 
- href:"/planning", 
- icon: Lightbulb,
- description: t('navigation.descriptions.planning')
- },
- { 
- name: t('navigation.referrals'), 
- href:"/referrals", 
- icon: Gift,
- description: t('navigation.descriptions.referrals')
+ name:"Settings", 
+ href:"/settings", 
+ icon: Settings,
+ description:"Preferences, profile, and account settings"
  },
  { 
  name: t('navigation.premium'), 
  href:"/subscription", 
  icon: Crown,
- description: t('navigation.descriptions.premium')
+ description:"Upgrade to Pro or Enterprise for advanced AI"
  },
  ]
  }
