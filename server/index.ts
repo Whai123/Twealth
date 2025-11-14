@@ -10,6 +10,9 @@ const app = express();
 // Trust proxy - required for secure cookies behind Replit's proxy
 app.set('trust proxy', 1);
 
+// Raw body middleware for Stripe webhooks (MUST come before express.json())
+app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
