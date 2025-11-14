@@ -4,16 +4,43 @@ Twealth is a full-stack web application for comprehensive schedule management, f
 
 ## AI Architecture (Updated November 2025)
 
-**Primary Model: GPT-5** - 13x cheaper than Claude Opus 4.1 ($1.25 vs $15 per 1M input tokens), superior mathematical reasoning (94.6% AIME 2025), 90% token efficiency gains. Used for Free/Pro/Enterprise tiers.
+**Four-Model Hybrid System (Scout-First Architecture):**
 
-**Enterprise Precision: Claude Opus 4.1** - Reserved for Enterprise tier precision-critical work. Superior for multi-file code refactoring, compliance, and zero-error requirements.
+Twealth uses a sophisticated 4-model AI system with Scout (Llama 4 via Groq) as the PRIMARY unlimited model for paid tiers, backed by specialized models for complex queries:
 
-**Three-Tier System:**
-- **Free ($0)**: 50 GPT-5 queries/month  
-- **Pro ($9.99)**: 200 GPT-5 queries/month
-- **Enterprise ($49.99)**: 300 GPT-5 queries/month + 20 Opus 4.1 queries/month
+1. **Scout (Llama 4 via Groq)** - PRIMARY MODEL
+   - Cost: $0.11/$0.34 per 1M tokens (input/output)
+   - Role: Fast responses, general financial advice, conversational queries
+   - Availability: 50/month (Free), Unlimited (Pro/Enterprise)
+   - Badge: ⚡ Fast
 
-**Legacy Models (Fully Deprecated)**: Scout (Llama 4 via Groq), Sonnet 4.5 - completely replaced by GPT-5. All user-facing references removed from subscription pages, dashboard, and UI. Internal quota tracking maintains backward compatibility by mapping GPT-5 usage to scoutUsed counters.
+2. **Claude Sonnet 4.5** - REASONING MODEL
+   - Cost: $3/$15 per 1M tokens (input/output)
+   - Role: Multi-step reasoning, complex financial analysis, strategic planning
+   - Availability: 0 (Free), 25/month (Pro), 60/month (Enterprise)
+   - Badge: 🧠 Smart
+   - Triggered by: reasoning keywords, complex analysis requests
+
+3. **GPT-5** - MATH MODEL
+   - Cost: $1.25/$10 per 1M tokens (input/output)
+   - Role: Advanced mathematics, projections, compound calculations, investment modeling
+   - Availability: 0 (Free), 5/month (Pro), 10/month (Enterprise)
+   - Badge: 🧮 Math
+   - Triggered by: math keywords, projection requests, calculation queries
+
+4. **Claude Opus 4.1** - CFO MODEL
+   - Cost: $15/$75 per 1M tokens (input/output)
+   - Role: Enterprise CFO-level analysis, zero-error compliance, high-stakes decisions
+   - Availability: 0 (Free/Pro), 20/month (Enterprise only)
+   - Badge: 👔 CFO
+   - Triggered by: CFO keywords, executive-level queries
+
+**Three-Tier Subscription System:**
+- **Free ($0)**: 50 Scout queries/month
+- **Pro ($9.99)**: Unlimited Scout + 25 Sonnet + 5 GPT-5 queries/month (92% profit margin)
+- **Enterprise ($49.99)**: Unlimited Scout + 60 Sonnet + 10 GPT-5 + 20 Opus queries/month (94% profit margin)
+
+**Smart Model Selection**: The system uses keyword-based complexity detection to automatically escalate queries from Scout → Sonnet/GPT-5/Opus based on query type. This Scout-first approach maximizes profit margins while maintaining high-quality responses.
 
 # User Preferences
 
@@ -38,9 +65,9 @@ The backend is an Express.js application in TypeScript, providing a RESTful API.
 
 ## Feature Specifications
 
--   **Tier-Aware AI Orchestration System**: Three-tier subscription model (Free/$0, Pro/$9.99, Enterprise/$49.99) with intelligent hybrid AI architecture. Each tier has monthly quotas: Free (50 Scout), Pro (200 Scout + 25 Sonnet), Enterprise (300 Scout + 60 Sonnet + 20 Opus). The system features automatic model selection based on query complexity, cascading fallback when preferred models are exhausted, and quota enforcement with HTTP 429 responses for upgrade prompts.
--   **AI Financial Advisor**: Powered by multi-model hybrid AI (Groq Llama 4 Scout for fast queries, Claude Sonnet for advanced reasoning, Claude Opus for CFO-level intelligence), offering tier-based financial advice with advanced intelligence, smart conversation memory, dynamic temperature tuning, comprehensive trigger detection, enforced quality validation, natural conversational tone, and proactive next-step suggestions. It supports imperative action (e.g., "Create a goal," "Log transaction") and utilizes over 23 specialized financial tools, including advanced calculators for car affordability, student loan optimization, and investment comparison. It employs a 5-layer analysis framework, proactive pattern recognition, and advanced decision frameworks.
--   **Real-Time Quota Management**: Live quota tracking for Scout/Sonnet/Opus models with color-coded indicators (blue/purple/gold), remaining query display, and intelligent upgrade prompts when quotas are exhausted.
+-   **Tier-Aware AI Orchestration System**: Three-tier subscription model (Free/$0, Pro/$9.99, Enterprise/$49.99) with intelligent 4-model hybrid AI architecture. Each tier has monthly quotas: Free (50 Scout), Pro (Unlimited Scout + 25 Sonnet + 5 GPT-5), Enterprise (Unlimited Scout + 60 Sonnet + 10 GPT-5 + 20 Opus). The system features automatic model selection based on query complexity, cascading fallback when preferred models are exhausted, and quota enforcement with HTTP 429 responses for upgrade prompts.
+-   **AI Financial Advisor**: Powered by 4-model hybrid AI (Scout/Llama 4 as PRIMARY for fast queries, Sonnet 4.5 for multi-step reasoning, GPT-5 for advanced math/projections, Opus 4.1 for Enterprise CFO-level intelligence), offering tier-based financial advice with advanced intelligence, smart conversation memory, dynamic temperature tuning, comprehensive trigger detection, enforced quality validation, natural conversational tone, and proactive next-step suggestions. It supports imperative action (e.g., "Create a goal," "Log transaction") and utilizes over 23 specialized financial tools, including advanced calculators for car affordability, student loan optimization, and investment comparison. It employs a 5-layer analysis framework, proactive pattern recognition, and advanced decision frameworks.
+-   **Real-Time Quota Management**: Live quota tracking for all 4 models (Scout/Sonnet/GPT-5/Opus) with color-coded indicators (blue/purple/emerald/gold) and model badges (⚡Fast/🧠Smart/🧮Math/👔CFO), remaining query display, intelligent upgrade prompts when quotas are exhausted, and "Unlimited" display for Scout on Pro/Enterprise tiers.
 -   **Core Features**: Conversational data collection, luxury purchase analysis, smart budget recommendations, actionable advice in 11 languages, and tiered crypto experience.
 -   **Financial Health**: Provides a real-time comprehensive financial health score (0-100) with a 5-component weighted breakdown, detailed insights, and actionable recommendations.
 -   **Budget Management System**: Enables custom budgets for 12 categories, real-time progress tracking, proactive alerts, and smart recommendations.
@@ -48,7 +75,7 @@ The backend is an Express.js application in TypeScript, providing a RESTful API.
 -   **Dashboard Real Data**: Displays 100% real financial calculations from user transactions, including financial health score, savings rate, emergency fund status, goals progress, and QuickStats.
 -   **Proactive Insights**: Automated spending anomaly detection, savings opportunity identification, goal reminders, and budget warnings.
 -   **Demo Mode**: Provides a new user experience with realistic sample data.
--   **Subscription Management**: Professional 3-tier plan display with Scout/Sonnet/Opus quota details, visual quota progress bars, upgrade flows via Stripe, and real-time usage tracking.
+-   **Subscription Management**: Professional 3-tier plan display with all 4 model quotas (Scout/Sonnet/GPT-5/Opus) shown with badges, visual quota progress bars, upgrade flows via Stripe, and real-time usage tracking across subscription page and AI assistant page.
 -   **Zero-Friction Onboarding System**: Offers Express Start or Guided Setup, progressive data collection, and skippable steps.
 -   **Predictive Analytics Engine**: Provides AI-powered spending forecasts, goal achievement predictions, cash flow forecasting, anomaly detection, and savings opportunities.
 -   **Floating AI Copilot Widget**: Universal, context-aware widget available on every authenticated page for instant AI assistance with quick actions and a conversational interface.

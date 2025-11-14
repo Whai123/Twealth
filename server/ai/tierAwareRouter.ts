@@ -77,27 +77,47 @@ function getModelsByPriority(tier: SubscriptionTier): ModelAccess[] {
 }
 
 /**
- * Build fallback list starting from preferred model, cascading to lower tiers
+ * Build fallback list: preferred first, then other specialty models, Scout LAST
+ * 
+ * Strategy:
+ * 1. Try preferred model (selected for quality/capability match)
+ * 2. Fall back to other allowed specialty models in ascending cost order
+ * 3. Fall back to Scout LAST as final fallback (unlimited for Pro/Enterprise)
  * 
  * Examples:
  * - Free any query: preferred=scout → [scout]
- * - Pro simple query: preferred=scout → [scout]
- * - Pro math query: preferred=gpt5 → [gpt5, sonnet, scout]
- * - Enterprise CFO query: preferred=opus → [opus, gpt5, sonnet, scout]
+ * - Pro simple query: preferred=scout → [scout, gpt5, sonnet]
+ * - Pro reasoning query: preferred=sonnet → [sonnet, gpt5, scout] (Scout LAST!)
+ * - Pro math query: preferred=gpt5 → [gpt5, sonnet, scout] (Scout LAST!)
+ * - Enterprise CFO query: preferred=opus → [opus, gpt5, sonnet, scout] (Scout LAST!)
  */
 function buildFallbackList(preferredModel: ModelAccess, tier: SubscriptionTier): ModelAccess[] {
-  const allModelsPriority = getModelsByPriority(tier);
+  // Get tier-allowed models as a Set for efficient membership checks
+  const allowedModelsArray = resolveAllowedModels(tier);
+  const allowedModels = new Set(allowedModelsArray);
   
-  // Find index of preferred model in priority list
-  const preferredIndex = allModelsPriority.indexOf(preferredModel);
-  
-  if (preferredIndex === -1) {
-    // Preferred not in tier (shouldn't happen), return just preferred
-    return [preferredModel];
+  // Free tier: only Scout available
+  if (tier === 'free') {
+    return ['scout'];
   }
   
-  // Return models from preferred onwards (lower priority)
-  return allModelsPriority.slice(preferredIndex);
+  // Start with preferred model
+  const fallbackOrder: ModelAccess[] = [preferredModel];
+  
+  // Add remaining specialty models in ascending cost order (GPT-5 < Sonnet < Opus)
+  const costOrderedModels: ModelAccess[] = ['gpt5', 'sonnet', 'opus'];
+  const specialtyModels = costOrderedModels.filter(
+    m => m !== preferredModel && allowedModels.has(m)
+  ) as ModelAccess[];
+  
+  fallbackOrder.push(...specialtyModels);
+  
+  // Add Scout as FINAL fallback (unlimited for paid tiers, cheapest)
+  if (preferredModel !== 'scout' && allowedModels.has('scout')) {
+    fallbackOrder.push('scout');
+  }
+  
+  return fallbackOrder;
 }
 
 /**
