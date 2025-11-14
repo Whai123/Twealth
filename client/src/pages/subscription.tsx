@@ -452,7 +452,7 @@ export default function SubscriptionPage() {
  <span className={`text-5xl font-bold ${
  isMostPopular ? 'text-foreground' : ''
  }`}>
- {localizedPrice.currency.symbol}{Math.round(localizedPrice.amount)}
+ {localizedPrice.currency.symbol}{localizedPrice.amount.toFixed(2)}
  </span>
  <span className="text-muted-foreground text-lg">/month</span>
  </div>
@@ -635,98 +635,6 @@ export default function SubscriptionPage() {
  );
  })}
  </div>
- 
- {/* Premium ROI Calculator */}
- <Card className="relative overflow-hidden border-primary/20 bg-green-50 dark:bg-green-950/10 max-w-4xl mx-auto">
- <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
- <CardHeader className="text-center relative">
- <div className="flex items-center justify-center gap-3 mb-2">
- <TrendingUp className="w-8 h-8 text-green-600" />
- <CardTitle className="text-2xl md:text-3xl font-bold text-foreground">
- Premium users save an average of $347/month
- </CardTitle>
- </div>
- <CardDescription className="text-base">
- That's 13.8x your subscription cost - real savings from better financial management
- </CardDescription>
- </CardHeader>
- <CardContent className="relative">
- <div className="grid md:grid-cols-3 gap-6 mb-6">
- <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
- <div className="text-sm text-muted-foreground mb-2">AI Time Savings</div>
- <div className="text-3xl font-bold text-blue-600">+$100</div>
- <div className="text-xs text-muted-foreground mt-1">Auto-categorization & insights</div>
- </div>
- <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
- <div className="text-sm text-muted-foreground mb-2">Budget Optimization</div>
- <div className="text-3xl font-bold text-green-600">+$197</div>
- <div className="text-xs text-muted-foreground mt-1">Reduced overspending</div>
- </div>
- <div className="text-center p-6 bg-white/80 dark:bg-gray-900/50 rounded-xl border border-border/50">
- <div className="text-sm text-muted-foreground mb-2">Goal Achievement</div>
- <div className="text-3xl font-bold text-purple-600">+$50</div>
- <div className="text-xs text-muted-foreground mt-1">Stay on track value</div>
- </div>
- </div>
-
- <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border-2 border-green-300/50 dark:border-green-700/50">
- <div className="flex items-center justify-between text-lg mb-3">
- <span className="font-semibold">Total Value Per Month</span>
- <span className="text-2xl font-bold text-green-600">+$347</span>
- </div>
- <div className="flex items-center justify-between text-lg mb-3">
- <span className="font-semibold">Premium Subscription</span>
- <span className="text-2xl font-bold text-red-600">-$25</span>
- </div>
- <div className="h-px bg-border/50 my-4"></div>
- <div className="flex items-center justify-between">
- <span className="text-xl font-bold">Net Benefit</span>
- <span className="text-4xl font-bold text-foreground">+$322</span>
- </div>
- <p className="text-sm text-center text-muted-foreground mt-4">
- Premium pays for itself 13.8x over every single month
- </p>
- </div>
- </CardContent>
- </Card>
-
- {/* Enterprise Card */}
- <Card className="relative overflow-hidden border-2 border-dashed border-primary/50 bg-white dark:bg-gray-900 max-w-5xl mx-auto mt-8">
- <CardHeader className="text-center">
- <CardTitle className="text-2xl font-bold text-foreground">
- Need More? Enterprise Solution
- </CardTitle>
- <CardDescription className="text-base">
- Custom pricing for institutions, heavy users, and API access
- </CardDescription>
- </CardHeader>
- <CardContent className="text-center space-y-4">
- <div className="flex items-center justify-center gap-8 text-sm">
- <div className="flex items-center gap-2">
- <Check className="w-4 h-4 text-green-500" />
- <span>Unlimited everything</span>
- </div>
- <div className="flex items-center gap-2">
- <Check className="w-4 h-4 text-green-500" />
- <span>API access</span>
- </div>
- <div className="flex items-center gap-2">
- <Check className="w-4 h-4 text-green-500" />
- <span>Priority support</span>
- </div>
- <div className="flex items-center gap-2">
- <Check className="w-4 h-4 text-green-500" />
- <span>Data export</span>
- </div>
- </div>
- <Button 
- className="bg-primary text-primary-foreground hover:opacity-90"
- onClick={() => window.location.href = 'mailto:enterprise@twealth.com?subject=Enterprise Plan Inquiry'}
- >
- Contact Sales Team
- </Button>
- </CardContent>
- </Card>
  </div>
 
  {/* Enhanced Value Proposition */}
