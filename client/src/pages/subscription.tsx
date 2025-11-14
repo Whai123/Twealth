@@ -192,7 +192,7 @@ export default function SubscriptionPage() {
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
  <div className="flex-1 min-w-0">
  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
- Premium Plans
+ Subscription Plans
  </h1>
  <p className="text-sm text-muted-foreground mt-1">Upgrade your account to unlock advanced features</p>
  </div>
@@ -228,7 +228,7 @@ export default function SubscriptionPage() {
  <Zap className="w-4 h-4 text-blue-600" />
  <span className="text-sm font-semibold">Scout Queries</span>
  </div>
- <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">⚡ Fast</Badge>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Fast</Badge>
  </div>
  <div className="flex items-baseline gap-1">
  <span className="text-2xl font-bold text-blue-600">
@@ -264,7 +264,7 @@ export default function SubscriptionPage() {
  <Sparkles className="w-4 h-4 text-purple-600" />
  <span className="text-sm font-semibold">Sonnet Queries</span>
  </div>
- <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">🧠 Smart</Badge>
+ <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Smart</Badge>
  </div>
  <div className="flex items-baseline gap-1">
  <span className="text-2xl font-bold text-purple-600">
@@ -293,7 +293,7 @@ export default function SubscriptionPage() {
  <TrendingUp className="w-4 h-4 text-emerald-600" />
  <span className="text-sm font-semibold">GPT-5 Queries</span>
  </div>
- <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5">🧮 Math</Badge>
+ <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5">Math</Badge>
  </div>
  <div className="flex items-baseline gap-1">
  <span className="text-2xl font-bold text-emerald-600">
@@ -322,7 +322,7 @@ export default function SubscriptionPage() {
  <Crown className="w-4 h-4 text-amber-600" />
  <span className="text-sm font-semibold">Opus Queries</span>
  </div>
- <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">👔 CFO</Badge>
+ <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">CFO</Badge>
  </div>
  <div className="flex items-baseline gap-1">
  <span className="text-2xl font-bold text-amber-600">
@@ -510,7 +510,7 @@ export default function SubscriptionPage() {
  <div className="flex items-center gap-2">
  <Zap className="w-4 h-4 text-blue-600" />
  <span className="text-sm font-medium">Scout Queries</span>
- <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">⚡ Fast</Badge>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Fast</Badge>
  </div>
  <div className="text-right">
  <span className="text-base font-bold text-blue-600 block" data-testid={`text-${plan.name.toLowerCase()}-scout-limit`}>
@@ -528,7 +528,7 @@ export default function SubscriptionPage() {
  <div className="flex items-center gap-2">
  <Sparkles className="w-4 h-4 text-purple-600" />
  <span className="text-sm font-medium">Sonnet Queries</span>
- <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">🧠 Smart</Badge>
+ <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Smart</Badge>
  </div>
  <div className="text-right">
  <span className="text-base font-bold text-purple-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
@@ -545,7 +545,7 @@ export default function SubscriptionPage() {
  <div className="flex items-center gap-2">
  <TrendingUp className="w-4 h-4 text-emerald-600" />
  <span className="text-sm font-medium">GPT-5 Queries</span>
- <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5">🧮 Math</Badge>
+ <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5">Math</Badge>
  </div>
  <div className="text-right">
  <span className="text-base font-bold text-emerald-600 block" data-testid={`text-${plan.name.toLowerCase()}-gpt5-limit`}>
@@ -562,7 +562,7 @@ export default function SubscriptionPage() {
  <div className="flex items-center gap-2">
  <Crown className="w-4 h-4 text-amber-600" />
  <span className="text-sm font-medium">Opus Queries</span>
- <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">👔 CFO</Badge>
+ <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">CFO</Badge>
  </div>
  <div className="text-right">
  <span className="text-base font-bold text-amber-600 block" data-testid={`text-${plan.name.toLowerCase()}-opus-limit`}>
@@ -686,7 +686,7 @@ export default function SubscriptionPage() {
  
  <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
  <div className="text-3xl md:text-4xl font-bold text-purple-600">$9.99</div>
- <div className="font-semibold">Affordable Premium</div>
+ <div className="font-semibold">Professional Access</div>
  <div className="text-sm text-muted-foreground">Pro tier starting price</div>
  </div>
  </div>

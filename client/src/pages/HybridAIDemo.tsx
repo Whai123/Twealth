@@ -282,12 +282,12 @@ export default function HybridAIDemo() {
                 {response.modelUsed === 'scout' ? (
                   <Badge variant="outline" className="gap-1.5 border-2" data-testid="badge-model-scout">
                     <Zap className="h-3.5 w-3.5 text-yellow-500" />
-                    Scout ⚡
+                    Scout
                   </Badge>
                 ) : (
                   <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-black to-gray-700 dark:from-white dark:to-gray-300 text-white dark:text-black border-2" data-testid="badge-model-reasoning">
                     <Brain className="h-3.5 w-3.5" />
-                    Reasoning 🧠
+                    Reasoning
                   </Badge>
                 )}
               </div>

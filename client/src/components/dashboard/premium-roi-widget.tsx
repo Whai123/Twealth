@@ -56,7 +56,7 @@ export default function PremiumROIWidget() {
  // Total estimated monthly value
  const totalValue = Math.round(timeSavingsValue + budgetSavings + goalValue);
  
- const subscriptionCost = 25; // $25/month premium
+ const subscriptionCost = 9.99; // Pro tier monthly cost
  const netBenefit = totalValue - subscriptionCost;
  const roi = totalValue > 0 ? (totalValue / subscriptionCost).toFixed(1) :"0";
 

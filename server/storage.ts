@@ -414,7 +414,7 @@ export interface IStorage {
 
   // Subscription methods
   getUserSubscription(userId: string): Promise<(Subscription & { plan: SubscriptionPlan }) | undefined>;
-  getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<Subscription | undefined>;
+  getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<(Subscription & { plan: SubscriptionPlan }) | undefined>;
   createSubscription(subscription: InsertSubscription): Promise<Subscription>;
   updateSubscription(id: string, updates: Partial<Subscription>): Promise<Subscription>;
   cancelSubscription(id: string): Promise<Subscription>;
@@ -3157,11 +3157,18 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<Subscription | undefined> {
-    const [subscription] = await db.select()
+  async getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<(Subscription & { plan: SubscriptionPlan }) | undefined> {
+    const [row] = await db.select()
       .from(subscriptions)
+      .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
       .where(eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId));
-    return subscription;
+    
+    if (!row) return undefined;
+    
+    return { 
+      ...row.subscriptions, 
+      plan: row.subscription_plans 
+    };
   }
 
   async createSubscription(subscription: InsertSubscription): Promise<Subscription> {

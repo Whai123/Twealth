@@ -457,7 +457,7 @@ export default function InvestmentIntelligence() {
            onClick={() => setCategoryFilter("stocks")}
            data-testid="button-filter-stocks"
           >
-           📈 Stocks
+           Stocks
           </Button>
           <Button
            variant={categoryFilter ==="bonds" ?"default" :"outline"}

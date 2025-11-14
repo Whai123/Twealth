@@ -6,6 +6,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
+import { z } from "zod";
 
 // Helper function to get user ID from request (custom auth)
 function getUserIdFromRequest(req: any): string {
@@ -5813,8 +5814,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         status: 'active',
         stripeSubscriptionId: subscriptionId as string,
         stripeCustomerId: session.customer,
-        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        currentPeriodStart: new Date((stripeSubscription as any).current_period_start * 1000),
+        currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
         localPrice: plan.priceUsd,
         localCurrency: 'USD'
       });

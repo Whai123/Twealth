@@ -491,7 +491,7 @@ export default function AIAssistantPage() {
  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
  <div>
  <p className="text-sm font-medium">Scout</p>
- <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">⚡ Fast</Badge>
+ <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">Fast</Badge>
  </div>
  </div>
  <div className="text-right">
@@ -509,7 +509,7 @@ export default function AIAssistantPage() {
  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
  <div>
  <p className="text-sm font-medium">Sonnet</p>
- <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0">🧠 Smart</Badge>
+ <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0">Smart</Badge>
  </div>
  </div>
  <div className="text-right">
@@ -537,7 +537,7 @@ export default function AIAssistantPage() {
  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
  <div>
  <p className="text-sm font-medium">GPT-5</p>
- <Badge className="bg-emerald-500 text-white text-[10px] px-1.5 py-0">🧮 Math</Badge>
+ <Badge className="bg-emerald-500 text-white text-[10px] px-1.5 py-0">Math</Badge>
  </div>
  </div>
  <div className="text-right">
@@ -565,7 +565,7 @@ export default function AIAssistantPage() {
  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
  <div>
  <p className="text-sm font-medium">Opus</p>
- <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">👔 CFO</Badge>
+ <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">CFO</Badge>
  </div>
  </div>
  <div className="text-right">
