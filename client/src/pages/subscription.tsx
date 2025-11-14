@@ -127,11 +127,10 @@ export default function SubscriptionPage() {
  queryKey: ["/api/user-preferences"],
  });
 
- const handleUpgrade = (planId: string, planName: string) => {
- // Free plan doesn't need payment
+ const handleUpgrade = async (planId: string, planName: string) => {
+ // Free plan doesn't need payment - direct upgrade
  if (planName === 'Free') {
- // Direct upgrade without payment
- apiRequest("POST","/api/subscription/upgrade", { planId })
+ apiRequest("POST", "/api/subscription/upgrade", { planId })
  .then(() => {
  toast({
  title:"Switched to Free Plan",
@@ -148,8 +147,23 @@ export default function SubscriptionPage() {
  });
  });
  } else {
- // Redirect to Stripe checkout for paid plans
- setLocation(`/checkout/${planId}`);
+ // Pro and Enterprise plans require Stripe checkout
+ try {
+ const { url } = await apiRequest("POST", "/api/subscription/create-checkout-session", { planId });
+ 
+ if (url) {
+ // Redirect to Stripe-hosted checkout page
+ window.location.href = url;
+ } else {
+ throw new Error("No checkout URL received");
+ }
+ } catch (error: any) {
+ toast({
+ title: "Checkout Failed",
+ description: error.message || "Failed to create checkout session",
+ variant: "destructive"
+ });
+ }
  }
  };
 

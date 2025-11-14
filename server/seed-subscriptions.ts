@@ -5,6 +5,17 @@ import { eq } from "drizzle-orm";
 export async function seedSubscriptionPlans() {
   console.log("🌱 Seeding subscription plans...");
 
+  // Get Stripe price IDs from environment variables
+  const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || null;
+  const STRIPE_ENTERPRISE_PRICE_ID = process.env.STRIPE_ENTERPRISE_PRICE_ID || null;
+
+  if (!STRIPE_PRO_PRICE_ID || !STRIPE_ENTERPRISE_PRICE_ID) {
+    console.warn("⚠️  Stripe price IDs not configured. Set STRIPE_PRO_PRICE_ID and STRIPE_ENTERPRISE_PRICE_ID environment variables.");
+    console.warn("⚠️  Paid subscriptions will not work until these are configured.");
+  } else {
+    console.log("✓ Stripe price IDs configured from environment variables");
+  }
+
   const plans = [
     {
       name: "free",
@@ -13,6 +24,7 @@ export async function seedSubscriptionPlans() {
       priceThb: "0.00",
       priceUsd: "0.00",
       currency: "USD",
+      stripePriceId: null, // Free plan doesn't need Stripe price ID
       billingInterval: "monthly",
       scoutLimit: 50,
       sonnetLimit: 0,
@@ -38,6 +50,7 @@ export async function seedSubscriptionPlans() {
       priceThb: "349.00",
       priceUsd: "9.99",
       currency: "USD",
+      stripePriceId: STRIPE_PRO_PRICE_ID, // Set via STRIPE_PRO_PRICE_ID environment variable
       billingInterval: "monthly",
       scoutLimit: 999999,
       sonnetLimit: 25,
@@ -66,6 +79,7 @@ export async function seedSubscriptionPlans() {
       priceThb: "1749.00",
       priceUsd: "49.99",
       currency: "USD",
+      stripePriceId: STRIPE_ENTERPRISE_PRICE_ID, // Set via STRIPE_ENTERPRISE_PRICE_ID environment variable
       billingInterval: "monthly",
       scoutLimit: 999999,
       sonnetLimit: 60,

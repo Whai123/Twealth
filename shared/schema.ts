@@ -1220,6 +1220,7 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   priceThb: decimal("price_thb", { precision: 10, scale: 2 }).notNull(), // Price in THB
   priceUsd: decimal("price_usd", { precision: 10, scale: 2 }).notNull(), // Price in USD
   currency: text("currency").default("USD"),
+  stripePriceId: text("stripe_price_id"), // Stripe Price ID (e.g., price_xxx from Stripe dashboard)
   billingInterval: text("billing_interval").notNull(), // "monthly", "yearly", "lifetime"
   // AI Usage Limits - Hybrid AI System (Scout/Sonnet/GPT-5/Opus)
   scoutLimit: integer("scout_limit").default(0), // Scout queries per period (null = unlimited for paid tiers)

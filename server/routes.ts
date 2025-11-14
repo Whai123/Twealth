@@ -4904,6 +4904,112 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
+  // Stripe Checkout Session for subscriptions (modern approach)
+  app.post("/api/subscription/create-checkout-session", isAuthenticated, async (req: any, res) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ 
+          message: "Payment processing unavailable - Stripe not configured",
+          requiresSetup: true 
+        });
+      }
+
+      const userId = getUserIdFromRequest(req);
+      
+      // Validate request body with Zod
+      const checkoutSessionSchema = z.object({
+        planId: z.string().min(1, "Plan ID is required")
+      });
+
+      const validation = checkoutSessionSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: "Invalid request body",
+          errors: validation.error.errors 
+        });
+      }
+
+      const { planId } = validation.data;
+
+      const plan = await storage.getSubscriptionPlan(planId);
+      if (!plan) {
+        return res.status(404).json({ message: "Plan not found" });
+      }
+
+      // Free plan doesn't need checkout
+      if (plan.name === 'Free') {
+        return res.status(400).json({ message: "Free plan doesn't require payment" });
+      }
+
+      // Check if plan has Stripe price ID configured
+      if (!plan.stripePriceId) {
+        return res.status(400).json({ 
+          message: `Stripe price ID not configured for ${plan.name} plan`,
+          requiresSetup: true 
+        });
+      }
+
+      // Get or create Stripe customer
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      let currentSubscription = await storage.getUserSubscription(userId);
+      if (!currentSubscription) {
+        await storage.initializeDefaultSubscription(userId);
+        currentSubscription = await storage.getUserSubscription(userId);
+      }
+
+      let customerId = currentSubscription?.stripeCustomerId;
+      
+      if (!customerId) {
+        // Create Stripe customer
+        const customer = await stripe.customers.create({
+          email: user.email || undefined,
+          name: user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.email || undefined,
+          metadata: { userId }
+        });
+        customerId = customer.id;
+        
+        // Save customer ID
+        await storage.updateSubscription(currentSubscription!.id, {
+          stripeCustomerId: customerId
+        });
+      }
+
+      // Create checkout session - use request origin to avoid double https://
+      const protocol = req.protocol || 'https';
+      const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN;
+      const baseUrl = `${protocol}://${host}`;
+
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{
+          price: plan.stripePriceId,
+          quantity: 1,
+        }],
+        mode: 'subscription',
+        success_url: `${baseUrl}/subscription?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/subscription?canceled=true`,
+        expand: ['subscription'], // Expand subscription object for webhook processing
+        metadata: {
+          userId,
+          planId: plan.id,
+          planName: plan.name
+        }
+      });
+
+      res.json({ url: session.url });
+
+    } catch (error: any) {
+      console.error('Checkout Session Error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/subscription/upgrade", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
@@ -5414,6 +5520,30 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
 
       // Handle the event
       switch (event.type) {
+        case 'checkout.session.completed':
+          // User completed Stripe Checkout - most common for new subscriptions
+          const session = event.data.object;
+          await handleCheckoutSessionCompleted(session);
+          break;
+
+        case 'customer.subscription.created':
+          // Subscription was created (backup to checkout.session.completed)
+          const createdSubscription = event.data.object;
+          await handleSubscriptionCreated(createdSubscription);
+          break;
+
+        case 'customer.subscription.updated':
+          // Subscription was updated (plan change, renewal, etc.)
+          const updatedSubscription = event.data.object;
+          await handleSubscriptionUpdated(updatedSubscription);
+          break;
+
+        case 'customer.subscription.deleted':
+          // Subscription was cancelled or expired
+          const deletedSubscription = event.data.object;
+          await handleSubscriptionDeleted(deletedSubscription);
+          break;
+
         case 'payment_intent.succeeded':
           const paymentIntent = event.data.object;
           await handlePaymentSuccess(paymentIntent);
@@ -5639,6 +5769,197 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       }
     } catch (error) {
       console.error('Error handling subscription payment success:', error);
+    }
+  }
+
+  // Handle Stripe Checkout session completion (primary subscription activation path)
+  async function handleCheckoutSessionCompleted(session: any) {
+    try {
+      const { userId, planId } = session.metadata || {};
+      
+      if (!userId || !planId) {
+        console.error('Missing metadata in checkout session:', session.id);
+        return;
+      }
+
+      const plan = await storage.getSubscriptionPlan(planId);
+      if (!plan) {
+        console.error('Plan not found:', planId);
+        return;
+      }
+
+      // Get the subscription object from the session
+      const subscriptionId = session.subscription;
+      if (!subscriptionId) {
+        console.error('No subscription ID in checkout session:', session.id);
+        return;
+      }
+
+      const stripeSubscription = await stripe!.subscriptions.retrieve(subscriptionId as string);
+
+      // Ensure user has a subscription record
+      let currentSubscription = await storage.getUserSubscription(userId);
+      if (!currentSubscription) {
+        await storage.initializeDefaultSubscription(userId);
+        currentSubscription = await storage.getUserSubscription(userId);
+      }
+
+      // Verify subscription was created
+      if (!currentSubscription) {
+        console.error('Failed to create default subscription for user:', userId);
+        return;
+      }
+
+      // Now safe to update
+      await storage.updateSubscription(currentSubscription.id, {
+        planId: plan.id,
+        status: 'active',
+        stripeSubscriptionId: subscriptionId as string,
+        stripeCustomerId: session.customer,
+        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        localPrice: plan.priceUsd,
+        localCurrency: 'USD'
+      });
+
+      console.log(`✓ Activated subscription ${subscriptionId} for user ${userId} via checkout session ${session.id}`);
+    } catch (error) {
+      console.error('Error handling checkout session completed:', error);
+    }
+  }
+
+  // Handle subscription creation (backup handler)
+  async function handleSubscriptionCreated(subscription: any) {
+    try {
+      const { userId, planId } = subscription.metadata || {};
+      
+      if (!userId || !planId) {
+        console.log('No metadata in subscription, skipping (likely handled by checkout.session.completed)');
+        return;
+      }
+
+      const plan = await storage.getSubscriptionPlan(planId);
+      if (!plan) {
+        console.error('Plan not found:', planId);
+        return;
+      }
+
+      let currentSubscription = await storage.getUserSubscription(userId);
+      if (!currentSubscription) {
+        await storage.initializeDefaultSubscription(userId);
+        currentSubscription = await storage.getUserSubscription(userId);
+      }
+
+      if (currentSubscription) {
+        await storage.updateSubscription(currentSubscription.id, {
+          planId: plan.id,
+          status: subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : subscription.status,
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          localPrice: plan.priceUsd,
+          localCurrency: 'USD'
+        });
+
+        console.log(`✓ Created subscription ${subscription.id} for user ${userId}`);
+      }
+    } catch (error) {
+      console.error('Error handling subscription created:', error);
+    }
+  }
+
+  // Handle subscription updates (renewals, plan changes)
+  async function handleSubscriptionUpdated(subscription: any) {
+    try {
+      // Find subscription by Stripe subscription ID
+      const currentSubscription = await storage.getSubscriptionByStripeId(subscription.id);
+      
+      if (!currentSubscription) {
+        console.log(`Subscription ${subscription.id} not found in database, ignoring update`);
+        return;
+      }
+
+      // Get the plan from subscription items (first item's price)
+      const priceId = subscription.items?.data?.[0]?.price?.id;
+      if (!priceId) {
+        console.error('No price ID in subscription:', subscription.id);
+        return;
+      }
+
+      // Find the plan with matching Stripe price ID
+      const plans = await storage.getSubscriptionPlans();
+      const plan = plans.find(p => p.stripePriceId === priceId);
+      
+      if (!plan) {
+        console.error('Plan not found for price ID:', priceId);
+        console.error('Available plans:', plans.map(p => ({ name: p.name, stripePriceId: p.stripePriceId })));
+        console.error('This may indicate STRIPE_PRO_PRICE_ID or STRIPE_ENTERPRISE_PRICE_ID environment variables are not configured.');
+        // Downgrade to free plan as fallback
+        const freePlan = plans.find(p => p.name.toLowerCase() === 'free');
+        if (!freePlan) {
+          console.error('Free plan not found, cannot downgrade');
+          return;
+        }
+        console.log(`Downgrading subscription ${subscription.id} to Free plan (price ID not configured)`);
+        await storage.updateSubscription(currentSubscription.id, {
+          planId: freePlan.id,
+          status: 'active',
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          localPrice: freePlan.priceUsd,
+          localCurrency: 'USD'
+        });
+        return;
+      }
+
+      await storage.updateSubscription(currentSubscription.id, {
+        planId: plan.id,
+        status: subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : subscription.status,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        localPrice: plan.priceUsd,
+        localCurrency: 'USD'
+      });
+
+      console.log(`✓ Updated subscription ${subscription.id} to plan ${plan.name}`);
+    } catch (error) {
+      console.error('Error handling subscription updated:', error);
+    }
+  }
+
+  // Handle subscription deletion (cancellation/expiration)
+  async function handleSubscriptionDeleted(subscription: any) {
+    try {
+      // Find subscription by Stripe subscription ID
+      const currentSubscription = await storage.getSubscriptionByStripeId(subscription.id);
+      
+      if (!currentSubscription) {
+        console.log(`Subscription ${subscription.id} not found in database, ignoring deletion`);
+        return;
+      }
+
+      // Get Free plan
+      const plans = await storage.getSubscriptionPlans();
+      const freePlan = plans.find(p => p.name.toLowerCase() === 'free');
+      
+      if (!freePlan) {
+        console.error('Free plan not found for downgrade');
+        return;
+      }
+
+      // Downgrade to Free plan
+      await storage.updateSubscription(currentSubscription.id, {
+        planId: freePlan.id,
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        localPrice: freePlan.priceUsd,
+        localCurrency: 'USD'
+      });
+
+      console.log(`✓ Cancelled subscription ${subscription.id}, downgraded to Free plan`);
+    } catch (error) {
+      console.error('Error handling subscription deleted:', error);
     }
   }
 
