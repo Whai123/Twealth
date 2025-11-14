@@ -367,32 +367,33 @@ export default function SubscriptionPage() {
  {/* Enhanced Pricing Plans */}
  <div className="space-y-12">
  <div className="text-center space-y-4">
- <h2 className="text-2xl sm:text-3xl font-semibold text-foreground">
- Choose Your Perfect Plan
+ <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+ Choose Your Plan
  </h2>
- <p className="text-base text-muted-foreground max-w-2xl mx-auto">
- Start free, upgrade anytime. All plans include our core financial tracking features.
+ <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+ Start free and scale as you grow. Unlock AI-powered financial insights with Pro or Enterprise.
  </p>
- <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
- <div className="flex items-center gap-1">
+ <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground pt-2">
+ <div className="flex items-center gap-2">
  <Check className="w-4 h-4 text-green-500" />
  <span>Cancel anytime</span>
  </div>
- <div className="flex items-center gap-1">
+ <div className="flex items-center gap-2">
  <Check className="w-4 h-4 text-green-500" />
  <span>Instant activation</span>
  </div>
- <div className="flex items-center gap-1">
+ <div className="flex items-center gap-2">
  <Check className="w-4 h-4 text-green-500" />
  <span>No setup fees</span>
  </div>
  </div>
  </div>
- <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
- {plans?.filter(p => p.name === 'Free' || p.name === 'Pro').map((plan, index) => {
+ <div className="grid gap-8 md:grid-cols-3 max-w-7xl mx-auto">
+ {plans?.sort((a, b) => a.sortOrder - b.sortOrder).map((plan, index) => {
  const isCurrentPlan = currentPlan?.id === plan.id;
  const isPremium = plan.name === 'Pro';
  const isMostPopular = plan.name === 'Pro';
+ const isEnterprise = plan.name === 'Enterprise';
  
  return (
  <Card 
@@ -408,6 +409,11 @@ export default function SubscriptionPage() {
  {isMostPopular && (
  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 text-xs font-medium z-10">
  MOST POPULAR
+ </Badge>
+ )}
+ {isEnterprise && (
+ <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white px-4 py-1 text-xs font-medium z-10">
+ BEST FOR CFO TEAMS
  </Badge>
  )}
  
