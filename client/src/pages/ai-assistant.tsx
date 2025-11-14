@@ -47,6 +47,12 @@ interface UsageInfo {
  remaining: number;
  allowed: boolean;
  };
+ gpt5Usage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ allowed: boolean;
+ };
  opusUsage: {
  used: number;
  limit: number;
@@ -171,26 +177,51 @@ export default function AIAssistantPage() {
  const getUpgradeMessage = (exceededModel?: string) => {
  const tier = getCurrentTier();
  
- if (exceededModel === 'opus' || tier === 'Enterprise') {
+ // Model-first branching to avoid short-circuiting Enterprise GPT-5 cases
+ if (exceededModel === 'opus') {
  return {
  title: "Opus Quota Exceeded",
- description: "You've used all your Enterprise Opus queries. Your queries will use Sonnet until quota resets.",
+ description: "You've used all your Enterprise Opus queries. Your queries will fall back to Sonnet until quota resets.",
  benefits: "Opus provides the most advanced analysis for complex financial decisions."
  };
  }
  
- if (exceededModel === 'sonnet' || tier === 'Pro') {
+ if (exceededModel === 'gpt5') {
+ if (tier === 'Enterprise') {
+ return {
+ title: "GPT-5 Quota Exceeded",
+ description: "You've used all your GPT-5 math queries. Your queries will use Sonnet for reasoning until quota resets.",
+ benefits: "GPT-5 provides advanced mathematical analysis and projections."
+ };
+ }
  return {
  title: "Upgrade to Enterprise",
- description: "Unlock Opus for the most sophisticated financial analysis and unlimited queries.",
- benefits: "Enterprise includes: Unlimited Opus queries, Priority support, Advanced portfolio optimization"
+ description: "Get more GPT-5 queries (10/month) plus Opus access for CFO-level analysis.",
+ benefits: "Enterprise includes: 10 GPT-5 queries, 20 Opus queries, 60 Sonnet queries, Unlimited Scout"
+ };
+ }
+ 
+ if (exceededModel === 'sonnet') {
+ return {
+ title: "Upgrade to Enterprise",
+ description: "Unlock Opus for CFO-level analysis, more GPT-5 for math, and higher Sonnet limits.",
+ benefits: "Enterprise includes: 20 Opus queries, 10 GPT-5 queries, 60 Sonnet queries, Unlimited Scout"
+ };
+ }
+ 
+ // Tier-based fallback for general upgrade messaging
+ if (tier === 'Pro') {
+ return {
+ title: "Upgrade to Enterprise",
+ description: "Unlock Opus for CFO-level analysis, more GPT-5 for math, and higher Sonnet limits.",
+ benefits: "Enterprise includes: 20 Opus queries, 10 GPT-5 queries, 60 Sonnet queries, Unlimited Scout"
  };
  }
  
  return {
  title: "Upgrade to Pro",
- description: "Get access to Sonnet for deeper financial analysis with 50 queries/month.",
- benefits: "Pro includes: Sonnet AI (50/mo), Advanced insights, Goal optimization, Priority responses"
+ description: "Get access to Sonnet for deep reasoning and GPT-5 for math analysis.",
+ benefits: "Pro includes: Unlimited Scout, 25 Sonnet queries, 5 GPT-5 queries per month"
  };
  };
 
@@ -341,8 +372,20 @@ export default function AIAssistantPage() {
  const hasMessages = messages.length > 0;
 
  const tier = getCurrentTier();
- const totalUsed = usage ? (usage.scoutUsage?.used || 0) + (usage.sonnetUsage?.used || 0) + (usage.opusUsage?.used || 0) : 0;
- const totalLimit = usage ? (usage.scoutUsage?.limit || 0) + (usage.sonnetUsage?.limit || 0) + (usage.opusUsage?.limit || 0) : 0;
+ // Calculate total quota excluding unlimited Scout (999999 limit)
+ const scoutUsed = usage?.scoutUsage?.used || 0;
+ const scoutLimit = usage?.scoutUsage?.limit || 0;
+ const sonnetUsed = usage?.sonnetUsage?.used || 0;
+ const sonnetLimit = usage?.sonnetUsage?.limit || 0;
+ const gpt5Used = usage?.gpt5Usage?.used || 0;
+ const gpt5Limit = usage?.gpt5Usage?.limit || 0;
+ const opusUsed = usage?.opusUsage?.used || 0;
+ const opusLimit = usage?.opusUsage?.limit || 0;
+ 
+ // Exclude unlimited Scout from aggregate totals
+ const isScoutUnlimited = scoutLimit === 999999;
+ const totalUsed = (isScoutUnlimited ? 0 : scoutUsed) + sonnetUsed + gpt5Used + opusUsed;
+ const totalLimit = (isScoutUnlimited ? 0 : scoutLimit) + sonnetLimit + gpt5Limit + opusLimit;
  const usagePercentage = totalLimit > 0 ? (totalUsed / totalLimit) * 100 : 0;
 
  return (
@@ -441,30 +484,32 @@ export default function AIAssistantPage() {
  View Plans
  </Button>
  </div>
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
- {/* Scout - Always visible */}
+ <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+ {/* Scout - Always visible (PRIMARY MODEL) */}
  <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-blue-200/30 dark:border-blue-800/30 bg-white dark:bg-gray-900" data-testid="quota-scout">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
  <div>
  <p className="text-sm font-medium">Scout</p>
- <p className="text-xs text-muted-foreground">Fast responses</p>
+ <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">⚡ Fast</Badge>
  </div>
  </div>
  <div className="text-right">
- <p className="text-base font-bold text-blue-600">{usage.scoutUsage?.remaining || 0}</p>
- <p className="text-xs text-muted-foreground">remaining</p>
+ <p className="text-base font-bold text-blue-600">
+ {scoutLimit === 999999 ? '∞' : (usage.scoutUsage?.remaining || 0)}
+ </p>
+ <p className="text-xs text-muted-foreground">{scoutLimit === 999999 ? 'unlimited' : 'remaining'}</p>
  </div>
  </div>
 
- {/* Sonnet - Only if limit > 0 */}
+ {/* Sonnet - REASONING MODEL (Pro/Enterprise) */}
  {usage.sonnetUsage && usage.sonnetUsage.limit > 0 ? (
  <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-purple-200/30 dark:border-purple-800/30 bg-white dark:bg-gray-900" data-testid="quota-sonnet">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
  <div>
  <p className="text-sm font-medium">Sonnet</p>
- <p className="text-xs text-muted-foreground">Deep analysis</p>
+ <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0">🧠 Smart</Badge>
  </div>
  </div>
  <div className="text-right">
@@ -485,14 +530,42 @@ export default function AIAssistantPage() {
  </div>
  )}
 
- {/* Opus - Only if limit > 0 */}
+ {/* GPT-5 - MATH MODEL (Pro/Enterprise) */}
+ {usage.gpt5Usage && usage.gpt5Usage.limit > 0 ? (
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-emerald-200/30 dark:border-emerald-800/30 bg-white dark:bg-gray-900" data-testid="quota-gpt5">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+ <div>
+ <p className="text-sm font-medium">GPT-5</p>
+ <Badge className="bg-emerald-500 text-white text-[10px] px-1.5 py-0">🧮 Math</Badge>
+ </div>
+ </div>
+ <div className="text-right">
+ <p className="text-base font-bold text-emerald-600">{usage.gpt5Usage.remaining}</p>
+ <p className="text-xs text-muted-foreground">remaining</p>
+ </div>
+ </div>
+ ) : (
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-gpt5-locked">
+ <div className="flex items-center gap-2">
+ <div className="w-2 h-2 rounded-full bg-emerald-300"></div>
+ <div>
+ <p className="text-sm font-medium text-muted-foreground">GPT-5</p>
+ <p className="text-xs text-muted-foreground">Pro tier</p>
+ </div>
+ </div>
+ <Crown className="w-4 h-4 text-muted-foreground" />
+ </div>
+ )}
+
+ {/* Opus - CFO MODEL (Enterprise only) */}
  {usage.opusUsage && usage.opusUsage.limit > 0 ? (
  <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-amber-200/30 dark:border-amber-800/30 bg-white dark:bg-gray-900" data-testid="quota-opus">
  <div className="flex items-center gap-2">
  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
  <div>
  <p className="text-sm font-medium">Opus</p>
- <p className="text-xs text-muted-foreground">Advanced CFO</p>
+ <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">👔 CFO</Badge>
  </div>
  </div>
  <div className="text-right">
