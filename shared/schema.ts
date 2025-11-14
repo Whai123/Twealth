@@ -1221,9 +1221,10 @@ export const subscriptionPlans = pgTable("subscription_plans", {
   priceUsd: decimal("price_usd", { precision: 10, scale: 2 }).notNull(), // Price in USD
   currency: text("currency").default("USD"),
   billingInterval: text("billing_interval").notNull(), // "monthly", "yearly", "lifetime"
-  // AI Usage Limits - Hybrid AI System (Scout/Sonnet/Opus)
-  scoutLimit: integer("scout_limit").default(0), // Scout queries per period
+  // AI Usage Limits - Hybrid AI System (Scout/Sonnet/GPT-5/Opus)
+  scoutLimit: integer("scout_limit").default(0), // Scout queries per period (null = unlimited for paid tiers)
   sonnetLimit: integer("sonnet_limit").default(0), // Sonnet (reasoning) queries per period
+  gpt5Limit: integer("gpt5_limit").default(0), // GPT-5 (advanced math) queries per period
   opusLimit: integer("opus_limit").default(0), // Opus (enterprise CFO) queries per period
   // Legacy AI Limits (for backward compatibility)
   aiChatLimit: integer("ai_chat_limit").default(0), // Messages per period (monthly or lifetime)
@@ -1264,9 +1265,10 @@ export const usageTracking = pgTable("usage_tracking", {
   // Tracking period
   periodStart: timestamp("period_start").notNull(),
   periodEnd: timestamp("period_end").notNull(),
-  // Hybrid AI Usage counters (Scout/Sonnet/Opus)
+  // Hybrid AI Usage counters (Scout/Sonnet/GPT-5/Opus)
   scoutQueriesUsed: integer("scout_queries_used").default(0),
   sonnetQueriesUsed: integer("sonnet_queries_used").default(0),
+  gpt5QueriesUsed: integer("gpt5_queries_used").default(0),
   opusQueriesUsed: integer("opus_queries_used").default(0),
   // Legacy AI Usage counters (for backward compatibility)
   aiChatsUsed: integer("ai_chats_used").default(0),

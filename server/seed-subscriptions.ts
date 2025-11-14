@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { subscriptionPlans } from "../shared/schema";
+import { eq } from "drizzle-orm";
 
 export async function seedSubscriptionPlans() {
   console.log("🌱 Seeding subscription plans...");
@@ -15,13 +16,14 @@ export async function seedSubscriptionPlans() {
       billingInterval: "monthly",
       scoutLimit: 50,
       sonnetLimit: 0,
+      gpt5Limit: 0,
       opusLimit: 0,
       aiChatLimit: 50,
       aiDeepAnalysisLimit: 0,
       aiInsightsFrequency: "never",
       isLifetimeLimit: false,
       features: [
-        "50 AI Scout queries per month",
+        "50 Scout queries/month ⚡ Fast",
         "Basic financial tracking",
         "Budget management",
         "Goal tracking",
@@ -37,16 +39,18 @@ export async function seedSubscriptionPlans() {
       priceUsd: "9.99",
       currency: "USD",
       billingInterval: "monthly",
-      scoutLimit: 200,
+      scoutLimit: 999999,
       sonnetLimit: 25,
+      gpt5Limit: 5,
       opusLimit: 0,
-      aiChatLimit: 225,
-      aiDeepAnalysisLimit: 25,
+      aiChatLimit: 999999,
+      aiDeepAnalysisLimit: 30,
       aiInsightsFrequency: "daily",
       isLifetimeLimit: false,
       features: [
-        "200 AI Scout queries per month",
-        "25 AI Sonnet (advanced reasoning) queries per month",
+        "Unlimited Scout queries ⚡ Fast",
+        "25 Sonnet queries/month 🧠 Smart",
+        "5 GPT-5 queries/month 🧮 Math",
         "Daily proactive insights",
         "Advanced analytics",
         "Priority support",
@@ -63,17 +67,19 @@ export async function seedSubscriptionPlans() {
       priceUsd: "49.99",
       currency: "USD",
       billingInterval: "monthly",
-      scoutLimit: 300,
+      scoutLimit: 999999,
       sonnetLimit: 60,
+      gpt5Limit: 10,
       opusLimit: 20,
-      aiChatLimit: 380,
-      aiDeepAnalysisLimit: 80,
+      aiChatLimit: 999999,
+      aiDeepAnalysisLimit: 90,
       aiInsightsFrequency: "daily",
       isLifetimeLimit: false,
       features: [
-        "300 AI Scout queries per month",
-        "60 AI Sonnet (advanced reasoning) queries per month",
-        "20 AI Opus (CFO-level intelligence) queries per month",
+        "Unlimited Scout queries ⚡ Fast",
+        "60 Sonnet queries/month 🧠 Smart",
+        "10 GPT-5 queries/month 🧮 Math",
+        "20 Opus queries/month 👔 CFO",
         "Real-time insights and alerts",
         "Advanced predictive analytics",
         "Premium support",
@@ -85,9 +91,24 @@ export async function seedSubscriptionPlans() {
     },
   ];
 
-  // Insert plans
+  // Upsert plans (update existing or insert new)
   for (const plan of plans) {
-    await db.insert(subscriptionPlans).values(plan).onConflictDoNothing();
+    const existing = await db.query.subscriptionPlans.findFirst({
+      where: (plans, { eq }) => eq(plans.name, plan.name),
+    });
+
+    if (existing) {
+      // Update existing plan with new quotas
+      await db
+        .update(subscriptionPlans)
+        .set(plan)
+        .where(eq(subscriptionPlans.name, plan.name));
+      console.log(`  ✓ Updated plan: ${plan.name}`);
+    } else {
+      // Insert new plan
+      await db.insert(subscriptionPlans).values(plan);
+      console.log(`  ✓ Inserted plan: ${plan.name}`);
+    }
   }
 
   console.log("✅ Subscription plans seeded successfully");
