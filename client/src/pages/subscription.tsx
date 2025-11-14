@@ -22,6 +22,7 @@ interface SubscriptionPlan {
  billingInterval: string;
  scoutLimit: number;
  sonnetLimit: number;
+ gpt5Limit: number; // NEW: GPT-5 math model quota
  opusLimit: number;
  aiChatLimit: number;
  aiDeepAnalysisLimit: number;
@@ -60,6 +61,11 @@ interface UsageInfo {
  remaining: number;
  };
  sonnetUsage: {
+ used: number;
+ limit: number;
+ remaining: number;
+ };
+ gpt5Usage: { // NEW: GPT-5 usage tracking
  used: number;
  limit: number;
  remaining: number;
@@ -200,22 +206,26 @@ export default function SubscriptionPage() {
  </CardHeader>
  <CardContent className="relative space-y-8">
  {usage && (
- <div className="grid gap-4 md:grid-cols-3">
- {/* GPT-5 Queries - Available for all tiers */}
+ <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+ {/* Scout Queries - PRIMARY MODEL (All tiers) */}
  <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-blue-200/30 dark:border-blue-800/30 space-y-4">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
  <Zap className="w-4 h-4 text-blue-600" />
- <span className="text-sm font-semibold">GPT-5 Queries</span>
+ <span className="text-sm font-semibold">Scout Queries</span>
  </div>
- <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">GPT-5</Badge>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">⚡ Fast</Badge>
  </div>
  <div className="flex items-baseline gap-1">
  <span className="text-2xl font-bold text-blue-600">
  {usage.scoutUsage.used}
  </span>
- <span className="text-muted-foreground text-sm">/ {usage.scoutUsage.limit}</span>
+ <span className="text-muted-foreground text-sm">
+ / {usage.scoutUsage.limit === 999999 ? 'Unlimited' : usage.scoutUsage.limit}
+ </span>
  </div>
+ {usage.scoutUsage.limit !== 999999 ? (
+ <>
  <Progress 
  value={(usage.scoutUsage.used / usage.scoutUsage.limit) * 100} 
  className="h-2 bg-blue-100 dark:bg-blue-900/30"
@@ -223,13 +233,74 @@ export default function SubscriptionPage() {
  {usage.scoutUsage.used >= usage.scoutUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
  <AlertTriangle className="h-3 w-3" />
- <span className="font-medium">Running low on quota!</span>
+ <span className="font-medium">Running low!</span>
  </div>
+ )}
+ </>
+ ) : (
+ <div className="text-xs text-green-600 dark:text-green-400 font-medium">Unlimited queries</div>
  )}
  </div>
 
+ {/* Sonnet Queries - REASONING MODEL (Pro/Enterprise) */}
+ {usage.sonnetUsage.limit > 0 && (
+ <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-purple-200/30 dark:border-purple-800/30 space-y-4">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2">
+ <Sparkles className="w-4 h-4 text-purple-600" />
+ <span className="text-sm font-semibold">Sonnet Queries</span>
+ </div>
+ <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">🧠 Smart</Badge>
+ </div>
+ <div className="flex items-baseline gap-1">
+ <span className="text-2xl font-bold text-purple-600">
+ {usage.sonnetUsage.used}
+ </span>
+ <span className="text-muted-foreground text-sm">/ {usage.sonnetUsage.limit}</span>
+ </div>
+ <Progress 
+ value={(usage.sonnetUsage.used / usage.sonnetUsage.limit) * 100} 
+ className="h-2 bg-purple-100 dark:bg-purple-900/30"
+ />
+ {usage.sonnetUsage.used >= usage.sonnetUsage.limit * 0.8 && (
+ <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
+ <AlertTriangle className="h-3 w-3" />
+ <span className="font-medium">Running low!</span>
+ </div>
+ )}
+ </div>
+ )}
 
- {/* Opus Queries - Available for Enterprise only */}
+ {/* GPT-5 Queries - MATH MODEL (Pro/Enterprise) */}
+ {usage.gpt5Usage && usage.gpt5Usage.limit > 0 && (
+ <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-emerald-200/30 dark:border-emerald-800/30 space-y-4">
+ <div className="flex items-center justify-between">
+ <div className="flex items-center gap-2">
+ <TrendingUp className="w-4 h-4 text-emerald-600" />
+ <span className="text-sm font-semibold">GPT-5 Queries</span>
+ </div>
+ <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5">🧮 Math</Badge>
+ </div>
+ <div className="flex items-baseline gap-1">
+ <span className="text-2xl font-bold text-emerald-600">
+ {usage.gpt5Usage.used}
+ </span>
+ <span className="text-muted-foreground text-sm">/ {usage.gpt5Usage.limit}</span>
+ </div>
+ <Progress 
+ value={(usage.gpt5Usage.used / usage.gpt5Usage.limit) * 100} 
+ className="h-2 bg-emerald-100 dark:bg-emerald-900/30"
+ />
+ {usage.gpt5Usage.used >= usage.gpt5Usage.limit * 0.8 && (
+ <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
+ <AlertTriangle className="h-3 w-3" />
+ <span className="font-medium">Running low!</span>
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* Opus Queries - CFO MODEL (Enterprise only) */}
  {usage.opusUsage.limit > 0 && (
  <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-amber-200/30 dark:border-amber-800/30 space-y-4">
  <div className="flex items-center justify-between">
@@ -237,7 +308,7 @@ export default function SubscriptionPage() {
  <Crown className="w-4 h-4 text-amber-600" />
  <span className="text-sm font-semibold">Opus Queries</span>
  </div>
- <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">Opus</Badge>
+ <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">👔 CFO</Badge>
  </div>
  <div className="flex items-baseline gap-1">
  <span className="text-2xl font-bold text-amber-600">
@@ -252,7 +323,7 @@ export default function SubscriptionPage() {
  {usage.opusUsage.used >= usage.opusUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
  <AlertTriangle className="h-3 w-3" />
- <span className="font-medium">Running low on quota!</span>
+ <span className="font-medium">Running low!</span>
  </div>
  )}
  </div>
@@ -414,12 +485,12 @@ export default function SubscriptionPage() {
  AI Model Quotas
  </h4>
  <div className="space-y-3">
- {/* GPT-5 Queries - Available for all plans */}
+ {/* Scout Queries - PRIMARY MODEL (All plans) */}
  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
  <div className="flex items-center gap-2">
  <Zap className="w-4 h-4 text-blue-600" />
- <span className="text-sm font-medium">GPT-5 Queries</span>
- <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Fast</Badge>
+ <span className="text-sm font-medium">Scout Queries</span>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">⚡ Fast</Badge>
  </div>
  <div className="text-right">
  <span className="text-base font-bold text-blue-600 block" data-testid={`text-${plan.name.toLowerCase()}-scout-limit`}>
@@ -431,14 +502,47 @@ export default function SubscriptionPage() {
  </div>
  </div>
 
+ {/* Sonnet Queries - REASONING MODEL (Pro/Enterprise) */}
+ {plan.sonnetLimit > 0 && (
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
+ <div className="flex items-center gap-2">
+ <Sparkles className="w-4 h-4 text-purple-600" />
+ <span className="text-sm font-medium">Sonnet Queries</span>
+ <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">🧠 Smart</Badge>
+ </div>
+ <div className="text-right">
+ <span className="text-base font-bold text-purple-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
+ {plan.sonnetLimit}
+ </span>
+ <span className="text-xs text-muted-foreground">per month</span>
+ </div>
+ </div>
+ )}
 
- {/* Opus Queries - Enterprise only */}
+ {/* GPT-5 Queries - MATH MODEL (Pro/Enterprise) */}
+ {plan.gpt5Limit > 0 && (
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-emerald-200/30 dark:border-emerald-800/30">
+ <div className="flex items-center gap-2">
+ <TrendingUp className="w-4 h-4 text-emerald-600" />
+ <span className="text-sm font-medium">GPT-5 Queries</span>
+ <Badge className="bg-emerald-500 text-white text-xs px-2 py-0.5">🧮 Math</Badge>
+ </div>
+ <div className="text-right">
+ <span className="text-base font-bold text-emerald-600 block" data-testid={`text-${plan.name.toLowerCase()}-gpt5-limit`}>
+ {plan.gpt5Limit}
+ </span>
+ <span className="text-xs text-muted-foreground">per month</span>
+ </div>
+ </div>
+ )}
+
+ {/* Opus Queries - CFO MODEL (Enterprise only) */}
  {plan.opusLimit > 0 && (
  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-amber-200/30 dark:border-amber-800/30">
  <div className="flex items-center gap-2">
  <Crown className="w-4 h-4 text-amber-600" />
  <span className="text-sm font-medium">Opus Queries</span>
- <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">Premium</Badge>
+ <Badge className="bg-gradient-to-r from-amber-500 to-yellow-600 text-white text-xs px-2 py-0.5">👔 CFO</Badge>
  </div>
  <div className="text-right">
  <span className="text-base font-bold text-amber-600 block" data-testid={`text-${plan.name.toLowerCase()}-opus-limit`}>

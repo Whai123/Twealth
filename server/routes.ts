@@ -4666,18 +4666,20 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       // Calculate usage for each model tier
       const scoutUsed = usage?.scoutQueriesUsed || 0;
       const sonnetUsed = usage?.sonnetQueriesUsed || 0;
+      const gpt5Used = usage?.gpt5QueriesUsed || 0;
       const opusUsed = usage?.opusQueriesUsed || 0;
       
       const scoutLimit = plan.scoutLimit || 0;
       const sonnetLimit = plan.sonnetLimit || 0;
+      const gpt5Limit = plan.gpt5Limit || 0;
       const opusLimit = plan.opusLimit || 0;
       
       // Also provide legacy format for backward compatibility
-      const totalUsed = scoutUsed + sonnetUsed + opusUsed;
-      const totalLimit = scoutLimit + sonnetLimit + opusLimit;
+      const totalUsed = scoutUsed + sonnetUsed + gpt5Used + opusUsed;
+      const totalLimit = scoutLimit + sonnetLimit + gpt5Limit + opusLimit;
 
       res.json({
-        // New tier-aware quota structure
+        // 4-model tier-aware quota structure
         scoutUsage: {
           used: scoutUsed,
           limit: scoutLimit,
@@ -4689,6 +4691,12 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           limit: sonnetLimit,
           remaining: Math.max(0, sonnetLimit - sonnetUsed),
           allowed: sonnetUsed < sonnetLimit
+        },
+        gpt5Usage: {
+          used: gpt5Used,
+          limit: gpt5Limit,
+          remaining: Math.max(0, gpt5Limit - gpt5Used),
+          allowed: gpt5Used < gpt5Limit
         },
         opusUsage: {
           used: opusUsed,
