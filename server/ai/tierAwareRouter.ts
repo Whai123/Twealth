@@ -4,10 +4,16 @@
  * Wraps the hybrid AI service with subscription tier checking and quota enforcement.
  * Ensures users only access models they're allowed to use based on their plan.
  * 
- * Tier Access Matrix:
- * - Free: Scout only (50/month)
- * - Pro: Scout (200/month) + Sonnet (25/month)
- * - Enterprise: Scout (300/month) + Sonnet (60/month) + Opus (20/month)
+ * Tier Access Matrix (4-Model System):
+ * - Free: Scout only (50/month) - NO Sonnet, NO GPT-5, NO Opus
+ * - Pro: Scout (unlimited) + Sonnet (25/month) + GPT-5 (5/month) - NO Opus
+ * - Enterprise: Scout (unlimited) + Sonnet (60/month) + GPT-5 (10/month) + Opus (20/month)
+ * 
+ * Model Usage Rules:
+ * - Scout (Llama 4): PRIMARY - Fast queries, budgeting, spending, goals (⚡ Fast)
+ * - Sonnet 3.5/4.5: REASONING - Multi-step logic, investment, debt strategy (🧠 Smart)
+ * - GPT-5: MATH - Projections, simulations, compound interest, retirement (🧮 Math)
+ * - Opus 4.1: CFO-LEVEL - Portfolio analysis, high-stakes decisions (👔 CFO)
  */
 
 import type { IStorage } from '../storage';
@@ -36,47 +42,48 @@ export interface QuotaExceededError {
 export type TierAwareResponse = HybridAIResponse | QuotaExceededError;
 
 /**
- * Map subscription tier to allowed models (in ascending order)
- * NEW: GPT-5 replaces Scout/Sonnet (13x cheaper, better reasoning)
+ * Map subscription tier to allowed models
+ * Scout is PRIMARY model for all tiers (unlimited for Pro/Enterprise)
  */
 export function resolveAllowedModels(tier: SubscriptionTier): ModelAccess[] {
   switch (tier) {
     case 'free':
-      return ['gpt5'];
+      return ['scout']; // Scout only, 50/month limit
     case 'pro':
-      return ['gpt5'];
+      return ['scout', 'sonnet', 'gpt5']; // Unlimited Scout + Sonnet + GPT-5
     case 'enterprise':
-      return ['gpt5', 'opus']; // GPT-5 for speed, Opus for precision
+      return ['scout', 'sonnet', 'gpt5', 'opus']; // All models available
     default:
-      return ['gpt5']; // Default to most cost-effective
+      return ['scout']; // Default to Scout
   }
 }
 
 /**
  * Get models in descending priority order (highest to lowest)
  * Used for cascading fallback when preferred model lacks quota
- * NEW: GPT-5 is primary, Opus for Enterprise precision work only
+ * Scout is ALWAYS the final fallback (unlimited for paid tiers)
  */
 function getModelsByPriority(tier: SubscriptionTier): ModelAccess[] {
   switch (tier) {
     case 'free':
-      return ['gpt5'];
+      return ['scout']; // Scout only
     case 'pro':
-      return ['gpt5'];
+      return ['gpt5', 'sonnet', 'scout']; // Try GPT-5/Sonnet first, fall back to Scout
     case 'enterprise':
-      return ['opus', 'gpt5']; // Try Opus for complex tasks, fall back to GPT-5
+      return ['opus', 'gpt5', 'sonnet', 'scout']; // Try premium models, fall back to Scout
     default:
-      return ['gpt5'];
+      return ['scout'];
   }
 }
 
 /**
  * Build fallback list starting from preferred model, cascading to lower tiers
  * 
- * NEW Examples:
- * - Enterprise simple query: preferred=gpt5 → [gpt5]
- * - Enterprise complex query: preferred=opus → [opus, gpt5]
- * - Pro/Free any query: preferred=gpt5 → [gpt5]
+ * Examples:
+ * - Free any query: preferred=scout → [scout]
+ * - Pro simple query: preferred=scout → [scout]
+ * - Pro math query: preferred=gpt5 → [gpt5, sonnet, scout]
+ * - Enterprise CFO query: preferred=opus → [opus, gpt5, sonnet, scout]
  */
 function buildFallbackList(preferredModel: ModelAccess, tier: SubscriptionTier): ModelAccess[] {
   const allModelsPriority = getModelsByPriority(tier);
@@ -111,20 +118,20 @@ function getNextTier(currentTier: SubscriptionTier): SubscriptionTier | null {
 
 /**
  * Check if user has quota remaining for a specific model
- * NEW: GPT-5 uses scoutLimit for backward compatibility
+ * Scout is unlimited for Pro/Enterprise (scoutLimit = 999999)
  */
 function hasQuota(
-  usage: { scoutUsed: number; sonnetUsed: number; opusUsed: number },
-  limits: { scoutLimit: number; sonnetLimit: number; opusLimit: number },
+  usage: { scoutUsed: number; sonnetUsed: number; gpt5Used: number; opusUsed: number },
+  limits: { scoutLimit: number; sonnetLimit: number; gpt5Limit: number; opusLimit: number },
   model: ModelAccess
 ): boolean {
   switch (model) {
-    case 'gpt5':
-      return usage.scoutUsed < limits.scoutLimit; // Reuse scout quota for GPT-5
     case 'scout':
-      return usage.scoutUsed < limits.scoutLimit;
+      return usage.scoutUsed < limits.scoutLimit; // Unlimited for paid (999999)
     case 'sonnet':
       return usage.sonnetUsed < limits.sonnetLimit;
+    case 'gpt5':
+      return usage.gpt5Used < limits.gpt5Limit;
     case 'opus':
       return usage.opusUsed < limits.opusLimit;
     default:
@@ -135,36 +142,110 @@ function hasQuota(
 /**
  * Select the best model based on complexity and tier (ignoring quotas)
  * 
- * NEW Strategy (GPT-5 migration):
- * - Enterprise: Opus for complex, GPT-5 for simple
- * - Pro: Always GPT-5 (no escalation)
- * - Free: Always GPT-5
- * 
- * Quota checking happens separately in routeWithTierCheck
+ * Model Selection Strategy (Scout-First):
+ * 1. Analyze query complexity and keywords
+ * 2. Route to appropriate model based on use case:
+ *    - Scout: Simple queries (spending, budgeting, goals, transactions)
+ *    - Sonnet: Multi-step reasoning (debt strategy, investment basics, risk assessment)
+ *    - GPT-5: Advanced math (projections, simulations, compound interest, retirement)
+ *    - Opus: CFO-level (portfolio analysis, macroeconomics, high-stakes decisions)
+ * 3. Quota checking happens separately in routeWithTierCheck
  */
 function selectModelForTier(
   signals: ComplexitySignals,
   tier: SubscriptionTier
 ): ModelAccess {
-  const shouldEsc = shouldEscalate(signals);
+  const msgLower = signals.message.toLowerCase();
   
-  // Free tier: Always GPT-5
+  // Free tier: Always Scout (no escalation allowed)
   if (tier === 'free') {
-    return 'gpt5';
+    return 'scout';
   }
   
-  // Pro tier: Always GPT-5 (no Sonnet escalation anymore)
+  // Pro tier: Scout, Sonnet, or GPT-5 based on query type
   if (tier === 'pro') {
-    return 'gpt5';
+    // GPT-5 for advanced math/projections
+    if (isMathQuery(msgLower)) {
+      return 'gpt5';
+    }
+    // Sonnet for reasoning/strategy
+    if (isReasoningQuery(msgLower) || shouldEscalate(signals)) {
+      return 'sonnet';
+    }
+    // Default to Scout for simple queries
+    return 'scout';
   }
   
-  // Enterprise tier: Opus for complex, GPT-5 for simple
+  // Enterprise tier: All models available
   if (tier === 'enterprise') {
-    return shouldEsc ? 'opus' : 'gpt5';
+    // Opus for CFO-level analysis
+    if (isCFOQuery(msgLower)) {
+      return 'opus';
+    }
+    // GPT-5 for advanced math
+    if (isMathQuery(msgLower)) {
+      return 'gpt5';
+    }
+    // Sonnet for reasoning
+    if (isReasoningQuery(msgLower) || shouldEscalate(signals)) {
+      return 'sonnet';
+    }
+    // Default to Scout
+    return 'scout';
   }
   
   // Default fallback
-  return 'gpt5';
+  return 'scout';
+}
+
+/**
+ * Detect if query requires advanced math/projections (GPT-5)
+ */
+function isMathQuery(msg: string): boolean {
+  return (
+    msg.includes('projection') ||
+    msg.includes('simulate') ||
+    msg.includes('compound interest') ||
+    msg.includes('retirement') ||
+    msg.includes('amortization') ||
+    msg.includes('inflation') ||
+    msg.includes('multi-year') ||
+    msg.includes('monte carlo') ||
+    msg.includes('calculate')
+  );
+}
+
+/**
+ * Detect if query requires reasoning/strategy (Sonnet)
+ */
+function isReasoningQuery(msg: string): boolean {
+  return (
+    msg.includes('strategy') ||
+    msg.includes('debt payoff') ||
+    msg.includes('investment') ||
+    msg.includes('risk') ||
+    msg.includes('crypto') ||
+    msg.includes('budget optimi') ||
+    msg.includes('should i') ||
+    msg.includes('analyze') ||
+    msg.includes('compare')
+  );
+}
+
+/**
+ * Detect if query requires CFO-level intelligence (Opus)
+ */
+function isCFOQuery(msg: string): boolean {
+  return (
+    msg.includes('portfolio') ||
+    msg.includes('multi-currency') ||
+    msg.includes('macroeconomic') ||
+    msg.includes('de-dollarization') ||
+    msg.includes('high stakes') ||
+    msg.includes('asset allocation') ||
+    msg.includes('tax optimization') ||
+    msg.includes('wealth management')
+  );
 }
 
 /**
@@ -192,6 +273,7 @@ export async function routeWithTierCheck(
     const currentUsage = {
       scoutUsed: usage?.scoutQueriesUsed || 0,
       sonnetUsed: usage?.sonnetQueriesUsed || 0,
+      gpt5Used: usage?.gpt5QueriesUsed || 0,
       opusUsed: usage?.opusQueriesUsed || 0,
     };
     
@@ -199,6 +281,7 @@ export async function routeWithTierCheck(
     const limits = {
       scoutLimit: plan.scoutLimit || 0,
       sonnetLimit: plan.sonnetLimit || 0,
+      gpt5Limit: plan.gpt5Limit || 0,
       opusLimit: plan.opusLimit || 0,
     };
     
@@ -291,39 +374,36 @@ export async function routeWithTierCheck(
 }
 
 /**
- * Determine model type from model slug
- * NEW: Maps GPT-5 to scout quota counter for backward compatibility
- * Throws error for unknown models to prevent silent quota theft
+ * Determine model type from model slug for quota tracking
+ * Maps actual AI model to database quota counter
  */
-function determineModelFromSlug(modelSlug: string): 'scout' | 'sonnet' | 'opus' {
+function determineModelFromSlug(modelSlug: string): 'scout' | 'sonnet' | 'gpt5' | 'opus' {
   const slug = modelSlug.toLowerCase();
   
-  // GPT-5 (OpenAI models) - map to scout quota for backward compat
-  if (slug.includes('gpt-5') || slug.includes('gpt5') || slug.includes('openai')) {
-    return 'scout'; // Uses scoutUsed/scoutLimit counters
-  }
-  
-  // Scout (Groq Llama models) - LEGACY, should not be reached
+  // Scout (Groq Llama models) - PRIMARY model
   if (slug.includes('llama') || slug.includes('scout') || slug.includes('groq')) {
-    console.warn(`[TierAwareRouter] LEGACY Scout model used: ${modelSlug}. Should use GPT-5 instead.`);
     return 'scout';
   }
   
-  // Sonnet (Claude Sonnet models) - DEPRECATED, should not be reached
+  // Sonnet (Claude Sonnet models) - REASONING
   if (slug.includes('sonnet')) {
-    console.warn(`[TierAwareRouter] DEPRECATED Sonnet model used: ${modelSlug}. Should use GPT-5 instead.`);
     return 'sonnet';
   }
   
-  // Opus (Claude Opus models) - ENTERPRISE ONLY
+  // GPT-5 (OpenAI models) - MATH/PROJECTIONS
+  if (slug.includes('gpt-5') || slug.includes('gpt5') || slug.includes('openai')) {
+    return 'gpt5';
+  }
+  
+  // Opus (Claude Opus models) - CFO-LEVEL (Enterprise only)
   if (slug.includes('opus')) {
     return 'opus';
   }
   
-  // Unknown Anthropic model - log warning and default to Opus tier
+  // Unknown Claude model - log warning and default to Sonnet tier
   if (slug.includes('claude')) {
-    console.warn(`[TierAwareRouter] Unknown Claude model: ${modelSlug}, defaulting to Opus tier`);
-    return 'opus';
+    console.warn(`[TierAwareRouter] Unknown Claude model: ${modelSlug}, defaulting to Sonnet tier`);
+    return 'sonnet';
   }
   
   // Completely unknown model - throw error to prevent silent quota theft

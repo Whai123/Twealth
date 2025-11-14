@@ -435,7 +435,7 @@ export interface IStorage {
   
   // Tier-aware AI methods
   getUserSubscriptionWithUsage(userId: string): Promise<{ subscription: Subscription; usage: UsageTracking | null; plan: SubscriptionPlan } | null>;
-  incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'opus'): Promise<void>;
+  incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'gpt5' | 'opus'): Promise<void>;
   insertAIUsageLog(log: Omit<InsertAiUsageLog, 'id' | 'createdAt'>): Promise<void>;
 
   // Referral methods
@@ -3405,7 +3405,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'opus'): Promise<void> {
+  async incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'gpt5' | 'opus'): Promise<void> {
     let usage = await this.getUserUsage(userId);
     const subscription = await this.getUserSubscription(userId);
     const isLifetime = subscription?.plan?.isLifetimeLimit || false;
@@ -3426,6 +3426,7 @@ export class DatabaseStorage implements IStorage {
         periodEnd,
         scoutQueriesUsed: modelType === 'scout' ? 1 : 0,
         sonnetQueriesUsed: modelType === 'sonnet' ? 1 : 0,
+        gpt5QueriesUsed: modelType === 'gpt5' ? 1 : 0,
         opusQueriesUsed: modelType === 'opus' ? 1 : 0,
         aiChatsUsed: 0,
         aiDeepAnalysisUsed: 0,
@@ -3438,6 +3439,8 @@ export class DatabaseStorage implements IStorage {
         updates.scoutQueriesUsed = (usage.scoutQueriesUsed || 0) + 1;
       } else if (modelType === 'sonnet') {
         updates.sonnetQueriesUsed = (usage.sonnetQueriesUsed || 0) + 1;
+      } else if (modelType === 'gpt5') {
+        updates.gpt5QueriesUsed = (usage.gpt5QueriesUsed || 0) + 1;
       } else if (modelType === 'opus') {
         updates.opusQueriesUsed = (usage.opusQueriesUsed || 0) + 1;
       }
