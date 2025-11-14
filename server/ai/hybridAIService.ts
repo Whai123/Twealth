@@ -1,10 +1,16 @@
 /**
- * Hybrid AI Service - Orchestrates Scout (Groq) and Reasoning (Claude Opus 4.1)
+ * Hybrid AI Service - 4-Model Architecture (Scout/Sonnet/GPT-5/Opus)
  * 
  * This service integrates all hybrid AI components:
- * - Smart router for escalation detection
+ * - Scout (Llama 4 via Groq): PRIMARY - Fast queries, budgeting, spending (⚡ Fast)
+ * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic, strategy (🧠 Smart)
+ * - GPT-5 (OpenAI): MATH - Projections, simulations, calculations (🧮 Math)
+ * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis, high-stakes (👔 CFO)
+ * 
+ * Components:
+ * - Smart router for complexity-based escalation
  * - Context builder for financial data normalization
- * - AI clients (Scout and Reasoning)
+ * - AI clients (Scout, Sonnet, GPT-5, Opus)
  * - Orchestrators for deep CFO-level analysis
  */
 
@@ -19,8 +25,9 @@ import { analyzePortfolio } from './orchestrators/portfolio';
 
 /**
  * Model access levels (matches tier system)
+ * Scout is PRIMARY, others are for escalation based on complexity
  */
-export type ModelAccess = 'gpt5' | 'scout' | 'sonnet' | 'opus';
+export type ModelAccess = 'scout' | 'sonnet' | 'gpt5' | 'opus';
 
 /**
  * Options for generating AI advice
@@ -36,17 +43,17 @@ export interface GenerateAdviceOptions {
  */
 export interface HybridAIResponse {
   answer: string; // Natural language response
-  modelUsed: 'scout' | 'reasoning'; // Which model was used (legacy, maps to quota counter)
+  modelUsed: 'scout' | 'sonnet' | 'gpt5' | 'opus' | 'reasoning'; // Which model was used (maps to quota counter)
   modelSlug: string; // Exact model identifier (e.g., 'gpt-5', 'claude-opus-4-1')
   tokensIn: number; // Input tokens
   tokensOut: number; // Output tokens
   cost: number; // Cost in USD
-  escalated: boolean; // Whether query was escalated to Reasoning
+  escalated: boolean; // Whether query was escalated from Scout
   escalationReason?: string; // Why it was escalated (if applicable)
   orchestratorUsed?: string; // Which orchestrator was called (if any)
   structuredData?: any; // Structured data from orchestrator (if any)
   tierDowngraded?: boolean; // Whether tier logic downgraded the model
-  actualModel?: 'gpt5' | 'scout' | 'sonnet' | 'opus'; // NEW: Actual model used for analytics
+  actualModel?: 'scout' | 'sonnet' | 'gpt5' | 'opus'; // Actual model used (fallback for determineModelFromSlug)
 }
 
 /**
@@ -94,24 +101,29 @@ export async function generateHybridAdvice(
     const escalate = shouldEscalate(signals);
     routingReason = escalate ? getRoutingReason(signals) : undefined;
     
-    // Default to GPT-5 for simple, Opus for complex
-    targetModel = escalate ? 'opus' : 'gpt5';
+    // Default to Scout for simple, Opus for complex (tierAwareRouter will override this)
+    targetModel = escalate ? 'opus' : 'scout';
   }
   
   // Step 3: Route to appropriate model/orchestrator
-  if (targetModel === 'gpt5') {
-    return await handleGPT5Query(userMessage, context);
-  } else if (targetModel === 'scout') {
+  if (targetModel === 'scout') {
     return await handleScoutQuery(userMessage, context);
+  } else if (targetModel === 'sonnet') {
+    return await handleReasoningQuery(userMessage, context, routingReason, 'sonnet');
+  } else if (targetModel === 'gpt5') {
+    return await handleGPT5Query(userMessage, context);
+  } else if (targetModel === 'opus') {
+    // Opus uses reasoning path with orchestrators
+    return await handleReasoningQuery(userMessage, context, routingReason, 'opus');
   } else {
-    // Sonnet or Opus - both use reasoning path
-    return await handleReasoningQuery(userMessage, context, routingReason, targetModel);
+    // Fallback to Scout
+    return await handleScoutQuery(userMessage, context);
   }
 }
 
 /**
  * Handle queries with GPT-5 (OpenAI via Replit AI Integrations)
- * PRIMARY MODEL - 13x cheaper than Opus, superior financial reasoning
+ * MATH MODEL - Advanced calculations, projections, simulations (🧮 Math)
  */
 async function handleGPT5Query(
   userMessage: string,
@@ -131,19 +143,19 @@ async function handleGPT5Query(
   
   return {
     answer: response.text,
-    modelUsed: 'scout', // Maps to scoutUsed quota counter for backward compat
+    modelUsed: 'gpt5', // CRITICAL: Use gpt5 to increment correct quota counter
     modelSlug: response.model,
     tokensIn: response.tokensIn,
     tokensOut: response.tokensOut,
     cost: response.cost,
-    escalated: false,
+    escalated: true, // GPT-5 is an escalation from Scout
     actualModel: 'gpt5', // Track actual model used
   };
 }
 
 /**
- * Handle simple/fast queries with Scout (Llama 4 via Groq) - LEGACY
- * @deprecated Use handleGPT5Query instead
+ * Handle simple/fast queries with Scout (Llama 4 via Groq)
+ * PRIMARY MODEL - Fast queries, budgeting, spending, goals (⚡ Fast)
  */
 async function handleScoutQuery(
   userMessage: string,
@@ -171,17 +183,20 @@ async function handleScoutQuery(
     tokensOut: response.tokensOut,
     cost: response.cost,
     escalated: false,
+    actualModel: 'scout', // Track actual model used
   };
 }
 
 /**
  * Handle complex queries with Reasoning (Claude Sonnet or Opus) + orchestrators
+ * Sonnet: REASONING - Multi-step logic, strategy (🧠 Smart)
+ * Opus: CFO-LEVEL - Portfolio analysis, high-stakes (👔 CFO)
  */
 async function handleReasoningQuery(
   userMessage: string,
   context: any,
   routingReason?: string,
-  targetModel: ModelAccess = 'opus'
+  targetModel: ModelAccess = 'sonnet'
 ): Promise<HybridAIResponse> {
   // Detect which orchestrator to use based on keywords
   const orchestrator = detectOrchestrator(userMessage, context);

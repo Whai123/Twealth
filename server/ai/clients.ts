@@ -1,8 +1,12 @@
 /**
- * AI Clients - GPT-5 (primary), Opus 4.1 (Enterprise precision)
+ * AI Clients - 4-Model Architecture
+ * - Scout (Llama 4 via Groq): PRIMARY - Fast queries (⚡ Fast)
+ * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic (🧠 Smart)
+ * - GPT-5 (OpenAI): MATH - Advanced calculations (🧮 Math)
+ * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis (👔 CFO)
  * 
- * Standardized interface for both providers with cost tracking
- * Return shape: { text, tokensIn, tokensOut, cost }
+ * Standardized interface for all providers with cost tracking
+ * Return shape: { text, tokensIn, tokensOut, cost, model }
  */
 
 import Groq from "groq-sdk";
@@ -34,7 +38,7 @@ export interface ChatOptions {
 
 /**
  * GPT-5 Client (OpenAI via Replit AI Integrations)
- * Primary model for Free/Pro/Enterprise - 13x cheaper than Opus, superior reasoning
+ * MATH MODEL - Advanced math, projections, simulations (Pro: 5/month, Enterprise: 10/month)
  */
 export class GPT5Client {
   private openai: OpenAI;
@@ -106,8 +110,8 @@ export class GPT5Client {
 }
 
 /**
- * Scout Client (Groq Llama 4) - LEGACY
- * @deprecated Use GPT5Client instead - GPT-5 is faster, cheaper, better reasoning
+ * Scout Client (Groq Llama 4)
+ * PRIMARY MODEL - Fast queries, budgeting, spending (Free: 50/month, Pro/Enterprise: unlimited)
  */
 export class ScoutClient {
   private groq: Groq;
@@ -177,8 +181,9 @@ export class ScoutClient {
 }
 
 /**
- * Anthropic Client (Claude Sonnet 4.5 and Opus 4.1)
- * Flexible client that supports both Pro and Enterprise tier models
+ * Anthropic Client (Claude Sonnet 3.5/4.5 and Opus 4.1)
+ * REASONING + CFO-LEVEL - Sonnet for strategy (Pro: 25/month, Enterprise: 60/month)
+ * Opus for CFO analysis (Enterprise only: 20/month)
  */
 export class AnthropicClient {
   private anthropic: Anthropic;
@@ -257,7 +262,7 @@ export class AnthropicClient {
 
 /**
  * Legacy Reasoning Client - For backward compatibility
- * @deprecated Use AnthropicClient directly or getOpusClient()
+ * @deprecated Use getSonnetClient() or getOpusClient() directly
  */
 export class ReasoningClient extends AnthropicClient {
   constructor() {
@@ -274,7 +279,7 @@ let reasoningClient: ReasoningClient | null = null;
 
 /**
  * Get GPT-5 client (cached singleton)
- * PRIMARY MODEL for Free/Pro/Enterprise tiers
+ * MATH MODEL for advanced calculations (Pro: 5/month, Enterprise: 10/month)
  */
 export function getGPT5Client(): GPT5Client {
   if (!gpt5Client) {
@@ -285,7 +290,7 @@ export function getGPT5Client(): GPT5Client {
 
 /**
  * Get Scout client (cached singleton)
- * @deprecated Use getGPT5Client() instead
+ * PRIMARY MODEL - Unlimited for Pro/Enterprise, 50/month for Free
  */
 export function getScoutClient(): ScoutClient {
   if (!scoutClient) {
@@ -296,7 +301,7 @@ export function getScoutClient(): ScoutClient {
 
 /**
  * Get Sonnet client (cached singleton)
- * For Pro tier - Claude Sonnet 4.5
+ * REASONING MODEL for Pro/Enterprise - Multi-step logic, strategy
  */
 export function getSonnetClient(): AnthropicClient {
   if (!sonnetClient) {
@@ -307,7 +312,7 @@ export function getSonnetClient(): AnthropicClient {
 
 /**
  * Get Opus client (cached singleton)
- * For Enterprise tier - Claude Opus 4.1
+ * CFO-LEVEL MODEL for Enterprise only - Portfolio analysis, high-stakes
  */
 export function getOpusClient(): AnthropicClient {
   if (!opusClient) {
@@ -318,7 +323,7 @@ export function getOpusClient(): AnthropicClient {
 
 /**
  * Get Reasoning client (cached singleton)
- * @deprecated Use getOpusClient() for Enterprise tier or getSonnetClient() for Pro tier
+ * @deprecated Use getSonnetClient() for Pro/Enterprise or getOpusClient() for Enterprise CFO-level
  */
 export function getReasoningClient(): ReasoningClient {
   if (!reasoningClient) {
