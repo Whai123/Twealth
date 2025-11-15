@@ -175,7 +175,7 @@ function selectModelForTier(
   signals: ComplexitySignals,
   tier: SubscriptionTier
 ): ModelAccess {
-  const msgLower = signals.message.toLowerCase();
+  const msgLower = (signals.message || '').toLowerCase();
   
   // Free tier: Always Scout (no escalation allowed)
   if (tier === 'free') {

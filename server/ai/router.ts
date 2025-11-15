@@ -118,7 +118,7 @@ const ESCALATION_KEYWORDS = {
  * Check if message contains any keywords from a category
  */
 function containsKeywords(message: string, keywords: string[]): boolean {
-  const lowerMsg = message.toLowerCase();
+  const lowerMsg = (message || '').toLowerCase();
   return keywords.some(keyword => lowerMsg.includes(keyword));
 }
 
@@ -134,7 +134,7 @@ function countScenarios(message: string): number {
   ];
   
   let count = 0;
-  const lowerMsg = message.toLowerCase();
+  const lowerMsg = (message || '').toLowerCase();
   
   for (const indicator of scenarioIndicators) {
     if (lowerMsg.includes(indicator)) {

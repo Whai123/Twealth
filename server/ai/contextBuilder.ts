@@ -120,7 +120,7 @@ export async function buildFinancialContext(
     // Map asset types to standard categories
     let type: FinancialContext['assets'][0]['type'] = 'other';
     
-    switch (asset.type.toLowerCase()) {
+    switch ((asset.type || '').toLowerCase()) {
       case 'savings':
       case 'cash':
         type = 'cash';
