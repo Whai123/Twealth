@@ -182,8 +182,8 @@ export class ScoutClient {
 
 /**
  * Anthropic Client (Claude Sonnet 3.5/4.5 and Opus 4.1)
- * REASONING + CFO-LEVEL - Sonnet for strategy (Pro: 25/month, Enterprise: 60/month)
- * Opus for CFO analysis (Enterprise only: 20/month)
+ * REASONING + CFO-LEVEL - Sonnet for strategy (Pro: 25 queries/month, Enterprise: 60 queries/month)
+ * Opus for CFO analysis (Enterprise only: 20 queries/month)
  */
 export class AnthropicClient {
   private anthropic: Anthropic;

@@ -12,27 +12,27 @@ Twealth uses a sophisticated 4-model AI system with Scout (Llama 4 via Groq) as 
    - Cost: $0.11/$0.34 per 1M tokens (input/output)
    - Role: Fast responses, general financial advice, conversational queries
    - Availability: 50/month (Free), Unlimited (Pro/Enterprise)
-   - Badge: ⚡ Fast
+   - Badge: Fast
 
 2. **Claude Sonnet 4.5** - REASONING MODEL
    - Cost: $3/$15 per 1M tokens (input/output)
    - Role: Multi-step reasoning, complex financial analysis, strategic planning
    - Availability: 0 (Free), 25/month (Pro), 60/month (Enterprise)
-   - Badge: 🧠 Smart
+   - Badge: Smart
    - Triggered by: reasoning keywords, complex analysis requests
 
 3. **GPT-5** - MATH MODEL
    - Cost: $1.25/$10 per 1M tokens (input/output)
    - Role: Advanced mathematics, projections, compound calculations, investment modeling
    - Availability: 0 (Free), 5/month (Pro), 10/month (Enterprise)
-   - Badge: 🧮 Math
+   - Badge: Math
    - Triggered by: math keywords, projection requests, calculation queries
 
 4. **Claude Opus 4.1** - CFO MODEL
    - Cost: $15/$75 per 1M tokens (input/output)
    - Role: Enterprise CFO-level analysis, zero-error compliance, high-stakes decisions
    - Availability: 0 (Free/Pro), 20/month (Enterprise only)
-   - Badge: 👔 CFO
+   - Badge: CFO
    - Triggered by: CFO keywords, executive-level queries
 
 **Three-Tier Subscription System:**
@@ -58,6 +58,7 @@ The frontend is a React 18 single-page application built with TypeScript, `shadc
 - **Simplified Navigation**: Reduced desktop sidebar from 15+ links to 8 core sections (Dashboard, AI Assistant, Goals, Money, Investments, Calendar, Settings, Premium). Mobile maintains standard 5-tab bottom nav pattern. Eliminated cognitive overload by removing AI Insights, Predictive Insights, Hybrid AI Demo, Planning (standalone), Friends, Groups, Referrals, and Crypto (standalone) from primary navigation while keeping all pages accessible via direct URLs.
 - **AI ROI Calculator**: Data-driven conversion tool on subscription page showing tier-by-tier value comparison. Displays 5 key metrics per tier (AI insights count, potential savings identified, time saved, decision accuracy, investment returns) with transparent ROI calculations. Free tier shows infinite value, Pro delivers 24,890% ROI ($2,490 savings vs $9.99 cost), Enterprise shows 15,900% ROI ($7,950 savings vs $49.99 cost). Based on average savings tracked across user base.
 - **AI Playbooks Foundation**: Database schema created for future signature weekly AI-generated financial reports with financialPulse, insights array, actions queue, and ROI tracking.
+- **Pricing Cleanup (Nov 2025)**: Removed all legacy $25 "Pro" plan references. Database cleaned to show only 3 active plans (Free/$0, Pro/$9.99, Enterprise/$49.99). Deleted hardcoded plan creation logic from API endpoints. Removed all emojis from plan features for professional Stripe/Coinbase/Apple aesthetic. Synchronized seed file, database, and AI service documentation.
 
 ## Technical Implementations
 
@@ -67,7 +68,7 @@ The backend is an Express.js application in TypeScript, providing a RESTful API.
 
 -   **Tier-Aware AI Orchestration System**: Three-tier subscription model (Free/$0, Pro/$9.99, Enterprise/$49.99) with intelligent 4-model hybrid AI architecture. Each tier has monthly quotas: Free (50 Scout), Pro (Unlimited Scout + 25 Sonnet + 5 GPT-5), Enterprise (Unlimited Scout + 60 Sonnet + 10 GPT-5 + 20 Opus). The system features automatic model selection based on query complexity, cascading fallback when preferred models are exhausted, and quota enforcement with HTTP 429 responses for upgrade prompts.
 -   **AI Financial Advisor**: Powered by 4-model hybrid AI (Scout/Llama 4 as PRIMARY for fast queries, Sonnet 4.5 for multi-step reasoning, GPT-5 for advanced math/projections, Opus 4.1 for Enterprise CFO-level intelligence), offering tier-based financial advice with advanced intelligence, smart conversation memory, dynamic temperature tuning, comprehensive trigger detection, enforced quality validation, natural conversational tone, and proactive next-step suggestions. It supports imperative action (e.g., "Create a goal," "Log transaction") and utilizes over 23 specialized financial tools, including advanced calculators for car affordability, student loan optimization, and investment comparison. It employs a 5-layer analysis framework, proactive pattern recognition, and advanced decision frameworks.
--   **Real-Time Quota Management**: Live quota tracking for all 4 models (Scout/Sonnet/GPT-5/Opus) with color-coded indicators (blue/purple/emerald/gold) and model badges (⚡Fast/🧠Smart/🧮Math/👔CFO), remaining query display, intelligent upgrade prompts when quotas are exhausted, and "Unlimited" display for Scout on Pro/Enterprise tiers.
+-   **Real-Time Quota Management**: Live quota tracking for all 4 models (Scout/Sonnet/GPT-5/Opus) with color-coded indicators (blue/purple/emerald/gold) and model badges (Fast/Smart/Math/CFO), remaining query display, intelligent upgrade prompts when quotas are exhausted, and "Unlimited" display for Scout on Pro/Enterprise tiers.
 -   **Core Features**: Conversational data collection, luxury purchase analysis, smart budget recommendations, actionable advice in 11 languages, and tiered crypto experience.
 -   **Financial Health**: Provides a real-time comprehensive financial health score (0-100) with a 5-component weighted breakdown, detailed insights, and actionable recommendations.
 -   **Budget Management System**: Enables custom budgets for 12 categories, real-time progress tracking, proactive alerts, and smart recommendations.

@@ -4566,56 +4566,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Subscription Management API routes
   app.get("/api/subscription/plans", async (req, res) => {
     try {
-      let plans = await storage.getSubscriptionPlans();
-      const planMap = new Map(plans.map(p => [p.name, p]));
-      
-      // Update or create Pro plan
-      if (planMap.has('Pro')) {
-        const proPlan = planMap.get('Pro')!;
-        if (proPlan.aiChatLimit !== 500 || proPlan.priceUsd !== '25.00') {
-          await db.update(subscriptionPlans)
-            .set({
-              aiChatLimit: 500,
-              aiDeepAnalysisLimit: 500,
-              priceUsd: '25.00',
-              priceThb: '875.00',
-              isLifetimeLimit: false,
-              billingInterval: 'monthly',
-              description: 'CFO-level AI advisor - 500 chats/month + all features',
-              features: ['full_tracking', 'ai_chat_unlimited', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_insights', 'all_features']
-            })
-            .where(eq(subscriptionPlans.id, proPlan.id));
-        }
-      } else {
-        await storage.createSubscriptionPlan({
-          name: 'Pro',
-          displayName: 'Twealth Pro',
-          description: 'CFO-level AI advisor - 500 chats/month + all features',
-          priceThb: '875.00',
-          priceUsd: '25.00',
-          currency: 'USD',
-          billingInterval: 'monthly',
-          aiChatLimit: 500,
-          aiDeepAnalysisLimit: 500,
-          aiInsightsFrequency: 'daily',
-          isLifetimeLimit: false,
-          features: ['full_tracking', 'ai_chat_unlimited', 'advanced_goals', 'group_planning', 'crypto_tracking', 'advanced_analytics', 'priority_insights', 'all_features'],
-          sortOrder: 1,
-        });
-      }
-      
-      // Deactivate old plans (Standard, Unlimited, Premium)
-      const oldPlanNames = ['Standard', 'Unlimited', 'Premium'];
-      for (const oldName of oldPlanNames) {
-        if (planMap.has(oldName)) {
-          await db.update(subscriptionPlans)
-            .set({ isActive: false })
-            .where(eq(subscriptionPlans.name, oldName));
-        }
-      }
-      
-      // Refresh and filter active plans
-      plans = await storage.getSubscriptionPlans();
+      const plans = await storage.getSubscriptionPlans();
       const activePlans = plans.filter(p => p.isActive);
       res.json(activePlans);
     } catch (error: any) {

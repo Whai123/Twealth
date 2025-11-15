@@ -10,10 +10,10 @@
  * - Enterprise: Scout (unlimited) + Sonnet (60/month) + GPT-5 (10/month) + Opus (20/month)
  * 
  * Model Usage Rules:
- * - Scout (Llama 4): PRIMARY - Fast queries, budgeting, spending, goals (⚡ Fast)
- * - Sonnet 3.5/4.5: REASONING - Multi-step logic, investment, debt strategy (🧠 Smart)
- * - GPT-5: MATH - Projections, simulations, compound interest, retirement (🧮 Math)
- * - Opus 4.1: CFO-LEVEL - Portfolio analysis, high-stakes decisions (👔 CFO)
+ * - Scout (Llama 4): PRIMARY - Fast queries, budgeting, spending, goals (Fast)
+ * - Sonnet 3.5/4.5: REASONING - Multi-step logic, investment, debt strategy (Smart)
+ * - GPT-5: MATH - Projections, simulations, compound interest, retirement (Math)
+ * - Opus 4.1: CFO-LEVEL - Portfolio analysis, high-stakes decisions (CFO)
  */
 
 import type { IStorage } from '../storage';
