@@ -1,6 +1,7 @@
 import { useState, useEffect } from"react";
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'wouter';
 import { Plus, Calendar, Users, Clock, CheckCircle, XCircle, TrendingUp, Brain, Sparkles, MoreHorizontal, Settings, UserPlus, Trash2, Copy, Share, Link } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
@@ -21,6 +22,7 @@ import { useUserId } from"@/lib/userContext";
 
 export default function Groups() {
  const { t } = useTranslation();
+ const [, setLocation] = useLocation();
  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
  
  // Check for create query parameter and open dialog automatically
@@ -921,7 +923,7 @@ export default function Groups() {
  onClick={() => {
  setIsEventDetailsDialogOpen(false);
  // Navigate to calendar with event selected
- window.location.href = '/calendar';
+ setLocation('/calendar');
  }}
  className="flex-1"
  data-testid="button-view-in-calendar"

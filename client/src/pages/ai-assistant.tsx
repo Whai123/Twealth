@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from"react";
 import { useQuery, useMutation } from"@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'wouter';
 import { Button } from"@/components/ui/button";
 import { Textarea } from"@/components/ui/textarea";
 import { ScrollArea } from"@/components/ui/scroll-area";
@@ -100,6 +101,7 @@ interface StarterPrompt {
 export default function AIAssistantPage() {
  const { t } = useTranslation();
  const { toast } = useToast();
+ const [, setLocation] = useLocation();
  const [currentMessage, setCurrentMessage] = useState("");
  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
  const [analysisMode, setAnalysisMode] = useState<'quick' | 'deep'>('quick');
@@ -280,7 +282,7 @@ export default function AIAssistantPage() {
  action: needsUpgrade ? (
  <ToastAction 
  altText="Upgrade"
- onClick={() => window.location.href = '/subscription'}
+ onClick={() => setLocation('/subscription')}
  >
  <Crown className="w-4 h-4 mr-2" />
  Upgrade
@@ -310,7 +312,7 @@ export default function AIAssistantPage() {
  action: (
  <ToastAction 
  altText="Upgrade"
- onClick={() => window.location.href = '/subscription'}
+ onClick={() => setLocation('/subscription')}
  >
  <Crown className="w-4 h-4 mr-2" />
  Upgrade
@@ -510,7 +512,7 @@ export default function AIAssistantPage() {
  variant="ghost"
  size="sm"
  className="text-xs h-8 px-3"
- onClick={() => window.location.href = '/subscription'}
+ onClick={() => setLocation('/subscription')}
  data-testid="button-view-plans"
  >
  View Plans
