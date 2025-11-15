@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface ChatMessage {
   id: string;
@@ -28,12 +29,18 @@ const quickActions: QuickAction[] = [
 ];
 
 export default function FloatingAIWidget() {
+  const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Hide widget on AI Assistant page (including query strings and trailing slashes)
+  if (location?.startsWith('/ai-assistant')) {
+    return null;
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -465,6 +465,38 @@ export default function AIAssistantPage() {
  </div>
  </header>
 
+ {/* Chat Input - Always visible at top */}
+ <div className="shrink-0 border-b border-border/40 bg-white dark:bg-black">
+ <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4">
+ <div className="relative">
+ <Textarea
+ ref={textareaRef}
+ value={currentMessage}
+ onChange={(e) => setCurrentMessage(e.target.value)}
+ onKeyDown={handleKeyDown}
+ placeholder="Message Twealth AI..."
+ className="min-h-[52px] max-h-[120px] resize-none pr-14 text-base w-full"
+ rows={1}
+ data-testid="input-message"
+ />
+ <Button
+ onClick={handleSendMessage}
+ disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
+ size="icon"
+ className="absolute right-2 bottom-2 h-10 w-10"
+ data-testid="button-send-message"
+ title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
+ >
+ {rateLimitRetryAfter > 0 ? (
+ <span className="text-xs font-medium">{rateLimitRetryAfter}s</span>
+ ) : (
+ <Send className="w-4 h-4" />
+ )}
+ </Button>
+ </div>
+ </div>
+ </div>
+
  {/* Messages Area - Scrollable flex-grow container */}
  <div className="flex-1 overflow-y-auto px-4 sm:px-6">
  <div className="max-w-3xl mx-auto py-6 sm:py-8 space-y-6">
@@ -647,41 +679,6 @@ export default function AIAssistantPage() {
  <div ref={messagesEndRef} />
  </div>
  )}
- </div>
- </div>
-
- {/* Input Area - Flex item at bottom, always visible */}
- <div className="shrink-0 border-t border-border/40 bg-white dark:bg-black pb-20 sm:pb-4" style={{ paddingBottom: 'max(5rem, calc(5rem + env(safe-area-inset-bottom)))' }}>
- <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-4">
- <div className="relative">
- <Textarea
- ref={textareaRef}
- value={currentMessage}
- onChange={(e) => setCurrentMessage(e.target.value)}
- onKeyDown={handleKeyDown}
- placeholder="Message Twealth AI..."
- className="min-h-[52px] max-h-[150px] sm:max-h-[200px] resize-none pr-14 text-base w-full"
- rows={1}
- data-testid="input-message"
- />
- <Button
- onClick={handleSendMessage}
- disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
- size="icon"
- className="absolute right-2 bottom-2 h-10 w-10"
- data-testid="button-send-message"
- title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
- >
- {rateLimitRetryAfter > 0 ? (
- <span className="text-xs font-medium">{rateLimitRetryAfter}s</span>
- ) : (
- <Send className="w-4 h-4" />
- )}
- </Button>
- </div>
- <p className="text-xs text-muted-foreground mt-3 text-center hidden sm:block">
- Twealth AI can make mistakes. Consider checking important information.
- </p>
  </div>
  </div>
  </div>
