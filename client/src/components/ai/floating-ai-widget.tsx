@@ -30,17 +30,19 @@ const quickActions: QuickAction[] = [
 
 export default function FloatingAIWidget() {
   const [location] = useLocation();
+  
+  // CRITICAL: Early return BEFORE any other hooks to prevent React hooks violation
+  // Hide widget on AI Assistant page (including query strings and trailing slashes)
+  if (location?.startsWith('/ai-assistant')) {
+    return null;
+  }
+  
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
-  // Hide widget on AI Assistant page (including query strings and trailing slashes)
-  if (location?.startsWith('/ai-assistant')) {
-    return null;
-  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

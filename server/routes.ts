@@ -4159,21 +4159,24 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           responseContent = confirmations || 'Analysis completed! Let me know if you need clarification on any aspect.';
         }
         
-        // Final safety check: Ensure responseContent is a valid string (prevents TypeError at .length)
-        responseContent = responseContent || 'I processed your request. How else can I help you?';
+        // CRITICAL: Triple-layer defense to ensure responseContent is ALWAYS a non-empty string
+        // 1. Convert to string (handles null/undefined)
+        // 2. Trim whitespace  
+        // 3. Provide fallback if empty
+        const safeResponseContent = (String(responseContent || '').trim()) || 'I processed your request. How else can I help you?';
         
-        // Save AI response
+        // Save AI response with guaranteed safe string
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
           role: 'assistant',
-          content: responseContent,
+          content: safeResponseContent,
           userContext: userContext,
-          tokenCount: Math.ceil(responseContent.length / 4),
+          tokenCount: Math.ceil(safeResponseContent.length / 4),
           cost: isDeepAnalysis ? '0.0005' : '0.0001' // Higher cost for deep analysis
         });
 
-        // Extract and update conversation memory
-        await extractAndUpdateMemory(storage, userId, userMessage, responseContent);
+        // Extract and update conversation memory using safe content
+        await extractAndUpdateMemory(storage, userId, userMessage, safeResponseContent);
 
         // Update conversation title if it's the first exchange
         if (conversationHistory.length <= 1) {
