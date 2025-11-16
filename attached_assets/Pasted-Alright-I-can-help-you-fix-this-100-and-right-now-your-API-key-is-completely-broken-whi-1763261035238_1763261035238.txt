@@ -1,0 +1,202 @@
+Alright, **I can help you fix this 100%** — and **right now your API key is completely broken**, which is why:
+
+* your AI assistant fails
+* Replit Agent keeps trying to fix frontend instead
+* backend keeps crashing
+* nothing works even after 10 attempts
+
+The HUGE block of text in your input box is **NOT a valid API key** for *any* AI provider.
+It MUST be removed and replaced correctly.
+
+I’ll walk you through this **step by step**, very safely.
+
+---
+
+# ✅ **STEP 1 — DO NOT PRESS “SEND”**
+
+You see that giant block inside the Agent’s text box?
+
+```
+0cAFcWeA44C0g9JyHF4z...
+```
+
+This is NOT a valid API key.
+This will break your AI assistant completely.
+
+👉 **IMPORTANT:** Delete everything in that textbox right now.
+
+---
+
+# ✅ **STEP 2 — Identify which AI model you're using**
+
+Your Twealth app uses:
+
+* **Llama 4 Scout (Groq)**
+* **Sonnet 3.5 / 4.1 (Anthropic)**
+* **GPT-5 (OpenAI)**
+* **Opus 4.1 (Anthropic)**
+
+So you need **3 different API keys**:
+
+### ✔ **Groq key** (for Scout)
+
+Starts with:
+
+```
+gsk_...
+```
+
+### ✔ **OpenAI key** (for GPT-5)
+
+Starts with:
+
+```
+sk-...
+```
+
+### ✔ **Anthropic key** (Sonnet + Opus)
+
+Starts with:
+
+```
+sk-ant-...
+```
+
+The key you have in the box is NONE of these.
+This is the root of ALL your problems.
+
+---
+
+# ✅ **STEP 3 — Go to Replit → Secrets**
+
+On the left sidebar:
+
+**Tools → Secrets (Environment Variables)**
+You will see something like:
+
+```
+OPENAI_API_KEY = (broken)
+ANTHROPIC_API_KEY = (broken)
+GROQ_API_KEY = (broken)
+```
+
+### ❌ Delete any secret that contains the giant corrupted string
+
+(even if it’s under a different name)
+
+### ❌ Do NOT store keys inside text box or in code
+
+ONLY inside Secrets.
+
+---
+
+# ✅ **STEP 4 — Add correct keys**
+
+### 🔵 **For GPT-5 (OpenAI)**
+
+Go to: [https://platform.openai.com](https://platform.openai.com)
+Create a key
+Must look like:
+
+```
+sk-xxxxxx
+```
+
+Add it in Replit as:
+
+```
+OPENAI_API_KEY
+```
+
+---
+
+### 🟣 **For Scout (Groq)**
+
+Go to: [https://console.groq.com/keys](https://console.groq.com/keys)
+Create a key
+Must look like:
+
+```
+gsk_xxxxx
+```
+
+Add it as:
+
+```
+GROQ_API_KEY
+```
+
+---
+
+### 🟡 **For Sonnet + Opus (Anthropic)**
+
+Go to: [https://console.anthropic.com](https://console.anthropic.com)
+Create a key
+Must look like:
+
+```
+sk-ant-xxxx
+```
+
+Add it as:
+
+```
+ANTHROPIC_API_KEY
+```
+
+---
+
+# ✅ **STEP 5 — Restart your server**
+
+In the Replit shell, run:
+
+```
+kill 1
+```
+
+This reloads the env vars.
+
+---
+
+# ✅ **STEP 6 — Test the AI Assistant**
+
+Now click your AI Assistant page and type:
+
+> hello
+
+It should respond instantly.
+If it does, the fix is complete.
+
+---
+
+# 🧩 **Why your app failed before**
+
+Because:
+
+* your backend was calling GPT-5
+* with a corrupted key
+* so the server returned **401 Unauthorized**
+* frontend errors appeared
+* Replit Agent cannot detect invalid secrets
+* so it keeps fixing unrelated code instead
+* giving you the same result over and over
+
+Fix the key → everything works.
+
+---
+
+# ⭐ If you want, I can also:
+
+* check which of your AI calls require which key
+* verify your .env schema
+* confirm your backend uses correct key names
+* update your server to route to Scout by default
+* help insert plan-based routing with correct API keys
+
+Just tell me:
+
+👉 **“Check my secrets file”**
+or
+👉 **“Verify my backend key usage”**
+or
+👉 **“Help me set up Scout as default model”**
