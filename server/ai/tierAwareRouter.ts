@@ -175,7 +175,7 @@ function selectModelForTier(
   signals: ComplexitySignals,
   tier: SubscriptionTier
 ): ModelAccess {
-  const msgLower = (signals.message || '').toLowerCase();
+  const msgLower = typeof signals.message === 'string' ? signals.message.toLowerCase() : '';
   
   // Free tier: Always Scout (no escalation allowed)
   if (tier === 'free') {
@@ -277,6 +277,10 @@ export async function routeWithTierCheck(
   storage: IStorage
 ): Promise<TierAwareResponse> {
   try {
+    // CRITICAL: Sanitize message at entry point to prevent TypeError
+    // This ensures all downstream code receives a safe string
+    const sanitizedMessage = typeof message === 'string' ? message : '';
+    
     // 1. Fetch user subscription and usage
     const subData = await storage.getUserSubscriptionWithUsage(userId);
     
@@ -308,12 +312,12 @@ export async function routeWithTierCheck(
     // 2. Build financial context once
     const context = await buildFinancialContext(userId, storage);
     
-    // 3. Create complexity signals for model selection
+    // 3. Create complexity signals for model selection using sanitized message
     const signals: ComplexitySignals = {
-      message,
+      message: sanitizedMessage,
       debtsCount: context.debts.length,
       assetsCount: context.assets.length,
-      messageLength: message.length,
+      messageLength: sanitizedMessage.length,
       contextTokens: estimateContextTokens(context),
     };
     
@@ -359,7 +363,7 @@ export async function routeWithTierCheck(
       skipAutoEscalation: true, // Tier router has already decided
     };
     
-    const response = await generateHybridAdvice(userId, message, storage, options);
+    const response = await generateHybridAdvice(userId, sanitizedMessage, storage, options);
     
     // 9. Add downgrade warning if we fell back to a lower model
     if (downgradedFrom) {
@@ -372,7 +376,7 @@ export async function routeWithTierCheck(
     
     // 7. Track usage synchronously
     try {
-      await trackUsage(userId, message, response, subscription.id, tier, storage);
+      await trackUsage(userId, sanitizedMessage, response, subscription.id, tier, storage);
       
       // Increment usage counters based on actual model used
       const actualModel = determineModelFromSlug(response.modelSlug);

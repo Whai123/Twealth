@@ -2583,7 +2583,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Proactively parse and save financial data from user message
       // This ensures we capture data even if AI fails later
-      const messageLower = userMessage.toLowerCase();
+      const messageLower = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
       const estimates: any = {};
       
       // Extract income-related numbers
@@ -2703,7 +2703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Detect if user is discussing a purchase/goal and calculate feasibility BEFORE AI sees it
       let impossibleGoalFlag: string | null = null;
       
-      const msgLower = userMessage.toLowerCase();
+      const msgLower = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
       const purchaseKeywords = ['buy', 'purchase', 'get', 'want', 'need', 'lambo', 'lamborghini', 'ferrari', 'house', 'car', 'yacht', 'ซื้อ', 'อยาก', 'comprar', 'quiero', '买', '想'];
       const timeKeywords = ['year', 'years', 'month', 'months', 'ปี', 'เดือน', 'años', 'meses', '年', '月'];
       
@@ -2832,14 +2832,19 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         // Extract AI result from successful response
         const aiResult = tierResult;
         
+        // Type guard: Ensure aiResult is valid
+        if (!aiResult || typeof aiResult !== 'object') {
+          throw new Error('Invalid AI response: result is null or not an object');
+        }
+        
         // HALLUCINATION CHECK: Warn if AI claims action but no tools called
-        const lowerResponse = aiResult.response.toLowerCase();
+        const lowerResponse = typeof aiResult.response === 'string' ? aiResult.response.toLowerCase() : '';
         const claimsAction = lowerResponse.includes('goal created') || lowerResponse.includes('added to your goals') || 
                              lowerResponse.includes('i\'ve created') || lowerResponse.includes('i\'ve added') ||
                              lowerResponse.includes('i added') || lowerResponse.includes('i created');
         if (claimsAction && (!aiResult.toolCalls || aiResult.toolCalls.length === 0)) {
           console.warn('⚠️  WARNING: AI claims to have performed action but NO TOOL CALLS made!');
-          console.warn('   Response:', aiResult.response.substring(0, 200));
+          console.warn('   Response:', typeof aiResult.response === 'string' ? aiResult.response.substring(0, 200) : 'N/A');
         }
         
         // Handle tool calls if AI wants to take actions
@@ -4206,7 +4211,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         let errorMessage = `DEBUG: ${actualErrorMsg} | Code: ${errorCode} | Type: ${aiError.constructor?.name}`;
         
         // Check if user is trying to create something
-        const lowerMsg = userMessage.toLowerCase();
+        const lowerMsg = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
         const isCreationIntent = lowerMsg.includes('add') || lowerMsg.includes('create') || 
                                 lowerMsg.includes('เพิ่ม') || lowerMsg.includes('goal') ||
                                 lowerMsg.includes('add to') || lowerMsg.includes('track');
