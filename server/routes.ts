@@ -4000,6 +4000,11 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           responseContent = responseContent.replace(/\n{3,}/g, '\n\n').trim();
         }
         
+        // CRITICAL: Ensure responseContent is always a string to prevent TypeError at line 4163
+        if (!responseContent) {
+          responseContent = '';
+        }
+        
         // If AI used tools but didn't provide a text response, generate detailed explanation
         if ((!responseContent || responseContent.trim() === '') && actionsPerformed.length > 0) {
           const confirmations = actionsPerformed.map(action => {
@@ -4153,6 +4158,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           
           responseContent = confirmations || 'Analysis completed! Let me know if you need clarification on any aspect.';
         }
+        
+        // Final safety check: Ensure responseContent is a valid string (prevents TypeError at .length)
+        responseContent = responseContent || 'I processed your request. How else can I help you?';
         
         // Save AI response
         const aiChatMessage = await storage.createChatMessage({
