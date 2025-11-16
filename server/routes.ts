@@ -3967,6 +3967,20 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         // Generate response content - use AI response or create confirmation if empty
         let responseContent = aiResult.answer;
         
+        // DEFENSIVE LOGGING: Alert if AI returns empty response (regression detection)
+        if (!responseContent || responseContent.trim() === '') {
+          console.error('⚠️ CRITICAL: AI returned empty response!', {
+            model: aiResult.modelUsed,
+            modelSlug: aiResult.modelSlug,
+            escalated: aiResult.escalated,
+            tokensOut: aiResult.tokensOut,
+            tokensIn: aiResult.tokensIn,
+            cost: aiResult.cost,
+            orchestratorUsed: aiResult.orchestratorUsed,
+            message: 'This should never happen - investigate hybrid AI service'
+          });
+        }
+        
         // Sanitize response: remove any leaked function call syntax or technical details
         if (responseContent) {
           // Remove ALL variations of <function>...</function> syntax (with or without attributes)
