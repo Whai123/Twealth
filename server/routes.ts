@@ -4172,7 +4172,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           content: safeResponseContent,
           userContext: userContext,
           tokenCount: Math.ceil(safeResponseContent.length / 4),
-          cost: isDeepAnalysis ? '0.0005' : '0.0001' // Higher cost for deep analysis
+          cost: '0.0001' // Standard cost per message
         });
 
         // Extract and update conversation memory using safe content
