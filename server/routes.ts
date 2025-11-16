@@ -3965,7 +3965,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         }
         
         // Generate response content - use AI response or create confirmation if empty
-        let responseContent = aiResult.response;
+        let responseContent = aiResult.answer;
         
         // Sanitize response: remove any leaked function call syntax or technical details
         if (responseContent) {
