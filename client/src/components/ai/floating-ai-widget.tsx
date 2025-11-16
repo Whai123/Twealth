@@ -30,13 +30,6 @@ const quickActions: QuickAction[] = [
 
 export default function FloatingAIWidget() {
   const [location] = useLocation();
-  
-  // CRITICAL: Early return BEFORE any other hooks to prevent React hooks violation
-  // Hide widget on AI Assistant page (including query strings and trailing slashes)
-  if (location?.startsWith('/ai-assistant')) {
-    return null;
-  }
-  
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -123,6 +116,11 @@ export default function FloatingAIWidget() {
       sendMessage.mutate(prompt);
     }
   };
+
+  // Hide widget on AI Assistant page (after all hooks are called)
+  if (location?.startsWith('/ai-assistant')) {
+    return null;
+  }
 
   if (!isOpen) {
     return (
