@@ -14,6 +14,16 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { getAIConfig, type ModelId } from '../config/ai';
 
+// Tool call interface
+export interface ToolCall {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: any; // Parsed JSON object (not string)
+  };
+}
+
 // Standardized response shape
 export interface AIResponse {
   text: string;
@@ -21,6 +31,7 @@ export interface AIResponse {
   tokensOut: number;
   cost: number;
   model: string;
+  toolCalls?: ToolCall[]; // Optional array of tool calls from the AI
 }
 
 export interface ChatMessage {
@@ -83,9 +94,31 @@ export class GPT5Client {
         tools: tools as any,
       });
       
-      const text = completion.choices[0]?.message?.content || '';
+      const message = completion.choices[0]?.message;
+      const text = message?.content || '';
       const tokensIn = completion.usage?.prompt_tokens || 0;
       const tokensOut = completion.usage?.completion_tokens || 0;
+      
+      // Extract tool calls from OpenAI response
+      const toolCalls: ToolCall[] | undefined = message?.tool_calls
+        ?.filter((tc: any) => tc.type === 'function' && tc.function) // Filter for function calls only
+        .map((tc: any) => {
+          try {
+            return {
+              id: tc.id,
+              type: 'function' as const,
+              function: {
+                name: tc.function.name,
+                arguments: JSON.parse(tc.function.arguments), // Parse JSON string to object
+              },
+            };
+          } catch (error) {
+            console.error('[GPT5Client] Failed to parse tool call arguments:', error);
+            console.error('Tool call:', tc);
+            return null; // Skip malformed tool calls
+          }
+        })
+        .filter((tc): tc is ToolCall => tc !== null); // Remove nulls from malformed parses
       
       // Calculate cost (GPT-5 includes reasoning tokens in output)
       const aiConfig = getAIConfig();
@@ -101,6 +134,7 @@ export class GPT5Client {
         tokensOut,
         cost,
         model: this.model,
+        toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
       };
     } catch (error) {
       console.error('[GPT5Client] Error:', error);
@@ -152,11 +186,34 @@ export class ScoutClient {
         messages: groqMessages,
         max_tokens: maxTokens,
         temperature,
+        tools: tools as any,
       });
       
-      const text = completion.choices[0]?.message?.content || '';
+      const message = completion.choices[0]?.message;
+      const text = message?.content || '';
       const tokensIn = completion.usage?.prompt_tokens || 0;
       const tokensOut = completion.usage?.completion_tokens || 0;
+      
+      // Extract tool calls from Groq response (same format as OpenAI)
+      const toolCalls: ToolCall[] | undefined = message?.tool_calls
+        ?.filter((tc: any) => tc.type === 'function' && tc.function) // Filter for function calls only
+        .map((tc: any) => {
+          try {
+            return {
+              id: tc.id,
+              type: 'function' as const,
+              function: {
+                name: tc.function.name,
+                arguments: JSON.parse(tc.function.arguments), // Parse JSON string to object
+              },
+            };
+          } catch (error) {
+            console.error('[ScoutClient] Failed to parse tool call arguments:', error);
+            console.error('Tool call:', tc);
+            return null; // Skip malformed tool calls
+          }
+        })
+        .filter((tc): tc is ToolCall => tc !== null); // Remove nulls from malformed parses
       
       // Calculate cost
       const aiConfig = getAIConfig();
@@ -172,6 +229,7 @@ export class ScoutClient {
         tokensOut,
         cost,
         model: this.config.model,
+        toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
       };
     } catch (error) {
       console.error('[ScoutClient] Error:', error);
@@ -236,6 +294,19 @@ export class AnthropicClient {
       const textContent = message.content.find(block => block.type === 'text');
       const text = textContent && textContent.type === 'text' ? textContent.text : '';
       
+      // Extract tool calls from Anthropic response (they use 'tool_use' blocks)
+      const toolUseBlocks = message.content.filter(block => block.type === 'tool_use');
+      const toolCalls: ToolCall[] | undefined = toolUseBlocks.length > 0
+        ? toolUseBlocks.map((block: any) => ({
+            id: block.id,
+            type: 'function' as const,
+            function: {
+              name: block.name,
+              arguments: block.input, // Anthropic provides input as object - use directly
+            },
+          }))
+        : undefined;
+      
       const tokensIn = message.usage.input_tokens || 0;
       const tokensOut = message.usage.output_tokens || 0;
       
@@ -252,6 +323,7 @@ export class AnthropicClient {
         tokensOut,
         cost,
         model: this.model,
+        toolCalls,
       };
     } catch (error) {
       console.error('[AnthropicClient] Error:', error);

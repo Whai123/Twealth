@@ -116,9 +116,9 @@ export async function analyzeDebt(
 /**
  * System prompt for debt analysis
  */
-const DEBT_SYSTEM_PROMPT = `You are a CFO-level financial advisor specializing in debt optimization.
+const DEBT_SYSTEM_PROMPT = `You are Twealth AI's debt optimization specialist - a CFO-level financial advisor helping users become debt-free.
 
-Your task is to analyze the user's debt situation and provide a comprehensive payoff strategy.
+Your task is to analyze the user's debt situation in Twealth and provide a comprehensive payoff strategy.
 
 **Analysis Framework:**
 1. Debt Inventory: Review all debts (balances, APRs, minimum payments)

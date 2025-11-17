@@ -54,6 +54,7 @@ export interface HybridAIResponse {
   structuredData?: any; // Structured data from orchestrator (if any)
   tierDowngraded?: boolean; // Whether tier logic downgraded the model
   actualModel?: 'scout' | 'sonnet' | 'gpt5' | 'opus'; // Actual model used (fallback for determineModelFromSlug)
+  toolCalls?: Array<{ id: string; type: 'function'; function: { name: string; arguments: any } }>; // Tool calls for action execution
 }
 
 /**
@@ -129,6 +130,7 @@ async function handleGPT5Query(
   userMessage: string,
   context: any
 ): Promise<HybridAIResponse> {
+  const { getTwealthTools } = require('./tools');
   const client = getGPT5Client();
   
   // Build optimized prompt with financial context
@@ -139,6 +141,7 @@ async function handleGPT5Query(
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage },
     ],
+    tools: getTwealthTools(), // Pass tools for action-taking
   });
   
   return {
@@ -150,6 +153,7 @@ async function handleGPT5Query(
     cost: response.cost,
     escalated: true, // GPT-5 is an escalation from Scout
     actualModel: 'gpt5', // Track actual model used
+    toolCalls: response.toolCalls, // Return tool calls for execution
   };
 }
 
@@ -161,6 +165,7 @@ async function handleScoutQuery(
   userMessage: string,
   context: any
 ): Promise<HybridAIResponse> {
+  const { getTwealthTools } = require('./tools');
   const client = getScoutClient();
   
   // Build simple prompt with context
@@ -173,6 +178,7 @@ async function handleScoutQuery(
     ],
     temperature: 0.7,
     maxTokens: 1000,
+    tools: getTwealthTools(), // Pass tools for action-taking
   });
   
   return {
@@ -184,6 +190,7 @@ async function handleScoutQuery(
     cost: response.cost,
     escalated: false,
     actualModel: 'scout', // Track actual model used
+    toolCalls: response.toolCalls, // Return tool calls for execution
   };
 }
 
@@ -342,6 +349,7 @@ async function handleGenericReasoningQuery(
   routingReason?: string,
   targetModel: ModelAccess = 'opus'
 ): Promise<HybridAIResponse> {
+  const { getTwealthTools } = require('./tools');
   // Select the appropriate client based on target model
   const client = targetModel === 'sonnet' ? getSonnetClient() : getOpusClient();
   
@@ -355,6 +363,7 @@ async function handleGenericReasoningQuery(
     ],
     temperature: 0.5,
     maxTokens: 2000,
+    tools: getTwealthTools(), // Pass tools for action-taking
   });
   
   return {
@@ -367,6 +376,7 @@ async function handleGenericReasoningQuery(
     escalated: true,
     escalationReason: routingReason,
     actualModel: targetModel === 'sonnet' ? 'sonnet' : 'opus', // Track actual model for analytics
+    toolCalls: response.toolCalls, // Return tool calls for execution
   };
 }
 
@@ -374,12 +384,14 @@ async function handleGenericReasoningQuery(
  * Build system prompt for GPT-5 (optimized for financial reasoning)
  */
 function buildGPT5SystemPrompt(context: any): string {
+  const { getTwealthIdentity } = require('./tools');
+  
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   
-  return `You are an expert CFO-level financial advisor powered by GPT-5. Provide clear, actionable, data-driven advice.
+  return `${getTwealthIdentity()}
 
 **User Financial Profile:**
 - Monthly Income: $${monthlyIncome.toLocaleString()}
@@ -389,12 +401,14 @@ function buildGPT5SystemPrompt(context: any): string {
 - Total Assets: $${totalAssets.toLocaleString()}
 - Net Worth: $${(totalAssets - totalDebts).toLocaleString()}
 
-**Your Strengths:**
+**Your Role as GPT-5 (MATH Model):**
+You're the quantitative specialist powered by GPT-5. Your strengths:
 - Superior mathematical reasoning (94.6% on AIME 2025)
-- Complex multi-variable financial analysis
-- Fast, accurate quantitative modeling
+- Complex multi-variable financial analysis & projections
+- Compound interest calculations & retirement planning
+- Investment modeling & future value simulations
 
-Keep responses concise, actionable, and focused on measurable outcomes.`;
+Use available tools to provide detailed calculations. Keep responses focused on measurable outcomes with specific numbers and actionable steps.`;
 }
 
 /**
@@ -402,12 +416,14 @@ Keep responses concise, actionable, and focused on measurable outcomes.`;
  * @deprecated Use buildGPT5SystemPrompt instead
  */
 function buildScoutSystemPrompt(context: any): string {
+  const { getTwealthIdentity } = require('./tools');
+  
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   
-  return `You are a helpful CFO-level financial advisor. You provide clear, actionable advice.
+  return `${getTwealthIdentity()}
 
 **User Financial Snapshot:**
 - Monthly Income: $${monthlyIncome.toLocaleString()}
@@ -415,17 +431,26 @@ function buildScoutSystemPrompt(context: any): string {
 - Total Debts: $${totalDebts.toLocaleString()}
 - Total Assets: $${totalAssets.toLocaleString()}
 
-Keep responses concise and actionable. If the query is complex, recommend they ask for deeper analysis.`;
+**Your Role as Scout (PRIMARY Model):**
+You're the fast, always-available financial advisor. Handle:
+- General budgeting advice & spending analysis
+- Quick financial calculations
+- Goal creation & transaction logging
+- Budget recommendations
+
+Keep responses concise (2-4 paragraphs) and actionable. Use available tools to take actions when users command you. If the query requires deep analysis (retirement planning, tax optimization, portfolio analysis), recommend they ask for deeper analysis which will escalate to specialized models.`;
 }
 
 /**
  * Build system prompt for Reasoning (complex queries)
  */
 function buildReasoningSystemPrompt(context: any): string {
+  const { getTwealthIdentity } = require('./tools');
+  
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   
-  let prompt = `You are a CFO-level financial advisor providing comprehensive analysis.
+  let prompt = `${getTwealthIdentity()}
 
 **User Financial Context:**
 - Monthly Income: $${monthlyIncome.toLocaleString()}
@@ -458,7 +483,14 @@ function buildReasoningSystemPrompt(context: any): string {
     prompt += `\n`;
   }
   
-  prompt += `Provide comprehensive, CFO-level analysis with specific numbers and actionable recommendations.`;
+  prompt += `**Your Role as Claude Sonnet/Opus (REASONING/CFO Model):**
+You're the strategic advisor for complex financial decisions. Your strengths:
+- Multi-step reasoning for debt payoff strategies
+- Investment portfolio optimization & rebalancing
+- Tax planning & retirement contribution strategies
+- Comprehensive CFO-level analysis for high-stakes decisions
+
+Use available tools to provide detailed, well-reasoned analysis with specific numbers and actionable recommendations. Think step-by-step through complex problems.`;
   
   return prompt;
 }
