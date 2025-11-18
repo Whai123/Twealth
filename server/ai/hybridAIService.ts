@@ -14,6 +14,10 @@
  * - Orchestrators for deep CFO-level analysis
  */
 
+// 🧪 TESTING MODE: Set to true to bypass all quota limits and tier restrictions
+// ⚠️ REMEMBER TO SET BACK TO FALSE AFTER TESTING
+export const TESTING_MODE = true;
+
 import type { IStorage } from '../storage';
 import { buildFinancialContext, estimateContextTokens, type FinancialContext } from './contextBuilder';
 import { shouldEscalate, routeToModel, getRoutingReason, type ComplexitySignals } from './router';

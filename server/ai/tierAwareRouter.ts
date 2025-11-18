@@ -17,7 +17,7 @@
  */
 
 import type { IStorage } from '../storage';
-import { generateHybridAdvice, type HybridAIResponse, type ModelAccess, type GenerateAdviceOptions } from './hybridAIService';
+import { generateHybridAdvice, type HybridAIResponse, type ModelAccess, type GenerateAdviceOptions, TESTING_MODE } from './hybridAIService';
 import { shouldEscalate, type ComplexitySignals } from './router';
 import { estimateContextTokens, buildFinancialContext } from './contextBuilder';
 
@@ -331,29 +331,39 @@ export async function routeWithTierCheck(
     let selectedModel: ModelAccess | null = null;
     let downgradedFrom: ModelAccess | null = null;
     
-    for (const model of fallbackModels) {
-      if (hasQuota(currentUsage, limits, model)) {
-        selectedModel = model;
-        // Mark as downgraded only if we fell back from preferred
-        if (model !== preferredModel) {
-          downgradedFrom = preferredModel;
+    // 🧪 TESTING MODE: Bypass quota checks and grant access to all models
+    if (TESTING_MODE) {
+      console.log('🧪 TESTING MODE ENABLED - Bypassing quota limits');
+      console.log(`   User requested: ${preferredModel}`);
+      console.log(`   Granting access to: ${preferredModel} (no quota check)`);
+      selectedModel = preferredModel; // Use preferred model directly
+      downgradedFrom = null; // No downgrade in testing mode
+    } else {
+      // Production mode: Check quotas
+      for (const model of fallbackModels) {
+        if (hasQuota(currentUsage, limits, model)) {
+          selectedModel = model;
+          // Mark as downgraded only if we fell back from preferred
+          if (model !== preferredModel) {
+            downgradedFrom = preferredModel;
+          }
+          break;
         }
-        break;
       }
-    }
-    
-    // 7. If no model has quota, return quota_exceeded
-    if (!selectedModel) {
-      // All tier models exhausted
-      return {
-        type: 'quota_exceeded',
-        model: preferredModel,
-        remaining: 0,
-        used: currentUsage[`${preferredModel}Used` as keyof typeof currentUsage],
-        limit: limits[`${preferredModel}Limit` as keyof typeof limits],
-        nextTier: getNextTier(tier),
-        upgradeRequired: true,
-      };
+      
+      // 7. If no model has quota, return quota_exceeded
+      if (!selectedModel) {
+        // All tier models exhausted
+        return {
+          type: 'quota_exceeded',
+          model: preferredModel,
+          remaining: 0,
+          used: currentUsage[`${preferredModel}Used` as keyof typeof currentUsage],
+          limit: limits[`${preferredModel}Limit` as keyof typeof limits],
+          nextTier: getNextTier(tier),
+          upgradeRequired: true,
+        };
+      }
     }
     
     // 8. Route to AI service with selected model and pre-built context
