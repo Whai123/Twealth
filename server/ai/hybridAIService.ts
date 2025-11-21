@@ -16,7 +16,7 @@
 
 // 🧪 TESTING MODE: Set to true to bypass all quota limits and tier restrictions
 // ⚠️ REMEMBER TO SET BACK TO FALSE AFTER TESTING
-export const TESTING_MODE = true;
+export const TESTING_MODE = false;
 
 import type { IStorage } from '../storage';
 import { buildFinancialContext, estimateContextTokens, type FinancialContext } from './contextBuilder';
