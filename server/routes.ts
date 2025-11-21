@@ -4964,6 +4964,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN;
       const baseUrl = `${protocol}://${host}`;
 
+      console.log('[Checkout] Creating session for:', {
+        userId,
+        planId: plan.id,
+        planName: plan.name,
+        stripePriceId: plan.stripePriceId,
+        customerId,
+        baseUrl
+      });
+
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
         line_items: [{
@@ -4980,6 +4989,21 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           planName: plan.name
         }
       });
+
+      console.log('[Checkout] Session created:', {
+        sessionId: session.id,
+        url: session.url,
+        status: session.status,
+        paymentStatus: session.payment_status
+      });
+
+      if (!session.url) {
+        console.error('[Checkout] ERROR: Stripe returned null URL!', session);
+        return res.status(500).json({ 
+          message: "Stripe checkout session created but no URL returned",
+          sessionId: session.id
+        });
+      }
 
       res.json({ url: session.url });
 

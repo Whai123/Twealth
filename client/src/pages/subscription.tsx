@@ -149,15 +149,22 @@ export default function SubscriptionPage() {
  } else {
  // Pro and Enterprise plans require Stripe checkout
  try {
- const { url } = await apiRequest("POST", "/api/subscription/create-checkout-session", { planId });
+ console.log('[Frontend] Creating checkout session for plan:', planId, planName);
+ const response = await apiRequest("POST", "/api/subscription/create-checkout-session", { planId });
+ console.log('[Frontend] Checkout response:', response);
+ 
+ const { url } = response;
  
  if (url) {
+ console.log('[Frontend] Redirecting to Stripe checkout:', url);
  // Redirect to Stripe-hosted checkout page
  window.location.href = url;
  } else {
+ console.error('[Frontend] No URL in response:', response);
  throw new Error("No checkout URL received");
  }
  } catch (error: any) {
+ console.error('[Frontend] Checkout error:', error);
  toast({
  title: "Checkout Failed",
  description: error.message || "Failed to create checkout session",
