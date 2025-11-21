@@ -47,7 +47,8 @@ import {
   insertUserFinancialProfileSchema,
   insertUserExpenseCategorySchema,
   insertUserDebtSchema,
-  insertUserAssetSchema
+  insertUserAssetSchema,
+  type UserPreferences
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -2013,8 +2014,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const validatedData = updateUserPreferencesSchema.parse(req.body);
-      // Cast to Partial<UserPreferences> to match storage interface expectation
-      const preferences = await storage.updateUserPreferences(userId, validatedData as any);
+      // The validated data from Zod matches the Partial<UserPreferences> type expected by storage
+      // Type assertion is safe here as the schema ensures correctness
+      const preferences = await storage.updateUserPreferences(userId, validatedData as Partial<UserPreferences>);
       res.json(preferences);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

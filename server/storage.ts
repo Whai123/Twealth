@@ -934,11 +934,7 @@ export class DatabaseStorage implements IStorage {
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     const [transaction] = await db
       .insert(transactions)
-      .values({
-        ...insertTransaction,
-        description: insertTransaction.description || null,
-        goalId: insertTransaction.goalId || null,
-      })
+      .values(insertTransaction as typeof transactions.$inferInsert)
       .returning();
 
     // If this transaction is for a goal, update the goal's current amount
@@ -997,7 +993,7 @@ export class DatabaseStorage implements IStorage {
   async createBudget(insertBudget: InsertBudget): Promise<Budget> {
     const [budget] = await db
       .insert(budgets)
-      .values(insertBudget)
+      .values(insertBudget as typeof budgets.$inferInsert)
       .returning();
     return budget;
   }
@@ -2792,14 +2788,7 @@ export class DatabaseStorage implements IStorage {
   async createUserPreferences(insertPreferences: InsertUserPreferences): Promise<UserPreferences> {
     const [preferences] = await db
       .insert(userPreferences)
-      .values({
-        ...insertPreferences,
-        theme: insertPreferences.theme || "system",
-        language: insertPreferences.language || "en",
-        timeZone: insertPreferences.timeZone || "UTC",
-        dateFormat: insertPreferences.dateFormat || "MM/dd/yyyy",
-        currency: insertPreferences.currency || "USD",
-      })
+      .values(insertPreferences as typeof userPreferences.$inferInsert)
       .returning();
     return preferences;
   }
@@ -3131,6 +3120,7 @@ export class DatabaseStorage implements IStorage {
         description: subscriptionPlans.description,
         priceThb: subscriptionPlans.priceThb,
         priceUsd: subscriptionPlans.priceUsd,
+        stripePriceId: subscriptionPlans.stripePriceId,
         currency: subscriptionPlans.currency,
         billingInterval: subscriptionPlans.billingInterval,
         scoutLimit: subscriptionPlans.scoutLimit,
