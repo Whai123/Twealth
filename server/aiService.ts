@@ -147,17 +147,20 @@ export interface UserContext {
   }>;
   debts?: Array<{
     name: string;
-    totalAmount: number;
-    remainingAmount: number;
+    balance: number; // Current amount owed (same as remainingAmount)
+    originalAmount?: number; // Original total debt amount
+    remainingAmount: number; // Current balance (alias for clarity)
+    totalAmount: number; // Original or current balance for backward compatibility
     monthlyPayment: number;
-    interestRate: number;
-    type: string;
+    interestRate: number; // APR as percentage
+    minimumPayment?: number;
   }>;
   assets?: Array<{
     name: string;
     type: string;
-    currentValue: number;
-    purchasePrice: number;
+    value: number; // Current value
+    currentValue: number; // Alias for clarity
+    purchasePrice?: number; // Original purchase price
   }>;
 }
 
@@ -1164,14 +1167,14 @@ ${context.expenseCategories.map(cat => `• ${cat.category}: $${cat.monthlyBudge
 ` : ''}
 ${context.debts && context.debts.length > 0 ? `
 OUTSTANDING DEBTS (Real Data):
-${context.debts.map(debt => `• ${debt.name} (${debt.type}): $${debt.remainingAmount.toLocaleString()} remaining of $${debt.totalAmount.toLocaleString()} total | $${debt.monthlyPayment.toLocaleString()}/mo @ ${debt.interestRate}% APR`).join('\n')}
+${context.debts.map(debt => `• ${debt.name}: $${debt.balance.toLocaleString()} balance | $${debt.monthlyPayment.toLocaleString()}/mo @ ${debt.interestRate}% APR${debt.minimumPayment ? ` (min: $${debt.minimumPayment.toLocaleString()})` : ''}`).join('\n')}
 Total Debt Payments: $${context.debts.reduce((sum, d) => sum + d.monthlyPayment, 0).toLocaleString()}/mo
 → Factor these debt obligations into all budget and savings recommendations. Prioritize high-interest debt payoff.
 ` : ''}
 ${context.assets && context.assets.length > 0 ? `
 ASSETS (Real Data):
-${context.assets.map(asset => `• ${asset.name} (${asset.type}): Current value $${asset.currentValue.toLocaleString()} (Purchased at $${asset.purchasePrice.toLocaleString()})`).join('\n')}
-Total Asset Value: $${context.assets.reduce((sum, a) => sum + a.currentValue, 0).toLocaleString()}
+${context.assets.map(asset => `• ${asset.name} (${asset.type}): Current value $${asset.value.toLocaleString()}`).join('\n')}
+Total Asset Value: $${context.assets.reduce((sum, a) => sum + a.value, 0).toLocaleString()}
 → Include these assets in net worth calculations and investment portfolio recommendations.
 ` : ''}
 ${cryptoContext}

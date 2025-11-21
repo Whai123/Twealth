@@ -474,7 +474,8 @@ export const userDebts = pgTable("user_debts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // "Credit Card", "Student Loan", "Car Loan", etc.
-  balance: decimal("balance", { precision: 10, scale: 2 }).notNull(),
+  balance: decimal("balance", { precision: 10, scale: 2 }).notNull(), // Current amount owed
+  originalAmount: decimal("original_amount", { precision: 10, scale: 2 }), // Original total debt amount (nullable for existing rows)
   interestRate: decimal("interest_rate", { precision: 5, scale: 2 }).notNull(), // APR as percentage (e.g., 4.5 for 4.5%)
   minimumPayment: decimal("minimum_payment", { precision: 10, scale: 2 }).notNull(),
   monthlyPayment: decimal("monthly_payment", { precision: 10, scale: 2 }).notNull(), // actual payment user makes
@@ -491,7 +492,8 @@ export const userAssets = pgTable("user_assets", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // "Primary Home", "Investment Portfolio", "Savings Account", etc.
   type: text("type").notNull(), // real_estate, investment, savings, vehicle, other
-  value: decimal("value", { precision: 12, scale: 2 }).notNull(),
+  value: decimal("value", { precision: 12, scale: 2 }).notNull(), // Current value
+  purchasePrice: decimal("purchase_price", { precision: 12, scale: 2 }), // Original purchase price (nullable for existing rows)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [

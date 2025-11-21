@@ -6,7 +6,6 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
-import { z } from "zod";
 
 // Helper function to get user ID from request (custom auth)
 function getUserIdFromRequest(req: any): string {
@@ -50,6 +49,11 @@ import {
   insertUserDebtSchema,
   insertUserAssetSchema
 } from "@shared/schema";
+import { z } from "zod";
+
+// Reusable typed schemas for user preference updates
+const updateUserPreferencesSchema = insertUserPreferencesSchema.omit({ userId: true }).partial();
+type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSchema>;
 import { aiService, type UserContext } from "./aiService";
 import { extractAndUpdateMemory, getMemoryContext } from './conversationMemoryService';
 import { cryptoService } from "./cryptoService";
@@ -60,7 +64,7 @@ import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
 import { generateProactiveInsights } from './proactiveInsightsService';
 import { predictiveAnalyticsService } from './predictiveAnalyticsService';
-import { generateHybridAdvice } from './ai/hybridAIService';
+import { generateHybridAdvice, type HybridAIResponse } from './ai/hybridAIService';
 import { routeWithTierCheck, type QuotaExceededError } from './ai/tierAwareRouter';
 import Stripe from "stripe";
 import { log } from "./vite";
@@ -2008,8 +2012,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/user-preferences", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      const validatedData = insertUserPreferencesSchema.omit({ userId: true }).partial().parse(req.body);
-      const preferences = await storage.updateUserPreferences(userId, validatedData);
+      const validatedData = updateUserPreferencesSchema.parse(req.body);
+      // Cast to Partial<UserPreferences> to match storage interface expectation
+      const preferences = await storage.updateUserPreferences(userId, validatedData as any);
       res.json(preferences);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2671,21 +2676,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } : undefined,
         expenseCategories: expenseCategories.map(cat => ({
           category: cat.category,
-          monthlyBudget: parseFloat(cat.monthlyBudget)
+          monthlyBudget: parseFloat(cat.monthlyAmount)
         })),
         debts: userDebts.map(debt => ({
           name: debt.name,
-          totalAmount: parseFloat(debt.totalAmount),
-          remainingAmount: parseFloat(debt.remainingAmount),
+          balance: parseFloat(debt.balance),
+          originalAmount: debt.originalAmount ? parseFloat(debt.originalAmount) : undefined,
+          remainingAmount: parseFloat(debt.balance), // Alias for backward compatibility
+          totalAmount: debt.originalAmount ? parseFloat(debt.originalAmount) : parseFloat(debt.balance), // Use original if available, else current balance
           monthlyPayment: parseFloat(debt.monthlyPayment),
           interestRate: parseFloat(debt.interestRate || '0'),
-          type: debt.type || 'other'
+          minimumPayment: parseFloat(debt.minimumPayment || '0')
         })),
         assets: userAssets.map(asset => ({
           name: asset.name,
           type: asset.type,
-          currentValue: parseFloat(asset.currentValue),
-          purchasePrice: parseFloat(asset.purchasePrice || '0')
+          value: parseFloat(asset.value),
+          currentValue: parseFloat(asset.value), // Alias for backward compatibility
+          purchasePrice: asset.purchasePrice ? parseFloat(asset.purchasePrice) : undefined
         }))
       };
 
@@ -2817,52 +2825,58 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         const tierResult = await routeWithTierCheck(userId, userMessage, storage);
         
         // Handle quota exceeded response
-        if (tierResult.type === 'quota_exceeded') {
+        if ('type' in tierResult && tierResult.type === 'quota_exceeded') {
+          const quotaError = tierResult as QuotaExceededError;
           return res.status(429).json({
-            message: `AI ${tierResult.model} quota exceeded. You've used ${tierResult.used}/${tierResult.limit} queries.`,
-            usage: tierResult.used,
-            limit: tierResult.limit,
-            upgradeRequired: tierResult.upgradeRequired,
-            type: tierResult.type,
-            model: tierResult.model,
-            nextTier: tierResult.nextTier
+            message: `AI ${quotaError.model} quota exceeded. You've used ${quotaError.used}/${quotaError.limit} queries.`,
+            usage: quotaError.used,
+            limit: quotaError.limit,
+            upgradeRequired: quotaError.upgradeRequired,
+            type: quotaError.type,
+            model: quotaError.model,
+            nextTier: quotaError.nextTier
           });
         }
         
         // Extract AI result from successful response
-        const aiResult = tierResult;
+        const aiResult = tierResult as HybridAIResponse;
         
-        // Type guard: Ensure aiResult is valid
-        if (!aiResult || typeof aiResult !== 'object') {
+        // Type guard: Ensure aiResult is valid HybridAIResponse
+        if (!aiResult || typeof aiResult !== 'object' || !('answer' in aiResult)) {
           throw new Error('Invalid AI response: result is null or not an object');
         }
         
         // HALLUCINATION CHECK: Warn if AI claims action but no tools called
-        const lowerResponse = typeof aiResult.response === 'string' ? aiResult.response.toLowerCase() : '';
+        const lowerResponse = typeof aiResult.answer === 'string' ? aiResult.answer.toLowerCase() : '';
         const claimsAction = lowerResponse.includes('goal created') || lowerResponse.includes('added to your goals') || 
                              lowerResponse.includes('i\'ve created') || lowerResponse.includes('i\'ve added') ||
                              lowerResponse.includes('i added') || lowerResponse.includes('i created');
         if (claimsAction && (!aiResult.toolCalls || aiResult.toolCalls.length === 0)) {
           console.warn('⚠️  WARNING: AI claims to have performed action but NO TOOL CALLS made!');
-          console.warn('   Response:', typeof aiResult.response === 'string' ? aiResult.response.substring(0, 200) : 'N/A');
+          console.warn('   Response:', typeof aiResult.answer === 'string' ? aiResult.answer.substring(0, 200) : 'N/A');
         }
         
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
         if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
           console.log(`🔧 ========== PROCESSING ${aiResult.toolCalls.length} TOOL CALL(S) ==========`);
-          console.log(`Tools requested:`, aiResult.toolCalls.map(t => t.name).join(', '));
+          console.log(`Tools requested:`, aiResult.toolCalls.map((t: any) => t.function.name).join(', '));
           for (const toolCall of aiResult.toolCalls) {
+            // Extract function details from nested structure
+            const toolName = toolCall.function.name;
+            const toolArgs = toolCall.function.arguments;
+            
             try {
-              console.log(`\n🛠️  Tool: ${toolCall.name}`);
-              console.log(`📋 Arguments:`, JSON.stringify(toolCall.arguments, null, 2));
               
-              if (toolCall.name === 'create_financial_goal') {
+              console.log(`\n🛠️  Tool: ${toolName}`);
+              console.log(`📋 Arguments:`, JSON.stringify(toolArgs, null, 2));
+              
+              if (toolName === 'create_financial_goal') {
                 console.log(`🎯 [create_financial_goal] Starting goal creation...`);
                 
                 // CRITICAL: Validate user confirmation before creating goal
-                if (toolCall.arguments.userConfirmed !== true) {
-                  console.log(`⚠️  BLOCKED create_financial_goal: userConfirmed=${toolCall.arguments.userConfirmed} (not true)`);
+                if (toolArgs.userConfirmed !== true) {
+                  console.log(`⚠️  BLOCKED create_financial_goal: userConfirmed=${toolArgs.userConfirmed} (not true)`);
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_financial_goal' }
@@ -2870,14 +2884,14 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   continue;
                 }
                 
-                console.log(`✅ Creating goal for userId=${userId}: "${toolCall.arguments.name}"`);
+                console.log(`✅ Creating goal for userId=${userId}: "${toolArgs.name}"`);
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
-                  title: toolCall.arguments.name,
-                  targetAmount: parseAmount(toolCall.arguments.targetAmount),
+                  title: toolArgs.name,
+                  targetAmount: parseAmount(toolArgs.targetAmount),
                   currentAmount: '0',
-                  targetDate: new Date(toolCall.arguments.targetDate),
-                  description: toolCall.arguments.description || null,
+                  targetDate: new Date(toolArgs.targetDate),
+                  description: toolArgs.description || null,
                   category: 'savings'
                 });
                 console.log(`🎉 Goal created successfully! ID=${goal.id}, Title="${goal.title}"`);
@@ -2885,9 +2899,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   type: 'goal_created',
                   data: goal
                 });
-              } else if (toolCall.name === 'create_calendar_event') {
+              } else if (toolName === 'create_calendar_event') {
                 // CRITICAL: Validate user confirmation before creating event
-                if (toolCall.arguments.userConfirmed !== true) {
+                if (toolArgs.userConfirmed !== true) {
                   console.log('⚠️  Blocked create_calendar_event: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
@@ -2897,33 +2911,33 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 }
                 const event = await storage.createEvent({
                   createdBy: userId,
-                  title: toolCall.arguments.title,
-                  description: toolCall.arguments.description || null,
-                  startTime: new Date(toolCall.arguments.date),
-                  endTime: new Date(toolCall.arguments.date)
+                  title: toolArgs.title,
+                  description: toolArgs.description || null,
+                  startTime: new Date(toolArgs.date),
+                  endTime: new Date(toolArgs.date)
                 });
                 actionsPerformed.push({
                   type: 'event_created',
                   data: event
                 });
-              } else if (toolCall.name === 'add_transaction') {
+              } else if (toolName === 'add_transaction') {
                 console.log(`💰 [add_transaction] Creating transaction...`);
                 const transaction = await storage.createTransaction({
                   userId: userId,
-                  type: toolCall.arguments.type,
-                  amount: parseAmount(toolCall.arguments.amount),
-                  category: toolCall.arguments.category,
-                  description: toolCall.arguments.description || null,
-                  date: toolCall.arguments.date ? new Date(toolCall.arguments.date) : new Date()
+                  type: toolArgs.type,
+                  amount: parseAmount(toolArgs.amount),
+                  category: toolArgs.category,
+                  description: toolArgs.description || null,
+                  date: toolArgs.date ? new Date(toolArgs.date) : new Date()
                 });
                 console.log(`✅ [add_transaction] Transaction created successfully! ID=${transaction.id}, Amount=$${transaction.amount}, Category=${transaction.category}`);
                 actionsPerformed.push({
                   type: 'transaction_added',
                   data: transaction
                 });
-              } else if (toolCall.name === 'create_group') {
+              } else if (toolName === 'create_group') {
                 // CRITICAL: Validate user confirmation before creating group
-                if (toolCall.arguments.userConfirmed !== true) {
+                if (toolArgs.userConfirmed !== true) {
                   console.log('⚠️  Blocked create_group: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
@@ -2932,15 +2946,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   continue;
                 }
                 const group = await storage.createGroup({
-                  name: toolCall.arguments.name,
-                  description: toolCall.arguments.description || null,
+                  name: toolArgs.name,
+                  description: toolArgs.description || null,
                   ownerId: userId
                 });
                 actionsPerformed.push({
                   type: 'group_created',
                   data: group
                 });
-              } else if (toolCall.name === 'add_crypto_holding') {
+              } else if (toolName === 'add_crypto_holding') {
                 // Map common crypto symbols to their full names
                 const cryptoNames: Record<string, string> = {
                   'BTC': 'Bitcoin',
@@ -2951,8 +2965,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   'ADA': 'Cardano',
                   'DOT': 'Polkadot'
                 };
-                const symbol = toolCall.arguments.symbol.toUpperCase();
-                const coinId = toolCall.arguments.symbol.toLowerCase();
+                const symbol = toolArgs.symbol.toUpperCase();
+                const coinId = toolArgs.symbol.toLowerCase();
                 const name = cryptoNames[symbol] || symbol;
                 
                 const holding = await storage.createCryptoHolding({
@@ -2960,16 +2974,16 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   coinId: coinId,
                   symbol: symbol,
                   name: name,
-                  amount: parseAmount(toolCall.arguments.amount),
-                  averageBuyPrice: parseAmount(toolCall.arguments.purchasePrice)
+                  amount: parseAmount(toolArgs.amount),
+                  averageBuyPrice: parseAmount(toolArgs.purchasePrice)
                 });
                 actionsPerformed.push({
                   type: 'crypto_added',
                   data: holding
                 });
-              } else if (toolCall.name === 'analyze_portfolio_allocation') {
+              } else if (toolName === 'analyze_portfolio_allocation') {
                 // Calculate portfolio allocation based on age and risk tolerance
-                const { age, riskTolerance, investmentAmount } = toolCall.arguments;
+                const { age, riskTolerance, investmentAmount } = toolArgs;
                 const stockAllocation = Math.max(10, Math.min(90, 110 - age));
                 const bondAllocation = 100 - stockAllocation;
                 
@@ -2996,9 +3010,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     }
                   }
                 });
-              } else if (toolCall.name === 'calculate_debt_payoff') {
+              } else if (toolName === 'calculate_debt_payoff') {
                 // Compare avalanche vs snowball debt payoff strategies
-                const { debts, extraPayment } = toolCall.arguments;
+                const { debts, extraPayment } = toolArgs;
                 
                 // Simple debt payoff calculator
                 const calculatePayoff = (debtOrder: any[]) => {
@@ -3053,9 +3067,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     savings: snowballResult.interest - avalancheResult.interest
                   }
                 });
-              } else if (toolCall.name === 'project_future_value') {
+              } else if (toolName === 'project_future_value') {
                 // Calculate future value with compound growth and inflation adjustment
-                const { principal, monthlyContribution, annualReturn, years, inflationRate } = toolCall.arguments;
+                const { principal, monthlyContribution, annualReturn, years, inflationRate } = toolArgs;
                 const months = years * 12;
                 const monthlyRate = annualReturn / 100 / 12;
                 
@@ -3081,9 +3095,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     returnPercentage: Math.round((totalGrowth / totalInvested) * 100)
                   }
                 });
-              } else if (toolCall.name === 'calculate_retirement_needs') {
+              } else if (toolName === 'calculate_retirement_needs') {
                 // Calculate retirement needs using 4% rule
-                const { currentAge, retirementAge, annualExpenses, currentSavings } = toolCall.arguments;
+                const { currentAge, retirementAge, annualExpenses, currentSavings } = toolArgs;
                 const yearsToRetirement = retirementAge - currentAge;
                 const targetAmount = annualExpenses * 25; // 4% rule
                 const needed = targetAmount - currentSavings;
@@ -3109,9 +3123,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     onTrack: requiredMonthly <= (annualExpenses / 12) * 0.15 // 15% of monthly expenses
                   }
                 });
-              } else if (toolCall.name === 'calculate_emergency_fund') {
+              } else if (toolName === 'calculate_emergency_fund') {
                 // Calculate ideal emergency fund size
-                const { monthlyExpenses, incomeStability, dependents = 0, hasInsurance = true } = toolCall.arguments;
+                const { monthlyExpenses, incomeStability, dependents = 0, hasInsurance = true } = toolArgs;
                 
                 // Base recommendation: 3-6 months
                 let months = 4; // Default middle ground
@@ -3148,9 +3162,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     hasInsurance
                   }
                 });
-              } else if (toolCall.name === 'credit_score_improvement_plan') {
+              } else if (toolName === 'credit_score_improvement_plan') {
                 // Generate personalized credit improvement strategies
-                const { currentScore, hasDebt = false, missedPayments = false, creditUtilization } = toolCall.arguments;
+                const { currentScore, hasDebt = false, missedPayments = false, creditUtilization } = toolArgs;
                 
                 const strategies: string[] = [];
                 let priorityAction = '';
@@ -3217,9 +3231,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     timelineMonths: missedPayments ? 12 : 6
                   }
                 });
-              } else if (toolCall.name === 'calculate_rent_affordability') {
+              } else if (toolName === 'calculate_rent_affordability') {
                 // Calculate rent affordability using 30% rule
-                const { monthlyIncome, otherDebts = 0, desiredLocation } = toolCall.arguments;
+                const { monthlyIncome, otherDebts = 0, desiredLocation } = toolArgs;
                 
                 // 30% rule: rent should be max 30% of gross income
                 const thirtyPercentRule = monthlyIncome * 0.30;
@@ -3264,7 +3278,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     percentageOfIncome: Math.round((recommendedMax / monthlyIncome) * 100)
                   }
                 });
-              } else if (toolCall.name === 'calculate_mortgage_payment') {
+              } else if (toolName === 'calculate_mortgage_payment') {
                 // Calculate mortgage payment with PITI breakdown
                 const { 
                   homePrice, 
@@ -3273,7 +3287,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   loanTermYears,
                   propertyTaxRate = 1.2,
                   insuranceAnnual = 1200
-                } = toolCall.arguments;
+                } = toolArgs;
                 
                 const loanAmount = homePrice - downPayment;
                 const monthlyRate = (interestRate / 100) / 12;
@@ -3326,7 +3340,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     amountToAvoidPMI: needsPMI ? Math.round(homePrice * 0.20 - downPayment) : 0
                   }
                 });
-              } else if (toolCall.name === 'optimize_tax_strategy') {
+              } else if (toolName === 'optimize_tax_strategy') {
                 // Analyze tax optimization opportunities
                 const {
                   annualIncome,
@@ -3334,7 +3348,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   hasRetirementAccount = false,
                   currentRetirementContribution = 0,
                   hasInvestments = false
-                } = toolCall.arguments;
+                } = toolArgs;
                 
                 // 2024 tax brackets (simplified)
                 const brackets: Record<string, any> = {
@@ -3424,7 +3438,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     potentialSavings: Math.round(retirementTaxSavings + (hasInvestments ? annualIncome * 0.02 : 0))
                   }
                 });
-              } else if (toolCall.name === 'save_financial_estimates') {
+              } else if (toolName === 'save_financial_estimates') {
                 // Smart validation and parsing of financial estimates
                 const estimates: any = {};
                 const warnings: string[] = [];
@@ -3491,22 +3505,22 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 let expenses = 0;
                 let savings = 0;
                 
-                if (toolCall.arguments.monthlyIncome !== undefined) {
-                  income = validateAmount(toolCall.arguments.monthlyIncome, 'Monthly income', 'income');
+                if (toolArgs.monthlyIncome !== undefined) {
+                  income = validateAmount(toolArgs.monthlyIncome, 'Monthly income', 'income');
                   if (errors.length === 0) {
                     estimates.monthlyIncomeEstimate = income.toString();
                   }
                 }
                 
-                if (toolCall.arguments.monthlyExpenses !== undefined) {
-                  expenses = validateAmount(toolCall.arguments.monthlyExpenses, 'Monthly expenses', 'expenses');
+                if (toolArgs.monthlyExpenses !== undefined) {
+                  expenses = validateAmount(toolArgs.monthlyExpenses, 'Monthly expenses', 'expenses');
                   if (errors.length === 0) {
                     estimates.monthlyExpensesEstimate = expenses.toString();
                   }
                 }
                 
-                if (toolCall.arguments.currentSavings !== undefined) {
-                  savings = validateAmount(toolCall.arguments.currentSavings, 'Current savings', 'savings');
+                if (toolArgs.currentSavings !== undefined) {
+                  savings = validateAmount(toolArgs.currentSavings, 'Current savings', 'savings');
                   if (errors.length === 0) {
                     estimates.currentSavingsEstimate = savings.toString();
                   }
@@ -3573,7 +3587,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   await storage.updateUserPreferences(userId, estimates);
                   console.log('💾 Saved financial estimates:', estimates);
                 }
-              } else if (toolCall.name === 'calculate_car_affordability') {
+              } else if (toolName === 'calculate_car_affordability') {
                 // Car affordability calculator with 20/4/10 rule
                 const {
                   monthlyIncome,
@@ -3581,7 +3595,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   currentCarPayment = 0,
                   creditScore = 'good',
                   preferredTerm = 4
-                } = toolCall.arguments;
+                } = toolArgs;
 
                 // Interest rates by credit score
                 const interestRates: Record<string, number> = {
@@ -3722,7 +3736,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     ].filter(Boolean)
                   }
                 });
-              } else if (toolCall.name === 'optimize_student_loan_payoff') {
+              } else if (toolName === 'optimize_student_loan_payoff') {
                 // Student loan optimization strategies
                 const {
                   totalBalance,
@@ -3730,7 +3744,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   monthlyIncome,
                   extraPayment = 0,
                   employerType = 'private_sector'
-                } = toolCall.arguments;
+                } = toolArgs;
 
                 const monthlyRate = (averageInterestRate / 100) / 12;
                 const standardPayment = totalBalance * 0.01; // ~1% of balance is typical minimum
@@ -3833,7 +3847,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                           : 'Standard plan offers balance of payment and payoff time'
                   }
                 });
-              } else if (toolCall.name === 'compare_investment_options') {
+              } else if (toolName === 'compare_investment_options') {
                 // Investment comparison analysis
                 const {
                   investmentAmount,
@@ -3841,7 +3855,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   riskTolerance,
                   investmentGoal,
                   currentHoldings = ''
-                } = toolCall.arguments;
+                } = toolArgs;
 
                 // Define investment options with expected returns
                 const options = [
@@ -3954,10 +3968,10 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 });
               }
             } catch (toolError) {
-              console.error(`Tool execution error (${toolCall.name}):`, toolError);
+              console.error(`Tool execution error (${toolName}):`, toolError);
               actionsPerformed.push({
                 type: 'error',
-                tool: toolCall.name,
+                tool: toolName,
                 error: 'Failed to execute action'
               });
             }
@@ -3995,13 +4009,13 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           responseContent = responseContent.replace(/\*\*Tool Calls?\*\*:?.*$/gi, '').trim();
           
           // Remove numbered tool call lists (1. create_financial_goal, 2. generate_investment...)
-          responseContent = responseContent.replace(/\d+\.\s*\w+_\w+:?\s*.*$/gm, (match) => {
+          responseContent = responseContent.replace(/\d+\.\s*\w+_\w+:?\s*.*$/gm, (match: string) => {
             if (match.match(/\w+_\w+/)) return '';
             return match;
           }).trim();
           
           // Remove standalone function call patterns  
-          responseContent = responseContent.replace(/\{[^}]*"?\w+"?\s*:\s*[^}]+\}/g, (match) => {
+          responseContent = responseContent.replace(/\{[^}]*"?\w+"?\s*:\s*[^}]+\}/g, (match: string) => {
             // Only remove if it looks like a function call (has common function params)
             if (match.includes('targetAmount') || match.includes('userConfirmed') || 
                 match.includes('category') && match.includes('description')) {
@@ -4328,16 +4342,17 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         });
       }
       
-      // Success - log tier/model/quota context
+      // Success - log tier/model/quota context (cast to HybridAIResponse after quota check)
+      const successResponse = response as HybridAIResponse;
       console.log(
-        `✅ [TierAI] Response: model=${response.modelSlug}, ` +
-        `escalated=${response.escalated}, ` +
-        `tokens=${response.tokensIn}+${response.tokensOut}, ` +
-        `cost=$${response.cost.toFixed(6)}, ` +
-        `downgraded=${response.tierDowngraded || false}`
+        `✅ [TierAI] Response: model=${successResponse.modelSlug}, ` +
+        `escalated=${successResponse.escalated}, ` +
+        `tokens=${successResponse.tokensIn}+${successResponse.tokensOut}, ` +
+        `cost=$${successResponse.cost.toFixed(6)}, ` +
+        `downgraded=${successResponse.tierDowngraded || false}`
       );
       
-      res.json(response);
+      res.json(successResponse);
     } catch (error: any) {
       console.error('[TierAI] Error:', error);
       res.status(500).json({ 
