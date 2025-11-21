@@ -5008,8 +5008,23 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       res.json({ url: session.url });
 
     } catch (error: any) {
-      console.error('Checkout Session Error:', error);
-      res.status(500).json({ message: error.message });
+      console.error('[Checkout] Error creating session:', error);
+      
+      // Provide helpful error messages based on error type
+      let errorMessage = error.message || "Failed to create checkout session";
+      
+      if (error.type === 'StripeInvalidRequestError') {
+        errorMessage = "Invalid payment configuration. Please contact support.";
+      } else if (error.code === 'resource_missing') {
+        errorMessage = "Payment plan not found. Please try again or contact support.";
+      } else if (error.statusCode === 401) {
+        errorMessage = "Payment service authentication failed. Please contact support.";
+      }
+      
+      res.status(500).json({ 
+        message: errorMessage,
+        errorType: error.type || 'unknown'
+      });
     }
   });
 
