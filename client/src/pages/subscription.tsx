@@ -151,17 +151,21 @@ export default function SubscriptionPage() {
  try {
  console.log('[Frontend] Creating checkout session for plan:', planId, planName);
  const response = await apiRequest("POST", "/api/subscription/create-checkout-session", { planId });
- console.log('[Frontend] Checkout response:', response);
+ console.log('[Frontend] Raw response received:', response);
  
- const { url } = response;
+ // Parse JSON from the Response object
+ const data = await response.json();
+ console.log('[Frontend] Parsed checkout data:', data);
+ 
+ const { url } = data;
  
  if (url) {
  console.log('[Frontend] Redirecting to Stripe checkout:', url);
  // Redirect to Stripe-hosted checkout page
  window.location.href = url;
  } else {
- console.error('[Frontend] No URL in response:', response);
- throw new Error("No checkout URL received");
+ console.error('[Frontend] No URL in parsed data:', data);
+ throw new Error("No checkout URL received from Stripe");
  }
  } catch (error: any) {
  console.error('[Frontend] Checkout error:', error);
