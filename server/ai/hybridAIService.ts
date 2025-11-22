@@ -26,6 +26,7 @@ import { analyzeDebt } from './orchestrators/debt';
 import { analyzeRetirement } from './orchestrators/retirement';
 import { analyzeTax } from './orchestrators/tax';
 import { analyzePortfolio } from './orchestrators/portfolio';
+import { getTwealthTools, getTwealthIdentity } from './tools';
 
 /**
  * Model access levels (matches tier system)
@@ -134,7 +135,6 @@ async function handleGPT5Query(
   userMessage: string,
   context: any
 ): Promise<HybridAIResponse> {
-  const { getTwealthTools } = require('./tools');
   const client = getGPT5Client();
   
   // Build optimized prompt with financial context
@@ -169,7 +169,6 @@ async function handleScoutQuery(
   userMessage: string,
   context: any
 ): Promise<HybridAIResponse> {
-  const { getTwealthTools } = require('./tools');
   const client = getScoutClient();
   
   // Build simple prompt with context
@@ -353,7 +352,6 @@ async function handleGenericReasoningQuery(
   routingReason?: string,
   targetModel: ModelAccess = 'opus'
 ): Promise<HybridAIResponse> {
-  const { getTwealthTools } = require('./tools');
   // Select the appropriate client based on target model
   const client = targetModel === 'sonnet' ? getSonnetClient() : getOpusClient();
   
@@ -388,8 +386,6 @@ async function handleGenericReasoningQuery(
  * Build system prompt for GPT-5 (optimized for financial reasoning)
  */
 function buildGPT5SystemPrompt(context: any): string {
-  const { getTwealthIdentity } = require('./tools');
-  
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
@@ -420,8 +416,6 @@ Use available tools to provide detailed calculations. Keep responses focused on 
  * @deprecated Use buildGPT5SystemPrompt instead
  */
 function buildScoutSystemPrompt(context: any): string {
-  const { getTwealthIdentity } = require('./tools');
-  
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
@@ -449,8 +443,6 @@ Keep responses concise (2-4 paragraphs) and actionable. Use available tools to t
  * Build system prompt for Reasoning (complex queries)
  */
 function buildReasoningSystemPrompt(context: any): string {
-  const { getTwealthIdentity } = require('./tools');
-  
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   
