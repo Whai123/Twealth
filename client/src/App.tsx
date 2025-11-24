@@ -34,6 +34,7 @@ const Landing = lazy(() => import("./pages/landing.tsx"));
 const Login = lazy(() => import("./pages/login.tsx"));
 const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
 const PredictiveInsights = lazy(() => import("./pages/predictive-insights"));
+const Playbooks = lazy(() => import("./pages/playbooks"));
 import FloatingAIWidget from "./components/ai/floating-ai-widget";
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
@@ -149,6 +150,7 @@ function Router() {
          <Route path="/crypto" component={Crypto} />
          <Route path="/friends" component={Friends} />
          <Route path="/ai-assistant" component={AIAssistant} />
+         <Route path="/playbooks" component={Playbooks} />
          <Route path="/predictive-insights" component={PredictiveInsights} />
          <Route path="/investments" component={InvestmentIntelligence} />
          <Route path="/referrals" component={Referrals} />

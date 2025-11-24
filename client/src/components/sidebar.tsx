@@ -20,7 +20,8 @@ import {
  BarChart3,
  LogOut,
  Loader2,
- LineChart
+ LineChart,
+ FileText
 } from"lucide-react";
 import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import { cn } from"@/lib/utils";
@@ -76,6 +77,12 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  href:"/financial-goals", 
  icon: Target,
  description: t('navigation.descriptions.goals')
+ },
+ { 
+ name:"AI Playbooks", 
+ href:"/playbooks", 
+ icon: FileText,
+ description:"Weekly AI-generated financial reports and insights"
  },
  { 
  name: t('navigation.money'), 

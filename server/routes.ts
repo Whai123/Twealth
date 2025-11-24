@@ -6063,6 +6063,130 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
+  // ==================== AI PLAYBOOKS ROUTES ====================
+  
+  // Get user's playbooks
+  app.get("/api/playbooks", isAuthenticated, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const playbooks = await storage.getPlaybooksByUserId(req.user.id, limit);
+      res.json(playbooks);
+    } catch (error: any) {
+      console.error('Error fetching playbooks:', error);
+      res.status(500).json({ message: 'Failed to fetch playbooks' });
+    }
+  });
+
+  // Generate new weekly playbook
+  app.post("/api/playbooks/generate", isAuthenticated, async (req: any, res) => {
+    try {
+      // Get user's subscription to determine tier
+      const subscriptionData = await storage.getUserSubscription(req.user.id);
+      const tier = subscriptionData?.plan.name.toLowerCase() as 'free' | 'pro' | 'enterprise' || 'free';
+
+      // Import playbook service
+      const { generateWeeklyPlaybook } = await import('./playbookService');
+      
+      // Generate playbook
+      const playbookData = await generateWeeklyPlaybook(req.user.id, storage, tier);
+      
+      // Save to database
+      const playbook = await storage.createPlaybook({
+        ...playbookData,
+        subscriptionId: subscriptionData?.id || null,
+      });
+
+      res.json(playbook);
+    } catch (error: any) {
+      console.error('Error generating playbook:', error);
+      res.status(500).json({ message: 'Failed to generate playbook', error: error.message });
+    }
+  });
+
+  // Get specific playbook by ID
+  app.get("/api/playbooks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const playbook = await storage.getPlaybook(req.params.id);
+      
+      if (!playbook) {
+        return res.status(404).json({ message: 'Playbook not found' });
+      }
+      
+      // Verify ownership
+      if (playbook.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+      
+      // Mark as viewed if not already
+      if (!playbook.isViewed) {
+        await storage.markPlaybookViewed(req.params.id);
+        playbook.isViewed = true;
+        playbook.viewedAt = new Date();
+      }
+      
+      res.json(playbook);
+    } catch (error: any) {
+      console.error('Error fetching playbook:', error);
+      res.status(500).json({ message: 'Failed to fetch playbook' });
+    }
+  });
+
+  // Mark playbook action as complete
+  app.post("/api/playbooks/:id/complete-action", isAuthenticated, async (req: any, res) => {
+    try {
+      const playbook = await storage.getPlaybook(req.params.id);
+      
+      if (!playbook) {
+        return res.status(404).json({ message: 'Playbook not found' });
+      }
+      
+      // Verify ownership
+      if (playbook.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+      
+      const { actionIndex, estimatedSavings } = req.body;
+      
+      // Update playbook with completed action
+      const newActionsCompleted = (playbook.actionsCompleted || 0) + 1;
+      const newRoiSavings = parseFloat(playbook.roiSavings?.toString() || '0') + (estimatedSavings || 0);
+      const newCumulativeRoi = parseFloat(playbook.cumulativeRoi?.toString() || '0') + (estimatedSavings || 0);
+      
+      const updatedPlaybook = await storage.updatePlaybook(req.params.id, {
+        actionsCompleted: newActionsCompleted,
+        roiSavings: newRoiSavings.toFixed(2),
+        cumulativeRoi: newCumulativeRoi.toFixed(2),
+      });
+      
+      res.json(updatedPlaybook);
+    } catch (error: any) {
+      console.error('Error completing action:', error);
+      res.status(500).json({ message: 'Failed to complete action' });
+    }
+  });
+
+  // Delete playbook
+  app.delete("/api/playbooks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const playbook = await storage.getPlaybook(req.params.id);
+      
+      if (!playbook) {
+        return res.status(404).json({ message: 'Playbook not found' });
+      }
+      
+      // Verify ownership
+      if (playbook.userId !== req.user.id) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+      
+      await storage.deletePlaybook(req.params.id);
+      res.json({ message: 'Playbook deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting playbook:', error);
+      res.status(500).json({ message: 'Failed to delete playbook' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -499,6 +499,14 @@ export interface IStorage {
   createUserAsset(asset: InsertUserAsset): Promise<UserAsset>;
   updateUserAsset(id: string, updates: Partial<UserAsset>): Promise<UserAsset>;
   deleteUserAsset(id: string): Promise<void>;
+
+  // Playbook methods
+  getPlaybook(id: string): Promise<Playbook | undefined>;
+  getPlaybooksByUserId(userId: string, limit?: number): Promise<Playbook[]>;
+  createPlaybook(playbook: InsertPlaybook): Promise<Playbook>;
+  updatePlaybook(id: string, updates: Partial<Playbook>): Promise<Playbook>;
+  deletePlaybook(id: string): Promise<void>;
+  markPlaybookViewed(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3868,6 +3876,56 @@ export class DatabaseStorage implements IStorage {
     if (result.length === 0) {
       throw new Error('Asset not found');
     }
+  }
+
+  // Playbook methods
+  async getPlaybook(id: string): Promise<Playbook | undefined> {
+    const [playbook] = await db.select().from(playbooks).where(eq(playbooks.id, id));
+    return playbook;
+  }
+
+  async getPlaybooksByUserId(userId: string, limit: number = 10): Promise<Playbook[]> {
+    return await db
+      .select()
+      .from(playbooks)
+      .where(eq(playbooks.userId, userId))
+      .orderBy(desc(playbooks.weekStartDate))
+      .limit(limit);
+  }
+
+  async createPlaybook(playbook: InsertPlaybook): Promise<Playbook> {
+    const [result] = await db.insert(playbooks).values(playbook).returning();
+    return result;
+  }
+
+  async updatePlaybook(id: string, updates: Partial<Playbook>): Promise<Playbook> {
+    const [result] = await db
+      .update(playbooks)
+      .set(updates)
+      .where(eq(playbooks.id, id))
+      .returning();
+    
+    if (!result) {
+      throw new Error('Playbook not found');
+    }
+    return result;
+  }
+
+  async deletePlaybook(id: string): Promise<void> {
+    const result = await db.delete(playbooks)
+      .where(eq(playbooks.id, id))
+      .returning();
+    
+    if (result.length === 0) {
+      throw new Error('Playbook not found');
+    }
+  }
+
+  async markPlaybookViewed(id: string): Promise<void> {
+    await db
+      .update(playbooks)
+      .set({ isViewed: true, viewedAt: new Date() })
+      .where(eq(playbooks.id, id));
   }
 }
 
