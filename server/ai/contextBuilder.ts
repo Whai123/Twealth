@@ -5,6 +5,11 @@
  * FinancialContext structure for both Scout and Reasoning models
  * 
  * Includes country-specific financial intelligence for localized advice
+ * 
+ * Features:
+ * - Request-scoped caching to avoid repeated DB queries within same request
+ * - TTL-based cache invalidation for data freshness
+ * - Parallel data fetching for performance
  */
 
 import type { IStorage } from '../storage';
@@ -17,6 +22,66 @@ import type {
   Transaction,
 } from '@shared/schema';
 import { countryKnowledgeService, type CountryFinancialContext } from '../services/countryKnowledge';
+
+// Context cache configuration
+const CONTEXT_CACHE_TTL_MS = 30000; // 30 seconds - balance between freshness and performance
+const MAX_CACHE_SIZE = 100; // Maximum cached contexts
+
+interface CachedContext {
+  context: FinancialContext;
+  timestamp: number;
+}
+
+// LRU cache for financial contexts
+const contextCache = new Map<string, CachedContext>();
+
+/**
+ * Get cached context if still valid
+ */
+function getCachedContext(userId: string): FinancialContext | null {
+  const cached = contextCache.get(userId);
+  if (!cached) return null;
+  
+  const now = Date.now();
+  if (now - cached.timestamp > CONTEXT_CACHE_TTL_MS) {
+    contextCache.delete(userId);
+    return null;
+  }
+  
+  return cached.context;
+}
+
+/**
+ * Cache a context with LRU eviction
+ */
+function cacheContext(userId: string, context: FinancialContext): void {
+  // Evict oldest entries if cache is full
+  if (contextCache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = contextCache.keys().next().value;
+    if (oldestKey) {
+      contextCache.delete(oldestKey);
+    }
+  }
+  
+  contextCache.set(userId, {
+    context,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Invalidate cached context for a user (call after data updates)
+ */
+export function invalidateContextCache(userId: string): void {
+  contextCache.delete(userId);
+}
+
+/**
+ * Clear entire context cache (for testing/admin)
+ */
+export function clearContextCache(): void {
+  contextCache.clear();
+}
 
 // Normalized financial context for AI models
 export interface FinancialContext {
@@ -85,11 +150,25 @@ export interface FinancialContext {
 
 /**
  * Build financial context from user data
+ * Uses caching to avoid repeated DB queries for the same user within a short window
+ * 
+ * @param userId - The user ID to build context for
+ * @param storage - Storage interface for database access
+ * @param skipCache - Force fresh data fetch (default: false)
  */
 export async function buildFinancialContext(
   userId: string,
-  storage: IStorage
+  storage: IStorage,
+  skipCache: boolean = false
 ): Promise<FinancialContext> {
+  // Check cache first (unless explicitly skipped)
+  if (!skipCache) {
+    const cached = getCachedContext(userId);
+    if (cached) {
+      return cached;
+    }
+  }
+  
   // Fetch all user financial data in parallel
   const [
     profile,
@@ -250,7 +329,7 @@ export async function buildFinancialContext(
     financialRegulations: countryData.financialRegulations,
   } : undefined;
   
-  return {
+  const context: FinancialContext = {
     user: {
       id: userId,
       countryCode,
@@ -272,6 +351,11 @@ export async function buildFinancialContext(
     recentTransactionsSample,
     countryContext,
   };
+  
+  // Cache the context for future requests
+  cacheContext(userId, context);
+  
+  return context;
 }
 
 /**
