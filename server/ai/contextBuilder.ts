@@ -3,6 +3,8 @@
  * 
  * Pulls data from existing modules and formats it into a standardized
  * FinancialContext structure for both Scout and Reasoning models
+ * 
+ * Includes country-specific financial intelligence for localized advice
  */
 
 import type { IStorage } from '../storage';
@@ -14,11 +16,13 @@ import type {
   FinancialGoal,
   Transaction,
 } from '@shared/schema';
+import { countryKnowledgeService, type CountryFinancialContext } from '../services/countryKnowledge';
 
 // Normalized financial context for AI models
 export interface FinancialContext {
   user: {
     id: string;
+    countryCode: string;
     region?: string;
     age?: number;
     riskTolerance?: 'low' | 'med' | 'high';
@@ -56,6 +60,27 @@ export interface FinancialContext {
     category?: string;
     type: 'income' | 'expense' | 'transfer';
   }>;
+  // Country-specific financial intelligence
+  countryContext?: {
+    countryName: string;
+    currency: string;
+    currencySymbol: string;
+    vatRate: number;
+    capitalGainsTaxRate: number;
+    costOfLivingIndex: number;
+    purchasingPowerIndex: number;
+    averageMonthlyIncome: number;
+    medianMonthlyIncome: number;
+    luxuryPricing: {
+      lamborghiniUrus: number;
+      porsche911: number;
+      rolexSubmariner: number;
+      medianHomeCity: number;
+      medianHomeSuburb: number;
+    };
+    economicSystem: string;
+    financialRegulations: string[];
+  };
 }
 
 /**
@@ -74,6 +99,7 @@ export async function buildFinancialContext(
     goals,
     transactions,
     user,
+    userPreferences,
   ] = await Promise.all([
     storage.getUserFinancialProfile(userId).catch(() => null),
     storage.getUserExpenseCategories(userId).catch(() => []),
@@ -82,6 +108,7 @@ export async function buildFinancialContext(
     storage.getFinancialGoalsByUserId(userId).catch(() => []),
     storage.getTransactionsByUserId(userId, 20).catch(() => []), // Last 20 transactions
     storage.getUser(userId).catch(() => null),
+    storage.getUserPreferences(userId).catch(() => null),
   ]);
   
   // Calculate monthly net income
@@ -195,15 +222,39 @@ export async function buildFinancialContext(
     type: tx.type as 'income' | 'expense' | 'transfer',
   }));
   
-  // Build user metadata (simplified - could be enhanced)
-  const userRegion = 'US'; // Could be from user settings
+  // Build user metadata from preferences
+  const countryCode = userPreferences?.countryCode || 'US';
   const userAge = undefined; // Could be calculated from DOB if available
   const riskTolerance: 'low' | 'med' | 'high' = 'med'; // Could be from financial preferences
+  
+  // Get country-specific financial context
+  const countryData = countryKnowledgeService.getCountryContext(countryCode);
+  const countryContext = countryData ? {
+    countryName: countryData.countryName,
+    currency: countryData.currency,
+    currencySymbol: countryData.currencySymbol,
+    vatRate: countryData.vatRate,
+    capitalGainsTaxRate: countryData.capitalGainsTaxRate,
+    costOfLivingIndex: countryData.costOfLivingIndex,
+    purchasingPowerIndex: countryData.purchasingPowerIndex,
+    averageMonthlyIncome: countryData.averageMonthlyIncome,
+    medianMonthlyIncome: countryData.medianMonthlyIncome,
+    luxuryPricing: {
+      lamborghiniUrus: countryData.luxuryPricing.lamborghiniUrus,
+      porsche911: countryData.luxuryPricing.porsche911,
+      rolexSubmariner: countryData.luxuryPricing.rolexSubmariner,
+      medianHomeCity: countryData.luxuryPricing.medianHomePriceCity,
+      medianHomeSuburb: countryData.luxuryPricing.medianHomePriceSuburb,
+    },
+    economicSystem: countryData.economicSystem,
+    financialRegulations: countryData.financialRegulations,
+  } : undefined;
   
   return {
     user: {
       id: userId,
-      region: userRegion,
+      countryCode,
+      region: countryData?.region || 'north_america',
       age: userAge,
       riskTolerance,
     },
@@ -219,6 +270,7 @@ export async function buildFinancialContext(
     assets: normalizedAssets,
     goals: normalizedGoals,
     recentTransactionsSample,
+    countryContext,
   };
 }
 
