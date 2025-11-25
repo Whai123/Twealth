@@ -272,20 +272,27 @@ export async function completePlaybookAction(
   estimatedSavings: number,
   storage: IStorage
 ): Promise<void> {
-  // TODO: Implement once storage methods are added
-  // const playbook = await storage.getPlaybook(playbookId);
-  // if (!playbook) {
-  //   throw new Error('Playbook not found');
-  // }
+  const playbook = await storage.getPlaybook(playbookId);
+  if (!playbook) {
+    throw new Error('Playbook not found');
+  }
 
-  // const newActionsCompleted = (playbook.actionsCompleted || 0) + 1;
-  // const newRoiSavings = parseFloat(playbook.roiSavings?.toString() || '0') + estimatedSavings;
-  // const newCumulativeRoi = parseFloat(playbook.cumulativeRoi?.toString() || '0') + estimatedSavings;
+  // Check for duplicate completion
+  const completedIndices = (playbook.completedActionIndices as number[]) || [];
+  if (completedIndices.includes(actionIndex)) {
+    throw new Error('Action already completed');
+  }
 
-  // await storage.updatePlaybook(playbookId, {
-  //   actionsCompleted: newActionsCompleted,
-  //   roiSavings: newRoiSavings.toFixed(2),
-  //   cumulativeRoi: newCumulativeRoi.toFixed(2),
-  // });
-  throw new Error('Not yet implemented - storage methods needed');
+  // Update playbook with completed action
+  const newActionsCompleted = (playbook.actionsCompleted || 0) + 1;
+  const newRoiSavings = parseFloat(playbook.roiSavings?.toString() || '0') + estimatedSavings;
+  const newCumulativeRoi = parseFloat(playbook.cumulativeRoi?.toString() || '0') + estimatedSavings;
+  const newCompletedIndices = [...completedIndices, actionIndex];
+
+  await storage.updatePlaybook(playbookId, {
+    actionsCompleted: newActionsCompleted,
+    roiSavings: newRoiSavings.toFixed(2),
+    cumulativeRoi: newCumulativeRoi.toFixed(2),
+    completedActionIndices: newCompletedIndices,
+  });
 }

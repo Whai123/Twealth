@@ -1310,11 +1310,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     // CRITICAL: Remove any JSON code blocks, raw JSON, or technical syntax from AI responses
     // Users should NEVER see internal tool call syntax, code, or system prompt echoing
     
-    // DEBUG: Log raw AI output before sanitization
-    console.log('🔍 === RAW AI RESPONSE (before sanitization) ===');
-    console.log(text.substring(0, 500)); // First 500 chars
-    console.log('=== END RAW RESPONSE ===');
-    
     let sanitized = text;
     
     // 0. CRITICAL: Remove ONLY function/tool tags (surgical removal - preserve surrounding text)
@@ -1342,16 +1337,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     // 4. Clean up whitespace
     sanitized = sanitized.trim();
     sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
-    
-    // Log sanitization results
-    if (text.length - sanitized.length > 50) {
-      console.log(`🧹 Sanitization removed ${text.length - sanitized.length} chars`);
-      console.log(`📝 Original: ${text.length} chars → Sanitized: ${sanitized.length} chars`);
-    }
-    
-    console.log('✅ === SANITIZED AI RESPONSE (after cleaning) ===');
-    console.log(sanitized.substring(0, 500)); // First 500 chars
-    console.log('=== END SANITIZED RESPONSE ===');
     
     // Emergency fallback: if sanitized text is too short, AI likely returned only tool calls
     if (sanitized.length < 20) {
@@ -1608,35 +1593,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         return 0.75; // Default balanced temperature
       })();
       
-      // DEBUG: Comprehensive logging for monitoring Scout's behavior
-      console.log(`🛡️  ============ TOOL FILTERING DEBUG ============`);
-      console.log(`User message: "${userMessage.substring(0, 100)}..."`);
-      console.log(`Detection Results:`);
-      console.log(`  - isConfirmation: ${isConfirmation}`);
-      console.log(`  - wasAsking: ${wasAskingForConfirmation}`);
-      console.log(`  - isImperative: ${isImperativeAction}`);
-      console.log(`  - desireAnalysis: ${desireAnalysisNeeded}`);
-      console.log(`  - needsImmediateAction: ${needsImmediateAction} ← CRITICAL for transactions`);
-      console.log(`  - canCreate: ${canCreate}`);
-      console.log(`Available Tools:`);
-      console.log(`  - toolCount: ${availableTools.length}/${TOOLS.length}`);
-      console.log(`  - tool_choice: "${toolChoiceMode}" ${needsImmediateAction || desireAnalysisNeeded ? '(REQUIRED - AI MUST use tools)' : '(AUTO)'}`);
-      console.log(`  - temperature: ${temperature}`);
-      console.log(`================================================`);
-      
-      // PERFORMANCE TRACKING: Measure response time
-      const apiStartTime = Date.now();
-      
-      // DEBUG: Log what we're sending to Groq
-      console.log('🟢 === CALLING GROQ API ===');
-      console.log('Model: meta-llama/llama-4-scout-17b-16e-instruct');
-      console.log('Messages count:', messages.length);
-      console.log('System prompt length:', systemPrompt.length, 'chars (~', Math.ceil(systemPrompt.length / 4), 'tokens)');
-      console.log('User message:', userMessage.substring(0, 100));
-      console.log('Tools available:', availableTools.length);
-      console.log(`⚙️  TOOL CHOICE: "${toolChoiceMode}" (needsImmediateAction=${needsImmediateAction}, desireAnalysisNeeded=${desireAnalysisNeeded})`);
-      console.log(`🌡️  TEMPERATURE: ${temperature} (dynamic optimization)`);
-
       const response = await groq.chat.completions.create({
         model: "meta-llama/llama-4-scout-17b-16e-instruct",  // Llama 4 Scout - 17B MoE with native tool-use support
         messages: messages,
@@ -1647,10 +1603,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         top_p: 0.9  // More focused sampling for precise financial advice
       });
       
-      // PERFORMANCE TRACKING: Log response time
-      const apiDuration = Date.now() - apiStartTime;
-      console.log(`⏱️  API Response Time: ${apiDuration}ms`);
-
       const assistantMessage = response.choices[0]?.message;
       
       if (!assistantMessage) {
@@ -1736,42 +1688,49 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
       
       return { response: text, toolCalls };
     } catch (error: any) {
-      // COMPREHENSIVE ERROR LOGGING - Preserve all Groq error details
-      console.error('❌ ============ AI SERVICE ERROR ============');
-      console.error('Error Type:', error.constructor?.name || 'Unknown');
-      console.error('Error Message:', error.message);
-      console.error('Error Code/Status:', error.code || error.status || error.statusCode || 'N/A');
-      console.error('Error Response:', error.response?.data || error.error || 'N/A');
-      console.error('Request ID:', error.headers?.['x-request-id'] || 'N/A');
-      console.error('Full Error Object:', JSON.stringify(error, null, 2));
-      if (error.stack) console.error('Stack Trace:', error.stack);
-      console.error('=========================================');
+      // Log error for monitoring (minimal, not verbose)
+      console.error('[AI Service Error]', {
+        type: error.constructor?.name,
+        code: error.code || error.status,
+        message: error.message?.substring(0, 100)
+      });
       
-      // GRACEFUL DEGRADATION (like ChatGPT/Claude):
-      // If Groq rejected the response due to tool_use_failed, extract the generated text
+      // GRACEFUL DEGRADATION: If Groq rejected due to tool_use_failed, extract generated text
       if (error?.error?.error?.failed_generation) {
         const failedText = error.error.error.failed_generation;
-        console.log('✅ Recovered failed response text - returning to user');
-        
-        // Cache the recovered response (estimate tokens without systemPrompt)
         const tokenCount = this.estimateTokenCount(userMessage + failedText);
         responseCache.set(userMessage, context, failedText, tokenCount);
-        
         return { response: failedText, toolCalls: undefined };
       }
       
-      // Create structured error with all Groq metadata preserved
+      // FALLBACK RESPONSE: Provide helpful context-aware response when AI fails completely
+      const isRateLimited = error.status === 429 || error.code === 429 || 
+                           error.message?.includes('rate limit');
+      const isTimeout = error.message?.includes('timeout') || error.code === 'ETIMEDOUT';
+      
+      if (isRateLimited || isTimeout) {
+        // For transient errors, provide a useful fallback using context
+        const savingsRate = context.monthlyIncome > 0 
+          ? ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome * 100).toFixed(0)
+          : 0;
+        
+        const fallbackResponse = `I'm experiencing high demand right now. While I reconnect, here's your financial snapshot: You're saving ${savingsRate}% of your income ($${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/month). ${
+          parseFloat(savingsRate.toString()) >= 20 
+            ? "Great savings rate - you're on track!" 
+            : "Aim for 20%+ savings rate for long-term wealth building."
+        } Please try your question again in a moment.`;
+        
+        return { response: fallbackResponse, toolCalls: undefined };
+      }
+      
+      // Create structured error with metadata preserved for upstream handling
       const structuredError = new Error(error.message || 'Failed to generate AI response');
-      // Preserve all original error properties
       (structuredError as any).groqError = {
         originalMessage: error.message,
         code: error.code || error.status || error.statusCode,
         type: error.constructor?.name,
         response: error.response?.data || error.error,
-        requestId: error.headers?.['x-request-id'],
-        statusCode: error.status || error.statusCode,
-        // Preserve raw error for debugging
-        raw: error
+        statusCode: error.status || error.statusCode
       };
       throw structuredError;
     }

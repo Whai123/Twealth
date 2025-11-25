@@ -657,6 +657,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const validatedData = insertFinancialGoalSchema.parse({ ...req.body, userId });
       const goal = await storage.createFinancialGoal(validatedData);
+      
+      // Auto-disable demo mode when user adds real data
+      try {
+        const preferences = await storage.getUserPreferences(userId);
+        if (preferences?.demoMode) {
+          await storage.updateUserPreferences(userId, { demoMode: false });
+        }
+      } catch (e) {
+        // Non-critical - don't fail goal creation if demo mode update fails
+      }
+      
       res.status(201).json(goal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1521,6 +1532,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const transaction = await storage.createTransaction(validatedData);
+      
+      // Auto-disable demo mode when user adds real data
+      try {
+        const preferences = await storage.getUserPreferences(userId);
+        if (preferences?.demoMode) {
+          await storage.updateUserPreferences(userId, { demoMode: false });
+        }
+      } catch (e) {
+        // Non-critical - don't fail transaction creation if demo mode update fails
+      }
+      
       res.status(201).json(transaction);
     } catch (error: any) {
       console.error('[POST /api/transactions] Error:', error);
@@ -2690,12 +2712,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
-      
-      // DEBUG: Log incoming chat request
-      console.log('🔵 === CHAT REQUEST START ===');
-      console.log('User:', userId);
-      console.log('Conversation:', conversationId);
-      console.log('Message:', req.body.content?.substring(0, 100));
       
       // Ensure user has a subscription
       let subscription = await storage.getUserSubscription(userId);
@@ -4373,62 +4389,40 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         });
 
       } catch (aiError: any) {
-        // COMPREHENSIVE ERROR LOGGING - Access structured Groq error details
-        console.error('❌ ============ AI CHAT ERROR (routes.ts) ============');
-        console.error('Error Type:', aiError.constructor?.name || 'Unknown');
-        console.error('Error Message:', aiError.message);
-        
-        // Access structured Groq error details if available
+        // Log error for internal monitoring (not exposed to user)
         const groqError = aiError.groqError;
-        if (groqError) {
-          console.error('🔴 GROQ ERROR DETAILS:');
-          console.error('  - Code/Status:', groqError.code || groqError.statusCode || 'N/A');
-          console.error('  - Type:', groqError.type);
-          console.error('  - Original Message:', groqError.originalMessage);
-          console.error('  - Response:', JSON.stringify(groqError.response, null, 2));
-          console.error('  - Request ID:', groqError.requestId || 'N/A');
-          console.error('  - Raw Error:', JSON.stringify(groqError.raw, null, 2));
-        } else {
-          console.error('Error Code:', aiError.code || aiError.status || 'N/A');
-          console.error('Full Error:', JSON.stringify(aiError, null, 2));
-        }
-        console.error('Error Stack:', aiError.stack);
-        console.error('================================================');
-        
         const actualErrorMsg = groqError?.originalMessage || aiError.message || 'Unknown error';
         const errorCode = groqError?.code || groqError?.statusCode || aiError.code || aiError.status;
         
-        // TEMPORARY DEBUG: Show actual error to diagnose issue
-        let errorMessage = `DEBUG: ${actualErrorMsg} | Code: ${errorCode} | Type: ${aiError.constructor?.name}`;
+        console.error('[AI Chat Error]', {
+          type: aiError.constructor?.name,
+          code: errorCode,
+          message: actualErrorMsg
+        });
+        
+        // User-friendly error messages (never expose internal details)
+        let errorMessage = "I'm having trouble processing your request. Please try again in a moment.";
         
         // Check if user is trying to create something
         const lowerMsg = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
         const isCreationIntent = lowerMsg.includes('add') || lowerMsg.includes('create') || 
-                                lowerMsg.includes('เพิ่ม') || lowerMsg.includes('goal') ||
-                                lowerMsg.includes('add to') || lowerMsg.includes('track');
+                                lowerMsg.includes('goal') || lowerMsg.includes('track');
         
         if (isCreationIntent) {
-          // Check if there's context from previous conversation
           if (conversationHistory.length > 2) {
-            errorMessage = "I'd be happy to create that goal for you! Based on our conversation, I can set it up. Let me process that for you - could you tell me the specific details you'd like tracked? For example: goal name, target amount, and timeline.";
+            errorMessage = "I'd be happy to help with that! Could you share the specific details you'd like tracked? For example: goal name, target amount, and timeline.";
           } else {
             errorMessage = "I'd love to help you create that! Could you provide the details? For example: What's the goal name, target amount, and when do you want to achieve it?";
           }
         } else if (actualErrorMsg.includes('decommissioned') || actualErrorMsg.includes('model_not_found')) {
-          errorMessage = "Our AI model is being updated! Please try again in a moment.";
+          errorMessage = "Our AI is being updated. Please try again in a moment.";
         } else if (actualErrorMsg.includes('rate limit') || actualErrorMsg.includes('429') || errorCode === 429) {
-          errorMessage = "I'm handling lots of conversations right now! Please wait a moment and try again.";
+          errorMessage = "I'm handling lots of requests right now. Please wait a moment and try again.";
         } else if (actualErrorMsg.includes('timeout') || actualErrorMsg.includes('timed out')) {
-          errorMessage = "Taking longer than expected - please try asking again!";
-        } else if (actualErrorMsg.includes('model') || actualErrorMsg.includes('API')) {
-          errorMessage = "Experiencing technical difficulties. Please try again shortly!";
-        } else if (actualErrorMsg.includes('GROQ_API_KEY')) {
-          errorMessage = "AI service is currently unavailable. Please contact support.";
+          errorMessage = "Taking longer than expected - please try again!";
+        } else if (actualErrorMsg.includes('GROQ_API_KEY') || actualErrorMsg.includes('API')) {
+          errorMessage = "AI service is temporarily unavailable. Please try again shortly.";
         }
-        
-        // Log what we're showing to the user
-        console.log('📤 Showing user error:', errorMessage);
-        console.log('   (Actual error:', actualErrorMsg, ')');
         
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
