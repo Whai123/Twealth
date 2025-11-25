@@ -9,21 +9,62 @@ import { Badge } from "@/components/ui/badge";
 import NotificationsBell from "@/components/dashboard/notifications-bell";
 import OnboardingWizard from "@/components/onboarding/onboarding-wizard";
 import { useOnboarding } from "@/hooks/use-onboarding";
-import { UserPreferences } from "@shared/schema";
+import { UserPreferences, FinancialGoal } from "@shared/schema";
+
+// Type-safe API response interfaces
+interface DashboardStats {
+  totalTransactions: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  savingsRate: number;
+  totalGoals: number;
+  activeGoalsCount: number;
+}
+
+interface FinancialHealthResponse {
+  overall: number;
+  grade: string;
+  breakdown: {
+    savingsRate?: { value: number; score: number; weight: number };
+    emergencyFund?: { months: number; score: number; weight: number };
+    goalProgress?: { value: number; score: number; weight: number };
+    budgetAdherence?: { value: number; score: number; weight: number };
+    debtRatio?: { value: number; score: number; weight: number };
+  };
+  insights: string[];
+  recommendations: string[];
+}
+
+interface SubscriptionResponse {
+  plan: {
+    name: string;
+    scoutLimit: number;
+    sonnetLimit: number;
+    gpt5Limit: number;
+    opusLimit: number;
+  };
+  usage: {
+    scoutQueriesUsed: number;
+    sonnetQueriesUsed: number;
+    gpt5QueriesUsed: number;
+    opusQueriesUsed: number;
+  };
+}
 
 export default function Dashboard() {
   const { t } = useTranslation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
   
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  // Type-safe queries with proper interfaces
+  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
   
-  const { data: financialHealth, isLoading: healthLoading } = useQuery({
+  const { data: financialHealth, isLoading: healthLoading } = useQuery<FinancialHealthResponse>({
     queryKey: ["/api/financial-health"],
   });
   
-  const { data: goals, isLoading: goalsLoading } = useQuery({
+  const { data: goals, isLoading: goalsLoading } = useQuery<FinancialGoal[]>({
     queryKey: ["/api/financial-goals"],
   });
 
@@ -31,32 +72,32 @@ export default function Dashboard() {
     queryKey: ['/api/user-preferences'],
   });
 
-  const { data: subscription } = useQuery({
+  const { data: subscription } = useQuery<SubscriptionResponse>({
     queryKey: ["/api/subscription"],
   });
   
-  // Real metrics from financial health calculation
-  const healthScore = (financialHealth as any)?.overall || 0;
-  const healthGrade = (financialHealth as any)?.grade || 'Building';
-  const savingsRate = (financialHealth as any)?.breakdown?.savingsRate?.value || 0;
-  const emergencyFundMonths = (financialHealth as any)?.breakdown?.emergencyFund?.months || 0;
+  // Type-safe metrics from financial health calculation
+  const healthScore = financialHealth?.overall ?? 0;
+  const healthGrade = financialHealth?.grade ?? 'Building';
+  const savingsRate = financialHealth?.breakdown?.savingsRate?.value ?? 0;
+  const emergencyFundMonths = financialHealth?.breakdown?.emergencyFund?.months ?? 0;
   
-  // Real goal tracking
-  const activeGoals = Array.isArray(goals) ? goals.filter((g: any) => g.status === "active") : [];
+  // Type-safe goal tracking
+  const activeGoals = Array.isArray(goals) ? goals.filter((g) => g.status === "active") : [];
   const nextGoal = activeGoals.length > 0 ? activeGoals[0] : null;
   const nextGoalProgress = nextGoal 
-    ? Math.min(100, (parseFloat(nextGoal.currentAmount) / parseFloat(nextGoal.targetAmount)) * 100)
+    ? Math.min(100, (parseFloat(nextGoal.currentAmount || '0') / parseFloat(String(nextGoal.targetAmount))) * 100)
     : 0;
   
-  // AI tier
-  const tierName = (subscription as any)?.plan?.name || 'Free';
-  const scoutUsed = (subscription as any)?.usage?.scoutQueriesUsed || 0;
-  const scoutLimit = (subscription as any)?.plan?.scoutLimit || 50;
+  // Type-safe AI tier info
+  const tierName = subscription?.plan?.name ?? 'Free';
+  const scoutUsed = subscription?.usage?.scoutQueriesUsed ?? 0;
+  const scoutLimit = subscription?.plan?.scoutLimit ?? 50;
   const queriesRemaining = scoutLimit - scoutUsed;
   
-  // Real financial capacity
-  const monthlyIncome = (stats as any)?.monthlyIncome || 0;
-  const monthlyExpenses = parseFloat((preferences as any)?.monthlyExpensesEstimate || '0');
+  // Type-safe financial capacity
+  const monthlyIncome = stats?.monthlyIncome ?? 0;
+  const monthlyExpenses = parseFloat(String(preferences?.monthlyExpensesEstimate ?? '0'));
   const monthlySavingsCapacity = monthlyIncome - monthlyExpenses;
   
   // Show onboarding wizard for new users
@@ -321,7 +362,7 @@ export default function Dashboard() {
                   <div className="mb-4">
                     <h4 className="font-medium text-foreground mb-1">{nextGoal.title}</h4>
                     <p className="text-sm text-muted-foreground">
-                      ${parseFloat(nextGoal.currentAmount).toLocaleString()} / ${parseFloat(nextGoal.targetAmount).toLocaleString()}
+                      ${parseFloat(nextGoal.currentAmount || '0').toLocaleString()} / ${parseFloat(String(nextGoal.targetAmount)).toLocaleString()}
                     </p>
                   </div>
                   
@@ -343,7 +384,7 @@ export default function Dashboard() {
                     <div className="bg-accent/50 rounded-lg p-4 mb-4">
                       <p className="text-sm font-medium text-foreground mb-1">Monthly contribution needed</p>
                       <p className="text-2xl font-bold text-foreground">
-                        ${Math.max(0, (parseFloat(nextGoal.targetAmount) - parseFloat(nextGoal.currentAmount)) / 
+                        ${Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
                           Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))).toFixed(0)}
                         <span className="text-sm text-muted-foreground">/month</span>
                       </p>

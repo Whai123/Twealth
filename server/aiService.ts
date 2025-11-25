@@ -28,8 +28,11 @@ class ResponseCache {
 
   private generateCacheKey(message: string, context: Partial<UserContext>): string {
     // Create a stable hash for similar queries and contexts
+    // CRITICAL: Include userId AND subscription tier to prevent cross-user/tier data leakage
     const normalizedMessage = message.toLowerCase().trim();
     const contextKey = JSON.stringify({
+      userId: context.userId || 'anonymous', // User isolation - required for privacy
+      tier: context.subscriptionTier || 'free', // Tier isolation - different advice per tier
       savingsRange: this.getSavingsRange(context.totalSavings || 0),
       incomeRange: this.getIncomeRange(context.monthlyIncome || 0),
       activeGoals: context.activeGoals || 0
@@ -106,6 +109,7 @@ const responseCache = new ResponseCache();
 export interface UserContext {
   userId?: string;
   userName?: string; // User's first name for personalization
+  subscriptionTier?: 'free' | 'pro' | 'enterprise'; // User's subscription tier for cache isolation
   totalSavings: number;
   monthlyIncome: number;
   monthlyExpenses: number;

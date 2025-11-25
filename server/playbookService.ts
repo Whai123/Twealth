@@ -36,13 +36,14 @@ export async function calculateFinancialHealthScore(
   userId: string,
   storage: IStorage
 ): Promise<{ score: number; components: Record<string, number> }> {
-  // Get user's financial data
-  const [transactions, goals, budgets, profile, prefs] = await Promise.all([
+  // Get user's financial data - fetch all in parallel for efficiency
+  const [transactions, goals, budgets, profile, prefs, debts] = await Promise.all([
     storage.getTransactionsByUserId(userId, 90), // Last 90 days
     storage.getFinancialGoalsByUserId(userId),
     storage.getBudgetsByUserId(userId),
     storage.getUserFinancialProfile(userId),
     storage.getUserPreferences(userId),
+    storage.getUserDebts(userId), // Moved to parallel for performance
   ]);
 
   // Component 1: Savings Rate (30 points)
@@ -90,7 +91,7 @@ export async function calculateFinancialHealthScore(
   const budgetScore = (budgetAdherence / 100) * 15;
 
   // Component 5: Debt Management (10 points)
-  const debts = await storage.getUserDebts(userId);
+  // debts already fetched in parallel above
   const totalDebt = debts.reduce((sum, d) => {
     const remaining = d.originalAmount ? parseFloat(d.originalAmount.toString()) : 0;
     return sum + remaining;

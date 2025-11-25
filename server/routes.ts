@@ -104,20 +104,27 @@ import { routeWithTierCheck, type QuotaExceededError } from './ai/tierAwareRoute
 import Stripe from "stripe";
 import { log } from "./vite";
 
-// Utility function to parse amount strings (handles "$300", "300", "300.50", etc.)
-function parseAmount(value: string | number): string {
+// Utility function to safely parse amount strings (handles "$300", "300", "300.50", null, undefined)
+// Returns "0.00" for invalid/missing values instead of throwing
+function parseAmount(value: string | number | null | undefined): string {
+  // Handle null/undefined gracefully
+  if (value === null || value === undefined) {
+    return "0.00";
+  }
+  
   if (typeof value === 'number') {
-    return value.toFixed(2);
+    return isNaN(value) ? "0.00" : value.toFixed(2);
   }
   
   // Remove dollar signs, commas, and whitespace
-  const cleaned = value.replace(/[\$,\s]/g, '');
+  const cleaned = String(value).replace(/[\$,\s]/g, '');
   
   // Parse to number and back to fixed decimal string
   const num = parseFloat(cleaned);
   
+  // Return 0 for NaN instead of throwing
   if (isNaN(num)) {
-    throw new Error(`Invalid amount: ${value}`);
+    return "0.00";
   }
   
   return num.toFixed(2);
@@ -2694,7 +2701,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let subscription = await storage.getUserSubscription(userId);
       if (!subscription) {
         await storage.initializeDefaultSubscription(userId);
+        subscription = await storage.getUserSubscription(userId);
       }
+      
+      // Map plan name to tier for cache isolation
+      const tierFromPlan = (planName: string | undefined): 'free' | 'pro' | 'enterprise' => {
+        if (!planName) return 'free';
+        const lower = planName.toLowerCase();
+        if (lower.includes('enterprise')) return 'enterprise';
+        if (lower.includes('pro')) return 'pro';
+        return 'free';
+      };
+      const subscriptionTier = tierFromPlan(subscription?.plan?.name);
       
       // Validate conversation exists and belongs to user
       const conversation = await storage.getChatConversation(conversationId);
@@ -2780,6 +2798,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : parseFloat(userPreferences?.monthlyExpensesEstimate?.toString() || "0");
 
       const userContext: UserContext = {
+        userId, // For cache isolation
+        subscriptionTier, // For tier-aware caching and responses
         totalSavings: stats.totalSavings,
         monthlyIncome: stats.monthlyIncome,
         monthlyExpenses,
@@ -4654,13 +4674,23 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         });
       }
 
-      const [stats, goals, recentTransactions] = await Promise.all([
+      // Fetch user data including subscription for context
+      const [stats, goals, recentTransactions, subscription] = await Promise.all([
         storage.getUserStats(userId),
         storage.getFinancialGoalsByUserId(userId),
-        storage.getTransactionsByUserId(userId, 5)
+        storage.getTransactionsByUserId(userId, 5),
+        storage.getUserSubscription(userId)
       ]);
+      
+      // Map plan name to tier
+      const tierName = subscription?.plan?.name?.toLowerCase() || '';
+      const subscriptionTier: 'free' | 'pro' | 'enterprise' = 
+        tierName.includes('enterprise') ? 'enterprise' :
+        tierName.includes('pro') ? 'pro' : 'free';
 
       const userContext: UserContext = {
+        userId, // For cache isolation
+        subscriptionTier, // For tier-aware caching
         totalSavings: stats.totalSavings,
         monthlyIncome: stats.monthlyIncome,
         monthlyExpenses: Math.max(0, stats.monthlyIncome - stats.totalSavings),
