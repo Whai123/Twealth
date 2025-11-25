@@ -1,11 +1,45 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
+import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
+
+// Rate limiters for different endpoint types
+const aiChatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 AI requests per minute per IP
+  message: { message: "Too many AI requests, please try again in a minute" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const playbookLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5, // 5 playbook operations per minute
+  message: { message: "Too many playbook requests, please slow down" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 login attempts per 15 minutes
+  message: { message: "Too many login attempts, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const transactionLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // 60 transaction operations per minute
+  message: { message: "Too many transaction requests, please slow down" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Helper function to get user ID from request (custom auth)
 function getUserIdFromRequest(req: any): string {
@@ -219,9 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         savedCategories = await storage.updateUserExpenseCategories(userId, validatedCategories);
       }
       
-      // Update debts if provided
+      // Update debts if provided (sequential to ensure data integrity)
       if (debts && Array.isArray(debts)) {
-        // Delete existing debts and create new ones
         const existingDebts = await storage.getUserDebts(userId);
         for (const debt of existingDebts) {
           await storage.deleteUserDebt(debt.id);
@@ -232,9 +265,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Update assets if provided
+      // Update assets if provided (sequential to ensure data integrity)
       if (assets && Array.isArray(assets)) {
-        // Delete existing assets and create new ones
         const existingAssets = await storage.getUserAssets(userId);
         for (const asset of existingAssets) {
           await storage.deleteUserAsset(asset.id);
@@ -1356,7 +1388,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/transactions", isAuthenticated, async (req: any, res) => {
+  // CSV Export for transactions (tax-friendly format)
+  app.get("/api/transactions/export", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      const type = req.query.type as string;
+      const category = req.query.category as string;
+      const format = req.query.format as string || 'csv';
+
+      // Get all transactions for user (no limit for export)
+      let transactions = await storage.getTransactionsByUserId(userId, 10000);
+
+      // Apply filters
+      if (startDate) {
+        const start = new Date(startDate);
+        transactions = transactions.filter((t: any) => new Date(t.date) >= start);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        transactions = transactions.filter((t: any) => new Date(t.date) <= end);
+      }
+      if (type && type !== 'all') {
+        transactions = transactions.filter((t: any) => t.type === type);
+      }
+      if (category && category !== 'all') {
+        transactions = transactions.filter((t: any) => t.category === category);
+      }
+
+      // Sort by date (oldest first for tax purposes)
+      transactions.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      // Calculate summary with safe type handling for empty datasets
+      const parseAmountSafe = (amount: any): number => {
+        if (!amount) return 0;
+        const parsed = parseFloat(String(amount));
+        return isNaN(parsed) ? 0 : parsed;
+      };
+      
+      const summary = {
+        totalIncome: transactions
+          .filter((t: any) => t.type === 'income')
+          .reduce((sum: number, t: any) => sum + parseAmountSafe(t.amount), 0),
+        totalExpenses: transactions
+          .filter((t: any) => t.type === 'expense')
+          .reduce((sum: number, t: any) => sum + parseAmountSafe(t.amount), 0),
+        totalTransfers: transactions
+          .filter((t: any) => t.type === 'transfer')
+          .reduce((sum: number, t: any) => sum + parseAmountSafe(t.amount), 0),
+        transactionCount: transactions.length,
+        dateRange: {
+          start: transactions.length > 0 ? transactions[0].date : null,
+          end: transactions.length > 0 ? transactions[transactions.length - 1].date : null,
+        }
+      };
+
+      // Generate CSV
+      const csvHeaders = ['Date', 'Type', 'Category', 'Description', 'Amount', 'Destination'];
+      const csvRows = transactions.map((t: any) => {
+        const date = new Date(t.date).toISOString().split('T')[0];
+        const safeAmount = parseAmountSafe(t.amount);
+        const formattedAmount = t.type === 'expense' ? `-${safeAmount.toFixed(2)}` : safeAmount.toFixed(2);
+        return [
+          date,
+          t.type || 'unknown',
+          t.category || 'uncategorized',
+          `"${(t.description || '').replace(/"/g, '""')}"`,
+          formattedAmount,
+          t.destination || ''
+        ].join(',');
+      });
+
+      // Add summary rows at the end
+      const summaryRows = [
+        '',
+        '--- SUMMARY ---',
+        `Total Income,${summary.totalIncome.toFixed(2)}`,
+        `Total Expenses,-${summary.totalExpenses.toFixed(2)}`,
+        `Total Transfers,${summary.totalTransfers.toFixed(2)}`,
+        `Net Cash Flow,${(summary.totalIncome - summary.totalExpenses).toFixed(2)}`,
+        `Transaction Count,${summary.transactionCount}`,
+        `Export Date,${new Date().toISOString().split('T')[0]}`
+      ];
+
+      const csv = [csvHeaders.join(','), ...csvRows, ...summaryRows].join('\n');
+
+      // Set headers for file download
+      const filename = `twealth_transactions_${new Date().toISOString().split('T')[0]}.csv`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csv);
+    } catch (error: any) {
+      console.error('[CSV Export] Error:', error);
+      res.status(500).json({ message: 'Failed to export transactions' });
+    }
+  });
+
+  app.post("/api/transactions", transactionLimiter, isAuthenticated, async (req: any, res) => {
     try {
       // Get userId from authenticated session
       const userId = getUserIdFromRequest(req);
@@ -4317,7 +4447,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   });
 
   // ===== Tier-Aware Hybrid AI Endpoint (Scout + Sonnet + Opus) =====
-  app.post("/api/ai/advise", isAuthenticated, async (req: any, res) => {
+  app.post("/api/ai/advise", aiChatLimiter, isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       const { message } = req.body;
@@ -6078,7 +6208,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   });
 
   // Generate new weekly playbook
-  app.post("/api/playbooks/generate", isAuthenticated, async (req: any, res) => {
+  app.post("/api/playbooks/generate", playbookLimiter, isAuthenticated, async (req: any, res) => {
     try {
       // Get user's subscription to determine tier
       const subscriptionData = await storage.getUserSubscription(req.user.id);
@@ -6131,9 +6261,26 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
+  // Zod schema for action completion validation
+  const completeActionSchema = z.object({
+    actionIndex: z.number().int().min(0).max(100),
+    estimatedSavings: z.number().min(0).max(100000).optional(),
+  });
+
   // Mark playbook action as complete
   app.post("/api/playbooks/:id/complete-action", isAuthenticated, async (req: any, res) => {
     try {
+      // Validate request body
+      const validationResult = completeActionSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Invalid request body',
+          errors: validationResult.error.flatten().fieldErrors 
+        });
+      }
+      
+      const { actionIndex, estimatedSavings } = validationResult.data;
+
       const playbook = await storage.getPlaybook(req.params.id);
       
       if (!playbook) {
@@ -6145,15 +6292,28 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         return res.status(403).json({ message: 'Unauthorized' });
       }
       
-      const { actionIndex, estimatedSavings } = req.body;
+      // Get current completed action indices (prevent duplicate completions)
+      const completedIndices: number[] = Array.isArray(playbook.completedActionIndices) 
+        ? playbook.completedActionIndices as number[]
+        : [];
+      
+      // Check if action was already completed
+      if (completedIndices.includes(actionIndex)) {
+        return res.status(409).json({ 
+          message: 'Action already completed', 
+          alreadyCompleted: true 
+        });
+      }
       
       // Update playbook with completed action
-      const newActionsCompleted = (playbook.actionsCompleted || 0) + 1;
+      const newCompletedIndices = [...completedIndices, actionIndex];
+      const newActionsCompleted = newCompletedIndices.length;
       const newRoiSavings = parseFloat(playbook.roiSavings?.toString() || '0') + (estimatedSavings || 0);
       const newCumulativeRoi = parseFloat(playbook.cumulativeRoi?.toString() || '0') + (estimatedSavings || 0);
       
       const updatedPlaybook = await storage.updatePlaybook(req.params.id, {
         actionsCompleted: newActionsCompleted,
+        completedActionIndices: newCompletedIndices,
         roiSavings: newRoiSavings.toFixed(2),
         cumulativeRoi: newCumulativeRoi.toFixed(2),
       });

@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from"react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText } from"lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText, Download } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import EmptyState from"@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
@@ -414,7 +414,7 @@ export default function MoneyTracking() {
  </Select>
  </div>
 
- <div className="flex items-end">
+ <div className="flex items-end gap-2">
  <Button 
  variant="outline" 
  onClick={() => {
@@ -425,6 +425,25 @@ export default function MoneyTracking() {
  data-testid="button-clear-filters"
  >
  Clear Filters
+ </Button>
+ <Button 
+ variant="outline"
+ onClick={() => {
+ const params = new URLSearchParams();
+ if (filterType !== 'all') params.set('type', filterType);
+ if (filterCategory !== 'all') params.set('category', filterCategory);
+ const days = parseInt(timeRange);
+ const endDate = new Date();
+ const startDate = new Date();
+ startDate.setDate(startDate.getDate() - days);
+ params.set('startDate', startDate.toISOString().split('T')[0]);
+ params.set('endDate', endDate.toISOString().split('T')[0]);
+ window.location.href = `/api/transactions/export?${params.toString()}`;
+ }}
+ data-testid="button-export-csv"
+ >
+ <Download size={16} className="mr-2" />
+ Export CSV
  </Button>
  </div>
  </div>

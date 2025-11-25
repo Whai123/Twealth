@@ -127,33 +127,33 @@ export default function Landing() {
       <div>
        <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Product</h4>
        <ul className="space-y-3">
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Features</a></li>
+        <li><a href="/dashboard" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Dashboard</a></li>
         <li><a href="/pricing" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Pricing</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Security</a></li>
+        <li><a href="/ai-assistant" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">AI Advisor</a></li>
        </ul>
       </div>
       <div>
-       <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Company</h4>
+       <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Features</h4>
        <ul className="space-y-3">
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">About</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Blog</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Careers</a></li>
+        <li><a href="/financial-goals" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Goals</a></li>
+        <li><a href="/money-tracking" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Money Tracking</a></li>
+        <li><a href="/playbooks" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">AI Playbooks</a></li>
        </ul>
       </div>
       <div>
        <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Resources</h4>
        <ul className="space-y-3">
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Documentation</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Help Center</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Contact</a></li>
+        <li><a href="/investment-intelligence" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Investments</a></li>
+        <li><a href="/calendar" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Calendar</a></li>
+        <li><a href="/settings" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Settings</a></li>
        </ul>
       </div>
       <div>
        <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Legal</h4>
        <ul className="space-y-3">
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Privacy</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Terms</a></li>
-        <li><a href="#" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white">Cookie Policy</a></li>
+        <li><span className="text-sm text-gray-500 dark:text-gray-500 cursor-default">Privacy Policy</span></li>
+        <li><span className="text-sm text-gray-500 dark:text-gray-500 cursor-default">Terms of Service</span></li>
+        <li><span className="text-sm text-gray-500 dark:text-gray-500 cursor-default">Cookie Policy</span></li>
        </ul>
       </div>
      </div>

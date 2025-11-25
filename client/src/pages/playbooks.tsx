@@ -59,6 +59,7 @@ interface Playbook {
   generatedBy: string;
   isViewed: boolean;
   actionsCompleted: number;
+  completedActionIndices: number[]; // Track which specific actions are completed
   createdAt: string;
 }
 
@@ -102,6 +103,14 @@ export default function Playbooks() {
         actionIndex,
         estimatedSavings,
       });
+      if (response.status === 409) {
+        const data = await response.json();
+        throw new Error(data.message || "Action already completed");
+      }
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to complete action");
+      }
       return await response.json();
     },
     onSuccess: () => {
@@ -112,7 +121,22 @@ export default function Playbooks() {
         description: "Great job! Your ROI has been updated.",
       });
     },
+    onError: (error: any) => {
+      toast({
+        title: "Already Completed",
+        description: error.message || "This action was already marked as done.",
+        variant: "default",
+      });
+    },
   });
+
+  // Helper to check if action is completed
+  const isActionCompleted = (playbook: Playbook, actionIndex: number): boolean => {
+    const indices = Array.isArray(playbook.completedActionIndices) 
+      ? playbook.completedActionIndices 
+      : [];
+    return indices.includes(actionIndex);
+  };
 
   const latestPlaybook = playbooks[0] || selectedPlaybook;
 
@@ -400,18 +424,18 @@ export default function Playbooks() {
                       Take Action
                     </Button>
                     <Button 
-                      variant="default" 
+                      variant={isActionCompleted(latestPlaybook, idx) ? "secondary" : "default"} 
                       size="sm"
                       onClick={() => completeActionMutation.mutate({ 
                         playbookId: latestPlaybook.id, 
                         actionIndex: idx,
                         estimatedSavings: action.impact === "high" ? 100 : action.impact === "medium" ? 50 : 25
                       })}
-                      disabled={completeActionMutation.isPending}
+                      disabled={completeActionMutation.isPending || isActionCompleted(latestPlaybook, idx)}
                       data-testid={`button-complete-${idx}`}
                     >
                       <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Mark Done
+                      {isActionCompleted(latestPlaybook, idx) ? "Completed" : "Mark Done"}
                     </Button>
                   </div>
                 </div>

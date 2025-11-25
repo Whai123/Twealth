@@ -1448,6 +1448,7 @@ export const playbooks = pgTable("playbooks", {
   isViewed: boolean("is_viewed").default(false),
   viewedAt: timestamp("viewed_at"),
   actionsCompleted: integer("actions_completed").default(0), // How many actions user marked done
+  completedActionIndices: jsonb("completed_action_indices").default([]), // Array of indices of completed actions to prevent duplicates
   shareCount: integer("share_count").default(0), // Times user shared playbook
   // Metadata
   createdAt: timestamp("created_at").defaultNow(),
