@@ -199,7 +199,7 @@ export default function InsightsFeedWidget() {
     }
 
     return insights.length > 0 ? insights : [{
-      id: 'placeholder',
+      id: 'getting-started',
       type: 'benchmark',
       title: 'Start Tracking',
       description: 'Add transactions and goals to receive personalized financial insights.',

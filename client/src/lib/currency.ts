@@ -45,6 +45,7 @@ let EXCHANGE_RATES: Record<string, number> = {
 };
 
 let ratesLastFetched = 0;
+let usingLiveRates = false;
 const RATES_FETCH_INTERVAL = 60 * 60 * 1000; // Fetch every hour
 
 /**
@@ -63,11 +64,21 @@ export async function fetchLiveExchangeRates(): Promise<void> {
    const data = await response.json();
    EXCHANGE_RATES = data.rates;
    ratesLastFetched = Date.now();
-   console.log('💱 Exchange rates updated:', data.lastUpdated);
+   usingLiveRates = true;
+   console.log('Exchange rates updated:', data.lastUpdated);
   }
  } catch (error) {
-  console.warn('Failed to fetch live exchange rates, using fallback:', error);
+  usingLiveRates = false;
+  console.warn('Failed to fetch live exchange rates, using estimates');
  }
+}
+
+/**
+ * Check if we're using live exchange rates or estimated fallbacks
+ * @returns boolean indicating if live rates are being used
+ */
+export function isUsingLiveRates(): boolean {
+ return usingLiveRates;
 }
 
 // Auto-fetch rates on module load
