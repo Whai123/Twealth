@@ -334,6 +334,8 @@ export const userPreferences = pgTable("user_preferences", {
   preferredCurrencies: text("preferred_currencies").array().default(sql`ARRAY['USD']::text[]`), // e.g., ['USD', 'BTC', 'EUR', 'CNY']
   // Demo Mode - Show sample data for new users
   demoMode: boolean("demo_mode").default(true), // New users start in demo mode
+  // Country-aware financial intelligence
+  countryCode: text("country_code").default("US"), // ISO 3166-1 alpha-2 code (e.g., US, GB, JP, DE)
   // Financial estimates provided by user via AI chat
   monthlyIncomeEstimate: decimal("monthly_income_estimate", { precision: 10, scale: 2 }),
   monthlyExpensesEstimate: decimal("monthly_expenses_estimate", { precision: 10, scale: 2 }),
