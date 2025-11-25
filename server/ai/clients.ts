@@ -1,9 +1,9 @@
 /**
  * AI Clients - 4-Model Architecture
- * - Scout (Llama 4 via Groq): PRIMARY - Fast queries (⚡ Fast)
- * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic (🧠 Smart)
- * - GPT-5 (OpenAI): MATH - Advanced calculations (🧮 Math)
- * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis (👔 CFO)
+ * - Scout (Llama 4 via Groq): PRIMARY - Fast queries (Fast)
+ * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic (Smart)
+ * - GPT-5 (OpenAI): MATH - Advanced calculations (Math)
+ * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis (CFO)
  * 
  * Standardized interface for all providers with cost tracking
  * Return shape: { text, tokensIn, tokensOut, cost, model }
@@ -12,12 +12,14 @@
  * - Retry logic with exponential backoff for transient failures
  * - Graceful error handling with user-friendly messages
  * - Circuit-breaker pattern for provider outages
+ * - Structured logging for production observability
  */
 
 import Groq from "groq-sdk";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { getAIConfig, type ModelId } from '../config/ai';
+import { aiLogger } from '../utils/logger';
 
 // Retry configuration
 const RETRY_CONFIG = {
@@ -106,9 +108,16 @@ async function withRetry<T>(
     } catch (error: any) {
       lastError = error;
       
-      // Log the error
-      console.error(`[${provider}] ${operationName} attempt ${attempt + 1} failed:`, 
-        error.message || error);
+      // Log the error with structured context
+      aiLogger.warn(`${provider} ${operationName} attempt ${attempt + 1} failed`, {
+        data: {
+          provider,
+          operation: operationName,
+          attempt: attempt + 1,
+          errorMessage: error.message,
+          statusCode: error.status,
+        }
+      });
       
       // Don't retry if not retryable or last attempt
       if (!isRetryableError(error) || attempt === RETRY_CONFIG.maxRetries - 1) {
@@ -117,7 +126,7 @@ async function withRetry<T>(
       
       // Wait before retrying
       const delay = getBackoffDelay(attempt);
-      console.log(`[${provider}] Retrying in ${Math.round(delay)}ms...`);
+      aiLogger.debug(`${provider} retrying in ${Math.round(delay)}ms`);
       await sleep(delay);
     }
   }
