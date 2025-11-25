@@ -265,8 +265,6 @@ export default function FinancialGoals() {
   );
  }
 
- }
-
  return (
   <div className="min-h-screen bg-background">
    {/* First Goal Drawer - Must be mounted before empty state renders */}
