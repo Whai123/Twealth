@@ -27,7 +27,8 @@ import {
  Loader2,
  DollarSign,
  TrendingUp,
- Wallet
+ Wallet,
+ MapPin
 } from"lucide-react";
 
 interface UserPreferencesProps {}
@@ -127,6 +128,53 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
   { value:"AUD", label:"Australian Dollar", symbol:"A$" }
  ];
 
+ const countries = [
+  { value: "US", label: "United States", flag: "🇺🇸" },
+  { value: "GB", label: "United Kingdom", flag: "🇬🇧" },
+  { value: "CA", label: "Canada", flag: "🇨🇦" },
+  { value: "AU", label: "Australia", flag: "🇦🇺" },
+  { value: "DE", label: "Germany", flag: "🇩🇪" },
+  { value: "FR", label: "France", flag: "🇫🇷" },
+  { value: "IT", label: "Italy", flag: "🇮🇹" },
+  { value: "ES", label: "Spain", flag: "🇪🇸" },
+  { value: "NL", label: "Netherlands", flag: "🇳🇱" },
+  { value: "CH", label: "Switzerland", flag: "🇨🇭" },
+  { value: "SE", label: "Sweden", flag: "🇸🇪" },
+  { value: "NO", label: "Norway", flag: "🇳🇴" },
+  { value: "DK", label: "Denmark", flag: "🇩🇰" },
+  { value: "AT", label: "Austria", flag: "🇦🇹" },
+  { value: "BE", label: "Belgium", flag: "🇧🇪" },
+  { value: "PT", label: "Portugal", flag: "🇵🇹" },
+  { value: "IE", label: "Ireland", flag: "🇮🇪" },
+  { value: "PL", label: "Poland", flag: "🇵🇱" },
+  { value: "JP", label: "Japan", flag: "🇯🇵" },
+  { value: "CN", label: "China", flag: "🇨🇳" },
+  { value: "KR", label: "South Korea", flag: "🇰🇷" },
+  { value: "SG", label: "Singapore", flag: "🇸🇬" },
+  { value: "HK", label: "Hong Kong", flag: "🇭🇰" },
+  { value: "TW", label: "Taiwan", flag: "🇹🇼" },
+  { value: "TH", label: "Thailand", flag: "🇹🇭" },
+  { value: "VN", label: "Vietnam", flag: "🇻🇳" },
+  { value: "ID", label: "Indonesia", flag: "🇮🇩" },
+  { value: "MY", label: "Malaysia", flag: "🇲🇾" },
+  { value: "PH", label: "Philippines", flag: "🇵🇭" },
+  { value: "IN", label: "India", flag: "🇮🇳" },
+  { value: "AE", label: "UAE", flag: "🇦🇪" },
+  { value: "SA", label: "Saudi Arabia", flag: "🇸🇦" },
+  { value: "IL", label: "Israel", flag: "🇮🇱" },
+  { value: "TR", label: "Turkey", flag: "🇹🇷" },
+  { value: "RU", label: "Russia", flag: "🇷🇺" },
+  { value: "BR", label: "Brazil", flag: "🇧🇷" },
+  { value: "MX", label: "Mexico", flag: "🇲🇽" },
+  { value: "AR", label: "Argentina", flag: "🇦🇷" },
+  { value: "CL", label: "Chile", flag: "🇨🇱" },
+  { value: "CO", label: "Colombia", flag: "🇨🇴" },
+  { value: "ZA", label: "South Africa", flag: "🇿🇦" },
+  { value: "NG", label: "Nigeria", flag: "🇳🇬" },
+  { value: "EG", label: "Egypt", flag: "🇪🇬" },
+  { value: "NZ", label: "New Zealand", flag: "🇳🇿" },
+ ];
+
  const handleThemeChange = (theme:"light" |"dark" |"system") => {
   setTheme(theme);
   queryClient.setQueryData<UserPreferences>(['/api/user-preferences'], (old) => {
@@ -149,6 +197,10 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
 
  const handleCurrencyChange = (currency: string) => {
   updatePreferencesMutation.mutate({ currency });
+ };
+
+ const handleCountryChange = (countryCode: string) => {
+  updatePreferencesMutation.mutate({ countryCode });
  };
 
  const handleFinancialDataChange = (field: string, value: string) => {
@@ -343,10 +395,49 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
       Language & Region
      </CardTitle>
      <CardDescription className="text-sm sm:text-base mt-1">
-      Set your preferred language and default currency
+      Set your country, language, and currency for personalized financial advice
      </CardDescription>
     </CardHeader>
     <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+     {/* Country selector with importance callout */}
+     <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+      <div className="flex items-start gap-3">
+       <MapPin className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+       <div className="text-sm text-blue-900 dark:text-blue-200">
+        <p className="font-semibold mb-1">Why your country matters</p>
+        <p className="text-xs sm:text-sm">
+         Your country determines local tax rates, cost of living, and luxury goods pricing that the AI uses for accurate financial advice.
+        </p>
+       </div>
+      </div>
+     </div>
+
+     <div className="space-y-2">
+      <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+       <MapPin className="w-4 h-4 text-blue-600" />
+       Your Country
+      </label>
+      <Select 
+       value={preferences.countryCode ?? "US"} 
+       onValueChange={handleCountryChange}
+       disabled={updatePreferencesMutation.isPending}
+      >
+       <SelectTrigger className="h-12 sm:h-14 text-base bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700" data-testid="select-country">
+        <SelectValue placeholder="Select your country" />
+       </SelectTrigger>
+       <SelectContent className="max-h-[300px]">
+        {countries.map((country) => (
+         <SelectItem key={country.value} value={country.value}>
+          <div className="flex items-center gap-2 py-1">
+           <span className="text-base">{country.flag}</span>
+           <span className="text-sm sm:text-base">{country.label}</span>
+          </div>
+         </SelectItem>
+        ))}
+       </SelectContent>
+      </Select>
+     </div>
+
      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
       <div className="space-y-2">
        <label className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 block">Language</label>
