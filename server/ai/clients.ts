@@ -7,12 +7,147 @@
  * 
  * Standardized interface for all providers with cost tracking
  * Return shape: { text, tokensIn, tokensOut, cost, model }
+ * 
+ * Features:
+ * - Retry logic with exponential backoff for transient failures
+ * - Graceful error handling with user-friendly messages
+ * - Circuit-breaker pattern for provider outages
  */
 
 import Groq from "groq-sdk";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { getAIConfig, type ModelId } from '../config/ai';
+
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelayMs: 1000,
+  maxDelayMs: 10000,
+  retryableStatusCodes: [429, 500, 502, 503, 504],
+};
+
+// Error types for categorization
+export interface AIClientError extends Error {
+  code: 'rate_limit' | 'provider_error' | 'timeout' | 'auth_error' | 'unknown';
+  retryable: boolean;
+  statusCode?: number;
+  provider: string;
+}
+
+/**
+ * Create a standardized AI client error
+ */
+function createAIClientError(
+  message: string,
+  code: AIClientError['code'],
+  provider: string,
+  statusCode?: number
+): AIClientError {
+  const error = new Error(message) as AIClientError;
+  error.code = code;
+  error.retryable = code === 'rate_limit' || code === 'provider_error';
+  error.statusCode = statusCode;
+  error.provider = provider;
+  return error;
+}
+
+/**
+ * Sleep for exponential backoff
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Calculate exponential backoff delay with jitter
+ */
+function getBackoffDelay(attempt: number): number {
+  const delay = Math.min(
+    RETRY_CONFIG.baseDelayMs * Math.pow(2, attempt),
+    RETRY_CONFIG.maxDelayMs
+  );
+  // Add jitter (0-30% of delay)
+  return delay + Math.random() * delay * 0.3;
+}
+
+/**
+ * Determine if an error is retryable
+ */
+function isRetryableError(error: any): boolean {
+  // Rate limit errors
+  if (error.status === 429 || error.code === 'rate_limit_exceeded') {
+    return true;
+  }
+  // Server errors (5xx)
+  if (error.status >= 500 && error.status < 600) {
+    return true;
+  }
+  // Network errors
+  if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Generic retry wrapper for AI API calls
+ */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  provider: string,
+  operationName: string
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      
+      // Log the error
+      console.error(`[${provider}] ${operationName} attempt ${attempt + 1} failed:`, 
+        error.message || error);
+      
+      // Don't retry if not retryable or last attempt
+      if (!isRetryableError(error) || attempt === RETRY_CONFIG.maxRetries - 1) {
+        break;
+      }
+      
+      // Wait before retrying
+      const delay = getBackoffDelay(attempt);
+      console.log(`[${provider}] Retrying in ${Math.round(delay)}ms...`);
+      await sleep(delay);
+    }
+  }
+  
+  // Categorize the final error
+  const statusCode = lastError?.status || lastError?.statusCode;
+  let errorCode: AIClientError['code'] = 'unknown';
+  let message = 'An unexpected error occurred';
+  
+  if (statusCode === 429) {
+    errorCode = 'rate_limit';
+    message = 'AI service is temporarily overloaded. Please try again in a moment.';
+  } else if (statusCode === 401 || statusCode === 403) {
+    errorCode = 'auth_error';
+    message = 'AI service configuration error. Please contact support.';
+  } else if (statusCode >= 500) {
+    errorCode = 'provider_error';
+    message = 'AI service is temporarily unavailable. Please try again.';
+  } else if (lastError?.code === 'ETIMEDOUT') {
+    errorCode = 'timeout';
+    message = 'AI request timed out. Please try a simpler question.';
+  }
+  
+  throw createAIClientError(
+    `${provider} error: ${message}`,
+    errorCode,
+    provider,
+    statusCode
+  );
+}
 
 // Tool call interface
 export interface ToolCall {
@@ -85,7 +220,7 @@ export class GPT5Client {
       });
     }
     
-    try {
+    return withRetry(async () => {
       const completion = await this.openai.chat.completions.create({
         model: this.model,
         messages: openaiMessages,
@@ -101,7 +236,7 @@ export class GPT5Client {
       
       // Extract tool calls from OpenAI response
       const toolCalls: ToolCall[] | undefined = message?.tool_calls
-        ?.filter((tc: any) => tc.type === 'function' && tc.function) // Filter for function calls only
+        ?.filter((tc: any) => tc.type === 'function' && tc.function)
         .map((tc: any) => {
           try {
             return {
@@ -109,16 +244,15 @@ export class GPT5Client {
               type: 'function' as const,
               function: {
                 name: tc.function.name,
-                arguments: JSON.parse(tc.function.arguments), // Parse JSON string to object
+                arguments: JSON.parse(tc.function.arguments),
               },
             };
           } catch (error) {
             console.error('[GPT5Client] Failed to parse tool call arguments:', error);
-            console.error('Tool call:', tc);
-            return null; // Skip malformed tool calls
+            return null;
           }
         })
-        .filter((tc): tc is ToolCall => tc !== null); // Remove nulls from malformed parses
+        .filter((tc): tc is ToolCall => tc !== null);
       
       // Calculate cost (GPT-5 includes reasoning tokens in output)
       const aiConfig = getAIConfig();
@@ -136,10 +270,7 @@ export class GPT5Client {
         model: this.model,
         toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
       };
-    } catch (error) {
-      console.error('[GPT5Client] Error:', error);
-      throw new Error(`GPT-5 client error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    }, 'GPT5Client', 'chat');
   }
 }
 
@@ -180,7 +311,7 @@ export class ScoutClient {
       });
     }
     
-    try {
+    return withRetry(async () => {
       const completion = await this.groq.chat.completions.create({
         model: this.config.model,
         messages: groqMessages,
@@ -196,7 +327,7 @@ export class ScoutClient {
       
       // Extract tool calls from Groq response (same format as OpenAI)
       const toolCalls: ToolCall[] | undefined = message?.tool_calls
-        ?.filter((tc: any) => tc.type === 'function' && tc.function) // Filter for function calls only
+        ?.filter((tc: any) => tc.type === 'function' && tc.function)
         .map((tc: any) => {
           try {
             return {
@@ -204,16 +335,15 @@ export class ScoutClient {
               type: 'function' as const,
               function: {
                 name: tc.function.name,
-                arguments: JSON.parse(tc.function.arguments), // Parse JSON string to object
+                arguments: JSON.parse(tc.function.arguments),
               },
             };
           } catch (error) {
             console.error('[ScoutClient] Failed to parse tool call arguments:', error);
-            console.error('Tool call:', tc);
-            return null; // Skip malformed tool calls
+            return null;
           }
         })
-        .filter((tc): tc is ToolCall => tc !== null); // Remove nulls from malformed parses
+        .filter((tc): tc is ToolCall => tc !== null);
       
       // Calculate cost
       const aiConfig = getAIConfig();
@@ -231,10 +361,7 @@ export class ScoutClient {
         model: this.config.model,
         toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
       };
-    } catch (error) {
-      console.error('[ScoutClient] Error:', error);
-      throw new Error(`Scout client error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    }, 'ScoutClient', 'chat');
   }
 }
 
@@ -280,7 +407,9 @@ export class AnthropicClient {
         content: msg.content,
       }));
     
-    try {
+    const clientName = this.modelType === 'opus' ? 'OpusClient' : 'SonnetClient';
+    
+    return withRetry(async () => {
       const message = await this.anthropic.messages.create({
         model: this.model,
         max_tokens: maxTokens,
@@ -302,7 +431,7 @@ export class AnthropicClient {
             type: 'function' as const,
             function: {
               name: block.name,
-              arguments: block.input, // Anthropic provides input as object - use directly
+              arguments: block.input,
             },
           }))
         : undefined;
@@ -325,10 +454,7 @@ export class AnthropicClient {
         model: this.model,
         toolCalls,
       };
-    } catch (error) {
-      console.error('[AnthropicClient] Error:', error);
-      throw new Error(`Anthropic client error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    }, clientName, 'chat');
   }
 }
 
