@@ -1,5 +1,5 @@
 import { useState, useEffect } from"react";
-import { Bell, Check, Trash2, Archive, ChevronDown } from"lucide-react";
+import { Bell, Check, Trash2, Archive, Eye } from"lucide-react";
 import { useQuery, useMutation } from"@tanstack/react-query";
 import { Button } from"@/components/ui/button";
 import {
@@ -283,7 +283,7 @@ export default function NotificationsBell() {
  )}
  </div>
 
- <ScrollArea className="max-h-96">
+ <ScrollArea className="h-[384px]">
  {isLoading ? (
  <div className="p-4 text-center text-muted-foreground">
  Loading notifications...
@@ -351,7 +351,12 @@ export default function NotificationsBell() {
  >
  {notification.actionType === 'add_transaction' && 'Add Transaction'}
  {notification.actionType === 'create_goal' && 'Create Goal'}
- {notification.actionType === 'view_goal' && '👁️ View Goal'}
+ {notification.actionType === 'view_goal' && (
+  <>
+   <Eye size={12} className="mr-1" />
+   View Goal
+  </>
+ )}
  {notification.actionType === 'view_transactions' && 'View Transactions'}
  </Button>
  </div>
@@ -362,7 +367,7 @@ export default function NotificationsBell() {
  <Button
  variant="ghost"
  size="sm"
- className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+ className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive transition-colors"
  onClick={(e) => {
  e.stopPropagation();
  deleteNotificationMutation.mutate(notification.id);
@@ -379,19 +384,6 @@ export default function NotificationsBell() {
  )}
  </ScrollArea>
 
- {recentNotifications.length > 0 && (
- <div className="p-3 border-t border-border">
- <Button
- variant="ghost"
- size="sm"
- className="w-full justify-center"
- data-testid="button-view-all"
- >
- View all notifications
- <ChevronDown size={14} className="ml-1" />
- </Button>
- </div>
- )}
  </DropdownMenuContent>
  </DropdownMenu>
  );
