@@ -383,6 +383,35 @@ async function handleGenericReasoningQuery(
 }
 
 /**
+ * Build country context section for prompts
+ */
+function buildCountryContextSection(context: any): string {
+  const cc = context.countryContext;
+  if (!cc) return '';
+  
+  return `
+**Country-Specific Financial Context (${cc.countryName}):**
+- Currency: ${cc.currency} (${cc.currencySymbol})
+- VAT/Sales Tax: ${(cc.vatRate * 100).toFixed(1)}%
+- Capital Gains Tax: ${(cc.capitalGainsTaxRate * 100).toFixed(1)}%
+- Cost of Living Index: ${cc.costOfLivingIndex} (NYC = 100)
+- Purchasing Power Index: ${cc.purchasingPowerIndex}
+- Average Monthly Income: ${cc.currencySymbol}${cc.averageMonthlyIncome.toLocaleString()}
+- Median Home (City): ${cc.currencySymbol}${cc.luxuryPricing.medianHomeCity.toLocaleString()}
+
+**Luxury Goods Pricing (${cc.currency}):**
+- Lamborghini Urus: ${cc.currencySymbol}${cc.luxuryPricing.lamborghiniUrus.toLocaleString()}
+- Porsche 911: ${cc.currencySymbol}${cc.luxuryPricing.porsche911.toLocaleString()}
+- Rolex Submariner: ${cc.currencySymbol}${cc.luxuryPricing.rolexSubmariner.toLocaleString()}
+
+**Local Regulations:**
+${cc.financialRegulations.slice(0, 3).map((r: string) => `- ${r}`).join('\n')}
+
+IMPORTANT: Use ${cc.currencySymbol} (${cc.currency}) for all monetary values. Apply local tax rates and cost of living when giving advice.
+`;
+}
+
+/**
  * Build system prompt for GPT-5 (optimized for financial reasoning)
  */
 function buildGPT5SystemPrompt(context: any): string {
@@ -391,15 +420,18 @@ function buildGPT5SystemPrompt(context: any): string {
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   
+  const countryContext = buildCountryContextSection(context);
+  const currencySymbol = context.countryContext?.currencySymbol || '$';
+  
   return `${getTwealthIdentity()}
-
+${countryContext}
 **User Financial Profile:**
-- Monthly Income: $${monthlyIncome.toLocaleString()}
-- Monthly Expenses: $${monthlyExpenses.toLocaleString()}
-- Net Monthly: $${(monthlyIncome - monthlyExpenses).toLocaleString()}
-- Total Debts: $${totalDebts.toLocaleString()}
-- Total Assets: $${totalAssets.toLocaleString()}
-- Net Worth: $${(totalAssets - totalDebts).toLocaleString()}
+- Monthly Income: ${currencySymbol}${monthlyIncome.toLocaleString()}
+- Monthly Expenses: ${currencySymbol}${monthlyExpenses.toLocaleString()}
+- Net Monthly: ${currencySymbol}${(monthlyIncome - monthlyExpenses).toLocaleString()}
+- Total Debts: ${currencySymbol}${totalDebts.toLocaleString()}
+- Total Assets: ${currencySymbol}${totalAssets.toLocaleString()}
+- Net Worth: ${currencySymbol}${(totalAssets - totalDebts).toLocaleString()}
 
 **Your Role as GPT-5 (MATH Model):**
 You're the quantitative specialist powered by GPT-5. Your strengths:
@@ -407,13 +439,13 @@ You're the quantitative specialist powered by GPT-5. Your strengths:
 - Complex multi-variable financial analysis & projections
 - Compound interest calculations & retirement planning
 - Investment modeling & future value simulations
+- Country-specific tax calculations and cost comparisons
 
-Use available tools to provide detailed calculations. Keep responses focused on measurable outcomes with specific numbers and actionable steps.`;
+Use available tools to provide detailed calculations. Keep responses focused on measurable outcomes with specific numbers and actionable steps. Always use the user's local currency and apply their country's tax rates when relevant.`;
 }
 
 /**
- * Build system prompt for Scout (simple queries) - LEGACY
- * @deprecated Use buildGPT5SystemPrompt instead
+ * Build system prompt for Scout (simple queries)
  */
 function buildScoutSystemPrompt(context: any): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
@@ -421,22 +453,27 @@ function buildScoutSystemPrompt(context: any): string {
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   
+  const countryContext = buildCountryContextSection(context);
+  const currencySymbol = context.countryContext?.currencySymbol || '$';
+  const countryName = context.countryContext?.countryName || 'United States';
+  
   return `${getTwealthIdentity()}
-
+${countryContext}
 **User Financial Snapshot:**
-- Monthly Income: $${monthlyIncome.toLocaleString()}
-- Monthly Expenses: $${monthlyExpenses.toLocaleString()}
-- Total Debts: $${totalDebts.toLocaleString()}
-- Total Assets: $${totalAssets.toLocaleString()}
+- Monthly Income: ${currencySymbol}${monthlyIncome.toLocaleString()}
+- Monthly Expenses: ${currencySymbol}${monthlyExpenses.toLocaleString()}
+- Total Debts: ${currencySymbol}${totalDebts.toLocaleString()}
+- Total Assets: ${currencySymbol}${totalAssets.toLocaleString()}
 
 **Your Role as Scout (PRIMARY Model):**
-You're the fast, always-available financial advisor. Handle:
-- General budgeting advice & spending analysis
-- Quick financial calculations
+You're the fast, always-available financial advisor for users in ${countryName}. Handle:
+- General budgeting advice & spending analysis using local costs
+- Quick financial calculations in ${context.countryContext?.currency || 'USD'}
 - Goal creation & transaction logging
-- Budget recommendations
+- Budget recommendations based on local cost of living
+- Luxury goods and major purchase pricing in their country
 
-Keep responses concise (2-4 paragraphs) and actionable. Use available tools to take actions when users command you. If the query requires deep analysis (retirement planning, tax optimization, portfolio analysis), recommend they ask for deeper analysis which will escalate to specialized models.`;
+Keep responses concise (2-4 paragraphs) and actionable. Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you. If the query requires deep analysis (retirement planning, tax optimization, portfolio analysis), recommend they ask for deeper analysis which will escalate to specialized models.`;
 }
 
 /**
@@ -446,19 +483,23 @@ function buildReasoningSystemPrompt(context: any): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   
+  const countryContext = buildCountryContextSection(context);
+  const currencySymbol = context.countryContext?.currencySymbol || '$';
+  const countryName = context.countryContext?.countryName || 'United States';
+  
   let prompt = `${getTwealthIdentity()}
-
-**User Financial Context:**
-- Monthly Income: $${monthlyIncome.toLocaleString()}
-- Monthly Expenses: $${monthlyExpenses.toLocaleString()}
-- Monthly Surplus: $${(monthlyIncome - monthlyExpenses).toLocaleString()}
+${countryContext}
+**User Financial Context (${countryName}):**
+- Monthly Income: ${currencySymbol}${monthlyIncome.toLocaleString()}
+- Monthly Expenses: ${currencySymbol}${monthlyExpenses.toLocaleString()}
+- Monthly Surplus: ${currencySymbol}${(monthlyIncome - monthlyExpenses).toLocaleString()}
 
 `;
   
   if (context.debts.length > 0) {
     prompt += `**Debts:**\n`;
     context.debts.forEach((d: any, i: number) => {
-      prompt += `${i + 1}. ${d.name}: $${d.balance.toLocaleString()} @ ${d.apr}% APR\n`;
+      prompt += `${i + 1}. ${d.name}: ${currencySymbol}${d.balance.toLocaleString()} @ ${d.apr}% APR\n`;
     });
     prompt += `\n`;
   }
@@ -466,7 +507,7 @@ function buildReasoningSystemPrompt(context: any): string {
   if (context.assets.length > 0) {
     prompt += `**Assets:**\n`;
     context.assets.forEach((a: any, i: number) => {
-      prompt += `${i + 1}. ${a.name} (${a.type}): $${a.value.toLocaleString()}\n`;
+      prompt += `${i + 1}. ${a.name} (${a.type}): ${currencySymbol}${a.value.toLocaleString()}\n`;
     });
     prompt += `\n`;
   }
@@ -474,19 +515,21 @@ function buildReasoningSystemPrompt(context: any): string {
   if (context.goals.length > 0) {
     prompt += `**Goals:**\n`;
     context.goals.forEach((g: any) => {
-      prompt += `- ${g.name}: $${g.target.toLocaleString()} in ${Math.floor(g.horizonMonths / 12)} years\n`;
+      prompt += `- ${g.name}: ${currencySymbol}${g.target.toLocaleString()} in ${Math.floor(g.horizonMonths / 12)} years\n`;
     });
     prompt += `\n`;
   }
   
   prompt += `**Your Role as Claude Sonnet/Opus (REASONING/CFO Model):**
-You're the strategic advisor for complex financial decisions. Your strengths:
-- Multi-step reasoning for debt payoff strategies
-- Investment portfolio optimization & rebalancing
-- Tax planning & retirement contribution strategies
+You're the strategic advisor for complex financial decisions in ${countryName}. Your strengths:
+- Multi-step reasoning for debt payoff strategies using local interest rates
+- Investment portfolio optimization with country-specific tax implications
+- Tax planning using ${countryName}'s tax brackets and regulations
+- Country-specific retirement contribution strategies
 - Comprehensive CFO-level analysis for high-stakes decisions
+- Cost comparisons for luxury goods and major purchases in local currency
 
-Use available tools to provide detailed, well-reasoned analysis with specific numbers and actionable recommendations. Think step-by-step through complex problems.`;
+Use available tools to provide detailed, well-reasoned analysis with specific numbers in ${currencySymbol} (${context.countryContext?.currency || 'USD'}). Apply local tax rates and financial regulations. Think step-by-step through complex problems.`;
   
   return prompt;
 }
