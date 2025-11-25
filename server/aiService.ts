@@ -1703,22 +1703,29 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         return { response: failedText, toolCalls: undefined };
       }
       
-      // FALLBACK RESPONSE: Provide helpful context-aware response when AI fails completely
+      // FALLBACK RESPONSE: Provide helpful response when AI fails due to transient errors
       const isRateLimited = error.status === 429 || error.code === 429 || 
                            error.message?.includes('rate limit');
       const isTimeout = error.message?.includes('timeout') || error.code === 'ETIMEDOUT';
       
       if (isRateLimited || isTimeout) {
-        // For transient errors, provide a useful fallback using context
-        const savingsRate = context.monthlyIncome > 0 
-          ? ((context.monthlyIncome - context.monthlyExpenses) / context.monthlyIncome * 100).toFixed(0)
-          : 0;
+        // Safe access to context with defaults
+        const income = context?.monthlyIncome || 0;
+        const expenses = context?.monthlyExpenses || 0;
+        const savings = income - expenses;
         
-        const fallbackResponse = `I'm experiencing high demand right now. While I reconnect, here's your financial snapshot: You're saving ${savingsRate}% of your income ($${(context.monthlyIncome - context.monthlyExpenses).toLocaleString()}/month). ${
-          parseFloat(savingsRate.toString()) >= 20 
-            ? "Great savings rate - you're on track!" 
-            : "Aim for 20%+ savings rate for long-term wealth building."
-        } Please try your question again in a moment.`;
+        // Only provide financial snapshot if we have valid data
+        let fallbackResponse: string;
+        if (income > 0) {
+          const savingsRate = ((savings / income) * 100).toFixed(0);
+          fallbackResponse = `I'm experiencing high demand right now. While I reconnect, here's your financial snapshot: You're saving ${savingsRate}% of your income ($${savings.toLocaleString()}/month). ${
+            parseFloat(savingsRate) >= 20 
+              ? "Great savings rate - you're on track!" 
+              : "Aim for 20%+ savings rate for long-term wealth building."
+          } Please try your question again in a moment.`;
+        } else {
+          fallbackResponse = "I'm experiencing high demand right now. Please try your question again in a moment.";
+        }
         
         return { response: fallbackResponse, toolCalls: undefined };
       }
