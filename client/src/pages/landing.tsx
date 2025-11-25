@@ -1,6 +1,7 @@
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { Link, useLocation } from "wouter";
 import { 
   Shield, 
   Check, 
@@ -15,9 +16,7 @@ import {
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 export default function Landing() {
-  const handleLogin = () => {
-    window.location.href = "/login";
-  };
+  const [, setLocation] = useLocation();
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -30,7 +29,7 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-4">
             <Button 
-              onClick={handleLogin}
+              onClick={() => setLocation("/login")}
               variant="ghost"
               className="text-sm font-medium hidden sm:flex"
               data-testid="header-signin-button"
@@ -38,7 +37,7 @@ export default function Landing() {
               Sign in
             </Button>
             <Button 
-              onClick={handleLogin}
+              onClick={() => setLocation("/login")}
               size="sm"
               className="text-sm font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
               data-testid="header-getstarted-button"
@@ -74,7 +73,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button 
-              onClick={handleLogin} 
+              onClick={() => setLocation("/login")} 
               size="lg"
               className="h-14 px-8 text-base font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl"
               data-testid="hero-get-started-button"
@@ -83,7 +82,7 @@ export default function Landing() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button 
-              onClick={() => window.location.href = "/pricing"}
+              onClick={() => setLocation("/subscription")}
               variant="outline" 
               size="lg"
               className="h-14 px-8 text-base font-medium border-gray-300 dark:border-gray-700 rounded-xl"
@@ -244,7 +243,7 @@ export default function Landing() {
                 </li>
               </ul>
               <Button 
-                onClick={handleLogin}
+                onClick={() => setLocation("/login")}
                 variant="outline" 
                 className="w-full"
                 data-testid="pricing-free-button"
@@ -279,7 +278,7 @@ export default function Landing() {
                 </li>
               </ul>
               <Button 
-                onClick={handleLogin}
+                onClick={() => setLocation("/login")}
                 className="w-full bg-black dark:bg-white text-white dark:text-black"
                 data-testid="pricing-pro-button"
               >
@@ -310,7 +309,7 @@ export default function Landing() {
                 </li>
               </ul>
               <Button 
-                onClick={handleLogin}
+                onClick={() => setLocation("/login")}
                 variant="outline" 
                 className="w-full"
                 data-testid="pricing-enterprise-button"
@@ -331,7 +330,7 @@ export default function Landing() {
           Join thousands of people who use Twealth to manage their finances smarter.
         </p>
         <Button 
-          onClick={handleLogin} 
+          onClick={() => setLocation("/login")} 
           size="lg"
           className="h-14 px-8 text-base font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl"
           data-testid="cta-get-started-button"
@@ -348,25 +347,25 @@ export default function Landing() {
             <div>
               <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Product</h4>
               <ul className="space-y-3">
-                <li><a href="/dashboard" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Dashboard</a></li>
-                <li><a href="/pricing" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="/ai-assistant" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">AI Advisor</a></li>
+                <li><Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Dashboard</Link></li>
+                <li><Link href="/subscription" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/ai-assistant" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">AI Advisor</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Features</h4>
               <ul className="space-y-3">
-                <li><a href="/financial-goals" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Goals</a></li>
-                <li><a href="/money-tracking" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Money Tracking</a></li>
-                <li><a href="/playbooks" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">AI Playbooks</a></li>
+                <li><Link href="/financial-goals" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Goals</Link></li>
+                <li><Link href="/money-tracking" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Money Tracking</Link></li>
+                <li><Link href="/playbooks" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">AI Playbooks</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Resources</h4>
               <ul className="space-y-3">
-                <li><a href="/investment-intelligence" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Investments</a></li>
-                <li><a href="/calendar" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Calendar</a></li>
-                <li><a href="/settings" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Settings</a></li>
+                <li><Link href="/investments" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Investments</Link></li>
+                <li><Link href="/calendar" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Calendar</Link></li>
+                <li><Link href="/settings" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Settings</Link></li>
               </ul>
             </div>
             <div>
