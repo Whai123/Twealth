@@ -154,146 +154,114 @@ function Settings() {
 
  if (isLoading) {
   return (
-   <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-    <div className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
-     <div className="space-y-6">
-      <div className="h-16 bg-muted rounded-xl" />
-      <div className="h-12 bg-muted rounded-lg w-full max-w-2xl" />
-      <div className="grid gap-4 sm:gap-6">
-       <div className="h-96 bg-muted rounded-xl" />
-      </div>
+   <div className="min-h-screen bg-background">
+    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+      <div className="h-8 bg-muted/50 rounded w-32 mb-2" />
+      <div className="h-4 bg-muted/50 rounded w-48" />
      </div>
+    </header>
+    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+     <div className="h-12 bg-muted/50 rounded-lg w-full max-w-lg mb-8" />
+     <div className="h-96 bg-muted/50 rounded-xl" />
     </div>
    </div>
   );
  }
 
  return (
-  <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-   {/* Mobile-Optimized Header */}
-   <header className="sticky top-0 z-40 border-b bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-slate-200/50 dark:border-slate-800/50 shadow-sm">
-    <div className="w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
-     {/* Compact Header for Mobile */}
-     <div className="flex items-center gap-3 sm:gap-4">
-      <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-       <Cog className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-      </div>
+  <div className="min-h-screen bg-background">
+   {/* Clean Professional Header - Stripe/Coinbase Style */}
+   <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+     <div className="flex items-center justify-between gap-4">
       <div className="flex-1 min-w-0">
-       <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 dark:text-white truncate">
+       <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
         {t('settings.title', 'Settings')}
        </h1>
-       <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 truncate">
-        {t('settings.subtitle', 'Manage your preferences')}
+       <p className="text-sm text-muted-foreground mt-1">
+        {t('settings.subtitle', 'Manage your account and preferences')}
        </p>
       </div>
-     </div>
-
-     {/* Quick Overview Cards - Hidden on Mobile, Shown on Tablet+ */}
-     <div className="hidden md:grid grid-cols-4 gap-3 lg:gap-4 mt-6">
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border border-blue-200/50 dark:border-blue-800/50">
-       <div className="flex items-center gap-2 mb-2">
-        <User className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600 dark:text-blue-400" />
-        <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Account</span>
-       </div>
-       <div className="text-sm lg:text-base font-bold text-blue-700 dark:text-blue-300">Personal</div>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border border-purple-200/50 dark:border-purple-800/50">
-       <div className="flex items-center gap-2 mb-2">
-        <Palette className="w-4 h-4 lg:w-5 lg:h-5 text-purple-600 dark:text-purple-400" />
-        <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Preferences</span>
-       </div>
-       <div className="text-sm lg:text-base font-bold text-purple-700 dark:text-purple-300">Theme</div>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border border-green-200/50 dark:border-green-800/50">
-       <div className="flex items-center gap-2 mb-2">
-        <CreditCard className="w-4 h-4 lg:w-5 lg:h-5 text-green-600 dark:text-green-400" />
-        <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Financial</span>
-       </div>
-       <div className="text-sm lg:text-base font-bold text-green-700 dark:text-green-300">Goals</div>
-      </div>
-      
-      <div className="bg-white dark:bg-gray-900 rounded-lg p-3 lg:p-4 border border-red-200/50 dark:border-red-800/50">
-       <div className="flex items-center gap-2 mb-2">
-        <Shield className="w-4 h-4 lg:w-5 lg:h-5 text-red-600 dark:text-red-400" />
-        <span className="text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300">Privacy</span>
-       </div>
-       <div className="text-sm lg:text-base font-bold text-red-700 dark:text-red-300">Secure</div>
-      </div>
+      <Button
+       variant="outline"
+       onClick={handleLogout}
+       disabled={logoutMutation.isPending}
+       className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950"
+       data-testid="button-logout"
+      >
+       {logoutMutation.isPending ? (
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+       ) : (
+        <LogOut className="w-4 h-4 mr-2" />
+       )}
+       Sign out
+      </Button>
      </div>
     </div>
    </header>
 
    {/* Main Content */}
-   <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-12 max-w-7xl mx-auto">
+   <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-     {/* Mobile-Responsive Horizontal Scrollable Tabs */}
-     <div className="mb-6 sm:mb-8">
-      <ScrollArea className="w-full whitespace-nowrap">
-       <TabsList className="inline-flex w-auto min-w-full sm:w-full bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700 h-auto">
-        <TabsTrigger 
-         value="account" 
-         className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
-         data-testid="tab-account"
-        >
-         <User className="w-4 h-4 sm:mr-2" />
-         <span className="hidden sm:inline">Account</span>
-        </TabsTrigger>
-        <TabsTrigger 
-         value="preferences" 
-         className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
-         data-testid="tab-preferences"
-        >
-         <Palette className="w-4 h-4 sm:mr-2" />
-         <span className="hidden sm:inline">Preferences</span>
-        </TabsTrigger>
-        <TabsTrigger 
-         value="financial" 
-         className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-green-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
-         data-testid="tab-financial"
-        >
-         <CreditCard className="w-4 h-4 sm:mr-2" />
-         <span className="hidden sm:inline">Financial</span>
-        </TabsTrigger>
-        <TabsTrigger 
-         value="privacy" 
-         className="flex-1 sm:flex-none min-h-[44px] px-4 sm:px-6 data-[state=active]:bg-red-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all rounded-lg text-sm sm:text-base font-medium"
-         data-testid="tab-privacy"
-        >
-         <Shield className="w-4 h-4 sm:mr-2" />
-         <span className="hidden sm:inline">Privacy</span>
-        </TabsTrigger>
-       </TabsList>
-      </ScrollArea>
-     </div>
+     {/* Clean Tab Interface */}
+     <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-8 p-1 h-auto">
+      <TabsTrigger 
+       value="account" 
+       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       data-testid="tab-account"
+      >
+       <User className="w-4 h-4" />
+       <span className="hidden sm:inline">Account</span>
+      </TabsTrigger>
+      <TabsTrigger 
+       value="preferences" 
+       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       data-testid="tab-preferences"
+      >
+       <Palette className="w-4 h-4" />
+       <span className="hidden sm:inline">Preferences</span>
+      </TabsTrigger>
+      <TabsTrigger 
+       value="financial" 
+       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       data-testid="tab-financial"
+      >
+       <CreditCard className="w-4 h-4" />
+       <span className="hidden sm:inline">Financial</span>
+      </TabsTrigger>
+      <TabsTrigger 
+       value="privacy" 
+       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       data-testid="tab-privacy"
+      >
+       <Shield className="w-4 h-4" />
+       <span className="hidden sm:inline">Privacy</span>
+      </TabsTrigger>
+     </TabsList>
 
-     {/* Account Tab - Mobile-Optimized */}
-     <TabsContent value="account" className="mt-0-50">
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-       {/* Settings Form - Full Width on Mobile */}
+     {/* Account Tab */}
+     <TabsContent value="account" className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-3">
        <div className="lg:col-span-2">
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-           <User className="text-blue-600 w-5 h-5 sm:w-6 sm:h-6" />
-           Personal Configuration
+        <Card className="border-border/50">
+         <CardHeader className="p-6">
+          <CardTitle className="text-lg font-semibold">
+           Time Value Configuration
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base">
-           Configure your time-value settings and preferences
+          <CardDescription>
+           Set your hourly rate and work schedule for time-value calculations
           </CardDescription>
          </CardHeader>
-         <CardContent className="p-4 sm:p-6">
+         <CardContent className="p-6 pt-0">
           <Form {...form}>
-           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
-            {/* Hourly Rate - Full Width Input */}
+           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
              control={form.control}
              name="hourlyRate"
              render={({ field }) => (
               <FormItem>
-               <FormLabel className="flex items-center gap-2 text-sm sm:text-base font-medium">
-                <DollarSign className="text-green-600 w-4 h-4" />
+               <FormLabel className="text-sm font-medium">
                 Hourly Rate
                </FormLabel>
                <FormControl>
@@ -304,13 +272,13 @@ function Settings() {
                   step="0.01"
                   min="0"
                   placeholder="50.00"
-                  className="h-12 sm:h-14 text-base sm:text-lg pl-10 w-full bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+                  className="h-11 pl-9"
                   data-testid="input-hourly-rate"
                  />
-                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 </div>
                </FormControl>
-               <FormDescription className="text-xs sm:text-sm">
+               <FormDescription className="text-xs">
                 The monetary value of one hour of your time
                </FormDescription>
                <FormMessage />
@@ -318,16 +286,15 @@ function Settings() {
              )}
             />
 
-            {/* Currency - Full Width Select */}
             <FormField
              control={form.control}
              name="currency"
              render={({ field }) => (
               <FormItem>
-               <FormLabel className="text-sm sm:text-base font-medium">Currency</FormLabel>
+               <FormLabel className="text-sm font-medium">Currency</FormLabel>
                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                 <FormControl>
-                 <SelectTrigger className="h-12 sm:h-14 text-base sm:text-lg w-full bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700" data-testid="select-currency">
+                 <SelectTrigger className="h-11" data-testid="select-currency">
                   <SelectValue placeholder="Select currency" />
                  </SelectTrigger>
                 </FormControl>
@@ -349,7 +316,7 @@ function Settings() {
                  <SelectItem value="AUD">AUD (A$)</SelectItem>
                 </SelectContent>
                </Select>
-               <FormDescription className="text-xs sm:text-sm">
+               <FormDescription className="text-xs">
                 Your preferred currency for financial calculations
                </FormDescription>
                <FormMessage />
@@ -357,14 +324,12 @@ function Settings() {
              )}
             />
 
-            {/* Work Hours Per Week */}
             <FormField
              control={form.control}
              name="workHoursPerWeek"
              render={({ field }) => (
               <FormItem>
-               <FormLabel className="flex items-center gap-2 text-sm sm:text-base font-medium">
-                <Clock className="text-blue-600 w-4 h-4" />
+               <FormLabel className="text-sm font-medium">
                 Work Hours Per Week
                </FormLabel>
                <FormControl>
@@ -375,74 +340,61 @@ function Settings() {
                   min="1"
                   max="168"
                   placeholder="40"
-                  className="h-12 sm:h-14 text-base sm:text-lg pl-10 w-full bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-blue-500"
+                  className="h-11 pl-9"
                   data-testid="input-work-hours"
                  />
-                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 </div>
                </FormControl>
-               <FormDescription className="text-xs sm:text-sm">
-                Your typical working hours per week (used for time-value calculations)
+               <FormDescription className="text-xs">
+                Your typical working hours per week
                </FormDescription>
                <FormMessage />
               </FormItem>
              )}
             />
 
-            {/* Time Value Strategy */}
             <FormField
              control={form.control}
              name="timeValueStrategy"
              render={({ field }) => (
               <FormItem>
-               <FormLabel className="flex items-center gap-2 text-sm sm:text-base font-medium">
-                <TrendingUp className="text-purple-600 w-4 h-4" />
+               <FormLabel className="text-sm font-medium">
                 Time Value Strategy
                </FormLabel>
                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                 <FormControl>
-                 <SelectTrigger className="h-12 sm:h-14 text-base sm:text-lg w-full bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700" data-testid="select-time-strategy">
+                 <SelectTrigger className="h-11" data-testid="select-time-strategy">
                   <SelectValue placeholder="Select strategy" />
                  </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                 <SelectItem value="fixed">
-                  <div className="py-1">
-                   <div className="font-medium text-sm sm:text-base">Fixed Rate</div>
-                   <div className="text-xs text-slate-600 dark:text-slate-400">Use your hourly rate for all calculations</div>
-                  </div>
-                 </SelectItem>
-                 <SelectItem value="derived">
-                  <div className="py-1">
-                   <div className="font-medium text-sm sm:text-base">Context-Derived</div>
-                   <div className="text-xs text-slate-600 dark:text-slate-400">Adjust based on event type and context</div>
-                  </div>
-                 </SelectItem>
+                 <SelectItem value="fixed">Fixed Rate</SelectItem>
+                 <SelectItem value="derived">Context-Derived</SelectItem>
                 </SelectContent>
                </Select>
-               <FormDescription className="text-xs sm:text-sm">
-                How ScheduleMoney should calculate time value for different events
+               <FormDescription className="text-xs">
+                How time value should be calculated for different events
                </FormDescription>
                <FormMessage />
               </FormItem>
              )}
             />
 
-            {/* Save Button - Full Width, Touch-Friendly */}
             <Button
              type="submit"
-             className="w-full h-12 sm:h-14 text-base sm:text-lg bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all font-semibold"
+             className="w-full h-11"
              disabled={isSaving}
              data-testid="button-save-settings"
             >
              {isSaving ? (
               <>
-               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                Saving...
               </>
              ) : (
               <>
-               <Save className="w-5 h-5 mr-2" />
+               <Save className="w-4 h-4 mr-2" />
                Save Settings
               </>
              )}
@@ -451,79 +403,33 @@ function Settings() {
           </Form>
          </CardContent>
         </Card>
-
-        {/* Account Management Section */}
-        <Card className="mt-6 border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-           <Shield className="text-red-600 w-5 h-5 sm:w-6 sm:h-6" />
-           Account Management
-          </CardTitle>
-          <CardDescription className="text-sm sm:text-base">
-           Security and session management options
-          </CardDescription>
-         </CardHeader>
-         <CardContent className="p-4 sm:p-6">
-          <div className="space-y-4">
-           <div className="p-4 sm:p-6 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/50">
-            <h3 className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mb-2">
-             Sign Out
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-4">
-             End your current session and return to the login page securely
-            </p>
-            <Button
-             onClick={handleLogout}
-             disabled={logoutMutation.isPending}
-             variant="destructive"
-             className="w-full sm:w-auto h-11 sm:h-12 text-sm sm:text-base"
-             data-testid="button-signout-settings"
-            >
-             {logoutMutation.isPending ? (
-              <>
-               <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-               Signing out...
-              </>
-             ) : (
-              <>
-               <LogOut className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-               Sign Out
-              </>
-             )}
-            </Button>
-           </div>
-          </div>
-         </CardContent>
-        </Card>
        </div>
 
-       {/* Preview & Info Panel - Stacked on Mobile */}
-       <div className="space-y-4 sm:space-y-6">
-        {/* Time Value Preview */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-           <DollarSign className="w-5 h-5 text-green-600" />
-           Value Preview
+       {/* Preview Panel */}
+       <div className="space-y-6">
+        <Card className="border-border/50">
+         <CardHeader className="p-6">
+          <CardTitle className="text-lg font-semibold">
+           Time Value Preview
           </CardTitle>
          </CardHeader>
-         <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-          <div className="space-y-3">
-           <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800">
-            <span className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">Per Hour</span>
-            <span className="text-base sm:text-lg font-bold text-blue-700 dark:text-blue-300" data-testid="text-preview-hourly">
+         <CardContent className="p-6 pt-0">
+          <div className="space-y-4">
+           <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
+            <span className="text-sm text-muted-foreground">Per Hour</span>
+            <span className="text-lg font-semibold" data-testid="text-preview-hourly">
              {formatCurrency(hourlyRate)}
             </span>
            </div>
-           <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-white dark:bg-gray-900 border border-green-200 dark:border-green-800">
-            <span className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">Per Day</span>
-            <span className="text-base sm:text-lg font-bold text-green-700 dark:text-green-300" data-testid="text-preview-daily">
+           <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
+            <span className="text-sm text-muted-foreground">Per Day</span>
+            <span className="text-lg font-semibold" data-testid="text-preview-daily">
              {formatCurrency(dailyValue)}
             </span>
            </div>
-           <div className="flex justify-between items-center p-3 sm:p-4 rounded-lg bg-white dark:bg-gray-900 border border-purple-200 dark:border-purple-800">
-            <span className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300">Per Month</span>
-            <span className="text-base sm:text-lg font-bold text-purple-700 dark:text-purple-300" data-testid="text-preview-monthly">
+           <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
+            <span className="text-sm text-muted-foreground">Per Month</span>
+            <span className="text-lg font-semibold" data-testid="text-preview-monthly">
              {formatCurrency(monthlyValue)}
             </span>
            </div>
@@ -531,25 +437,24 @@ function Settings() {
          </CardContent>
         </Card>
 
-        {/* Strategy Info - Hidden on Mobile, Shown on Tablet+ */}
-        <Card className="hidden sm:block border-slate-200 dark:border-slate-800 shadow-sm">
-         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-           <Info className="w-5 h-5 text-blue-600" />
+        <Card className="border-border/50">
+         <CardHeader className="p-6">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+           <Info className="w-4 h-4 text-muted-foreground" />
            Strategy Guide
           </CardTitle>
          </CardHeader>
-         <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-3 text-xs sm:text-sm">
-          <div className="p-3 sm:p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-           <h4 className="font-semibold mb-1 text-slate-900 dark:text-white">Fixed Rate</h4>
-           <p className="text-slate-600 dark:text-slate-400">
-            Uses your hourly rate consistently across all events. Best for freelancers and consultants.
+         <CardContent className="p-6 pt-0 space-y-4 text-sm">
+          <div className="p-4 rounded-lg bg-muted/50">
+           <h4 className="font-medium mb-1">Fixed Rate</h4>
+           <p className="text-muted-foreground text-xs">
+            Uses your hourly rate consistently. Best for freelancers and consultants.
            </p>
           </div>
-          <div className="p-3 sm:p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-           <h4 className="font-semibold mb-1 text-slate-900 dark:text-white">Context-Derived</h4>
-           <p className="text-slate-600 dark:text-slate-400">
-            Adjusts value based on event type, meeting importance, and productivity context.
+          <div className="p-4 rounded-lg bg-muted/50">
+           <h4 className="font-medium mb-1">Context-Derived</h4>
+           <p className="text-muted-foreground text-xs">
+            Adjusts value based on event type and meeting importance.
            </p>
           </div>
          </CardContent>
@@ -559,17 +464,17 @@ function Settings() {
      </TabsContent>
 
      {/* Preferences Tab */}
-     <TabsContent value="preferences" className="mt-0-50">
+     <TabsContent value="preferences" className="space-y-6">
       <UserPreferences />
      </TabsContent>
 
      {/* Financial Tab */}
-     <TabsContent value="financial" className="mt-0-50">
+     <TabsContent value="financial" className="space-y-6">
       <FinancialPreferences />
      </TabsContent>
 
      {/* Privacy Tab */}
-     <TabsContent value="privacy" className="mt-0-50">
+     <TabsContent value="privacy" className="space-y-6">
       <DataPrivacy />
      </TabsContent>
     </Tabs>

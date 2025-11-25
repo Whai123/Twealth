@@ -118,13 +118,18 @@ export default function CryptoPage() {
 
  if (portfolioLoading || holdingsLoading) {
  return (
+ <div className="min-h-screen bg-background">
+ <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
- <div className="space-y-6">
- <div className="h-8 bg-muted rounded w-1/3"></div>
- <div className="h-32 bg-muted rounded"></div>
+ <div className="h-8 bg-muted/50 rounded w-48 mb-2" />
+ <div className="h-4 bg-muted/50 rounded w-64" />
+ </div>
+ </header>
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+ <div className="h-32 bg-muted/50 rounded mb-6"></div>
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
  {[...Array(3)].map((_, i) => (
- <div key={i} className="h-48 bg-muted rounded"></div>
+ <div key={i} className="h-48 bg-muted/50 rounded"></div>
  ))}
  </div>
  </div>
@@ -133,29 +138,23 @@ export default function CryptoPage() {
  }
 
  return (
- <div className="min-h-screen bg-orange-50 dark:bg-orange-900/20">
- {/* Mobile-First Responsive Header */}
- <header className="bg-orange-50 dark:bg-orange-900/30 border-b border-border/50 sticky top-0 z-30 backdrop-blur-sm">
- <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
- <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
- <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
- <Bitcoin className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-orange-500 flex-shrink-0" />
- <div className="min-w-0 flex-1">
- <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400 truncate">
+ <div className="min-h-screen bg-background">
+ {/* Clean Professional Header */}
+ <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+ <div className="flex items-center justify-between gap-4">
+ <div className="flex-1 min-w-0">
+ <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
  Crypto Portfolio
  </h1>
- <p className="text-sm sm:text-base text-muted-foreground truncate">Manage your cryptocurrency holdings</p>
- </div>
+ <p className="text-sm text-muted-foreground mt-1">Manage your cryptocurrency holdings</p>
  </div>
  <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
  <DialogTrigger asChild>
- <Button 
- className="bg-orange-500 text-white font-semibold px-4 sm:px-6 min-h-[44px] h-11 sm:h-12 shadow-lg w-full sm:w-auto"
- data-testid="button-add-crypto"
- >
+ <Button data-testid="button-add-crypto">
  <Plus className="w-4 h-4 sm:mr-2" />
  <span className="hidden sm:inline">Add Crypto</span>
- <span className="sm:hidden text-xs">Add</span>
+ <span className="sm:hidden">Add</span>
  </Button>
  </DialogTrigger>
  <DialogContent>
@@ -254,25 +253,27 @@ export default function CryptoPage() {
  </div>
  </header>
  
- <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
- {/* Mobile-First Portfolio Value Card */}
- <Card className="bg-white dark:bg-gray-900 border-orange-200 dark:border-orange-800">
- <CardContent className="p-4 sm:p-6">
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 space-y-6">
+ {/* Portfolio Value Card */}
+ <Card className="border-border/50">
+ <CardContent className="p-6">
  <div className="flex items-center justify-between">
  <div className="flex-1 min-w-0">
- <p className="text-xs sm:text-sm text-muted-foreground mb-1">Total Portfolio Value</p>
- <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400 truncate" data-testid="text-total-value">
+ <p className="text-sm text-muted-foreground mb-1">Total Portfolio Value</p>
+ <p className="text-3xl font-bold" data-testid="text-total-value">
  ${totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
  </p>
  </div>
- <Bitcoin className="w-12 h-12 sm:w-16 sm:h-16 text-orange-500 opacity-20 flex-shrink-0" />
+ <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
+ <Bitcoin className="w-6 h-6 text-muted-foreground" />
+ </div>
  </div>
  </CardContent>
  </Card>
 
- {/* Mobile-First Holdings Grid */}
+ {/* Holdings Grid */}
  {holdingsList.length === 0 ? (
- <Card className="p-8 sm:p-12">
+ <Card className="border-border/50">
  <EmptyState
  icon={Bitcoin}
  title="No Crypto Holdings Yet"
@@ -290,12 +291,12 @@ export default function CryptoPage() {
  const isPositive = change >= 0;
 
  return (
- <Card key={holding.id} className="relative overflow-hidden" data-testid={`card-holding-${holding.symbol.toLowerCase()}`}>
- <CardHeader className="pb-3 p-4 sm:p-6">
- <div className="flex items-start sm:items-center justify-between gap-2">
- <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
- <div className="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center flex-shrink-0">
- <span className="text-base sm:text-lg font-bold text-orange-600 dark:text-orange-400">
+ <Card key={holding.id} className="border-border/50" data-testid={`card-holding-${holding.symbol.toLowerCase()}`}>
+ <CardHeader className="pb-3 p-6">
+ <div className="flex items-center justify-between gap-2">
+ <div className="flex items-center gap-3 flex-1 min-w-0">
+ <div className="w-10 h-10 bg-muted/50 rounded-lg flex items-center justify-center flex-shrink-0">
+ <span className="text-sm font-semibold text-foreground">
  {holding.symbol.slice(0, 3)}
  </span>
  </div>

@@ -169,10 +169,15 @@ export default function Playbooks() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 md:p-6 space-y-6 max-w-7xl">
-        <Skeleton className="h-12 w-64" />
-        <div className="grid gap-6">
-          <Skeleton className="h-48" />
+      <div className="min-h-screen bg-background">
+        <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+            <div className="h-8 bg-muted/50 rounded w-48 mb-2" />
+            <div className="h-4 bg-muted/50 rounded w-64" />
+          </div>
+        </header>
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+          <Skeleton className="h-48 mb-6" />
           <Skeleton className="h-96" />
         </div>
       </div>
@@ -181,71 +186,101 @@ export default function Playbooks() {
 
   if (!latestPlaybook && !generateMutation.isPending) {
     return (
-      <div className="container mx-auto p-4 md:p-6 space-y-6 max-w-7xl">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">AI Financial Playbooks</h1>
-        </div>
-        
-        <Card className="border-2 border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
-            <Brain className="w-16 h-16 text-muted-foreground" />
-            <h3 className="text-xl font-semibold">No Playbooks Yet</h3>
-            <p className="text-muted-foreground text-center max-w-md">
-              Generate your first AI-powered weekly financial playbook to get personalized insights and actionable recommendations.
+      <div className="min-h-screen bg-background">
+        <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              AI Playbooks
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Weekly AI-generated financial insights and recommendations
             </p>
-            <Button 
-              onClick={() => generateMutation.mutate()} 
-              size="lg"
-              className="mt-4"
-              data-testid="button-generate-playbook"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Generate My First Playbook
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </header>
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+          <Card className="border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center">
+                <Brain className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold">No Playbooks Yet</h3>
+              <p className="text-muted-foreground text-center max-w-md">
+                Generate your first AI-powered weekly financial playbook to get personalized insights and actionable recommendations.
+              </p>
+              <Button 
+                onClick={() => generateMutation.mutate()} 
+                size="lg"
+                className="mt-4"
+                data-testid="button-generate-playbook"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate My First Playbook
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (generateMutation.isPending) {
     return (
-      <div className="container mx-auto p-4 md:p-6 space-y-6 max-w-7xl">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
-            <Loader2 className="w-16 h-16 text-primary animate-spin" />
-            <h3 className="text-xl font-semibold">Generating Your Playbook</h3>
-            <p className="text-muted-foreground text-center max-w-md">
-              Our AI is analyzing your financial data and creating personalized insights...
+      <div className="min-h-screen bg-background">
+        <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              AI Playbooks
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Weekly AI-generated financial insights and recommendations
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </header>
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+          <Card className="border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-16 space-y-4">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+              <h3 className="text-xl font-semibold">Generating Your Playbook</h3>
+              <p className="text-muted-foreground text-center max-w-md">
+                Our AI is analyzing your financial data and creating personalized insights...
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">AI Financial Playbooks</h1>
-          <p className="text-muted-foreground mt-1">
-            Weekly AI-generated insights and actionable recommendations
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Clean Professional Header */}
+      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                AI Playbooks
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Weekly AI-generated financial insights and recommendations
+              </p>
+            </div>
+            <Button 
+              onClick={() => generateMutation.mutate()} 
+              disabled={generateMutation.isPending}
+              data-testid="button-generate-new-playbook"
+            >
+              {generateMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
+              ) : (
+                <><Sparkles className="w-4 h-4 mr-2" /> Generate New</>
+              )}
+            </Button>
+          </div>
         </div>
-        <Button 
-          onClick={() => generateMutation.mutate()} 
-          disabled={generateMutation.isPending}
-          data-testid="button-generate-new-playbook"
-        >
-          {generateMutation.isPending ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
-          ) : (
-            <><Sparkles className="w-4 h-4 mr-2" /> Generate New Playbook</>
-          )}
-        </Button>
-      </div>
+      </header>
+      
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 space-y-6">
 
       {/* Hero Card - Financial Health Score */}
       <Card className="border-2 bg-gradient-to-br from-primary/5 via-background to-background">
@@ -473,6 +508,7 @@ export default function Playbooks() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
