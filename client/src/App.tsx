@@ -35,6 +35,8 @@ const Login = lazy(() => import("./pages/login.tsx"));
 const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
 const PredictiveInsights = lazy(() => import("./pages/predictive-insights"));
 const Playbooks = lazy(() => import("./pages/playbooks"));
+const Terms = lazy(() => import("./pages/terms"));
+const Privacy = lazy(() => import("./pages/privacy"));
 import FloatingAIWidget from "./components/ai/floating-ai-widget";
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
@@ -97,6 +99,10 @@ function Router() {
      <Suspense fallback={<PageLoader />}>
       <Switch>
        <Route path="/login" component={Login} />
+       <Route path="/pricing" component={Pricing} />
+       <Route path="/terms" component={Terms} />
+       <Route path="/privacy" component={Privacy} />
+       <Route path="/welcome" component={Welcome} />
        <Route path="/" component={Landing} />
        <Route component={Landing} />
       </Switch>
@@ -160,6 +166,8 @@ function Router() {
          <Route path="/pricing" component={Pricing} />
          <Route path="/settings" component={Settings} />
          <Route path="/financial-profile" component={FinancialProfile} />
+         <Route path="/terms" component={Terms} />
+         <Route path="/privacy" component={Privacy} />
          <Route component={NotFound} />
         </Switch>
        </Suspense>

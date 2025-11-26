@@ -37,11 +37,19 @@ export default function UpgradePage() {
     },
     onSuccess: (data) => {
       if (data.requiresPayment) {
+        if (!stripePromise) {
+          toast({
+            title: "Payment Not Available",
+            description: "Payment processing is being set up. Please try again later or contact support.",
+            variant: "destructive",
+          });
+          return;
+        }
         toast({
           title: "Payment Required",
           description: "Redirecting to payment...",
         });
-        initiatePayment(selectedPlan!);
+        paymentMutation.mutate(selectedPlan!);
       } else {
         toast({
           title: "Plan Updated",
@@ -87,14 +95,6 @@ export default function UpgradePage() {
     },
   });
 
-  const initiatePayment = (planId: string) => {
-    if (!stripePromise) {
-      upgradeMutation.mutate(planId);
-      return;
-    }
-    paymentMutation.mutate(planId);
-  };
-
   const handleUpgrade = (planId: string) => {
     setSelectedPlan(planId);
     const plan = plans.find((p: any) => p.id === planId);
@@ -103,9 +103,13 @@ export default function UpgradePage() {
       upgradeMutation.mutate(planId);
     } else {
       if (stripePromise) {
-        initiatePayment(planId);
+        paymentMutation.mutate(planId);
       } else {
-        upgradeMutation.mutate(planId);
+        toast({
+          title: "Payment Not Available",
+          description: "Payment processing is being set up. Please try again later or contact support.",
+          variant: "destructive",
+        });
       }
     }
   };

@@ -266,8 +266,20 @@ export default function Pricing() {
             <span className="text-sm text-gray-500">2025 Twealth</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-500">
-            <span>Terms</span>
-            <span>Privacy</span>
+            <button 
+              onClick={() => setLocation("/terms")}
+              className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              data-testid="link-terms"
+            >
+              Terms
+            </button>
+            <button 
+              onClick={() => setLocation("/privacy")}
+              className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              data-testid="link-privacy"
+            >
+              Privacy
+            </button>
           </div>
         </div>
       </footer>

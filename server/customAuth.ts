@@ -395,4 +395,14 @@ export function setupAuth(app: Express) {
   app.get("/api/auth/status", (req, res) => {
     res.json({ authenticated: req.isAuthenticated ? req.isAuthenticated() : false });
   });
+
+  // Get available OAuth providers
+  app.get("/api/auth/providers", (req, res) => {
+    const providers = {
+      google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      facebook: !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
+      apple: !!(process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY),
+    };
+    res.json(providers);
+  });
 }
