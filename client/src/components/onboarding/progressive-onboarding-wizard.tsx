@@ -5,7 +5,6 @@ import { z } from "zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, Check, User, Target, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -61,7 +60,6 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch existing onboarding progress
   const { data: userPreferences, isLoading: prefsLoading } = useQuery<any>({
     queryKey: ["/api/user-preferences"],
   });
@@ -93,16 +91,12 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
     },
   });
 
-  // Hydrate forms and step from saved progress
   useEffect(() => {
     if (!prefsLoading && !isHydrated) {
-      // Even if no saved data, mark as hydrated to render the wizard
       const savedData = userPreferences?.onboardingData || {};
       const savedStep = userPreferences?.onboardingStep || 1;
 
-      // Only hydrate if there's actual saved data
       if (savedData && Object.keys(savedData).length > 0) {
-        // Hydrate step 1 form if data exists
         if (savedData.fullName || savedData.incomeRange || savedData.riskTolerance) {
           step1Form.reset({
             fullName: savedData.fullName || "",
@@ -116,7 +110,6 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
           });
         }
 
-        // Hydrate step 2 form if data exists
         if (savedData.savingsTarget || savedData.savingsTimeline || savedData.financialPriorities) {
           step2Form.reset({
             savingsTarget: savedData.savingsTarget?.toString() || "",
@@ -130,7 +123,6 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
           });
         }
 
-        // Hydrate step 3 form if data exists
         if (savedData.notificationFrequency || savedData.adviceStyle || savedData.preferredLanguage) {
           step3Form.reset({
             notificationFrequency: savedData.notificationFrequency || "weekly",
@@ -139,11 +131,9 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
           });
         }
 
-        // Set current step to saved step
         setCurrentStep(savedStep);
       }
 
-      // Always mark as hydrated after query settles, even for new users
       setIsHydrated(true);
     }
   }, [prefsLoading, isHydrated, userPreferences, step1Form, step2Form, step3Form]);
@@ -209,54 +199,50 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
     { number: 3, title: "AI Preferences", icon: Sparkles },
   ];
 
-  // Show loading state while fetching saved progress
   if (prefsLoading || !isHydrated) {
     return (
-      <div className="w-full max-w-2xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Loading your profile...</CardTitle>
-            <CardDescription>Please wait a moment</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="h-12 bg-muted rounded"></div>
-              <div className="h-12 bg-muted rounded"></div>
-              <div className="h-12 bg-muted rounded"></div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="w-full max-w-xl mx-auto">
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 shadow-xl">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-white mb-2">Loading your profile...</h2>
+            <p className="text-slate-400">Please wait a moment</p>
+          </div>
+          <div className="space-y-4">
+            <div className="h-12 bg-slate-800 rounded-xl animate-pulse"></div>
+            <div className="h-12 bg-slate-800 rounded-xl animate-pulse"></div>
+            <div className="h-12 bg-slate-800 rounded-xl animate-pulse"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      {/* Progress indicator */}
+    <div className="w-full max-w-xl mx-auto">
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isComplete = currentStep > step.number;
             const isCurrent = currentStep === step.number;
             
             return (
-              <div key={step.number} className="flex items-center flex-1">
-                <div className="flex flex-col items-center flex-shrink-0">
+              <div key={step.number} className="flex items-center">
+                <div className="flex flex-col items-center">
                   <div
                     className={`
-                      w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-colors
-                      ${isComplete ? "bg-green-600 text-white" : ""}
-                      ${isCurrent ? "bg-primary text-primary-foreground" : ""}
-                      ${!isComplete && !isCurrent ? "bg-muted text-muted-foreground" : ""}
+                      w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-2 transition-all duration-300
+                      ${isComplete ? "bg-green-500 text-white shadow-lg shadow-green-500/25" : ""}
+                      ${isCurrent ? "bg-blue-600 text-white ring-4 ring-blue-600/30 shadow-lg shadow-blue-600/25" : ""}
+                      ${!isComplete && !isCurrent ? "bg-slate-700 text-slate-400" : ""}
                     `}
                     data-testid={`step-indicator-${step.number}`}
                   >
-                    {isComplete ? <Check className="h-6 w-6" /> : <Icon className="h-6 w-6" />}
+                    {isComplete ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                   </div>
                   <span
-                    className={`text-sm font-medium ${
-                      isCurrent ? "text-foreground" : "text-muted-foreground"
+                    className={`text-xs sm:text-sm font-medium transition-colors ${
+                      isCurrent ? "text-white" : isComplete ? "text-green-400" : "text-slate-500"
                     }`}
                   >
                     {step.title}
@@ -264,8 +250,8 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
                 </div>
                 {index < steps.length - 1 && (
                   <div
-                    className={`flex-1 h-1 mx-4 rounded transition-colors ${
-                      isComplete ? "bg-green-600" : "bg-muted"
+                    className={`w-12 sm:w-20 h-0.5 mx-2 sm:mx-4 rounded transition-colors ${
+                      isComplete ? "bg-green-500" : "bg-slate-700"
                     }`}
                   />
                 )}
@@ -275,359 +261,363 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
         </div>
       </div>
 
-      {/* Step 1: Profile */}
       {currentStep === 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Tell us about yourself</CardTitle>
-            <CardDescription>
-              Help us personalize your financial guidance
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...step1Form}>
-              <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-6">
-                <FormField
-                  control={step1Form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-white mb-1">Tell us about yourself</h2>
+            <p className="text-slate-400 text-sm">Help us personalize your financial guidance</p>
+          </div>
+          <Form {...step1Form}>
+            <form onSubmit={step1Form.handleSubmit(handleStep1Submit)} className="space-y-5">
+              <FormField
+                control={step1Form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Full Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="John Doe"
+                        {...field}
+                        data-testid="input-full-name"
+                        className="h-12 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={step1Form.control}
+                name="incomeRange"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Annual Income Range</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input
-                          placeholder="John Doe"
-                          {...field}
-                          data-testid="input-full-name"
-                          className="h-12"
-                        />
+                        <SelectTrigger 
+                          data-testid="select-income-range" 
+                          className="h-12 bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        >
+                          <SelectValue placeholder="Select your income range" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectItem value="under_30k" className="text-white focus:bg-slate-700">Under $30,000</SelectItem>
+                        <SelectItem value="30k-60k" className="text-white focus:bg-slate-700">$30,000 - $60,000</SelectItem>
+                        <SelectItem value="60k-100k" className="text-white focus:bg-slate-700">$60,000 - $100,000</SelectItem>
+                        <SelectItem value="100k-200k" className="text-white focus:bg-slate-700">$100,000 - $200,000</SelectItem>
+                        <SelectItem value="over_200k" className="text-white focus:bg-slate-700">Over $200,000</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-slate-400 text-xs">
+                      This helps us provide appropriate recommendations
+                    </FormDescription>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={step1Form.control}
-                  name="incomeRange"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Annual Income Range</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-income-range" className="h-12">
-                            <SelectValue placeholder="Select your income range" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="under_30k">Under $30,000</SelectItem>
-                          <SelectItem value="30k-60k">$30,000 - $60,000</SelectItem>
-                          <SelectItem value="60k-100k">$60,000 - $100,000</SelectItem>
-                          <SelectItem value="100k-200k">$100,000 - $200,000</SelectItem>
-                          <SelectItem value="over_200k">Over $200,000</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        This helps us provide appropriate financial recommendations
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={step1Form.control}
+                name="riskTolerance"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Risk Tolerance</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger 
+                          data-testid="select-risk-tolerance" 
+                          className="h-12 bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        >
+                          <SelectValue placeholder="How comfortable are you with risk?" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectItem value="conservative" className="text-white focus:bg-slate-700">
+                          Conservative - Prefer safe investments
+                        </SelectItem>
+                        <SelectItem value="moderate" className="text-white focus:bg-slate-700">
+                          Moderate - Balance safety and growth
+                        </SelectItem>
+                        <SelectItem value="aggressive" className="text-white focus:bg-slate-700">
+                          Aggressive - Higher risk for returns
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={step1Form.control}
-                  name="riskTolerance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Risk Tolerance</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-risk-tolerance" className="h-12">
-                            <SelectValue placeholder="How comfortable are you with risk?" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="conservative">
-                            Conservative - Prefer safe, stable investments
-                          </SelectItem>
-                          <SelectItem value="moderate">
-                            Moderate - Balance between safety and growth
-                          </SelectItem>
-                          <SelectItem value="aggressive">
-                            Aggressive - Willing to take risks for higher returns
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-end gap-3">
-                  <Button
-                    type="submit"
-                    className="min-h-[52px] px-8"
-                    data-testid="button-next-step-1"
-                    disabled={saveProgressMutation.isPending}
-                  >
-                    Next
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+              <div className="flex justify-end pt-4">
+                <Button
+                  type="submit"
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl"
+                  data-testid="button-next-step-1"
+                  disabled={saveProgressMutation.isPending}
+                >
+                  Continue
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       )}
 
-      {/* Step 2: Financial Goals */}
       {currentStep === 2 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Your Financial Goals</CardTitle>
-            <CardDescription>
-              What are you working towards?
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...step2Form}>
-              <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-6">
-                <FormField
-                  control={step2Form.control}
-                  name="savingsTarget"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Savings Target</FormLabel>
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-white mb-1">Your Financial Goals</h2>
+            <p className="text-slate-400 text-sm">What are you working towards?</p>
+          </div>
+          <Form {...step2Form}>
+            <form onSubmit={step2Form.handleSubmit(handleStep2Submit)} className="space-y-5">
+              <FormField
+                control={step2Form.control}
+                name="savingsTarget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Savings Target</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="10000"
+                        {...field}
+                        data-testid="input-savings-target"
+                        className="h-12 bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                      />
+                    </FormControl>
+                    <FormDescription className="text-slate-400 text-xs">
+                      How much would you like to save? (in your local currency)
+                    </FormDescription>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={step2Form.control}
+                name="savingsTimeline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Timeline</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="10000"
-                          {...field}
-                          data-testid="input-savings-target"
-                          className="h-12"
-                        />
+                        <SelectTrigger 
+                          data-testid="select-savings-timeline" 
+                          className="h-12 bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        >
+                          <SelectValue placeholder="When do you want to reach your goal?" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormDescription>
-                        How much would you like to save? (in your local currency)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectItem value="3months" className="text-white focus:bg-slate-700">3 months</SelectItem>
+                        <SelectItem value="6months" className="text-white focus:bg-slate-700">6 months</SelectItem>
+                        <SelectItem value="1year" className="text-white focus:bg-slate-700">1 year</SelectItem>
+                        <SelectItem value="3years" className="text-white focus:bg-slate-700">3 years</SelectItem>
+                        <SelectItem value="5years+" className="text-white focus:bg-slate-700">5+ years</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={step2Form.control}
-                  name="savingsTimeline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Timeline</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-savings-timeline" className="h-12">
-                            <SelectValue placeholder="When do you want to reach your goal?" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="3months">3 months</SelectItem>
-                          <SelectItem value="6months">6 months</SelectItem>
-                          <SelectItem value="1year">1 year</SelectItem>
-                          <SelectItem value="3years">3 years</SelectItem>
-                          <SelectItem value="5years+">5+ years</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={step2Form.control}
+                name="financialPriorities"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Financial Priorities</FormLabel>
+                    <p className="text-slate-400 text-xs mb-3">Select all that apply</p>
+                    <div className="space-y-3">
+                      {[
+                        { id: "emergency_fund", label: "Build Emergency Fund" },
+                        { id: "retirement", label: "Plan for Retirement" },
+                        { id: "debt_payoff", label: "Pay Off Debt" },
+                        { id: "investment", label: "Invest for Growth" },
+                        { id: "major_purchase", label: "Save for Major Purchase" },
+                      ].map((priority) => (
+                        <FormField
+                          key={priority.id}
+                          control={step2Form.control}
+                          name="financialPriorities"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(priority.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                      ? [...(field.value || []), priority.id]
+                                      : (field.value || []).filter((v) => v !== priority.id);
+                                    field.onChange(newValue);
+                                  }}
+                                  data-testid={`checkbox-priority-${priority.id}`}
+                                  className="h-5 w-5 border-slate-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal text-slate-200 cursor-pointer">
+                                {priority.label}
+                              </FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={step2Form.control}
-                  name="financialPriorities"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Financial Priorities (select all that apply)</FormLabel>
-                      <div className="space-y-3">
-                        {[
-                          { id: "emergency_fund", label: "Build Emergency Fund" },
-                          { id: "retirement", label: "Plan for Retirement" },
-                          { id: "debt_payoff", label: "Pay Off Debt" },
-                          { id: "investment", label: "Invest for Growth" },
-                          { id: "major_purchase", label: "Save for Major Purchase" },
-                        ].map((priority) => (
-                          <FormField
-                            key={priority.id}
-                            control={step2Form.control}
-                            name="financialPriorities"
-                            render={({ field }) => (
-                              <FormItem className="flex items-center space-x-3 space-y-0">
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(priority.id)}
-                                    onCheckedChange={(checked) => {
-                                      const newValue = checked
-                                        ? [...(field.value || []), priority.id]
-                                        : (field.value || []).filter((v) => v !== priority.id);
-                                      field.onChange(newValue);
-                                    }}
-                                    data-testid={`checkbox-priority-${priority.id}`}
-                                    className="h-6 w-6"
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal text-base cursor-pointer">
-                                  {priority.label}
-                                </FormLabel>
-                              </FormItem>
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-between gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(1)}
-                    className="min-h-[52px] px-8"
-                    data-testid="button-back-step-2"
-                  >
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="min-h-[52px] px-8"
-                    data-testid="button-next-step-2"
-                    disabled={saveProgressMutation.isPending}
-                  >
-                    Next
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+              <div className="flex justify-between pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setCurrentStep(1)}
+                  className="h-12 px-6 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl"
+                  data-testid="button-back-step-2"
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl"
+                  data-testid="button-next-step-2"
+                  disabled={saveProgressMutation.isPending}
+                >
+                  Continue
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       )}
 
-      {/* Step 3: AI Preferences */}
       {currentStep === 3 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Customize Your AI Assistant</CardTitle>
-            <CardDescription>
-              How would you like your AI assistant to help you?
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...step3Form}>
-              <form onSubmit={step3Form.handleSubmit(handleStep3Submit)} className="space-y-6">
-                <FormField
-                  control={step3Form.control}
-                  name="notificationFrequency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notification Frequency</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-notification-frequency" className="h-12">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily insights</SelectItem>
-                          <SelectItem value="weekly">Weekly summaries</SelectItem>
-                          <SelectItem value="monthly">Monthly reports</SelectItem>
-                          <SelectItem value="never">Only when I ask</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-white mb-1">Customize Your AI Assistant</h2>
+            <p className="text-slate-400 text-sm">How would you like your AI to help you?</p>
+          </div>
+          <Form {...step3Form}>
+            <form onSubmit={step3Form.handleSubmit(handleStep3Submit)} className="space-y-5">
+              <FormField
+                control={step3Form.control}
+                name="notificationFrequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Notification Frequency</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger 
+                          data-testid="select-notification-frequency" 
+                          className="h-12 bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectItem value="daily" className="text-white focus:bg-slate-700">Daily insights</SelectItem>
+                        <SelectItem value="weekly" className="text-white focus:bg-slate-700">Weekly summaries</SelectItem>
+                        <SelectItem value="monthly" className="text-white focus:bg-slate-700">Monthly reports</SelectItem>
+                        <SelectItem value="never" className="text-white focus:bg-slate-700">Only when I ask</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={step3Form.control}
-                  name="adviceStyle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Advice Style</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-advice-style" className="h-12">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="detailed">Detailed analysis with numbers</SelectItem>
-                          <SelectItem value="concise">Concise actionable points</SelectItem>
-                          <SelectItem value="conversational">Conversational and friendly</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={step3Form.control}
+                name="adviceStyle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Advice Style</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger 
+                          data-testid="select-advice-style" 
+                          className="h-12 bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectItem value="detailed" className="text-white focus:bg-slate-700">Detailed analysis with numbers</SelectItem>
+                        <SelectItem value="concise" className="text-white focus:bg-slate-700">Concise actionable points</SelectItem>
+                        <SelectItem value="conversational" className="text-white focus:bg-slate-700">Conversational and friendly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={step3Form.control}
-                  name="preferredLanguage"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Preferred Language</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-preferred-language" className="h-12">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="ar">العربية (Arabic)</SelectItem>
-                          <SelectItem value="hi">हिन्दी (Hindi)</SelectItem>
-                          <SelectItem value="id">Bahasa Indonesia</SelectItem>
-                          <SelectItem value="ms">Bahasa Melayu</SelectItem>
-                          <SelectItem value="pt">Português</SelectItem>
-                          <SelectItem value="th">ไทย (Thai)</SelectItem>
-                          <SelectItem value="tl">Tagalog</SelectItem>
-                          <SelectItem value="tr">Türkçe (Turkish)</SelectItem>
-                          <SelectItem value="vi">Tiếng Việt</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={step3Form.control}
+                name="preferredLanguage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-200 text-sm font-medium">Preferred Language</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger 
+                          data-testid="select-preferred-language" 
+                          className="h-12 bg-slate-800 border-slate-600 text-white focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        <SelectItem value="en" className="text-white focus:bg-slate-700">English</SelectItem>
+                        <SelectItem value="es" className="text-white focus:bg-slate-700">Espanol</SelectItem>
+                        <SelectItem value="ar" className="text-white focus:bg-slate-700">Arabic</SelectItem>
+                        <SelectItem value="hi" className="text-white focus:bg-slate-700">Hindi</SelectItem>
+                        <SelectItem value="id" className="text-white focus:bg-slate-700">Bahasa Indonesia</SelectItem>
+                        <SelectItem value="ms" className="text-white focus:bg-slate-700">Bahasa Melayu</SelectItem>
+                        <SelectItem value="pt" className="text-white focus:bg-slate-700">Portugues</SelectItem>
+                        <SelectItem value="th" className="text-white focus:bg-slate-700">Thai</SelectItem>
+                        <SelectItem value="tl" className="text-white focus:bg-slate-700">Tagalog</SelectItem>
+                        <SelectItem value="tr" className="text-white focus:bg-slate-700">Turkish</SelectItem>
+                        <SelectItem value="vi" className="text-white focus:bg-slate-700">Vietnamese</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-400" />
+                  </FormItem>
+                )}
+              />
 
-                <div className="flex justify-between gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCurrentStep(2)}
-                    className="min-h-[52px] px-8"
-                    data-testid="button-back-step-3"
-                  >
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="min-h-[52px] px-8"
-                    data-testid="button-complete-onboarding"
-                    disabled={completeOnboardingMutation.isPending}
-                  >
-                    {completeOnboardingMutation.isPending ? "Finishing..." : "Complete Setup"}
-                    <Check className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+              <div className="flex justify-between pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setCurrentStep(2)}
+                  className="h-12 px-6 text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl"
+                  data-testid="button-back-step-3"
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl"
+                  data-testid="button-complete-onboarding"
+                  disabled={completeOnboardingMutation.isPending}
+                >
+                  {completeOnboardingMutation.isPending ? "Finishing..." : "Complete Setup"}
+                  <Check className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       )}
     </div>
   );
