@@ -1,7 +1,7 @@
 // Twealth Service Worker for Mobile PWA
-const CACHE_NAME = 'twealth-v1';
-const STATIC_CACHE = 'twealth-static-v1';
-const API_CACHE = 'twealth-api-v1';
+const CACHE_NAME = 'twealth-v2';
+const STATIC_CACHE = 'twealth-static-v2';
+const API_CACHE = 'twealth-api-v2';
 
 // Assets to cache for offline functionality (production-safe paths)
 const STATIC_ASSETS = [
@@ -75,6 +75,11 @@ self.addEventListener('fetch', (event) => {
   
   // Skip non-GET requests and external domains
   if (request.method !== 'GET' || !url.origin.includes(self.location.origin)) {
+    return;
+  }
+  
+  // CRITICAL: Never intercept OAuth authentication routes - let them go directly to server
+  if (url.pathname.startsWith('/api/auth/')) {
     return;
   }
   
