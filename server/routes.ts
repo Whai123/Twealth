@@ -159,10 +159,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const checks: Record<string, { status: 'healthy' | 'degraded' | 'unhealthy'; latency?: number; message?: string }> = {};
     let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
 
-    // 1. Database health check
+    // 1. Database health check (using Drizzle's select with a lightweight query)
     try {
       const dbStart = Date.now();
-      await db.execute('SELECT 1');
+      // Query subscription_plans table (always exists) to verify DB connectivity
+      await db.select({ id: subscriptionPlans.id }).from(subscriptionPlans).limit(1);
       checks.database = { status: 'healthy', latency: Date.now() - dbStart };
     } catch (error: any) {
       checks.database = { status: 'unhealthy', message: 'Database connection failed' };
