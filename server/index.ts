@@ -5,6 +5,23 @@ import { db } from "./db";
 import { investmentStrategies } from "@shared/schema";
 import { getSession, setupAuth } from "./customAuth";
 
+// ==================== GLOBAL ERROR HANDLERS ====================
+// Catch unhandled promise rejections (critical for production stability)
+process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
+  log(`[CRITICAL] Unhandled Promise Rejection: ${reason?.message || reason}`);
+  if (reason?.stack) {
+    log(`Stack: ${reason.stack}`);
+  }
+});
+
+// Catch uncaught exceptions (last resort safety net)
+process.on('uncaughtException', (error: Error) => {
+  log(`[CRITICAL] Uncaught Exception: ${error.message}`);
+  log(`Stack: ${error.stack}`);
+  // Give time to log before potential crash
+  setTimeout(() => process.exit(1), 1000);
+});
+
 const app = express();
 
 // Trust proxy - required for secure cookies behind Replit's proxy
@@ -69,12 +86,38 @@ app.use((req, res, next) => {
 
   const server = await registerRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // ==================== CENTRALIZED ERROR HANDLER ====================
+  // Production-grade error handling with proper logging and user-friendly messages
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    // Log error details for debugging (safe: no sensitive data)
+    log(`[ERROR] ${req.method} ${req.path} - ${status}: ${err.message}`);
+    if (!isProduction && err.stack) {
+      log(`Stack: ${err.stack.split('\n').slice(0, 5).join('\n')}`);
+    }
 
-    res.status(status).json({ message });
-    throw err;
+    // User-friendly error messages for common status codes
+    const userMessages: Record<number, string> = {
+      400: 'Invalid request. Please check your input and try again.',
+      401: 'Please sign in to continue.',
+      403: 'You don\'t have permission to access this resource.',
+      404: 'The requested resource was not found.',
+      429: 'Too many requests. Please wait a moment and try again.',
+      500: 'Something went wrong on our end. Please try again later.',
+      502: 'Service temporarily unavailable. Please try again.',
+      503: 'Service is currently unavailable. Please try again later.',
+    };
+
+    const message = isProduction 
+      ? (userMessages[status] || 'An unexpected error occurred.')
+      : (err.message || 'Internal Server Error');
+
+    res.status(status).json({ 
+      message,
+      ...(isProduction ? {} : { stack: err.stack?.split('\n').slice(0, 3) })
+    });
   });
 
   // importantly only setup vite in development and after

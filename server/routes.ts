@@ -152,6 +152,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: Raw body middleware for Stripe webhooks is set up in server/index.ts
   // Note: /api/auth/user is defined in customAuth.ts - don't redefine it here
   
+  // ==================== HEALTH CHECK ENDPOINT ====================
+  // Production-grade health check for monitoring and load balancers
+  app.get("/api/health", async (req, res) => {
+    const startTime = Date.now();
+    const checks: Record<string, { status: 'healthy' | 'degraded' | 'unhealthy'; latency?: number; message?: string }> = {};
+    let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+
+    // 1. Database health check
+    try {
+      const dbStart = Date.now();
+      await db.execute('SELECT 1');
+      checks.database = { status: 'healthy', latency: Date.now() - dbStart };
+    } catch (error: any) {
+      checks.database = { status: 'unhealthy', message: 'Database connection failed' };
+      overallStatus = 'unhealthy';
+    }
+
+    // 2. AI Service health check (check if API keys are configured)
+    const hasGroqKey = !!process.env.GROQ_API_KEY;
+    const hasAnthropicIntegration = !!process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY;
+    const hasOpenAIIntegration = !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+    
+    if (hasGroqKey || hasAnthropicIntegration || hasOpenAIIntegration) {
+      checks.ai = { 
+        status: 'healthy', 
+        message: `Providers: ${[
+          hasGroqKey ? 'Groq' : null,
+          hasAnthropicIntegration ? 'Anthropic' : null,
+          hasOpenAIIntegration ? 'OpenAI' : null
+        ].filter(Boolean).join(', ')}`
+      };
+    } else {
+      checks.ai = { status: 'degraded', message: 'No AI providers configured' };
+      if (overallStatus === 'healthy') overallStatus = 'degraded';
+    }
+
+    // 3. Stripe health check
+    if (stripe) {
+      checks.stripe = { status: 'healthy' };
+    } else {
+      checks.stripe = { status: 'degraded', message: 'Stripe not configured' };
+      if (overallStatus === 'healthy') overallStatus = 'degraded';
+    }
+
+    // 4. Memory usage check
+    const memUsage = process.memoryUsage();
+    const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
+    const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
+    const heapUsagePercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
+    
+    if (heapUsagePercent < 80) {
+      checks.memory = { status: 'healthy', message: `${heapUsedMB}MB / ${heapTotalMB}MB (${heapUsagePercent.toFixed(1)}%)` };
+    } else if (heapUsagePercent < 95) {
+      checks.memory = { status: 'degraded', message: `High memory usage: ${heapUsagePercent.toFixed(1)}%` };
+      if (overallStatus === 'healthy') overallStatus = 'degraded';
+    } else {
+      checks.memory = { status: 'unhealthy', message: `Critical memory usage: ${heapUsagePercent.toFixed(1)}%` };
+      overallStatus = 'unhealthy';
+    }
+
+    const responseTime = Date.now() - startTime;
+    const statusCode = overallStatus === 'unhealthy' ? 503 : overallStatus === 'degraded' ? 200 : 200;
+
+    res.status(statusCode).json({
+      status: overallStatus,
+      timestamp: new Date().toISOString(),
+      version: process.env.npm_package_version || '1.0.0',
+      uptime: Math.round(process.uptime()),
+      responseTime,
+      checks
+    });
+  });
+
   // User routes - Requires authentication
   app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
