@@ -92,9 +92,9 @@ export default function MobileNavigation() {
 
  return (
  <>
- {/* Floating Action Button - Enhanced Design (hidden on calendar page which has its own FAB) */}
+ {/* Floating Action Button - positioned on left to avoid overlap with AI button on right */}
  {location !== '/calendar' && (
- <div className="fixed bottom-20 right-4 z-50 md:hidden">
+ <div className="fixed bottom-20 left-4 z-50 md:hidden">
  <Button
  size="lg"
  onClick={() => setIsQuickActionsOpen(true)}

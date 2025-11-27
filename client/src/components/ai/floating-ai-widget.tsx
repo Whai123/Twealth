@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Brain, X, Send, Loader2 } from "lucide-react";
+import { Sparkles, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,7 +131,7 @@ export default function FloatingAIWidget() {
           className="rounded-full h-14 w-14 shadow-lg"
           data-testid="button-open-ai-widget"
         >
-          <Brain className="h-6 w-6" />
+          <Sparkles className="h-6 w-6" />
         </Button>
       </div>
     );
@@ -144,7 +144,7 @@ export default function FloatingAIWidget() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-primary/10 rounded-lg">
-                <Brain className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <CardTitle className="text-lg">AI Assistant</CardTitle>
