@@ -108,6 +108,7 @@ export default function WelcomePage() {
                 </li>
               </ul>
               <Button 
+                onClick={handleExpressStart}
                 className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
                 data-testid="button-express-start"
               >
@@ -153,6 +154,7 @@ export default function WelcomePage() {
                 </li>
               </ul>
               <Button 
+                onClick={() => setMode('full')}
                 variant="outline"
                 className="w-full h-12 bg-transparent border-slate-600 text-white hover:bg-slate-800 hover:border-slate-500 font-medium rounded-xl transition-colors"
                 data-testid="button-guided-setup"
