@@ -7,13 +7,12 @@ import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+// Safe default for REPLIT_DOMAINS in development
+const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost:5000';
 
 // Use production domain for OAuth in production, dev domain in development
 const PRODUCTION_DOMAIN = 'twealth.ltd';
-const domains = process.env.REPLIT_DOMAINS.split(',');
+const domains = REPLIT_DOMAINS.split(',');
 const isDevelopment = process.env.NODE_ENV === 'development';
 const customDomain = isDevelopment ? domains[0] : PRODUCTION_DOMAIN;
 console.log('[OAuth] Environment:', process.env.NODE_ENV);
@@ -44,8 +43,14 @@ export function getSession() {
     sameSite: isProduction ? 'none' : 'lax'
   });
   
+  // Use a safe default for SESSION_SECRET in development
+  const sessionSecret = process.env.SESSION_SECRET || (isDevelopment ? 'dev-session-secret-change-in-production' : undefined);
+  if (!sessionSecret) {
+    throw new Error('SESSION_SECRET must be set in production');
+  }
+  
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: sessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,

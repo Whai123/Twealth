@@ -18,9 +18,10 @@ interface MessageBubbleProps {
  timestamp?: string;
  onRegenerate?: () => void;
  isLatest?: boolean;
+ isRegenerating?: boolean;
 }
 
-export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest }: MessageBubbleProps) {
+export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest, isRegenerating }: MessageBubbleProps) {
  const { toast } = useToast();
  const [copied, setCopied] = useState(false);
 
@@ -65,7 +66,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
       <ReactMarkdown
        remarkPlugins={[remarkGfm]}
        components={{
-        code({ node, inline, className, children, ...props }) {
+        code({ node, inline, className, children, ...props }: any) {
          const match = /language-(\w+)/.exec(className || '');
          return !inline ? (
           <div className="my-2 rounded-md bg-slate-900 p-4 overflow-x-auto">
@@ -114,13 +115,14 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
       variant="ghost"
       size="sm"
       onClick={handleCopy}
-      className="h-7 px-2"
+      className="h-8 w-8 p-0 min-w-[44px] min-h-[44px]"
       data-testid="button-copy-message"
+      aria-label={copied ? "Copied to clipboard" : "Copy message"}
      >
       {copied ? (
-       <Check className="w-3 h-3 text-green-500" />
+       <Check className="w-4 h-4 text-green-500" />
       ) : (
-       <Copy className="w-3 h-3" />
+       <Copy className="w-4 h-4" />
       )}
      </Button>
      
@@ -129,29 +131,33 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
        variant="ghost"
        size="sm"
        onClick={onRegenerate}
-       className="h-7 px-2"
+       disabled={isRegenerating}
+       className="h-8 w-8 p-0 min-w-[44px] min-h-[44px]"
        data-testid="button-regenerate-response"
+       aria-label="Regenerate response"
       >
-       <RefreshCw className="w-3 h-3" />
+       <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
       </Button>
      )}
      
      <Button
       variant="ghost"
       size="sm"
-      className="h-7 px-2"
+      className="h-8 w-8 p-0 min-w-[44px] min-h-[44px]"
       data-testid="button-feedback-positive"
+      aria-label="Mark as helpful"
      >
-      <ThumbsUp className="w-3 h-3" />
+      <ThumbsUp className="w-4 h-4" />
      </Button>
      
      <Button
       variant="ghost"
       size="sm"
-      className="h-7 px-2"
+      className="h-8 w-8 p-0 min-w-[44px] min-h-[44px]"
       data-testid="button-feedback-negative"
+      aria-label="Mark as not helpful"
      >
-      <ThumbsDown className="w-3 h-3" />
+      <ThumbsDown className="w-4 h-4" />
      </Button>
      
      {timestamp && (

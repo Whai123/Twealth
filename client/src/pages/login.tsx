@@ -18,8 +18,9 @@ export default function Login() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
-  const { data: providers, isLoading: providersLoading } = useQuery<AuthProviders>({
+  const { data: providers, isLoading: providersLoading, isError: providersError } = useQuery<AuthProviders>({
     queryKey: ["/api/auth/providers"],
+    retry: 2,
   });
 
   useEffect(() => {
@@ -30,7 +31,9 @@ export default function Login() {
           setLocation("/");
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.warn('[Auth] Failed to check auth status:', err.message);
+      })
       .finally(() => setIsCheckingAuth(false));
   }, [setLocation]);
 
@@ -99,7 +102,20 @@ export default function Login() {
 
             <div className="rounded-2xl border border-slate-700 bg-slate-900 shadow-xl">
               <div className="p-8 space-y-4">
-                {!hasAnyProvider ? (
+                {providersError ? (
+                  <div className="text-center py-6">
+                    <p className="text-red-400 mb-2">Unable to load sign-in options.</p>
+                    <p className="text-sm text-slate-500">Please refresh the page or try again later.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.location.reload()}
+                      className="mt-4 border-slate-600 text-slate-300"
+                    >
+                      Refresh page
+                    </Button>
+                  </div>
+                ) : !hasAnyProvider ? (
                   <div className="text-center py-6">
                     <p className="text-slate-400 mb-2">Authentication is being configured.</p>
                     <p className="text-sm text-slate-500">Please check back soon.</p>

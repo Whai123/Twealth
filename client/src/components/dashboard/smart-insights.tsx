@@ -380,7 +380,7 @@ export default function SmartInsights() {
                 }
                 break;
                default:
-                console.log('Unknown action type:', action.type);
+                break;
               }
              }}
              data-testid={`button-action-${index}`}
@@ -445,7 +445,7 @@ export default function SmartInsights() {
              }
              break;
             default:
-             console.log('Unknown action type:', action.type);
+             break;
            }
           }}
          >
@@ -505,7 +505,7 @@ export default function SmartInsights() {
              }
              break;
             default:
-             console.log('Unknown action type:', action.type);
+             break;
            }
           }}
          >
@@ -565,7 +565,7 @@ export default function SmartInsights() {
              }
              break;
             default:
-             console.log('Unknown action type:', action.type);
+             break;
            }
           }}
          >

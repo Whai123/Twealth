@@ -36,27 +36,15 @@ export default function FloatingAIWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Guard to prevent multiple conversation creation attempts
+  const isCreatingConversation = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Fetch or create conversation
-  const { data: conversations = [] } = useQuery<any[]>({
-    queryKey: ["/api/chat/conversations"],
-    enabled: isOpen,
-  });
-
-  // Get or create conversation on open
-  useEffect(() => {
-    if (isOpen && conversations.length > 0 && !conversationId) {
-      setConversationId(conversations[0].id);
-    } else if (isOpen && conversations.length === 0 && !conversationId) {
-      createConversation.mutate();
-    }
-  }, [isOpen, conversations]);
-
-  // Create conversation mutation
+  // Create conversation mutation - defined before useEffect that uses it
   const createConversation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/chat/conversations", {
@@ -66,9 +54,40 @@ export default function FloatingAIWidget() {
     },
     onSuccess: (data) => {
       setConversationId(data.id);
-      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
+      isCreatingConversation.current = false;
+    },
+    onError: () => {
+      isCreatingConversation.current = false;
     },
   });
+
+  // Fetch or create conversation
+  const { data: conversations = [], isFetched } = useQuery<any[]>({
+    queryKey: ["/api/chat/conversations"],
+    enabled: isOpen,
+    staleTime: 30000, // Cache for 30 seconds to prevent excessive refetches
+  });
+
+  // Get or create conversation on open - with proper guards
+  useEffect(() => {
+    // Only run when widget is open and data has been fetched
+    if (!isOpen || !isFetched) return;
+    
+    // If we already have a conversation ID, don't do anything
+    if (conversationId) return;
+    
+    // If conversations exist, use the first one
+    if (conversations.length > 0) {
+      setConversationId(conversations[0].id);
+      return;
+    }
+    
+    // Only create if not already creating and mutation not pending
+    if (!isCreatingConversation.current && !createConversation.isPending) {
+      isCreatingConversation.current = true;
+      createConversation.mutate();
+    }
+  }, [isOpen, isFetched, conversations.length, conversationId, createConversation.isPending]);
 
   // Fetch messages
   const { data: currentConversation } = useQuery<any>({
@@ -156,6 +175,8 @@ export default function FloatingAIWidget() {
               size="sm"
               onClick={() => setIsOpen(false)}
               data-testid="button-close-ai-widget"
+              aria-label="Close AI assistant"
+              className="min-w-[44px] min-h-[44px]"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -226,6 +247,8 @@ export default function FloatingAIWidget() {
                 disabled={!message.trim() || sendMessage.isPending}
                 size="sm"
                 data-testid="button-send-ai-message"
+                aria-label="Send message"
+                className="min-w-[44px] min-h-[44px]"
               >
                 <Send className="h-4 w-4" />
               </Button>
