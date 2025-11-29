@@ -2,6 +2,7 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { 
   Shield, 
   Check, 
@@ -17,6 +18,7 @@ import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -34,7 +36,7 @@ export default function Landing() {
               className="text-sm font-medium hidden sm:flex"
               data-testid="header-signin-button"
             >
-              Sign in
+              {t('landing.header.signIn')}
             </Button>
             <Button 
               onClick={() => setLocation("/login")}
@@ -42,7 +44,7 @@ export default function Landing() {
               className="text-sm font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
               data-testid="header-getstarted-button"
             >
-              Get started
+              {t('landing.header.getStarted')}
             </Button>
           </div>
         </div>
@@ -57,18 +59,17 @@ export default function Landing() {
             className="mb-6 px-4 py-1.5 text-sm font-medium border-gray-200 dark:border-gray-800"
           >
             <Sparkles className="w-3.5 h-3.5 mr-2" />
-            Powered by GPT-5 and Claude
+            {t('landing.hero.badge')}
           </Badge>
           
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-black dark:text-white mb-6 max-w-4xl mx-auto leading-[1.05]">
-            Financial intelligence
+            {t('landing.hero.title')}
             <br />
-            <span className="text-gray-400 dark:text-gray-500">for modern life</span>
+            <span className="text-gray-400 dark:text-gray-500">{t('landing.hero.titleHighlight')}</span>
           </h1>
           
           <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Track spending, set goals, and get CFO-level advice from AI. 
-            Professional financial management made simple.
+            {t('landing.hero.subtitle')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -78,7 +79,7 @@ export default function Landing() {
               className="h-14 px-8 text-base font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl"
               data-testid="hero-get-started-button"
             >
-              Start for free
+              {t('landing.hero.startFree')}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button 
@@ -88,22 +89,22 @@ export default function Landing() {
               className="h-14 px-8 text-base font-medium border-gray-300 dark:border-gray-700 rounded-xl"
               data-testid="hero-view-pricing-button"
             >
-              View pricing
+              {t('landing.hero.viewPricing')}
             </Button>
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-500">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />
-              <span>Free forever plan</span>
+              <span>{t('landing.hero.freeForever')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />
-              <span>No credit card required</span>
+              <span>{t('landing.hero.noCreditCard')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-green-600" />
-              <span>Bank-level security</span>
+              <span>{t('landing.hero.bankSecurity')}</span>
             </div>
           </div>
         </div>
@@ -115,19 +116,19 @@ export default function Landing() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-1">4</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">AI Models</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('landing.stats.aiModels')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-1">11</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Languages</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('landing.stats.languages')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-1">99.9%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Uptime</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('landing.stats.uptime')}</div>
             </div>
             <div className="text-center">
               <div className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-1">$0</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Setup fee</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">{t('landing.stats.setupFee')}</div>
             </div>
           </div>
         </div>
@@ -137,10 +138,10 @@ export default function Landing() {
       <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-4">
-            Everything you need to manage your finances
+            {t('landing.features.title')}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Powerful tools designed to help you understand, track, and grow your wealth.
+            {t('landing.features.subtitle')}
           </p>
         </div>
         
@@ -149,9 +150,9 @@ export default function Landing() {
             <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center mb-5">
               <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">AI Financial Advisor</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.aiAdvisor.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Get personalized advice from GPT-5 and Claude. Ask anything about budgeting, investing, or financial planning.
+              {t('landing.features.aiAdvisor.description')}
             </p>
           </Card>
           
@@ -159,9 +160,9 @@ export default function Landing() {
             <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center mb-5">
               <Wallet className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Smart Money Tracking</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.smartTracking.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Track income and expenses with automatic categorization. See exactly where your money goes each month.
+              {t('landing.features.smartTracking.description')}
             </p>
           </Card>
           
@@ -169,9 +170,9 @@ export default function Landing() {
             <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-950/50 flex items-center justify-center mb-5">
               <Target className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Goal Management</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.goalManagement.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Set financial goals and track your progress. Get AI-powered suggestions to achieve them faster.
+              {t('landing.features.goalManagement.description')}
             </p>
           </Card>
           
@@ -179,9 +180,9 @@ export default function Landing() {
             <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center mb-5">
               <TrendingUp className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Investment Insights</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.investmentInsights.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Track stocks, crypto, and other investments. Get market data and AI-powered analysis.
+              {t('landing.features.investmentInsights.description')}
             </p>
           </Card>
           
@@ -189,9 +190,9 @@ export default function Landing() {
             <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-950/50 flex items-center justify-center mb-5">
               <Zap className="w-6 h-6 text-rose-600 dark:text-rose-400" />
             </div>
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">AI Playbooks</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.aiPlaybooks.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Get weekly AI-generated financial reports with actionable insights and personalized recommendations.
+              {t('landing.features.aiPlaybooks.description')}
             </p>
           </Card>
           
@@ -199,9 +200,9 @@ export default function Landing() {
             <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center mb-5">
               <Shield className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">Financial Health Score</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.healthScore.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Get a comprehensive health score based on savings, debt, and goals. Know exactly where you stand.
+              {t('landing.features.healthScore.description')}
             </p>
           </Card>
         </div>
@@ -212,34 +213,34 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-24">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-4">
-              Simple, transparent pricing
+              {t('landing.pricing.title')}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              Start free, upgrade when you need more AI power
+              {t('landing.pricing.subtitle')}
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-gray-800">
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-1">Free</h3>
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-1">{t('landing.pricing.free.name')}</h3>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-black dark:text-white">$0</span>
-                  <span className="text-gray-500">/month</span>
+                  <span className="text-gray-500">{t('landing.pricing.perMonth')}</span>
                 </div>
               </div>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  50 AI queries/month
+                  {t('landing.pricing.free.aiQueries')}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  Basic expense tracking
+                  {t('landing.pricing.free.expenseTracking')}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  Goal management
+                  {t('landing.pricing.free.goalManagement')}
                 </li>
               </ul>
               <Button 
@@ -248,33 +249,33 @@ export default function Landing() {
                 className="w-full"
                 data-testid="pricing-free-button"
               >
-                Get started
+                {t('landing.pricing.free.button')}
               </Button>
             </Card>
             
             <Card className="p-6 bg-white dark:bg-black border-2 border-black dark:border-white relative">
               <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-black dark:bg-white text-white dark:text-black">
-                Most popular
+                {t('landing.pricing.pro.badge')}
               </Badge>
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-1">Pro</h3>
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-1">{t('landing.pricing.pro.name')}</h3>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-black dark:text-white">$9.99</span>
-                  <span className="text-gray-500">/month</span>
+                  <span className="text-gray-500">{t('landing.pricing.perMonth')}</span>
                 </div>
               </div>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  Unlimited Scout queries
+                  {t('landing.pricing.pro.scoutQueries')}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  25 Sonnet queries/month
+                  {t('landing.pricing.pro.sonnetQueries')}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  5 GPT-5 math queries
+                  {t('landing.pricing.pro.gptQueries')}
                 </li>
               </ul>
               <Button 
@@ -282,30 +283,30 @@ export default function Landing() {
                 className="w-full bg-black dark:bg-white text-white dark:text-black"
                 data-testid="pricing-pro-button"
               >
-                Start Pro trial
+                {t('landing.pricing.pro.button')}
               </Button>
             </Card>
             
             <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-gray-800">
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-1">Enterprise</h3>
+                <h3 className="text-lg font-semibold text-black dark:text-white mb-1">{t('landing.pricing.enterprise.name')}</h3>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-bold text-black dark:text-white">$49.99</span>
-                  <span className="text-gray-500">/month</span>
+                  <span className="text-gray-500">{t('landing.pricing.perMonth')}</span>
                 </div>
               </div>
               <ul className="space-y-3 mb-6">
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  Everything in Pro
+                  {t('landing.pricing.enterprise.everythingInPro')}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  20 Opus CFO queries
+                  {t('landing.pricing.enterprise.opusQueries')}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Check className="w-4 h-4 text-green-600" />
-                  Priority support
+                  {t('landing.pricing.enterprise.prioritySupport')}
                 </li>
               </ul>
               <Button 
@@ -314,7 +315,7 @@ export default function Landing() {
                 className="w-full"
                 data-testid="pricing-enterprise-button"
               >
-                Contact sales
+                {t('landing.pricing.enterprise.button')}
               </Button>
             </Card>
           </div>
@@ -324,10 +325,10 @@ export default function Landing() {
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-6 lg:px-8 py-24 text-center">
         <h2 className="text-4xl sm:text-5xl font-bold text-black dark:text-white mb-6">
-          Ready to take control?
+          {t('landing.cta.title')}
         </h2>
         <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
-          Join thousands of people who use Twealth to manage their finances smarter.
+          {t('landing.cta.subtitle')}
         </p>
         <Button 
           onClick={() => setLocation("/login")} 
@@ -335,7 +336,7 @@ export default function Landing() {
           className="h-14 px-8 text-base font-medium bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 rounded-xl"
           data-testid="cta-get-started-button"
         >
-          Get started free
+          {t('landing.cta.button')}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </section>
@@ -345,46 +346,46 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
-              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Product</h4>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">{t('landing.footer.product')}</h4>
               <ul className="space-y-3">
-                <li><Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Dashboard</Link></li>
-                <li><Link href="/subscription" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link href="/ai-assistant" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">AI Advisor</Link></li>
+                <li><Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.dashboard')}</Link></li>
+                <li><Link href="/subscription" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.pricing')}</Link></li>
+                <li><Link href="/ai-assistant" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.aiAdvisor')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Features</h4>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">{t('landing.footer.features')}</h4>
               <ul className="space-y-3">
-                <li><Link href="/financial-goals" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Goals</Link></li>
-                <li><Link href="/money-tracking" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Money Tracking</Link></li>
-                <li><Link href="/playbooks" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">AI Playbooks</Link></li>
+                <li><Link href="/financial-goals" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.goals')}</Link></li>
+                <li><Link href="/money-tracking" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.moneyTracking')}</Link></li>
+                <li><Link href="/playbooks" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.aiPlaybooks')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Resources</h4>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">{t('landing.footer.resources')}</h4>
               <ul className="space-y-3">
-                <li><Link href="/investments" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Investments</Link></li>
-                <li><Link href="/calendar" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Calendar</Link></li>
-                <li><Link href="/settings" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">Settings</Link></li>
+                <li><Link href="/investments" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.investments')}</Link></li>
+                <li><Link href="/calendar" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.calendar')}</Link></li>
+                <li><Link href="/settings" className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">{t('landing.footer.settings')}</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">Legal</h4>
+              <h4 className="text-sm font-semibold text-black dark:text-white mb-4">{t('landing.footer.legal')}</h4>
               <ul className="space-y-3">
-                <li><span className="text-sm text-gray-500 cursor-default">Privacy Policy</span></li>
-                <li><span className="text-sm text-gray-500 cursor-default">Terms of Service</span></li>
-                <li><span className="text-sm text-gray-500 cursor-default">Cookie Policy</span></li>
+                <li><span className="text-sm text-gray-500 cursor-default">{t('landing.footer.privacyPolicy')}</span></li>
+                <li><span className="text-sm text-gray-500 cursor-default">{t('landing.footer.termsOfService')}</span></li>
+                <li><span className="text-sm text-gray-500 cursor-default">{t('landing.footer.cookiePolicy')}</span></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-gray-100 dark:border-gray-900 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <img src={logoUrl} alt="Twealth" className="w-6 h-6" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">2025 Twealth. All rights reserved.</span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{t('landing.footer.copyright')}</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Shield className="w-3 h-3" />
-              <span>SOC 2 Type II Certified</span>
+              <span>{t('landing.footer.socCertified')}</span>
             </div>
           </div>
         </div>
