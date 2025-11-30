@@ -159,78 +159,140 @@ export async function generateWeeklyPlaybook(
   // Generate insights using AI
   const insightsCount = tier === 'enterprise' ? 7 : tier === 'pro' ? 5 : 2;
   
-  const insightsPrompt = `Analyze this user's financial data and provide ${insightsCount} key insights:
+  // Use simpler plain text prompt to avoid tool-calling issues with Scout/Llama
+  const insightsPrompt = `You are a financial analyst. Analyze this user's financial data and provide ${insightsCount} key insights.
 
-**Financial Health Score:** ${financialHealthScore}/100 (${confidenceBand})
-**Components:**
+Financial Health Score: ${financialHealthScore}/100 (${confidenceBand})
+Score Components:
 - Savings Rate: ${components.savingsRate}/30
 - Emergency Fund: ${components.emergencyFund}/25
 - Goal Progress: ${components.goalProgress}/20
 - Budget Adherence: ${components.budgetAdherence}/15
 - Debt Management: ${components.debtManagement}/10
 
-Provide exactly ${insightsCount} insights as a JSON array:
-[{"text": "insight text", "tag": "spending|saving|goal|budget|investment", "severity": "high|medium|low"}]
+Respond with ONLY a valid JSON array. No other text before or after.
+Each object must have exactly these fields:
+- "text": a short insight sentence
+- "tag": EXACTLY ONE of these words: spending, saving, goal, budget, investment (pick the single most relevant one)
+- "severity": EXACTLY ONE of: high, medium, low
 
-Focus on actionable observations about their financial behavior this week.`;
+Example format:
+[{"text": "Your savings rate is strong at 20%.", "tag": "saving", "severity": "low"}]
 
-  const aiResponse = await generateHybridAdvice(
-    userId,
-    insightsPrompt,
-    storage,
-    { forceModel: modelToUse }
-  );
+Provide ${insightsCount} insights focused on actionable observations.`;
 
-  // Parse insights from AI response
   let insights: PlaybookInsight[] = [];
+  let totalTokensUsed = 0;
+  
   try {
+    const aiResponse = await generateHybridAdvice(
+      userId,
+      insightsPrompt,
+      storage,
+      { forceModel: modelToUse }
+    );
+    
+    totalTokensUsed += (aiResponse.tokensIn || 0) + (aiResponse.tokensOut || 0);
+
+    // Parse insights from AI response
     const jsonMatch = aiResponse.answer.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
-      insights = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      // Validate and sanitize each insight
+      insights = parsed.map((item: any) => {
+        // Normalize tag - take first word if pipe-separated
+        let tag = String(item.tag || 'goal').toLowerCase().trim();
+        if (tag.includes('|')) tag = tag.split('|')[0].trim();
+        if (!['spending', 'saving', 'goal', 'budget', 'investment'].includes(tag)) tag = 'goal';
+        
+        // Normalize severity
+        let severity = String(item.severity || 'medium').toLowerCase().trim();
+        if (!['high', 'medium', 'low'].includes(severity)) severity = 'medium';
+        
+        return {
+          text: String(item.text || 'Financial insight'),
+          tag,
+          severity: severity as 'high' | 'medium' | 'low',
+        };
+      }).slice(0, insightsCount);
     }
   } catch (error) {
-    // Fallback insights if AI parsing fails
-    insights = [
-      { text: "Your financial health score is " + confidenceBand, tag: "goal", severity: scoreDelta < -10 ? "high" : "medium" },
-      { text: `You're ${components.savingsRate >= 20 ? 'maintaining a healthy' : 'working on improving your'} savings rate`, tag: "saving", severity: "medium" },
-    ];
+    // AI call failed - use intelligent fallback insights based on actual scores
+    console.log('Playbook insights AI failed, using fallback:', error);
+  }
+  
+  // Ensure we always have insights (fallback if AI fails or returns empty)
+  if (insights.length === 0) {
+    insights = generateFallbackInsights(components, confidenceBand, scoreDelta, insightsCount);
   }
 
   // Generate actions using AI
-  const actionsPrompt = `Based on this financial health analysis, recommend the top 3 priority actions:
+  const weakestAreas = Object.entries(components)
+    .sort(([, a], [, b]) => a - b)
+    .slice(0, 2)
+    .map(([key]) => key)
+    .join(', ');
 
-**Score:** ${financialHealthScore}/100
-**Weakest Areas:** ${Object.entries(components)
-  .sort(([, a], [, b]) => a - b)
-  .slice(0, 2)
-  .map(([key]) => key)
-  .join(', ')}
+  const actionsPrompt = `You are a financial advisor. Based on this analysis, recommend 3 priority actions.
 
-Provide exactly 3 actions as JSON:
-[{"title": "action title", "description": "why and how", "effort": "low|medium|high", "impact": "low|medium|high", "deepLink": "/route"}]
+Score: ${financialHealthScore}/100
+Weakest Areas: ${weakestAreas}
 
-Make actions specific, actionable, and include deep links to relevant Twealth pages.`;
+Respond with ONLY a valid JSON array. No other text.
+Each object must have exactly these fields:
+- "title": short action title (3-5 words)
+- "description": why and how (1-2 sentences)
+- "effort": EXACTLY ONE of: low, medium, high
+- "impact": EXACTLY ONE of: low, medium, high
+- "deepLink": one of these routes: /money-tracking, /financial-goals, /investments, /crypto, /settings
 
-  const actionsResponse = await generateHybridAdvice(
-    userId,
-    actionsPrompt,
-    storage,
-    { forceModel: modelToUse }
-  );
+Example:
+[{"title": "Review budget limits", "description": "Check if spending categories match your goals.", "effort": "low", "impact": "medium", "deepLink": "/money-tracking"}]
+
+Provide exactly 3 actions.`;
 
   let actions: PlaybookAction[] = [];
+  
   try {
+    const actionsResponse = await generateHybridAdvice(
+      userId,
+      actionsPrompt,
+      storage,
+      { forceModel: modelToUse }
+    );
+    
+    totalTokensUsed += (actionsResponse.tokensIn || 0) + (actionsResponse.tokensOut || 0);
+
     const jsonMatch = actionsResponse.answer.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
-      actions = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0]);
+      // Validate and sanitize each action
+      actions = parsed.map((item: any) => {
+        let effort = String(item.effort || 'medium').toLowerCase().trim();
+        if (!['low', 'medium', 'high'].includes(effort)) effort = 'medium';
+        
+        let impact = String(item.impact || 'medium').toLowerCase().trim();
+        if (!['low', 'medium', 'high'].includes(impact)) impact = 'medium';
+        
+        let deepLink = String(item.deepLink || '/money-tracking');
+        if (!deepLink.startsWith('/')) deepLink = '/money-tracking';
+        
+        return {
+          title: String(item.title || 'Take action').substring(0, 50),
+          description: String(item.description || 'Improve your finances').substring(0, 200),
+          effort: effort as 'low' | 'medium' | 'high',
+          impact: impact as 'low' | 'medium' | 'high',
+          deepLink,
+        };
+      }).slice(0, 3);
     }
   } catch (error) {
-    // Fallback actions
-    actions = [
-      { title: "Review your budget", description: "Check spending vs limits", effort: "low", impact: "medium", deepLink: "/money-tracking" },
-      { title: "Set a new goal", description: "Create a savings target", effort: "medium", impact: "high", deepLink: "/financial-goals" },
-      { title: "Track transactions", description: "Log this week's expenses", effort: "low", impact: "medium", deepLink: "/money-tracking" },
-    ];
+    console.log('Playbook actions AI failed, using fallback:', error);
+  }
+  
+  // Ensure we always have actions (fallback if AI fails)
+  if (actions.length === 0) {
+    actions = generateFallbackActions(components, weakestAreas);
   }
 
   // Calculate ROI (simplified for MVP - can be enhanced later)
@@ -257,10 +319,181 @@ Make actions specific, actionable, and include deep links to relevant Twealth pa
     tier,
     generatedBy: modelToUse,
     generationTimeMs: Math.round(Date.now() - now.getTime()),
-    tokensUsed: (aiResponse.tokensIn || 0) + (aiResponse.tokensOut || 0) + (actionsResponse.tokensIn || 0) + (actionsResponse.tokensOut || 0),
+    tokensUsed: totalTokensUsed,
   };
 
   return playbook;
+}
+
+/**
+ * Generate fallback insights when AI fails
+ */
+function generateFallbackInsights(
+  components: Record<string, number>,
+  confidenceBand: string,
+  scoreDelta: number,
+  count: number
+): PlaybookInsight[] {
+  const insights: PlaybookInsight[] = [];
+  
+  // Savings insight
+  if (components.savingsRate < 15) {
+    insights.push({
+      text: "Your savings rate could use improvement. Consider setting aside at least 20% of your income.",
+      tag: "saving",
+      severity: "high"
+    });
+  } else if (components.savingsRate >= 25) {
+    insights.push({
+      text: "Your savings rate is strong. Keep up the good work building your financial cushion.",
+      tag: "saving",
+      severity: "low"
+    });
+  }
+  
+  // Emergency fund insight
+  if (components.emergencyFund < 10) {
+    insights.push({
+      text: "Building an emergency fund should be a priority. Aim for 3-6 months of expenses.",
+      tag: "saving",
+      severity: "high"
+    });
+  }
+  
+  // Budget insight
+  if (components.budgetAdherence < 10) {
+    insights.push({
+      text: "Your spending is exceeding budget limits in some categories. Review and adjust your budgets.",
+      tag: "budget",
+      severity: "medium"
+    });
+  } else if (components.budgetAdherence >= 12) {
+    insights.push({
+      text: "You're staying within your budget limits. Great financial discipline.",
+      tag: "budget",
+      severity: "low"
+    });
+  }
+  
+  // Goal progress insight
+  if (components.goalProgress < 10) {
+    insights.push({
+      text: "Your financial goals need attention. Consider making regular contributions toward them.",
+      tag: "goal",
+      severity: "medium"
+    });
+  }
+  
+  // Debt insight
+  if (components.debtManagement >= 8) {
+    insights.push({
+      text: "Your debt management is excellent. Focus on maintaining this healthy balance.",
+      tag: "spending",
+      severity: "low"
+    });
+  }
+  
+  // Trend insight
+  if (scoreDelta > 5) {
+    insights.push({
+      text: "Your financial health is improving. The positive trend shows your efforts are paying off.",
+      tag: "goal",
+      severity: "low"
+    });
+  } else if (scoreDelta < -5) {
+    insights.push({
+      text: "Your financial health has declined this week. Review recent spending patterns.",
+      tag: "spending",
+      severity: "high"
+    });
+  }
+  
+  // Ensure we have at least the requested count
+  while (insights.length < count) {
+    insights.push({
+      text: `Your financial health is ${confidenceBand}. Continue monitoring your progress.`,
+      tag: "goal",
+      severity: "medium"
+    });
+  }
+  
+  return insights.slice(0, count);
+}
+
+/**
+ * Generate fallback actions when AI fails
+ */
+function generateFallbackActions(
+  components: Record<string, number>,
+  weakestAreas: string
+): PlaybookAction[] {
+  const actions: PlaybookAction[] = [];
+  
+  // Always useful actions based on weakest areas
+  if (weakestAreas.includes('savingsRate') || weakestAreas.includes('emergencyFund')) {
+    actions.push({
+      title: "Set up automatic savings",
+      description: "Automate transfers to a savings account to build your emergency fund consistently.",
+      effort: "low",
+      impact: "high",
+      deepLink: "/money-tracking"
+    });
+  }
+  
+  if (weakestAreas.includes('budgetAdherence')) {
+    actions.push({
+      title: "Review budget categories",
+      description: "Check which categories are over budget and adjust limits or reduce spending.",
+      effort: "low",
+      impact: "medium",
+      deepLink: "/money-tracking"
+    });
+  }
+  
+  if (weakestAreas.includes('goalProgress')) {
+    actions.push({
+      title: "Update financial goals",
+      description: "Review your goals and make a contribution toward your highest priority target.",
+      effort: "medium",
+      impact: "high",
+      deepLink: "/financial-goals"
+    });
+  }
+  
+  // Default actions if we don't have enough
+  const defaultActions: PlaybookAction[] = [
+    {
+      title: "Log recent transactions",
+      description: "Keep your financial picture accurate by recording this week's expenses.",
+      effort: "low",
+      impact: "medium",
+      deepLink: "/money-tracking"
+    },
+    {
+      title: "Review investment portfolio",
+      description: "Check your investment allocations and consider rebalancing if needed.",
+      effort: "medium",
+      impact: "medium",
+      deepLink: "/investments"
+    },
+    {
+      title: "Set a new savings goal",
+      description: "Define a specific financial target to work toward in the coming months.",
+      effort: "low",
+      impact: "high",
+      deepLink: "/financial-goals"
+    }
+  ];
+  
+  // Fill up to 3 actions
+  for (const action of defaultActions) {
+    if (actions.length >= 3) break;
+    if (!actions.some(a => a.deepLink === action.deepLink)) {
+      actions.push(action);
+    }
+  }
+  
+  return actions.slice(0, 3);
 }
 
 /**
