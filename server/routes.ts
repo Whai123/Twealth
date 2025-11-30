@@ -9,6 +9,10 @@ import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
 import { stripeLogger } from "./utils/logger";
 
+// Idempotency cache for Stripe webhook events (module-scoped, persists across requests)
+const processedWebhookEvents = new Set<string>();
+const WEBHOOK_EVENT_CACHE_SIZE = 1000;
+
 // Rate limiters for different endpoint types
 const aiChatLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -5751,10 +5755,6 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
-  // Idempotency cache for webhook events (in-memory, cleared on restart)
-  const processedWebhookEvents = new Set<string>();
-  const WEBHOOK_EVENT_CACHE_SIZE = 1000;
-  
   // Stripe Webhook Handler for payment completion
   // Stripe automatically retries webhooks on 5xx errors with exponential backoff
   app.post('/api/webhooks/stripe', async (req, res) => {
