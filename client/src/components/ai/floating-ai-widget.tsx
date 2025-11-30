@@ -143,21 +143,27 @@ export default function FloatingAIWidget() {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div 
+        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50"
+        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="rounded-full h-14 w-14 shadow-lg"
+          className="rounded-full h-12 w-12 min-h-[48px] min-w-[48px] shadow-lg"
           data-testid="button-open-ai-widget"
         >
-          <Sparkles className="h-6 w-6" />
+          <Sparkles className="h-5 w-5" />
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96">
+    <div 
+      className="fixed bottom-20 md:bottom-6 right-2 md:right-6 z-50 w-[calc(100vw-16px)] sm:w-96 max-w-[400px]"
+      style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
       <Card className="shadow-2xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">

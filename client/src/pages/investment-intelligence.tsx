@@ -831,7 +831,7 @@ export default function InvestmentIntelligence() {
 
           <div className="mt-4" data-testid="calculator-projections">
            <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Investment Projections</h4>
-           <div className="grid grid-cols-3 gap-4">
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div className="bg-muted/30 rounded-lg p-3">
              <p className="text-xs text-muted-foreground mb-1">1 Year</p>
              <p className="text-lg font-bold" data-testid="text-return-1year">

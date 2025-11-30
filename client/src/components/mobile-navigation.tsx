@@ -92,24 +92,24 @@ export default function MobileNavigation() {
 
  return (
  <>
- {/* Floating Action Button - positioned on left to avoid overlap with AI button on right */}
+ {/* Floating Action Button - positioned above bottom nav */}
  {location !== '/calendar' && (
- <div className="fixed bottom-20 left-4 z-50 md:hidden">
+ <div className="fixed bottom-20 left-4 z-50 md:hidden" style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}>
  <Button
  size="lg"
  onClick={() => setIsQuickActionsOpen(true)}
- className="w-14 h-14 rounded-full shadow-xl bg-primary text-primary-foreground border-0"
+ className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full shadow-lg bg-primary text-primary-foreground border-0"
  aria-label={t('quickActions.addNew')}
  data-testid="fab-add"
  >
- <Plus size={24} />
+ <Plus size={22} />
  </Button>
  </div>
  )}
 
  {/* Quick Actions Drawer */}
  <Drawer open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
- <DrawerContent className="max-h-[50vh]">
+ <DrawerContent className="max-h-[85vh] overflow-y-auto">
  <div className="p-4 pb-6">
  <DrawerTitle className="text-xl font-semibold mb-2">{t('quickActions.title')}</DrawerTitle>
  <DrawerDescription className="text-muted-foreground mb-4">
@@ -139,7 +139,7 @@ export default function MobileNavigation() {
 
  {/* Goal Creation Drawer */}
  <Drawer open={activeAction === 'goal'} onOpenChange={(open) => !open && setActiveAction(null)}>
- <DrawerContent className="max-h-[90vh]">
+ <DrawerContent className="max-h-[85vh] overflow-y-auto">
  <div className="p-4 pb-6">
  <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
  <Target className="h-5 w-5 text-primary" />
@@ -155,7 +155,7 @@ export default function MobileNavigation() {
 
  {/* Transaction Creation Drawer */}
  <Drawer open={activeAction === 'transaction'} onOpenChange={(open) => !open && setActiveAction(null)}>
- <DrawerContent className="max-h-[90vh]">
+ <DrawerContent className="max-h-[85vh] overflow-y-auto">
  <div className="p-4 pb-6">
  <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
  <DollarSign className="h-5 w-5 text-success" />
@@ -171,7 +171,7 @@ export default function MobileNavigation() {
 
  {/* Event Creation Drawer */}
  <Drawer open={activeAction === 'event'} onOpenChange={(open) => !open && setActiveAction(null)}>
- <DrawerContent className="max-h-[90vh]">
+ <DrawerContent className="max-h-[85vh] overflow-y-auto">
  <div className="p-4 pb-6">
  <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
  <Calendar className="h-5 w-5 text-warning" />
@@ -185,14 +185,14 @@ export default function MobileNavigation() {
  </DrawerContent>
  </Drawer>
 
- {/* Bottom Tab Bar - Modern Design */}
+ {/* Bottom Tab Bar - Compact Design */}
  <nav 
- className="fixed bottom-0 left-0 right-0 bg-background backdrop-blur-lg border-t border-border md:hidden z-40 shadow-lg"
+ className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border md:hidden z-40"
  style={{ 
  paddingBottom: 'env(safe-area-inset-bottom, 8px)'
  }}
  >
- <div className="flex items-center justify-around px-1 py-2">
+ <div className="flex items-center justify-around px-1 py-1.5">
  {navigation.map((item) => {
  const isActive = location === item.href || 
  (item.href !=="/" && location.startsWith(item.href));
@@ -206,62 +206,28 @@ export default function MobileNavigation() {
  >
  <div
  className={cn(
-"relative flex flex-col items-center justify-center min-w-[64px] min-h-[64px] rounded-2xl ease-out group",
+"relative flex flex-col items-center justify-center min-w-[52px] min-h-[48px] rounded-xl ease-out group",
  isActive
- ?"text-primary scale-105"
+ ?"text-primary"
  :"text-muted-foreground hover:text-foreground"
  )}
- style={{ 
- padding: 'clamp(8px, 2vw, 12px)',
- borderRadius: '16px',
- }}
  data-testid={`mobile-nav-${item.name.toLowerCase()}`}
  >
  {/* Active indicator */}
  {isActive && (
- <div 
- className="absolute inset-0 bg-primary/10 rounded-2xl shadow-sm"
- style={{ 
- borderRadius: '16px'
- }}
- />
- )}
- 
- {/* Top indicator dot for active state */}
- {isActive && (
- <div 
- className="absolute left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-sm"
- style={{ top: '8px' }}
- />
+ <div className="absolute inset-0 bg-primary/10 rounded-xl" />
  )}
  
  {/* Icon and label */}
- <div className="relative z-10 flex flex-col items-center space-y-1">
- <div className={cn(
-"p-1.5 rounded-xl",
- isActive 
- ?"bg-primary/10 shadow-sm" 
- :"group-hover:bg-muted/50"
- )}>
- <item.icon 
- size={20} 
- className={cn(
-"transition-all",
- isActive &&"drop-shadow-sm"
- )}
- />
- </div>
+ <div className="relative z-10 flex flex-col items-center gap-0.5">
+ <item.icon size={18} className="transition-all" />
  <span 
  className={cn(
-"text-xs font-medium leading-none",
+"text-[10px] font-medium leading-none",
  isActive 
  ?"text-primary font-semibold" 
- :"text-muted-foreground group-hover:text-foreground"
+ :"text-muted-foreground"
  )}
- style={{ 
- fontSize: 'clamp(10px, 2.5vw, 12px)',
- letterSpacing: '-0.02em'
- }}
  >
  {item.label}
  </span>

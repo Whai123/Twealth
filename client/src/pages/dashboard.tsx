@@ -215,22 +215,23 @@ export default function Dashboard() {
                   </h2>
                   
                   {healthLoading ? (
-                    <Skeleton className="h-24 sm:h-32 w-32 sm:w-48" />
+                    <Skeleton className="h-20 sm:h-28 w-28 sm:w-40" />
                   ) : (
                     <div className="flex items-baseline gap-2 sm:gap-3">
                       <span 
-                        className={`text-7xl sm:text-8xl lg:text-9xl font-bold tracking-tighter ${
+                        className={`text-6xl sm:text-7xl md:text-8xl font-bold tracking-tighter ${
                           healthScore >= 75 
                             ? 'text-green-600 dark:text-green-400' 
                             : healthScore >= 60 
                             ? 'text-blue-600 dark:text-blue-400' 
                             : 'text-orange-600 dark:text-orange-400'
                         }`}
+                        style={{ fontSize: 'clamp(3.5rem, 10vw, 6rem)' }}
                         data-testid="hero-health-score"
                       >
                         {healthScore}
                       </span>
-                      <span className="text-3xl sm:text-4xl font-bold text-muted-foreground/40">/100</span>
+                      <span className="text-2xl sm:text-3xl font-bold text-muted-foreground/40">/100</span>
                     </div>
                   )}
                   

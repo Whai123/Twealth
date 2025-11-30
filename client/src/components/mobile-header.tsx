@@ -80,10 +80,10 @@ export default function MobileHeader() {
    )}
    data-testid="mobile-header"
   >
-   <div className="flex items-center justify-between px-4 h-16">
+   <div className="flex items-center justify-between px-3 h-16">
     {/* Left: Hamburger Menu */}
     <SidebarTrigger
-     className="h-10 w-10"
+     className="h-11 w-11 min-h-[44px] min-w-[44px]"
      data-testid="button-mobile-menu"
     />
 
@@ -104,7 +104,7 @@ export default function MobileHeader() {
      <DropdownMenuTrigger asChild>
       <Button
        variant="ghost"
-       className="h-10 w-10 rounded-full p-0"
+       className="h-11 w-11 min-h-[44px] min-w-[44px] rounded-full p-0"
        data-testid="button-user-menu"
       >
        <Avatar className="h-9 w-9">
