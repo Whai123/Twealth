@@ -205,23 +205,20 @@ export default function Sidebar() {
  <li key={item.name}>
  <Tooltip>
  <TooltipTrigger asChild>
- <Link href={item.href} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:rounded-md">
+ <Link href={item.href} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-lg">
  <div
  className={cn(
-"flex items-center space-x-3 px-3 py-2 rounded-md cursor-pointer group",
+"flex items-center space-x-3 px-3 py-2.5 min-h-[44px] rounded-lg cursor-pointer transition-all duration-150",
  isActive
  ?"bg-primary text-primary-foreground shadow-sm"
- :"text-muted-foreground hover:bg-muted hover:text-foreground hover:shadow-sm[1.02]"
+ :"text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]"
  )}
  data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
  role="link"
  aria-label={`Navigate to ${item.name}`}
  aria-current={isActive ?"page" : undefined}
  >
- <item.icon size={20} aria-hidden="true" className={cn(
-"transition-transform",
- !isActive &&""
- )} />
+ <item.icon size={20} aria-hidden="true" className="flex-shrink-0" />
  <span className="text-sm font-medium">{item.name}</span>
  </div>
  </Link>

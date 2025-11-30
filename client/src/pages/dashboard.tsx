@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import NotificationsBell from "@/components/dashboard/notifications-bell";
 import OnboardingWizard from "@/components/onboarding/onboarding-wizard";
 import { useOnboarding } from "@/hooks/use-onboarding";
@@ -214,7 +215,7 @@ export default function Dashboard() {
                   </h2>
                   
                   {healthLoading ? (
-                    <div className="h-24 sm:h-32 w-32 sm:w-48 bg-muted rounded animate-pulse"></div>
+                    <Skeleton className="h-24 sm:h-32 w-32 sm:w-48" />
                   ) : (
                     <div className="flex items-baseline gap-2 sm:gap-3">
                       <span 

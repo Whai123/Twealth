@@ -81,12 +81,12 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
 
  const getCategoryColor = (index: number) => {
   const colors = [
-   'bg-red-500',
-   'bg-orange-500', 
-   'bg-yellow-500',
-   'bg-green-500',
-   'bg-blue-500',
-   'bg-blue-500'
+   'bg-primary',
+   'bg-primary/80', 
+   'bg-primary/60',
+   'bg-primary/40',
+   'bg-muted-foreground/60',
+   'bg-muted-foreground/40'
   ];
   return colors[index % colors.length];
  };

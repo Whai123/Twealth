@@ -4,6 +4,7 @@ import { useQuery, useMutation } from"@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
 import EmptyState from"@/components/ui/empty-state";
+import { Skeleton, SkeletonCryptoCard } from"@/components/ui/skeleton";
 import { Input } from"@/components/ui/input";
 import { Label } from"@/components/ui/label";
 import {
@@ -121,15 +122,15 @@ export default function CryptoPage() {
  <div className="min-h-screen bg-background">
  <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
- <div className="h-8 bg-muted/50 rounded w-48 mb-2" />
- <div className="h-4 bg-muted/50 rounded w-64" />
+ <Skeleton className="h-8 w-48 mb-2" />
+ <Skeleton className="h-4 w-64" />
  </div>
  </header>
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
- <div className="h-32 bg-muted/50 rounded mb-6"></div>
+ <Skeleton className="h-32 w-full rounded-xl mb-6" />
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
  {[...Array(3)].map((_, i) => (
- <div key={i} className="h-48 bg-muted/50 rounded"></div>
+ <SkeletonCryptoCard key={i} />
  ))}
  </div>
  </div>

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { Plus, Target, MoreHorizontal, Edit, Trash2, TrendingUp, DollarSign, Calendar, BarChart3, Lightbulb, Award, Settings, Share2, CheckCircle2, AlertCircle } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import EmptyState from"@/components/ui/empty-state";
+import { Skeleton, SkeletonGoal } from"@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Progress } from"@/components/ui/progress";
 import { Badge } from"@/components/ui/badge";
@@ -37,10 +38,10 @@ function RecentContributions({ goalId }: { goalId: string }) {
      {[...Array(3)].map((_, i) => (
       <div key={i} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
        <div className="space-y-1">
-        <div className="h-3 bg-muted rounded w-20"></div>
-        <div className="h-2 bg-muted rounded w-32"></div>
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-2 w-32" />
        </div>
-       <div className="h-4 bg-muted rounded w-16"></div>
+       <Skeleton className="h-4 w-16" />
       </div>
      ))}
     </div>
@@ -245,19 +246,14 @@ export default function FinancialGoals() {
    <div className="min-h-screen bg-background">
     <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
-      <div className="h-8 bg-muted/50 rounded w-48 mb-2" />
-      <div className="h-4 bg-muted/50 rounded w-64" />
+      <Skeleton className="h-8 w-48 mb-2" />
+      <Skeleton className="h-4 w-64" />
      </div>
     </header>
     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {[...Array(6)].map((_, i) => (
-       <Card key={i} className="p-6 border-border/50">
-        <div className="h-6 bg-muted/50 rounded w-3/4 mb-4"></div>
-        <div className="h-4 bg-muted/50 rounded w-1/2 mb-4"></div>
-        <div className="h-3 bg-muted/50 rounded w-full mb-2"></div>
-        <div className="h-4 bg-muted/50 rounded w-1/3"></div>
-       </Card>
+       <SkeletonGoal key={i} />
       ))}
      </div>
     </div>
