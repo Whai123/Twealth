@@ -673,6 +673,23 @@
     "used": "Used",
     "bonusInfo": "Both you and your friend will receive 10 bonus AI chats when they use your referral code!"
   },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to continue to Twealth",
+    "backToHome": "Back to home",
+    "continueWith": "Continue with",
+    "orContinueWith": "Or continue with",
+    "google": "Continue with Google",
+    "facebook": "Continue with Facebook",
+    "apple": "Continue with Apple",
+    "authConfiguring": "Authentication is being configured.",
+    "checkBackSoon": "Please check back soon.",
+    "unableToLoad": "Unable to load sign-in options.",
+    "refreshPage": "Please refresh the page or try again later.",
+    "refresh": "Refresh page",
+    "securityNotice": "Your information is protected with bank-level security",
+    "trustedBy": "Trusted by thousands of users worldwide"
+  },
   "notFound": {
     "title": "Oops! Page Not Found",
     "description": "The page you're looking for seems to have taken a detour. Let's get you back on track!",

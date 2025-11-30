@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
@@ -14,6 +15,7 @@ interface AuthProviders {
 }
 
 export default function Login() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -78,7 +80,7 @@ export default function Login() {
             data-testid="button-back-home"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to home
+            {t('login.backToHome')}
           </button>
         </header>
 
@@ -93,10 +95,10 @@ export default function Login() {
                 />
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                Welcome back
+                {t('login.title')}
               </h1>
               <p className="text-slate-400">
-                Sign in to continue to Twealth
+                {t('login.subtitle')}
               </p>
             </div>
 
@@ -104,21 +106,21 @@ export default function Login() {
               <div className="p-8 space-y-4">
                 {providersError ? (
                   <div className="text-center py-6">
-                    <p className="text-red-400 mb-2">Unable to load sign-in options.</p>
-                    <p className="text-sm text-slate-500">Please refresh the page or try again later.</p>
+                    <p className="text-red-400 mb-2">{t('login.unableToLoad')}</p>
+                    <p className="text-sm text-slate-500">{t('login.refreshPage')}</p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => window.location.reload()}
                       className="mt-4 border-slate-600 text-slate-300"
                     >
-                      Refresh page
+                      {t('login.refresh')}
                     </Button>
                   </div>
                 ) : !hasAnyProvider ? (
                   <div className="text-center py-6">
-                    <p className="text-slate-400 mb-2">Authentication is being configured.</p>
-                    <p className="text-sm text-slate-500">Please check back soon.</p>
+                    <p className="text-slate-400 mb-2">{t('login.authConfiguring')}</p>
+                    <p className="text-sm text-slate-500">{t('login.checkBackSoon')}</p>
                   </div>
                 ) : (
                   <>
@@ -135,7 +137,7 @@ export default function Login() {
                         ) : (
                           <SiGoogle className="mr-3 h-4 w-4" />
                         )}
-                        Continue with Google
+                        {t('login.google')}
                       </Button>
                     )}
 
@@ -152,7 +154,7 @@ export default function Login() {
                         ) : (
                           <SiApple className="mr-3 h-4 w-4" />
                         )}
-                        Continue with Apple
+                        {t('login.apple')}
                       </Button>
                     )}
 
@@ -169,7 +171,7 @@ export default function Login() {
                         ) : (
                           <SiFacebook className="mr-3 h-4 w-4 text-[#1877F2]" />
                         )}
-                        Continue with Facebook
+                        {t('login.facebook')}
                       </Button>
                     )}
                   </>

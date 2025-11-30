@@ -1,9 +1,22 @@
+import { useState } from "react";
 import { useQuery, useMutation } from"@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
 import { Badge } from"@/components/ui/badge";
 import { Switch } from"@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { Input } from"@/components/ui/input";
+import { Label } from"@/components/ui/label";
+import {
+ AlertDialog,
+ AlertDialogAction,
+ AlertDialogCancel,
+ AlertDialogContent,
+ AlertDialogDescription,
+ AlertDialogFooter,
+ AlertDialogHeader,
+ AlertDialogTitle,
+} from"@/components/ui/alert-dialog";
 import { useToast } from"@/hooks/use-toast";
 import { apiRequest, queryClient } from"@/lib/queryClient";
 import { 
@@ -42,6 +55,8 @@ type PrivacySettings = {
 
 export default function DataPrivacy({ }: DataPrivacyProps) {
  const { toast } = useToast();
+ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+ const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
  const { data: settings, isLoading } = useQuery<PrivacySettings>({
   queryKey: ['/api/privacy-settings'],
@@ -148,24 +163,31 @@ export default function DataPrivacy({ }: DataPrivacyProps) {
  };
 
  const handleDataDeletion = () => {
-  const confirmation = window.confirm(
-  "DANGER ZONE \n\nThis action will PERMANENTLY DELETE your entire account and all associated data including:\n\n• All financial goals and transactions\n• All events and time tracking data\n• All groups and memberships\n• All user preferences and settings\n• All notification history\n\nThis action CANNOT be undone!\n\nType 'DELETE' in the next prompt to confirm permanent account deletion."
-  );
-  
-  if (confirmation) {
-   const finalConfirmation = window.prompt(
-   "FINAL WARNING: Type exactly 'DELETE' (without quotes) to permanently delete your account:"
-   );
-   
-   if (finalConfirmation === 'DELETE') {
-    deleteDataMutation.mutate();
-   } else {
-    toast({
-     title:"Deletion cancelled",
-     description:"Account deletion was cancelled. Your data is safe.",
-    });
-   }
+  setShowDeleteDialog(true);
+  setDeleteConfirmation("");
+ };
+
+ const confirmDeletion = () => {
+  if (deleteConfirmation === 'DELETE') {
+   deleteDataMutation.mutate();
+   setShowDeleteDialog(false);
+   setDeleteConfirmation("");
+  } else {
+   toast({
+    title: "Confirmation required",
+    description: "Please type DELETE to confirm account deletion.",
+    variant: "destructive",
+   });
   }
+ };
+
+ const cancelDeletion = () => {
+  setShowDeleteDialog(false);
+  setDeleteConfirmation("");
+  toast({
+   title: "Deletion cancelled",
+   description: "Account deletion was cancelled. Your data is safe.",
+  });
  };
 
  if (isLoading) {
@@ -383,6 +405,69 @@ export default function DataPrivacy({ }: DataPrivacyProps) {
      </div>
     </CardContent>
    </Card>
+
+   {/* Delete Account Confirmation Dialog */}
+   <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+    <AlertDialogContent className="max-w-md">
+     <AlertDialogHeader>
+      <AlertDialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+       <AlertTriangle className="w-5 h-5" />
+       Delete Your Account
+      </AlertDialogTitle>
+      <AlertDialogDescription className="text-left space-y-4">
+       <p className="font-semibold text-red-700 dark:text-red-300">
+        This action will PERMANENTLY DELETE your entire account and all associated data including:
+       </p>
+       <ul className="list-disc list-inside text-sm space-y-1 text-slate-600 dark:text-slate-400">
+        <li>All financial goals and transactions</li>
+        <li>All events and time tracking data</li>
+        <li>All groups and memberships</li>
+        <li>All user preferences and settings</li>
+        <li>All notification history</li>
+       </ul>
+       <p className="font-bold text-red-700 dark:text-red-300">
+        This action CANNOT be undone!
+       </p>
+       <div className="pt-2">
+        <Label htmlFor="delete-confirmation" className="text-sm font-medium">
+         Type DELETE to confirm:
+        </Label>
+        <Input
+         id="delete-confirmation"
+         data-testid="input-delete-confirmation"
+         value={deleteConfirmation}
+         onChange={(e) => setDeleteConfirmation(e.target.value)}
+         placeholder="DELETE"
+         className="mt-2 border-red-200 dark:border-red-800 focus:border-red-500"
+        />
+       </div>
+      </AlertDialogDescription>
+     </AlertDialogHeader>
+     <AlertDialogFooter className="gap-2">
+      <AlertDialogCancel 
+       onClick={cancelDeletion}
+       data-testid="button-cancel-delete"
+      >
+       Cancel
+      </AlertDialogCancel>
+      <AlertDialogAction
+       onClick={confirmDeletion}
+       disabled={deleteConfirmation !== 'DELETE' || deleteDataMutation.isPending}
+       className="bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+       data-testid="button-confirm-delete"
+      >
+       {deleteDataMutation.isPending ? (
+        <>
+         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+         Deleting...
+        </>
+       ) : (
+        'Delete Account'
+       )}
+      </AlertDialogAction>
+     </AlertDialogFooter>
+    </AlertDialogContent>
+   </AlertDialog>
   </div>
  );
 }
