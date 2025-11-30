@@ -688,7 +688,16 @@
     "refreshPage": "Please refresh the page or try again later.",
     "refresh": "Refresh page",
     "securityNotice": "Your information is protected with bank-level security",
-    "trustedBy": "Trusted by thousands of users worldwide"
+    "trustedBy": "Trusted by thousands of users worldwide",
+    "enterpriseSecurity": "Enterprise-grade security",
+    "encryption": "256-bit encryption",
+    "soc2": "SOC 2 compliant",
+    "gdpr": "GDPR ready",
+    "newToTwealth": "New to Twealth?",
+    "learnMore": "Learn more",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "copyright": "2025 Twealth"
   },
   "notFound": {
     "title": "Oops! Page Not Found",

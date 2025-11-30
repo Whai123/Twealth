@@ -183,7 +183,7 @@ export default function Login() {
                   </div>
                   <div className="relative flex justify-center text-xs">
                     <span className="bg-slate-900 px-3 text-slate-500">
-                      Enterprise-grade security
+                      {t('login.enterpriseSecurity')}
                     </span>
                   </div>
                 </div>
@@ -193,19 +193,19 @@ export default function Login() {
                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
                       <Lock className="w-4 h-4 text-slate-400" />
                     </div>
-                    <p className="text-xs text-slate-400">256-bit encryption</p>
+                    <p className="text-xs text-slate-400">{t('login.encryption')}</p>
                   </div>
                   <div className="text-center">
                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
                       <Shield className="w-4 h-4 text-slate-400" />
                     </div>
-                    <p className="text-xs text-slate-400">SOC 2 compliant</p>
+                    <p className="text-xs text-slate-400">{t('login.soc2')}</p>
                   </div>
                   <div className="text-center">
                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
                       <Eye className="w-4 h-4 text-slate-400" />
                     </div>
-                    <p className="text-xs text-slate-400">GDPR ready</p>
+                    <p className="text-xs text-slate-400">{t('login.gdpr')}</p>
                   </div>
                 </div>
               </div>
@@ -213,13 +213,13 @@ export default function Login() {
 
             <div className="mt-8 space-y-4">
               <p className="text-center text-sm text-slate-400">
-                New to Twealth?{" "}
+                {t('login.newToTwealth')}{" "}
                 <button
                   onClick={() => setLocation("/welcome")}
                   className="text-white font-medium hover:underline"
                   data-testid="link-learn-more"
                 >
-                  Learn more
+                  {t('login.learnMore')}
                 </button>
               </p>
 
@@ -229,7 +229,7 @@ export default function Login() {
                   className="hover:text-slate-300 transition-colors"
                   data-testid="link-terms"
                 >
-                  Terms
+                  {t('login.terms')}
                 </button>
                 <span className="w-1 h-1 rounded-full bg-slate-600" />
                 <button 
@@ -237,10 +237,10 @@ export default function Login() {
                   className="hover:text-slate-300 transition-colors"
                   data-testid="link-privacy"
                 >
-                  Privacy
+                  {t('login.privacy')}
                 </button>
                 <span className="w-1 h-1 rounded-full bg-slate-600" />
-                <span>2025 Twealth</span>
+                <span>{t('login.copyright')}</span>
               </div>
             </div>
           </div>

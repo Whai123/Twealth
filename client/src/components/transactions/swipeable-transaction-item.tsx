@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-motion";
 import { Archive, Flag, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,10 +29,42 @@ export function SwipeableTransactionItem({
   onFlag 
 }: SwipeableTransactionItemProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   
   const archiveOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
   const flagOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'ArrowLeft' && onArchive) {
+      event.preventDefault();
+      animate(x, -300, {
+        duration: 0.3,
+        ease: "easeOut",
+        onComplete: () => {
+          onArchive(transaction.id);
+          x.set(0);
+        }
+      });
+    } else if (event.key === 'ArrowRight' && onFlag) {
+      event.preventDefault();
+      animate(x, 300, {
+        duration: 0.3,
+        ease: "easeOut",
+        onComplete: () => {
+          onFlag(transaction.id);
+          x.set(0);
+        }
+      });
+    } else if (event.key === 'a' && onArchive) {
+      event.preventDefault();
+      onArchive(transaction.id);
+    } else if (event.key === 'f' && onFlag) {
+      event.preventDefault();
+      onFlag(transaction.id);
+    }
+  }, [x, onArchive, onFlag, transaction.id]);
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -97,7 +129,19 @@ export function SwipeableTransactionItem({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-lg border">
+    <div 
+      ref={containerRef}
+      tabIndex={0}
+      role="button"
+      aria-label={`${transaction.description || transaction.category}: ${transaction.type === "income" ? "+" : "-"}$${Math.abs(parseFloat(transaction.amount)).toLocaleString()}. Press left arrow or A to archive, right arrow or F to flag.`}
+      onKeyDown={handleKeyDown}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      className={cn(
+        "relative overflow-hidden rounded-lg border outline-none",
+        isFocused && "ring-2 ring-blue-500 ring-offset-2 ring-offset-background"
+      )}
+    >
       {/* Background Actions */}
       <div className="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
         <motion.div 
