@@ -6312,8 +6312,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Get user's playbooks
   app.get("/api/playbooks", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       const limit = parseInt(req.query.limit as string) || 10;
-      const playbooks = await storage.getPlaybooksByUserId(req.user.id, limit);
+      const playbooks = await storage.getPlaybooksByUserId(userId, limit);
       res.json(playbooks);
     } catch (error: any) {
       console.error('Error fetching playbooks:', error);
@@ -6324,15 +6325,16 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Generate new weekly playbook
   app.post("/api/playbooks/generate", playbookLimiter, isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       // Get user's subscription to determine tier
-      const subscriptionData = await storage.getUserSubscription(req.user.id);
+      const subscriptionData = await storage.getUserSubscription(userId);
       const tier = subscriptionData?.plan.name.toLowerCase() as 'free' | 'pro' | 'enterprise' || 'free';
 
       // Import playbook service
       const { generateWeeklyPlaybook } = await import('./playbookService');
       
       // Generate playbook
-      const playbookData = await generateWeeklyPlaybook(req.user.id, storage, tier);
+      const playbookData = await generateWeeklyPlaybook(userId, storage, tier);
       
       // Save to database
       const playbook = await storage.createPlaybook({
@@ -6350,6 +6352,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Get specific playbook by ID
   app.get("/api/playbooks/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       const playbook = await storage.getPlaybook(req.params.id);
       
       if (!playbook) {
@@ -6357,7 +6360,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       }
       
       // Verify ownership
-      if (playbook.userId !== req.user.id) {
+      if (playbook.userId !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
       }
       
@@ -6384,6 +6387,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Mark playbook action as complete
   app.post("/api/playbooks/:id/complete-action", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       // Validate request body
       const validationResult = completeActionSchema.safeParse(req.body);
       if (!validationResult.success) {
@@ -6402,7 +6406,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       }
       
       // Verify ownership
-      if (playbook.userId !== req.user.id) {
+      if (playbook.userId !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
       }
       
@@ -6442,6 +6446,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
   // Delete playbook
   app.delete("/api/playbooks/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = getUserIdFromRequest(req);
       const playbook = await storage.getPlaybook(req.params.id);
       
       if (!playbook) {
@@ -6449,7 +6454,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       }
       
       // Verify ownership
-      if (playbook.userId !== req.user.id) {
+      if (playbook.userId !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
       }
       
