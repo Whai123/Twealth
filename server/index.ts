@@ -61,13 +61,13 @@ app.use((req, res, next) => {
   try {
     const existingStrategies = await db.select().from(investmentStrategies).limit(1);
     if (existingStrategies.length === 0) {
-      log("📊 Investment data not found, seeding database...");
+      log("Investment data not found, seeding database...");
       const { seedInvestments } = await import("./seed-investments");
       await seedInvestments();
-      log("✅ Investment data seeded successfully");
+      log("Investment data seeded successfully");
     }
   } catch (error: any) {
-    log("⚠️ Failed to seed investment data:", error?.message || error);
+    log("Failed to seed investment data:", error?.message || error);
   }
 
   // Auto-seed subscription plans if database is empty
@@ -75,13 +75,13 @@ app.use((req, res, next) => {
     const { subscriptionPlans } = await import("@shared/schema");
     const existingPlans = await db.select().from(subscriptionPlans).limit(1);
     if (existingPlans.length === 0) {
-      log("💳 Subscription plans not found, seeding database...");
+      log("Subscription plans not found, seeding database...");
       const { seedSubscriptionPlans } = await import("./seed-subscriptions");
       await seedSubscriptionPlans();
-      log("✅ Subscription plans seeded successfully");
+      log("Subscription plans seeded successfully");
     }
   } catch (error: any) {
-    log("⚠️ Failed to seed subscription plans:", error?.message || error);
+    log("Failed to seed subscription plans:", error?.message || error);
   }
 
   const server = await registerRoutes(app);

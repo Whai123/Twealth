@@ -3,15 +3,15 @@ import { subscriptionPlans } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function seedSubscriptionPlans() {
-  console.log("🌱 Seeding subscription plans...");
+  console.log("Seeding subscription plans...");
 
   // Get Stripe price IDs from environment variables
   const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || null;
   const STRIPE_ENTERPRISE_PRICE_ID = process.env.STRIPE_ENTERPRISE_PRICE_ID || null;
 
   if (!STRIPE_PRO_PRICE_ID || !STRIPE_ENTERPRISE_PRICE_ID) {
-    console.warn("⚠️  Stripe price IDs not configured. Set STRIPE_PRO_PRICE_ID and STRIPE_ENTERPRISE_PRICE_ID environment variables.");
-    console.warn("⚠️  Paid subscriptions will not work until these are configured.");
+    console.warn("Stripe price IDs not configured. Set STRIPE_PRO_PRICE_ID and STRIPE_ENTERPRISE_PRICE_ID environment variables.");
+    console.warn("Paid subscriptions will not work until these are configured.");
   } else {
     console.log("✓ Stripe price IDs configured from environment variables");
   }
@@ -117,13 +117,13 @@ export async function seedSubscriptionPlans() {
         .update(subscriptionPlans)
         .set(plan)
         .where(eq(subscriptionPlans.name, plan.name));
-      console.log(`  ✓ Updated plan: ${plan.name}`);
+      console.log(`  Updated plan: ${plan.name}`);
     } else {
       // Insert new plan
       await db.insert(subscriptionPlans).values(plan);
-      console.log(`  ✓ Inserted plan: ${plan.name}`);
+      console.log(`  Inserted plan: ${plan.name}`);
     }
   }
 
-  console.log("✅ Subscription plans seeded successfully");
+  console.log("Subscription plans seeded successfully");
 }

@@ -257,7 +257,7 @@ export default function MultiCurrencyCalculator() {
 
      <div className="p-4 bg-muted/30 rounded-lg">
       <div className="flex items-center mb-2">
-       <span className="text-xl mr-2">🥇</span>
+       <DollarSign className="text-yellow-500 mr-2" size={20} />
        <span className="font-medium">Gold (oz)</span>
       </div>
       <div className="text-2xl font-bold">

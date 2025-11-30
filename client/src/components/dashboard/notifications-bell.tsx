@@ -188,7 +188,7 @@ export default function NotificationsBell() {
  case 'suggestions':
  return"Insight";
  default:
- return '📋';
+ return 'Info';
  }
  };
 

@@ -279,7 +279,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
     <div className="space-y-4">
      <Label className="text-base font-bold flex items-center gap-2">
       <Calendar className="h-5 w-5 text-green-500" />
-      📅 Which day? Slide to choose! 
+      Select Date
      </Label>
      
      <Card className="p-4 sm:p-6 bg-white dark:bg-gray-900 border-2 border-green-200 dark:border-green-800">
@@ -364,7 +364,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
          }}
          data-testid="button-preset-today"
         >
-         📅 Today
+         Today
         </Button>
         <Button
          type="button"
@@ -389,7 +389,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
          }}
          data-testid="button-preset-tomorrow"
         >
-         ➡️ Tomorrow
+         Tomorrow
         </Button>
         <Button
          type="button"
@@ -414,7 +414,7 @@ export default function EventForm({ onSuccess, eventToEdit, groupId }: EventForm
          }}
          data-testid="button-preset-next-week"
         >
-         📅 Next Week
+         Next Week
         </Button>
        </div>
       </div>

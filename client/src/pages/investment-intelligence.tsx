@@ -465,7 +465,7 @@ export default function InvestmentIntelligence() {
            onClick={() => setCategoryFilter("bonds")}
            data-testid="button-filter-bonds"
           >
-           🛡️ Bonds
+           Bonds
           </Button>
           <Button
            variant={categoryFilter ==="real_estate" ?"default" :"outline"}
@@ -473,7 +473,7 @@ export default function InvestmentIntelligence() {
            onClick={() => setCategoryFilter("real_estate")}
            data-testid="button-filter-real_estate"
           >
-           🏢 Real Estate
+           Real Estate
           </Button>
           <Button
            variant={categoryFilter ==="crypto" ?"default" :"outline"}
@@ -481,7 +481,7 @@ export default function InvestmentIntelligence() {
            onClick={() => setCategoryFilter("crypto")}
            data-testid="button-filter-crypto"
           >
-           ₿ Crypto
+           Crypto
           </Button>
           <Button
            variant={categoryFilter ==="savings" ?"default" :"outline"}
@@ -489,7 +489,7 @@ export default function InvestmentIntelligence() {
            onClick={() => setCategoryFilter("savings")}
            data-testid="button-filter-savings"
           >
-           🏦 Savings
+           Savings
           </Button>
          </div>
         </div>
@@ -688,7 +688,7 @@ export default function InvestmentIntelligence() {
                 </div>
 
                 <div>
-                 <h4 className="font-semibold text-sm mb-2">👥 Best For</h4>
+                 <h4 className="font-semibold text-sm mb-2">Best For</h4>
                  <ul className="space-y-1">
                   {strategy.bestFor?.map((item, idx) => (
                    <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -701,7 +701,7 @@ export default function InvestmentIntelligence() {
 
                 {strategy.platformSuggestions && strategy.platformSuggestions.length > 0 && (
                  <div>
-                  <h4 className="font-semibold text-sm mb-2">🔗 Platform Suggestions</h4>
+                  <h4 className="font-semibold text-sm mb-2">Platform Suggestions</h4>
                   <div className="flex flex-wrap gap-2">
                    {strategy.platformSuggestions.map((platform, idx) => (
                     <Badge key={idx} variant="secondary" className="text-xs">
@@ -893,7 +893,7 @@ export default function InvestmentIntelligence() {
          onClick={() => setPassiveIncomeFilter("digital_products")}
          data-testid="button-filter-passive-digital_products"
         >
-         📦 Digital Products
+         Digital Products
         </Button>
         <Button
          variant={passiveIncomeFilter ==="content_creation" ?"default" :"outline"}
@@ -901,7 +901,7 @@ export default function InvestmentIntelligence() {
          onClick={() => setPassiveIncomeFilter("content_creation")}
          data-testid="button-filter-passive-content_creation"
         >
-         🎥 Content Creation
+         Content Creation
         </Button>
         <Button
          variant={passiveIncomeFilter ==="real_estate" ?"default" :"outline"}
@@ -909,7 +909,7 @@ export default function InvestmentIntelligence() {
          onClick={() => setPassiveIncomeFilter("real_estate")}
          data-testid="button-filter-passive-real_estate"
         >
-         🏠 Real Estate
+         Real Estate
         </Button>
         <Button
          variant={passiveIncomeFilter ==="investments" ?"default" :"outline"}
@@ -1077,7 +1077,7 @@ export default function InvestmentIntelligence() {
 
                 {opportunity.platforms && opportunity.platforms.length > 0 && (
                  <div>
-                  <h4 className="font-semibold text-sm mb-2">🔗 Platforms</h4>
+                  <h4 className="font-semibold text-sm mb-2">Platforms</h4>
                   <div className="flex flex-wrap gap-2">
                    {opportunity.platforms.map((platform, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
@@ -1089,7 +1089,7 @@ export default function InvestmentIntelligence() {
                 )}
 
                 <div>
-                 <h4 className="font-semibold text-sm mb-2">👥 Best For</h4>
+                 <h4 className="font-semibold text-sm mb-2">Best For</h4>
                  <ul className="space-y-1">
                   {opportunity.bestFor?.map((item, idx) => (
                    <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">

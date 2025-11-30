@@ -258,7 +258,7 @@ class TaxService {
     const result = this.calculateMonthlyTax(monthlyIncome, countryCode);
     
     return `
-💰 TAX CALCULATION (${result.countryInfo.countryName}):
+TAX CALCULATION (${result.countryInfo.countryName}):
 • Gross Monthly Income: ${result.countryInfo.currency} ${result.grossIncome.toLocaleString()}
 • Annual Income: ${result.countryInfo.currency} ${(result.grossIncome * 12).toLocaleString()}
 • Federal/Income Tax: ${result.countryInfo.currency} ${result.federalTax.toLocaleString()}/month (${result.countryInfo.currency} ${(result.federalTax * 12).toLocaleString()}/year)
@@ -269,7 +269,7 @@ ${result.medicareTax > 0 ? `• Medicare/Healthcare: ${result.countryInfo.curren
 • Effective Tax Rate: ${result.effectiveTaxRate}% | Marginal Rate: ${result.marginalTaxRate}%
 • Tax Bracket: ${result.marginalTaxRate}% (highest bracket reached)
 
-⚠️ IMPORTANT: When giving financial advice, use NET income (${result.countryInfo.currency} ${result.netIncome.toLocaleString()}/month), not gross! This is the actual take-home pay after all taxes.`;
+IMPORTANT: When giving financial advice, use NET income (${result.countryInfo.currency} ${result.netIncome.toLocaleString()}/month), not gross. This is the actual take-home pay after all taxes.`;
   }
   
   /**

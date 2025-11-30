@@ -2,7 +2,7 @@ import { db } from "./db";
 import { investmentStrategies, passiveIncomeOpportunities } from "@shared/schema";
 
 export async function seedInvestments() {
-  console.log("🌱 Seeding investment strategies...");
+  console.log("Seeding investment strategies...");
 
   const strategies = [
     {
@@ -278,9 +278,9 @@ export async function seedInvestments() {
   ];
 
   await db.insert(investmentStrategies).values(strategies);
-  console.log(`✅ Seeded ${strategies.length} investment strategies`);
+  console.log(`Seeded ${strategies.length} investment strategies`);
 
-  console.log("🌱 Seeding passive income opportunities...");
+  console.log("Seeding passive income opportunities...");
 
   const passiveIncomes = [
     {
@@ -462,7 +462,7 @@ export async function seedInvestments() {
   ];
 
   await db.insert(passiveIncomeOpportunities).values(passiveIncomes);
-  console.log(`✅ Seeded ${passiveIncomes.length} passive income opportunities`);
+  console.log(`Seeded ${passiveIncomes.length} passive income opportunities`);
 
-  console.log("🎉 Investment seeding complete!");
+  console.log("Investment seeding complete");
 }

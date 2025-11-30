@@ -83,7 +83,7 @@ export default function ShareButton({
  try {
  const result = await shareContent(shareData);
  toast({
- title:"Shared! 📱",
+ title:"Shared successfully",
  description: result.message,
  });
  } catch (error) {

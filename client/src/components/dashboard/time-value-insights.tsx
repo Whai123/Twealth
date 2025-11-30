@@ -194,7 +194,7 @@ export default function TimeValueInsights() {
                <div className="bg-card border rounded-lg p-3 shadow-lg sm:min-w-[200px]">
                 <p className="font-medium mb-2 truncate">{label}</p>
                 <p className="text-sm text-time">
-                 ⏰ {hours.toFixed(1)}h tracked
+                 {hours.toFixed(1)}h tracked
                 </p>
                 <p className="text-sm text-money">
                  {currencySymbol}{Math.round(value).toLocaleString()} earned
@@ -316,7 +316,7 @@ export default function TimeValueInsights() {
                <div className="bg-card border rounded-lg p-3 shadow-lg sm:min-w-[200px]">
                 <p className="font-medium mb-2 truncate">{label}</p>
                 <p className="text-sm text-time">
-                 ⏰ {hours.toFixed(1)}h ({percentage}%)
+                 {hours.toFixed(1)}h ({percentage}%)
                 </p>
                 <p className="text-sm text-money">
                  {currencySymbol}{Math.round(value).toLocaleString()}

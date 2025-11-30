@@ -36,15 +36,15 @@ function getMilestoneLevel(percentComplete: number): '25%' | '50%' | '75%' | 'co
 function getCelebrationMessage(milestone: string, goalTitle: string, percentComplete: number): string {
   switch (milestone) {
     case '25%':
-      return `🎉 Quarter way there! You've saved 25% for "${goalTitle}". Momentum is building!`;
+      return `Quarter way there! You've saved 25% for "${goalTitle}". Momentum is building.`;
     case '50%':
-      return `🌟 Halfway point! You're 50% towards "${goalTitle}". The finish line is in sight!`;
+      return `Halfway point! You're 50% towards "${goalTitle}". The finish line is in sight.`;
     case '75%':
-      return `🚀 Three quarters done! You're at 75% for "${goalTitle}". Almost there, keep pushing!`;
+      return `Three quarters done! You're at 75% for "${goalTitle}". Almost there, keep pushing.`;
     case 'complete':
-      return `🏆 GOAL ACHIEVED! You did it! "${goalTitle}" is complete at ${percentComplete.toFixed(1)}%! Celebrate this win!`;
+      return `GOAL ACHIEVED! You did it! "${goalTitle}" is complete at ${percentComplete.toFixed(1)}%. Celebrate this win.`;
     default:
-      return `💪 Great start on "${goalTitle}"! Every dollar saved brings you closer.`;
+      return `Great start on "${goalTitle}". Every dollar saved brings you closer.`;
   }
 }
 
@@ -66,9 +66,9 @@ function getMotivationalMessage(percentComplete: number, isOnTrack: boolean, day
   } else {
     const remaining = 100 - percentComplete;
     if (daysRemaining < 30) {
-      return `⚠️ Critical: ${daysRemaining} days left, ${remaining.toFixed(1)}% to go. Consider a final push or adjust timeline.`;
+      return `Critical: ${daysRemaining} days left, ${remaining.toFixed(1)}% to go. Consider a final push or adjust timeline.`;
     } else if (daysRemaining < 90) {
-      return `⚠️ Behind schedule with ${daysRemaining} days left. Need to increase monthly contributions by 50% to hit target.`;
+      return `Behind schedule with ${daysRemaining} days left. Need to increase monthly contributions by 50% to hit target.`;
     } else {
       return `Behind pace but recoverable. Time to reassess and increase monthly contributions to get back on track.`;
     }
@@ -76,7 +76,7 @@ function getMotivationalMessage(percentComplete: number, isOnTrack: boolean, day
 }
 
 function getNextMilestone(percentComplete: number): string {
-  if (percentComplete >= 100) return 'Goal achieved! 🎯';
+  if (percentComplete >= 100) return 'Goal achieved';
   if (percentComplete >= 75) return 'Next: 100% completion';
   if (percentComplete >= 50) return 'Next: 75% milestone';
   if (percentComplete >= 25) return 'Next: 50% halfway mark';
@@ -127,32 +127,32 @@ export async function checkGoalProgress(
           type: 'milestone_reached',
           goalId: goal.id,
           goalTitle: goal.title,
-          message: `🎉 25% milestone! You've saved $${currentAmount.toLocaleString()} of $${targetAmount.toLocaleString()}`,
-          celebrationEmoji: '🎉'
+          message: `25% milestone reached. You've saved $${currentAmount.toLocaleString()} of $${targetAmount.toLocaleString()}`,
+          celebrationEmoji: ''
         });
       } else if (milestone && previousPercent < 50 && percentComplete >= 50) {
         events.push({
           type: 'milestone_reached',
           goalId: goal.id,
           goalTitle: goal.title,
-          message: `🌟 Halfway there! You've saved $${currentAmount.toLocaleString()} of $${targetAmount.toLocaleString()}`,
-          celebrationEmoji: '🌟'
+          message: `Halfway there. You've saved $${currentAmount.toLocaleString()} of $${targetAmount.toLocaleString()}`,
+          celebrationEmoji: ''
         });
       } else if (milestone && previousPercent < 75 && percentComplete >= 75) {
         events.push({
           type: 'milestone_reached',
           goalId: goal.id,
           goalTitle: goal.title,
-          message: `🚀 75% complete! Just $${remainingAmount.toLocaleString()} left!`,
-          celebrationEmoji: '🚀'
+          message: `75% complete. Just $${remainingAmount.toLocaleString()} left.`,
+          celebrationEmoji: ''
         });
       } else if (milestone === 'complete' && previousPercent < 100) {
         events.push({
           type: 'goal_completed',
           goalId: goal.id,
           goalTitle: goal.title,
-          message: `🏆 GOAL ACHIEVED! "${goal.title}" complete! Celebrate this incredible achievement!`,
-          celebrationEmoji: '🏆'
+          message: `GOAL ACHIEVED. "${goal.title}" complete. Celebrate this incredible achievement.`,
+          celebrationEmoji: ''
         });
         
         // Mark goal as completed
@@ -165,8 +165,8 @@ export async function checkGoalProgress(
           type: 'goal_at_risk',
           goalId: goal.id,
           goalTitle: goal.title,
-          message: `⚠️ "${goal.title}" is ${(100 - percentComplete).toFixed(1)}% short with ${daysRemaining} days left`,
-          celebrationEmoji: '⚠️',
+          message: `"${goal.title}" is ${(100 - percentComplete).toFixed(1)}% short with ${daysRemaining} days left`,
+          celebrationEmoji: '',
           actionRequired: `Increase monthly savings to $${requiredMonthlyContribution.toFixed(0)} to stay on track`
         });
       }
@@ -177,9 +177,9 @@ export async function checkGoalProgress(
           type: 'ahead_of_schedule',
           goalId: goal.id,
           goalTitle: goal.title,
-          message: `⭐ Amazing! You're ahead of schedule on "${goal.title}"!`,
-          celebrationEmoji: '⭐',
-          actionRequired: `You could reach this goal ${Math.floor((percentComplete - expectedProgress) / 10)} months early!`
+          message: `You're ahead of schedule on "${goal.title}".`,
+          celebrationEmoji: '',
+          actionRequired: `You could reach this goal ${Math.floor((percentComplete - expectedProgress) / 10)} months early.`
         });
       }
 

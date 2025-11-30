@@ -331,9 +331,9 @@ export async function routeWithTierCheck(
     let selectedModel: ModelAccess | null = null;
     let downgradedFrom: ModelAccess | null = null;
     
-    // 🧪 TESTING MODE: Bypass quota checks and grant access to all models
+    // TESTING MODE: Bypass quota checks and grant access to all models
     if (TESTING_MODE) {
-      console.log('🧪 TESTING MODE ENABLED - Bypassing quota limits');
+      console.log('TESTING MODE ENABLED - Bypassing quota limits');
       console.log(`   User requested: ${preferredModel}`);
       console.log(`   Granting access to: ${preferredModel} (no quota check)`);
       selectedModel = preferredModel; // Use preferred model directly
@@ -377,7 +377,7 @@ export async function routeWithTierCheck(
     
     // 9. Add downgrade warning if we fell back to a lower model
     if (downgradedFrom) {
-      const warning = `⚠️ Your ${downgradedFrom} quota is exhausted. Using ${selectedModel} instead. ${
+      const warning = `Note: Your ${downgradedFrom} quota is exhausted. Using ${selectedModel} instead. ${
         getNextTier(tier) ? `Upgrade to ${getNextTier(tier)} for more ${downgradedFrom} queries.` : ''
       }`;
       response.answer = `${warning}\n\n${response.answer}`;

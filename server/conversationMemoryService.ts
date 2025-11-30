@@ -196,7 +196,7 @@ export async function extractAndUpdateMemory(
         conversationMemory: newMemory as any
       });
 
-      console.log('💾 Updated conversation memory:', {
+      console.log('Updated conversation memory:', {
         userId,
         priorities: priorities.length,
         investments: investments.length,

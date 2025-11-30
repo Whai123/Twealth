@@ -1340,7 +1340,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     
     // Emergency fallback: if sanitized text is too short, AI likely returned only tool calls
     if (sanitized.length < 20) {
-      console.error('⚠️ CRITICAL: AI response too short after sanitization!');
+      console.error('CRITICAL: AI response too short after sanitization!');
       console.error('Original length:', text.length, 'chars');
       console.error('Sanitized length:', sanitized.length, 'chars');
       console.error('Original (first 1000 chars):', text.substring(0, 1000));
@@ -1366,7 +1366,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     // AUTO-DETECT LANGUAGE from user message (override profile setting)
     const detectedLanguage = detectLanguage(userMessage);
     if (detectedLanguage !== context.language) {
-      console.log(`🌍 Language auto-detected: ${detectedLanguage} (profile says: ${context.language})`);
+      console.log(`Language auto-detected: ${detectedLanguage} (profile says: ${context.language})`);
       context = { ...context, language: detectedLanguage };
     }
 
@@ -1383,7 +1383,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         // Check if messages are very similar (>80% overlap)
         const similarity = this.calculateSimilarity(prevMsg, lastMsg);
         if (similarity > 0.8) {
-          console.warn('⚠️  AI LOOP DETECTED - Preventing repetition');
+          console.warn('AI LOOP DETECTED - Preventing repetition');
           // Add context to break the loop
           userMessage = `[IMPORTANT: Do NOT repeat your previous response. User's actual message: "${userMessage}". Provide a DIFFERENT, more specific answer with NEW details and actionable steps.]`;
         }
@@ -1393,7 +1393,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     // Check cache first (only for non-tool-using queries)
     const cachedResponse = responseCache.get(userMessage, context);
     if (cachedResponse && conversationHistory.length < 2) {
-      console.log('🎯 Cache hit - saved API call');
+      console.log('Cache hit - saved API call');
       return { response: cachedResponse };
     }
 
@@ -1646,7 +1646,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         
         // RESPONSE QUALITY VALIDATION: Enforce fallback if Scout should have used tools but didn't
         if (needsImmediateAction || desireAnalysisNeeded) {
-          console.warn(`⚠️  QUALITY WARNING: Expected tool use but got text-only response!
+          console.warn(`QUALITY WARNING: Expected tool use but got text-only response!
             - needsImmediateAction: ${needsImmediateAction}
             - desireAnalysisNeeded: ${desireAnalysisNeeded}
             - tool_choice was set to: "required"
@@ -1681,9 +1681,9 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         
         // Cache normal responses (when tools weren't expected)
         responseCache.set(userMessage, context, text, tokenCount);
-        console.log(`💰 Groq call made - ~${tokenCount} tokens`);
+        console.log(`Groq call made - ~${tokenCount} tokens`);
       } else {
-        console.log(`🔧 Groq call with ${toolCalls.length} tool(s):`, toolCalls.map(t => t.name).join(', '));
+        console.log(`Groq call with ${toolCalls.length} tool(s):`, toolCalls.map(t => t.name).join(', '));
       }
       
       return { response: text, toolCalls };
@@ -1777,51 +1777,51 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     
     // PRIORITY 1: Critical Financial Health Issues
     if (savingsRate < 0) {
-      return `🚨 Alert: You're spending more than you earn! Emergency action needed: Cut ${Math.abs(savingsRate).toFixed(0)}% of expenses or increase income immediately.`;
+      return `Alert: You're spending more than you earn. Emergency action needed: Cut ${Math.abs(savingsRate).toFixed(0)}% of expenses or increase income immediately.`;
     }
     
     if (context.totalSavings === 0 && savingsRate < 10) {
-      return `💪 Start strong: Save $${Math.ceil(context.monthlyIncome * 0.1)} monthly (10%) to build your safety net. Start with just $50 this week!`;
+      return `Start strong: Save $${Math.ceil(context.monthlyIncome * 0.1)} monthly (10%) to build your safety net. Start with just $50 this week.`;
     }
     
     // PRIORITY 2: Emergency Fund Building
     if (emergencyFundProgress < 50) {
       const monthsNeeded = Math.ceil((emergencyFundTarget - context.totalSavings) / (context.monthlyIncome * savingsRate / 100));
-      return `🛡️ Emergency Fund: ${emergencyFundProgress.toFixed(0)}% complete. Save $${Math.ceil((emergencyFundTarget - context.totalSavings) / 6)} monthly to finish in ${monthsNeeded} months.`;
+      return `Emergency Fund: ${emergencyFundProgress.toFixed(0)}% complete. Save $${Math.ceil((emergencyFundTarget - context.totalSavings) / 6)} monthly to finish in ${monthsNeeded} months.`;
     }
     
     // PRIORITY 3: Spending Pattern Alerts
     if (hasUnusualSpending && avgExpense > 100) {
-      return `📊 Spending Alert: Detected ${highSpending.length} large expenses ($${Math.round(avgExpense * 2)}+) recently. Review your budget to avoid overspending.`;
+      return `Spending Alert: Detected ${highSpending.length} large expenses ($${Math.round(avgExpense * 2)}+) recently. Review your budget to avoid overspending.`;
     }
     
     if (topCategory && topCategory[1] > context.monthlyIncome * 0.3) {
-      return `💡 Budget Tip: ${topCategory[0]} is ${((topCategory[1] / context.monthlyIncome) * 100).toFixed(0)}% of income. Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings.`;
+      return `Budget Tip: ${topCategory[0]} is ${((topCategory[1] / context.monthlyIncome) * 100).toFixed(0)}% of income. Try the 50/30/20 rule: 50% needs, 30% wants, 20% savings.`;
     }
     
     // PRIORITY 4: Growth & Optimization
     if (savingsRate > 30 && context.totalSavings > emergencyFundTarget) {
-      return `🚀 Investment Ready! ${savingsRate.toFixed(0)}% savings rate + full emergency fund = time to invest. Consider VTI/VOO index funds for long-term growth.`;
+      return `Investment Ready: ${savingsRate.toFixed(0)}% savings rate + full emergency fund = time to invest. Consider VTI/VOO index funds for long-term growth.`;
     }
     
     if (savingsRate >= 20 && savingsRate <= 30) {
-      return `⭐ Great job! ${savingsRate.toFixed(0)}% savings rate is excellent. Next level: Max out tax-advantaged accounts (401k/Roth IRA) for compound growth.`;
+      return `Great job. ${savingsRate.toFixed(0)}% savings rate is excellent. Next level: Max out tax-advantaged accounts (401k/Roth IRA) for compound growth.`;
     }
     
     // PRIORITY 5: Goal Motivation
     if (context.activeGoals === 0 && context.totalSavings > 0) {
-      return `🎯 Set Your Vision: You have $${context.totalSavings.toLocaleString()} saved with no goals! Create 1-2 specific goals to turn savings into achievements.`;
+      return `Set Your Vision: You have $${context.totalSavings.toLocaleString()} saved with no goals. Create 1-2 specific goals to turn savings into achievements.`;
     }
     
     if (context.activeGoals >= 3) {
-      return `🏆 Goal Achiever! ${context.activeGoals} active goals shows commitment. Focus on one at a time for faster results - snowball effect works!`;
+      return `Goal Achiever: ${context.activeGoals} active goals shows commitment. Focus on one at a time for faster results - snowball effect works.`;
     }
 
     // Use AI for complex insights
     const cacheKey = `insight_${savingsRate.toFixed(0)}_${context.activeGoals}`;
     const cached = responseCache.get(cacheKey, context);
     if (cached) {
-      console.log('🎯 Insight cache hit');
+      console.log('Insight cache hit');
       return cached;
     }
 
@@ -1842,7 +1842,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
       
       // Cache insight
       responseCache.set(cacheKey, context, text, this.estimateTokenCount(insightPrompt + text));
-      console.log('💰 Insight call made');
+      console.log('Insight call made');
       
       return text;
     } catch (error) {

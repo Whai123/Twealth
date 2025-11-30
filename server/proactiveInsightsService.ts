@@ -53,7 +53,7 @@ export async function generateProactiveInsights(
           title: 'Unusual Large Purchase Detected',
           message: `You spent $${amount.toLocaleString()} on ${t.category} - 3x your average transaction.`,
           actionable: `Review this ${t.category} expense. Was it planned? Consider setting a spending alert for purchases over $${Math.round(avgTransactionAmount * 2)}.`,
-          emoji: '⚠️',
+          emoji: '',
           data: { transaction: t, avgAmount: avgTransactionAmount },
           createdAt: new Date()
         });
@@ -84,7 +84,7 @@ export async function generateProactiveInsights(
           title: `High ${category} Spending`,
           message: `Your ${category} spending is $${amount.toLocaleString()}/month (${percentOfIncome.toFixed(0)}% of income).`,
           actionable: `This is above the recommended 20% limit. Try reducing ${category} spending by 25% to save $${Math.round(amount * 0.25).toLocaleString()}/month.`,
-          emoji: '📊',
+          emoji: '',
           data: { category, amount, percentOfIncome },
           createdAt: new Date()
         });
@@ -112,7 +112,7 @@ export async function generateProactiveInsights(
         title: 'Subscription Audit Recommended',
         message: `You have ${subscriptions.length} subscriptions costing ~$${totalSubCost.toLocaleString()}/month.`,
         actionable: `Review and cancel unused subscriptions. Even cutting 2 subscriptions could save $${Math.round(totalSubCost * 0.3).toLocaleString()}/month = $${Math.round(totalSubCost * 0.3 * 12).toLocaleString()}/year.`,
-        emoji: '💡',
+        emoji: '',
         data: { subscriptions, totalCost: totalSubCost },
         createdAt: new Date()
       });
@@ -133,7 +133,7 @@ export async function generateProactiveInsights(
         title: 'Dining Out Opportunity',
         message: `You spent $${diningSpend.toLocaleString()} on dining out this month.`,
         actionable: `Cooking 3 more meals/week could save $${Math.round(cookingSavings).toLocaleString()}/month. Use meal prep Sunday to save time and money.`,
-        emoji: '🍳',
+        emoji: '',
         data: { diningSpend, potentialSavings: cookingSavings },
         createdAt: new Date()
       });
@@ -149,7 +149,7 @@ export async function generateProactiveInsights(
         title: 'High-Yield Savings Opportunity',
         message: `You have $${totalSavings.toLocaleString()} in savings. Are you earning 4-5% interest?`,
         actionable: `Move funds to a high-yield savings account (4-5% APY) to earn $${Math.round(totalSavings * 0.045 / 12).toLocaleString()}/month passive income instead of 0.01%.`,
-        emoji: '🏦',
+        emoji: '',
         data: { totalSavings, potentialInterest: totalSavings * 0.045 },
         createdAt: new Date()
       });
@@ -175,7 +175,7 @@ export async function generateProactiveInsights(
           title: `Goal Deadline Approaching: ${goal.title}`,
           message: `Only ${daysUntilDeadline} days left! You're ${percentComplete.toFixed(0)}% there.`,
           actionable: `Need $${remaining.toLocaleString()} more. Save $${Math.round(remaining / (daysUntilDeadline / 30)).toLocaleString()}/month or extend deadline by ${Math.ceil(remaining / (monthlyIncome * 0.1))} months.`,
-          emoji: '⏰',
+          emoji: '',
           data: { goal, daysRemaining: daysUntilDeadline, remaining },
           createdAt: new Date()
         });
@@ -190,7 +190,7 @@ export async function generateProactiveInsights(
           title: `Almost Halfway: ${goal.title}`,
           message: `You're at ${percentComplete.toFixed(0)}%! The 50% milestone is just $${(targetAmount * 0.5 - currentAmount).toLocaleString()} away.`,
           actionable: `One more push to hit 50%! Reaching this milestone will give you major momentum.`,
-          emoji: '🎯',
+          emoji: '',
           data: { goal, percentComplete },
           createdAt: new Date()
         });
@@ -211,7 +211,7 @@ export async function generateProactiveInsights(
         title: 'Budget Exceeded',
         message: `You've spent $${monthlyExpenses.toLocaleString()} this month, ${((monthlyExpenses / budgetEstimate - 1) * 100).toFixed(0)}% over your $${budgetEstimate.toLocaleString()} budget.`,
         actionable: `Review discretionary spending and cut back $${Math.round(overspend).toLocaleString()} to stay on track. Top categories to review: ${Array.from(categorySpending.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([cat]) => cat).join(', ')}.`,
-        emoji: '🚨',
+        emoji: '',
         data: { monthlyExpenses, budgetEstimate, overspend },
         createdAt: new Date()
       });
@@ -238,7 +238,7 @@ export async function generateProactiveInsights(
           title: 'Impressive Savings Discipline!',
           message: `You've maintained a ${savingsRate.toFixed(0)}% savings rate for 3 months straight!`,
           actionable: `You're building serious wealth! At this rate, you'll save $${Math.round((last3MonthsIncome - last3MonthsExpenses) / 3 * 12).toLocaleString()}/year. Keep this momentum!`,
-          emoji: '🏆',
+          emoji: '',
           data: { savingsRate, monthlySavings: (last3MonthsIncome - last3MonthsExpenses) / 3 },
           createdAt: new Date()
         });

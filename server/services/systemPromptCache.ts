@@ -69,7 +69,7 @@ class SystemPromptCacheService {
       return null;
     }
     
-    console.log('🎯 System prompt cache HIT - saved expensive market/tax API calls');
+    console.log('System prompt cache HIT - saved expensive market/tax API calls');
     return cached.prompt;
   }
   

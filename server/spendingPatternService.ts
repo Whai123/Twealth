@@ -430,18 +430,18 @@ class SpendingPatternService {
     const insights = this.analyzeSpendingPatterns(transactions);
     
     if (insights.patterns.length === 0) {
-      return '\n💳 SPENDING PATTERNS: No transaction data available yet';
+      return '\nSPENDING PATTERNS: No transaction data available yet';
     }
     
     const topPatterns = insights.topCategories.slice(0, 3);
     const behaviorNotes: string[] = [];
     
     if (insights.behavior.impulsiveBuying.detected) {
-      behaviorNotes.push(`⚠️ Impulsive buying detected: ${insights.behavior.impulsiveBuying.frequency} small purchases/week`);
+      behaviorNotes.push(`Impulsive buying detected: ${insights.behavior.impulsiveBuying.frequency} small purchases/week`);
     }
     
     if (insights.behavior.weekendSpending.weekendPercentage > 40) {
-      behaviorNotes.push(`📅 Weekend heavy spender: ${insights.behavior.weekendSpending.weekendPercentage}% on weekends`);
+      behaviorNotes.push(`Weekend heavy spender: ${insights.behavior.weekendSpending.weekendPercentage}% on weekends`);
     }
     
     const recurringInfo = insights.recurringExpenses.length > 0
@@ -449,12 +449,12 @@ class SpendingPatternService {
       : '';
     
     return `
-💳 SPENDING PATTERN ANALYSIS:
+SPENDING PATTERN ANALYSIS:
 • Top Categories: ${topPatterns.map(c => `${c.category} (${c.percentage}%)`).join(', ')}${recurringInfo}
 ${behaviorNotes.length > 0 ? behaviorNotes.map(n => `• ${n}`).join('\n') : ''}
 • Key Insights: ${insights.recommendations[0] || 'Balanced spending'}
 
-⚠️ Use these insights to give personalized budgeting advice!`;
+Use these insights to give personalized budgeting advice.`;
   }
   
   /**

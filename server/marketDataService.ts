@@ -329,11 +329,11 @@ export class MarketDataService {
         this.getEconomicIndicators(userCountry)
       ]);
 
-      let context = '📊 CURRENT MARKET CONDITIONS:\n';
+      let context = 'CURRENT MARKET CONDITIONS:\n';
       
       if (sp500) {
         context += `• S&P 500: $${sp500.price.toFixed(2)} (${sp500.changePercent > 0 ? '+' : ''}${sp500.changePercent.toFixed(2)}% today)\n`;
-        const marketSentiment = sp500.changePercent > 1 ? 'bullish 🐂' : sp500.changePercent < -1 ? 'bearish 🐻' : 'neutral';
+        const marketSentiment = sp500.changePercent > 1 ? 'bullish' : sp500.changePercent < -1 ? 'bearish' : 'neutral';
         context += `• Market Sentiment: ${marketSentiment}\n`;
       }
 
@@ -352,7 +352,7 @@ export class MarketDataService {
       return context;
     } catch (error) {
       console.error('[MarketData] Error building AI context:', error);
-      return '📊 Market data temporarily unavailable - using historical averages.\n';
+      return 'Market data temporarily unavailable - using historical averages.\n';
     }
   }
 }

@@ -173,7 +173,7 @@ export default function Friends() {
   <div className="min-h-screen bg-pink-50 dark:bg-pink-900/20">
    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
     <div className="mb-4 sm:mb-6">
-     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-pink-600 dark:text-pink-400">👥 Friends</h1>
+     <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-pink-600 dark:text-pink-400">Friends</h1>
      <p className="text-sm sm:text-base text-muted-foreground">Connect with friends to collaborate on groups and events</p>
     </div>
 

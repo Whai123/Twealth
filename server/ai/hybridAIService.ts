@@ -2,10 +2,10 @@
  * Hybrid AI Service - 4-Model Architecture (Scout/Sonnet/GPT-5/Opus)
  * 
  * This service integrates all hybrid AI components:
- * - Scout (Llama 4 via Groq): PRIMARY - Fast queries, budgeting, spending (⚡ Fast)
- * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic, strategy (🧠 Smart)
- * - GPT-5 (OpenAI): MATH - Projections, simulations, calculations (🧮 Math)
- * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis, high-stakes (👔 CFO)
+ * - Scout (Llama 4 via Groq): PRIMARY - Fast queries, budgeting, spending
+ * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic, strategy
+ * - GPT-5 (OpenAI): MATH - Projections, simulations, calculations
+ * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis, high-stakes
  * 
  * Components:
  * - Smart router for complexity-based escalation
@@ -14,8 +14,8 @@
  * - Orchestrators for deep CFO-level analysis
  */
 
-// 🧪 TESTING MODE: Set to true to bypass all quota limits and tier restrictions
-// ⚠️ REMEMBER TO SET BACK TO FALSE AFTER TESTING
+// TESTING MODE: Set to true to bypass all quota limits and tier restrictions
+// REMEMBER TO SET BACK TO FALSE AFTER TESTING
 export const TESTING_MODE = false;
 
 import type { IStorage } from '../storage';
@@ -129,7 +129,7 @@ export async function generateHybridAdvice(
 
 /**
  * Handle queries with GPT-5 (OpenAI via Replit AI Integrations)
- * MATH MODEL - Advanced calculations, projections, simulations (🧮 Math)
+ * MATH MODEL - Advanced calculations, projections, simulations
  */
 async function handleGPT5Query(
   userMessage: string,
@@ -163,7 +163,7 @@ async function handleGPT5Query(
 
 /**
  * Handle simple/fast queries with Scout (Llama 4 via Groq)
- * PRIMARY MODEL - Fast queries, budgeting, spending, goals (⚡ Fast)
+ * PRIMARY MODEL - Fast queries, budgeting, spending, goals
  */
 async function handleScoutQuery(
   userMessage: string,
@@ -199,8 +199,8 @@ async function handleScoutQuery(
 
 /**
  * Handle complex queries with Reasoning (Claude Sonnet or Opus) + orchestrators
- * Sonnet: REASONING - Multi-step logic, strategy (🧠 Smart)
- * Opus: CFO-LEVEL - Portfolio analysis, high-stakes (👔 CFO)
+ * Sonnet: REASONING - Multi-step logic, strategy
+ * Opus: CFO-LEVEL - Portfolio analysis, high-stakes
  */
 async function handleReasoningQuery(
   userMessage: string,

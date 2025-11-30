@@ -143,12 +143,12 @@ try {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: "2024-12-18.acacia" as any,
     });
-    log('✅ Stripe initialized successfully');
+    log('Stripe initialized successfully');
   } else {
-    log("⚠️  Stripe not initialized - API key not provided");
+    log("Stripe not initialized - API key not provided");
   }
 } catch (error: any) {
-  log("❌ Stripe initialization failed:", error.message);
+  log("Stripe initialization failed:", error.message);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2866,7 +2866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save estimates if we found any
       if (Object.keys(estimates).length > 0) {
         await storage.updateUserPreferences(userId, estimates);
-        console.log('📊 Proactively saved financial estimates:', estimates);
+        console.log('Proactively saved financial estimates:', estimates);
       }
 
       // Build user context for AI
@@ -2954,7 +2954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Usage tracking now handled by tier-aware router
 
-      // 🚨 CODE-LEVEL IMPOSSIBILITY CHECK (Pre-AI Validation)
+      // CODE-LEVEL IMPOSSIBILITY CHECK (Pre-AI Validation)
       // Detect if user is discussing a purchase/goal and calculate feasibility BEFORE AI sees it
       let impossibleGoalFlag: string | null = null;
       
@@ -2965,10 +2965,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasPurchaseIntent = purchaseKeywords.some(kw => msgLower.includes(kw));
       const hasTimeframe = timeKeywords.some(kw => msgLower.includes(kw));
       
-      console.log(`🔍 Impossibility Check: message="${userMessage}", hasPurchaseIntent=${hasPurchaseIntent}, hasTimeframe=${hasTimeframe}`);
+      console.log(`Impossibility Check: message="${userMessage}", hasPurchaseIntent=${hasPurchaseIntent}, hasTimeframe=${hasTimeframe}`);
       
       if (hasPurchaseIntent && hasTimeframe) {
-        console.log(`✅ Both conditions met, proceeding with feasibility check...`);
+        console.log(`Both conditions met, proceeding with feasibility check...`);
         // Extract potential price (look for common luxury items or dollar amounts)
         const pricePatterns = [
           /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g, // $573,966 or $1,000,000
@@ -3018,10 +3018,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // If we found both goal amount and timeframe, check feasibility
-        console.log(`📊 Extracted: goalAmount=$${goalAmount.toLocaleString()}, yearsExtracted=${yearsExtracted}`);
+        console.log(`Extracted: goalAmount=$${goalAmount.toLocaleString()}, yearsExtracted=${yearsExtracted}`);
         
         if (goalAmount > 0 && yearsExtracted > 0 && yearsExtracted <= 30) {
-          console.log(`💰 Running feasibility check: income=$${userContext.monthlyIncome}, expenses=$${userContext.monthlyExpenses}`);
+          console.log(`Running feasibility check: income=$${userContext.monthlyIncome}, expenses=$${userContext.monthlyExpenses}`);
           
           const { checkGoalFeasibility } = await import('./financialCalculations');
           const feasibility = checkGoalFeasibility(
@@ -3032,13 +3032,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userContext.totalSavings
           );
           
-          console.log(`📈 Feasibility result: isFeasible=${feasibility.isFeasible}, monthlyNeeded=$${feasibility.monthlyNeeded.toLocaleString()}, capacity=$${feasibility.monthlyCapacity.toLocaleString()}`);
+          console.log(`Feasibility result: isFeasible=${feasibility.isFeasible}, monthlyNeeded=$${feasibility.monthlyNeeded.toLocaleString()}, capacity=$${feasibility.monthlyCapacity.toLocaleString()}`);
           
           if (!feasibility.isFeasible) {
-            console.log(`🚨 IMPOSSIBLE GOAL DETECTED: $${goalAmount.toLocaleString()} in ${yearsExtracted}y - ${feasibility.reason}`);
+            console.log(`IMPOSSIBLE GOAL DETECTED: $${goalAmount.toLocaleString()} in ${yearsExtracted}y - ${feasibility.reason}`);
             
             impossibleGoalFlag = `
-⚠️⚠️⚠️ CRITICAL: IMPOSSIBLE GOAL DETECTED ⚠️⚠️⚠️
+CRITICAL: IMPOSSIBLE GOAL DETECTED
 
 BACKEND PRE-VALIDATION RESULTS:
 • Goal: $${goalAmount.toLocaleString()} in ${yearsExtracted} years
@@ -3047,7 +3047,7 @@ BACKEND PRE-VALIDATION RESULTS:
 • Shortfall: $${Math.round(feasibility.shortfall).toLocaleString()}/month (${feasibility.multiplier.toFixed(1)}x OVER CAPACITY!)
 • Realistic Timeline: ${feasibility.realisticYears} years with compound interest
 
-🛑 MANDATORY RESPONSE PROTOCOL:
+MANDATORY RESPONSE PROTOCOL:
 1. DO NOT show the impossible monthly amount ($${Math.round(feasibility.monthlyNeeded).toLocaleString()}/month) as a suggestion
 2. IMMEDIATELY use empathetic coaching framework
 3. Show 3 investment plans with realistic ${feasibility.realisticYears}-year timeline
@@ -3099,14 +3099,14 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                              lowerResponse.includes('i\'ve created') || lowerResponse.includes('i\'ve added') ||
                              lowerResponse.includes('i added') || lowerResponse.includes('i created');
         if (claimsAction && (!aiResult.toolCalls || aiResult.toolCalls.length === 0)) {
-          console.warn('⚠️  WARNING: AI claims to have performed action but NO TOOL CALLS made!');
+          console.warn('WARNING: AI claims to have performed action but NO TOOL CALLS made!');
           console.warn('   Response:', typeof aiResult.answer === 'string' ? aiResult.answer.substring(0, 200) : 'N/A');
         }
         
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
         if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
-          console.log(`🔧 ========== PROCESSING ${aiResult.toolCalls.length} TOOL CALL(S) ==========`);
+          console.log(`========== PROCESSING ${aiResult.toolCalls.length} TOOL CALL(S) ==========`);
           console.log(`Tools requested:`, aiResult.toolCalls.map((t: any) => t.function.name).join(', '));
           for (const toolCall of aiResult.toolCalls) {
             // Extract function details from nested structure
@@ -3115,15 +3115,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             
             try {
               
-              console.log(`\n🛠️  Tool: ${toolName}`);
-              console.log(`📋 Arguments:`, JSON.stringify(toolArgs, null, 2));
+              console.log(`\nTool: ${toolName}`);
+              console.log(`Arguments:`, JSON.stringify(toolArgs, null, 2));
               
               if (toolName === 'create_financial_goal') {
-                console.log(`🎯 [create_financial_goal] Starting goal creation...`);
+                console.log(`[create_financial_goal] Starting goal creation...`);
                 
                 // CRITICAL: Validate user confirmation before creating goal
                 if (toolArgs.userConfirmed !== true) {
-                  console.log(`⚠️  BLOCKED create_financial_goal: userConfirmed=${toolArgs.userConfirmed} (not true)`);
+                  console.log(`BLOCKED create_financial_goal: userConfirmed=${toolArgs.userConfirmed} (not true)`);
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_financial_goal' }
@@ -3131,7 +3131,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   continue;
                 }
                 
-                console.log(`✅ Creating goal for userId=${userId}: "${toolArgs.name}"`);
+                console.log(`Creating goal for userId=${userId}: "${toolArgs.name}"`);
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
                   title: toolArgs.name,
@@ -3141,7 +3141,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   description: toolArgs.description || null,
                   category: 'savings'
                 });
-                console.log(`🎉 Goal created successfully! ID=${goal.id}, Title="${goal.title}"`);
+                console.log(`Goal created successfully. ID=${goal.id}, Title="${goal.title}"`);
                 actionsPerformed.push({
                   type: 'goal_created',
                   data: goal
@@ -3149,7 +3149,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'create_calendar_event') {
                 // CRITICAL: Validate user confirmation before creating event
                 if (toolArgs.userConfirmed !== true) {
-                  console.log('⚠️  Blocked create_calendar_event: userConfirmed not true');
+                  console.log('Blocked create_calendar_event: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_calendar_event' }
@@ -3168,7 +3168,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   data: event
                 });
               } else if (toolName === 'add_transaction') {
-                console.log(`💰 [add_transaction] Creating transaction...`);
+                console.log(`[add_transaction] Creating transaction...`);
                 const transaction = await storage.createTransaction({
                   userId: userId,
                   type: toolArgs.type,
@@ -3177,7 +3177,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   description: toolArgs.description || null,
                   date: toolArgs.date ? new Date(toolArgs.date) : new Date()
                 });
-                console.log(`✅ [add_transaction] Transaction created successfully! ID=${transaction.id}, Amount=$${transaction.amount}, Category=${transaction.category}`);
+                console.log(`[add_transaction] Transaction created successfully. ID=${transaction.id}, Amount=$${transaction.amount}, Category=${transaction.category}`);
                 actionsPerformed.push({
                   type: 'transaction_added',
                   data: transaction
@@ -3185,7 +3185,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'create_group') {
                 // CRITICAL: Validate user confirmation before creating group
                 if (toolArgs.userConfirmed !== true) {
-                  console.log('⚠️  Blocked create_group: userConfirmed not true');
+                  console.log('Blocked create_group: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_group' }
@@ -3803,7 +3803,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 
                 // If there are CRITICAL ERRORS, don't save - ask user to correct
                 if (errors.length > 0) {
-                  console.log('❌ Financial data ERRORS (not saved):', errors);
+                  console.log('Financial data ERRORS (not saved):', errors);
                   actionsPerformed.push({
                     type: 'financial_estimates_validation_failed',
                     errors: errors,
@@ -3816,14 +3816,14 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 }
                 // If there are warnings but no errors, save with warnings
                 else if (warnings.length > 0) {
-                  console.log('⚠️  Financial data warnings (saved with flags):', warnings);
+                  console.log('Financial data warnings (saved with flags):', warnings);
                   actionsPerformed.push({
                     type: 'financial_estimates_saved_with_warnings',
                     data: estimates,
                     warnings: warnings
                   });
                   await storage.updateUserPreferences(userId, estimates);
-                  console.log('💾 Saved financial estimates with warnings:', estimates);
+                  console.log('Saved financial estimates with warnings:', estimates);
                 }
                 // Clean save - no issues
                 else {
@@ -3832,7 +3832,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     data: estimates
                   });
                   await storage.updateUserPreferences(userId, estimates);
-                  console.log('💾 Saved financial estimates:', estimates);
+                  console.log('Saved financial estimates:', estimates);
                 }
               } else if (toolName === 'calculate_car_affordability') {
                 // Car affordability calculator with 20/4/10 rule
@@ -4230,7 +4230,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         
         // DEFENSIVE LOGGING: Alert if AI returns empty response (regression detection)
         if (!responseContent || responseContent.trim() === '') {
-          console.error('⚠️ CRITICAL: AI returned empty response!', {
+          console.error('CRITICAL: AI returned empty response!', {
             model: aiResult.modelUsed,
             modelSlug: aiResult.modelSlug,
             escalated: aiResult.escalated,
@@ -4285,148 +4285,148 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           const confirmations = actionsPerformed.map(action => {
             if (action.type === 'goal_created') {
               const goal = action.data;
-              return `✅ Goal created: Save $${parseFloat(goal.targetAmount).toLocaleString()} for "${goal.title}" by ${new Date(goal.targetDate).toLocaleDateString()}! I've added this to your financial goals.`;
+              return `Goal created: Save $${parseFloat(goal.targetAmount).toLocaleString()} for "${goal.title}" by ${new Date(goal.targetDate).toLocaleDateString()}. I've added this to your financial goals.`;
             } else if (action.type === 'event_created') {
               const event = action.data;
-              return `📅 Reminder set: "${event.title}" on ${new Date(event.startTime).toLocaleDateString()}! You'll be notified when it's time.`;
+              return `Reminder set: "${event.title}" on ${new Date(event.startTime).toLocaleDateString()}. You'll be notified when it's time.`;
             } else if (action.type === 'transaction_added') {
               const txn = action.data;
-              return `💸 Tracked: ${txn.type === 'income' ? 'Received' : 'Spent'} $${parseFloat(txn.amount).toLocaleString()} on ${txn.category}. Your balance has been updated!`;
+              return `Tracked: ${txn.type === 'income' ? 'Received' : 'Spent'} $${parseFloat(txn.amount).toLocaleString()} on ${txn.category}. Your balance has been updated.`;
             } else if (action.type === 'group_created') {
               const group = action.data;
-              return `👥 Created "${group.name}" group! You can now collaborate with others on shared financial planning.`;
+              return `Created "${group.name}" group. You can now collaborate with others on shared financial planning.`;
             } else if (action.type === 'crypto_added') {
               const crypto = action.data;
-              return `₿ Tracked: ${crypto.amount} ${crypto.symbol} at $${parseFloat(crypto.averageBuyPrice).toLocaleString()}/coin. Total investment: $${(parseFloat(crypto.amount) * parseFloat(crypto.averageBuyPrice)).toLocaleString()}`;
+              return `Tracked: ${crypto.amount} ${crypto.symbol} at $${parseFloat(crypto.averageBuyPrice).toLocaleString()}/coin. Total investment: $${(parseFloat(crypto.amount) * parseFloat(crypto.averageBuyPrice)).toLocaleString()}`;
             } else if (action.type === 'portfolio_analyzed') {
               const data = action.data;
               const stocks = data.allocation.stocks;
               const bonds = data.allocation.bonds;
               const alts = data.allocation.alternatives;
-              return `📊 **Expert Portfolio Allocation Analysis**\n\n` +
+              return `**Expert Portfolio Allocation Analysis**\n\n` +
                 `For age ${data.age}, ${data.riskTolerance} risk, investing $${data.investmentAmount.toLocaleString()}:\n\n` +
-                `🔵 **${stocks.percentage}% Stocks** → $${Math.round(stocks.amount).toLocaleString()}\n` +
-                `   • VTI (Vanguard Total Market) or VOO (S&P 500)\n` +
-                `   • Target: Long-term capital growth\n` +
-                `   • Expected return: 8-10% annually\n\n` +
-                `🟢 **${bonds.percentage}% Bonds** → $${Math.round(bonds.amount).toLocaleString()}\n` +
-                `   • BND (Total Bond) or AGG (Aggregate Bond)\n` +
-                `   • Target: Stability and income\n` +
-                `   • Expected return: 3-5% annually\n\n` +
-                `🟡 **${alts.percentage}% Alternatives** → $${Math.round(alts.amount).toLocaleString()}\n` +
-                `   • VNQ (Real Estate) or GLD (Gold)\n` +
-                `   • Target: Diversification hedge\n\n` +
-                `💡 **Why this works**: Classic ${110 - data.age}% stocks rule (110 - age = ${stocks.percentage}%) adjusted for ${data.riskTolerance} risk. Rebalance quarterly when drift >5%!`;
+                `**${stocks.percentage}% Stocks** - $${Math.round(stocks.amount).toLocaleString()}\n` +
+                `   - VTI (Vanguard Total Market) or VOO (S&P 500)\n` +
+                `   - Target: Long-term capital growth\n` +
+                `   - Expected return: 8-10% annually\n\n` +
+                `**${bonds.percentage}% Bonds** - $${Math.round(bonds.amount).toLocaleString()}\n` +
+                `   - BND (Total Bond) or AGG (Aggregate Bond)\n` +
+                `   - Target: Stability and income\n` +
+                `   - Expected return: 3-5% annually\n\n` +
+                `**${alts.percentage}% Alternatives** - $${Math.round(alts.amount).toLocaleString()}\n` +
+                `   - VNQ (Real Estate) or GLD (Gold)\n` +
+                `   - Target: Diversification hedge\n\n` +
+                `**Why this works**: Classic ${110 - data.age}% stocks rule (110 - age = ${stocks.percentage}%) adjusted for ${data.riskTolerance} risk. Rebalance quarterly when drift >5%.`;
             } else if (action.type === 'debt_analyzed') {
               const data = action.data;
-              return `💳 **Debt Payoff Strategy Analysis**\n\n` +
+              return `**Debt Payoff Strategy Analysis**\n\n` +
                 `**AVALANCHE Method** (Save Most Money):\n` +
-                `• Total Interest: $${data.avalanche.totalInterest.toLocaleString()}\n` +
-                `• Payoff Time: ${data.avalanche.monthsToPay} months\n` +
-                `• Strategy: Pay highest interest rate first\n\n` +
+                `- Total Interest: $${data.avalanche.totalInterest.toLocaleString()}\n` +
+                `- Payoff Time: ${data.avalanche.monthsToPay} months\n` +
+                `- Strategy: Pay highest interest rate first\n\n` +
                 `**SNOWBALL Method** (Quick Wins):\n` +
-                `• Total Interest: $${data.snowball.totalInterest.toLocaleString()}\n` +
-                `• Payoff Time: ${data.snowball.monthsToPay} months\n` +
-                `• Strategy: Pay smallest balance first for motivation\n\n` +
-                `💡 **Recommendation**: Avalanche saves $${Math.abs(data.snowball.totalInterest - data.avalanche.totalInterest).toLocaleString()} more. Choose Snowball only if you need psychological wins!`;
+                `- Total Interest: $${data.snowball.totalInterest.toLocaleString()}\n` +
+                `- Payoff Time: ${data.snowball.monthsToPay} months\n` +
+                `- Strategy: Pay smallest balance first for motivation\n\n` +
+                `**Recommendation**: Avalanche saves $${Math.abs(data.snowball.totalInterest - data.avalanche.totalInterest).toLocaleString()} more. Choose Snowball only if you need psychological wins.`;
             } else if (action.type === 'future_value_calculated') {
               const data = action.data;
-              return `📈 **Compound Growth Projection**\n\n` +
-                `• **Future Value**: $${data.futureValue.toLocaleString()} (nominal)\n` +
-                `• **Real Value**: $${data.realValue.toLocaleString()} (inflation-adjusted)\n` +
-                `• **Total Invested**: $${data.totalInvested.toLocaleString()}\n` +
-                `• **Growth**: $${data.totalGrowth.toLocaleString()} (${data.returnPercentage}% return)\n\n` +
-                `💡 **The power of compounding**: Start early! Every year you delay costs you thousands in lost growth.`;
+              return `**Compound Growth Projection**\n\n` +
+                `- **Future Value**: $${data.futureValue.toLocaleString()} (nominal)\n` +
+                `- **Real Value**: $${data.realValue.toLocaleString()} (inflation-adjusted)\n` +
+                `- **Total Invested**: $${data.totalInvested.toLocaleString()}\n` +
+                `- **Growth**: $${data.totalGrowth.toLocaleString()} (${data.returnPercentage}% return)\n\n` +
+                `**The power of compounding**: Start early. Every year you delay costs you thousands in lost growth.`;
             } else if (action.type === 'retirement_calculated') {
               const data = action.data;
-              const status = data.onTrack ? '✅ On track!' : '⚠️ Need to save more';
-              return `🏖️ **Retirement Planning Analysis**\n\n` +
-                `• **Target Amount Needed**: $${data.targetAmount.toLocaleString()} (4% rule)\n` +
-                `• **Current Savings**: $${data.currentSavings.toLocaleString()}\n` +
-                `• **Years to Retirement**: ${data.yearsToRetirement}\n` +
-                `• **Required Monthly Savings**: $${data.requiredMonthly.toLocaleString()}\n` +
-                `• **Status**: ${status}\n\n` +
-                `💡 **Pro tips**: Max 401(k) match (free money!), consider Roth IRA for tax-free growth, delay Social Security to 70 for 32% boost!`;
+              const status = data.onTrack ? 'On track' : 'Need to save more';
+              return `**Retirement Planning Analysis**\n\n` +
+                `- **Target Amount Needed**: $${data.targetAmount.toLocaleString()} (4% rule)\n` +
+                `- **Current Savings**: $${data.currentSavings.toLocaleString()}\n` +
+                `- **Years to Retirement**: ${data.yearsToRetirement}\n` +
+                `- **Required Monthly Savings**: $${data.requiredMonthly.toLocaleString()}\n` +
+                `- **Status**: ${status}\n\n` +
+                `**Pro tips**: Max 401(k) match (free money), consider Roth IRA for tax-free growth, delay Social Security to 70 for 32% boost.`;
             } else if (action.type === 'financial_estimates_validation_failed') {
               const errors = action.errors || [];
               const suggestions = action.suggestions || [];
-              return `⚠️ **Data Validation Error**\n\n` +
+              return `**Data Validation Error**\n\n` +
                 `The financial amount you provided seems unrealistic. Here's why:\n\n` +
-                errors.map((err: string) => `❌ ${err}`).join('\n') + `\n\n` +
+                errors.map((err: string) => `- ${err}`).join('\n') + `\n\n` +
                 `**Please double-check and provide the correct amount:**\n` +
-                suggestions.map((sug: string) => `• ${sug}`).join('\n') + `\n\n` +
-                `Once you provide the correct amount, I'll save it and give you personalized advice!`;
+                suggestions.map((sug: string) => `- ${sug}`).join('\n') + `\n\n` +
+                `Once you provide the correct amount, I'll save it and give you personalized advice.`;
             } else if (action.type === 'financial_estimates_saved_with_warnings') {
               const warnings = action.warnings || [];
-              return `⚠️ **Financial Data Saved (with warnings)**\n\n` +
+              return `**Financial Data Saved (with warnings)**\n\n` +
                 `I've saved your financial information, but I wanted to flag a few things:\n\n` +
-                warnings.map((warn: string) => `⚠️ ${warn}`).join('\n\n') + `\n\n` +
-                `If any of these need correction, just let me know!`;
+                warnings.map((warn: string) => `- ${warn}`).join('\n\n') + `\n\n` +
+                `If any of these need correction, just let me know.`;
             } else if (action.type === 'financial_estimates_saved') {
-              return `✅ **Financial Data Saved**\n\nI've securely saved your financial information and will use it to provide personalized advice!`;
+              return `**Financial Data Saved**\n\nI've securely saved your financial information and will use it to provide personalized advice.`;
             } else if (action.type === 'emergency_fund_calculated') {
               const data = action.data;
-              return `🛡️ **Emergency Fund Analysis**\n\n` +
+              return `**Emergency Fund Analysis**\n\n` +
                 `Based on your situation (${data.incomeStability} income${data.dependents > 0 ? `, ${data.dependents} dependent${data.dependents > 1 ? 's' : ''}` : ''}${!data.hasInsurance ? ', no insurance' : ''}):\n\n` +
-                `• **Recommended Target**: $${data.targetAmount.toLocaleString()} (${data.recommendedMonths} months of expenses)\n` +
-                `• **Minimum**: $${data.minAmount.toLocaleString()} (3 months)\n` +
-                `• **Optimal**: $${data.maxAmount.toLocaleString()} (6 months)\n\n` +
-                `💡 **Why ${data.recommendedMonths} months?** Your income stability and dependents determine the right safety net. This gives you ${data.recommendedMonths} months to find new income if needed!`;
+                `- **Recommended Target**: $${data.targetAmount.toLocaleString()} (${data.recommendedMonths} months of expenses)\n` +
+                `- **Minimum**: $${data.minAmount.toLocaleString()} (3 months)\n` +
+                `- **Optimal**: $${data.maxAmount.toLocaleString()} (6 months)\n\n` +
+                `**Why ${data.recommendedMonths} months?** Your income stability and dependents determine the right safety net. This gives you ${data.recommendedMonths} months to find new income if needed.`;
             } else if (action.type === 'credit_improvement_analyzed') {
               const data = action.data;
-              return `📈 **Credit Score Improvement Plan**\n\n` +
+              return `**Credit Score Improvement Plan**\n\n` +
                 (data.currentScore ? `Current Score: ${data.currentScore}\n` : '') +
                 `**Priority Focus**: ${data.priorityAction}\n\n` +
                 `**Action Steps (${data.timelineMonths}-month plan)**:\n\n` +
                 data.strategies.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n\n') + `\n\n` +
-                `🎯 **${data.scoreAdvice}**`;
+                `**${data.scoreAdvice}**`;
             } else if (action.type === 'rent_affordability_calculated') {
               const data = action.data;
-              return `🏠 **Rent Affordability Analysis**\n\n` +
+              return `**Rent Affordability Analysis**\n\n` +
                 `Based on your $${data.monthlyIncome.toLocaleString()}/month income:\n\n` +
-                `• **Recommended Rent Range**: $${data.comfortableRange.min.toLocaleString()} - $${data.comfortableRange.max.toLocaleString()}/month (${data.percentageOfIncome}% of income)\n` +
-                `• **Maximum Comfortable**: $${data.recommendedMax.toLocaleString()}/month\n\n` +
+                `- **Recommended Rent Range**: $${data.comfortableRange.min.toLocaleString()} - $${data.comfortableRange.max.toLocaleString()}/month (${data.percentageOfIncome}% of income)\n` +
+                `- **Maximum Comfortable**: $${data.recommendedMax.toLocaleString()}/month\n\n` +
                 `**Your 50/30/20 Budget Breakdown:**\n` +
-                `• Rent & Essentials (50%): $${data.budgetBreakdown.rent.toLocaleString()} + $${data.budgetBreakdown.otherNeeds.toLocaleString()}\n` +
-                `• Wants (30%): $${data.budgetBreakdown.discretionary.toLocaleString()}\n` +
-                `• Savings (20%): $${data.budgetBreakdown.savings.toLocaleString()}\n\n` +
-                (data.desiredLocation ? `For ${data.desiredLocation}: Check that average rents fit in your $${data.comfortableRange.min.toLocaleString()}-$${data.comfortableRange.max.toLocaleString()} range!\n\n` : '') +
-                `💡 **30% Rule**: Never spend more than 30% of gross income on rent - keeps your budget balanced!`;
+                `- Rent & Essentials (50%): $${data.budgetBreakdown.rent.toLocaleString()} + $${data.budgetBreakdown.otherNeeds.toLocaleString()}\n` +
+                `- Wants (30%): $${data.budgetBreakdown.discretionary.toLocaleString()}\n` +
+                `- Savings (20%): $${data.budgetBreakdown.savings.toLocaleString()}\n\n` +
+                (data.desiredLocation ? `For ${data.desiredLocation}: Check that average rents fit in your $${data.comfortableRange.min.toLocaleString()}-$${data.comfortableRange.max.toLocaleString()} range.\n\n` : '') +
+                `**30% Rule**: Never spend more than 30% of gross income on rent - keeps your budget balanced.`;
             } else if (action.type === 'mortgage_calculated') {
               const data = action.data;
-              return `🏡 **Mortgage Payment Calculator**\n\n` +
+              return `**Mortgage Payment Calculator**\n\n` +
                 `**Home Purchase**: $${data.homePrice.toLocaleString()}\n` +
                 `Down Payment: $${data.downPayment.toLocaleString()} (${data.downPaymentPercent}%)\n` +
                 `Loan Amount: $${data.loanAmount.toLocaleString()} @ ${data.interestRate}% for ${data.loanTermYears} years\n\n` +
                 `**Monthly Payment Breakdown (PITI${data.needsPMI ? ' + PMI' : ''}):**\n` +
-                `• Principal & Interest: $${data.monthlyPayment.principalInterest.toLocaleString()}\n` +
-                `• Property Tax: $${data.monthlyPayment.propertyTax.toLocaleString()}\n` +
-                `• Insurance: $${data.monthlyPayment.insurance.toLocaleString()}\n` +
-                (data.needsPMI ? `• PMI: $${data.monthlyPayment.pmi.toLocaleString()}\n` : '') +
-                `• **TOTAL: $${data.monthlyPayment.total.toLocaleString()}/month**\n\n` +
+                `- Principal & Interest: $${data.monthlyPayment.principalInterest.toLocaleString()}\n` +
+                `- Property Tax: $${data.monthlyPayment.propertyTax.toLocaleString()}\n` +
+                `- Insurance: $${data.monthlyPayment.insurance.toLocaleString()}\n` +
+                (data.needsPMI ? `- PMI: $${data.monthlyPayment.pmi.toLocaleString()}\n` : '') +
+                `- **TOTAL: $${data.monthlyPayment.total.toLocaleString()}/month**\n\n` +
                 `**Lifetime Cost Analysis:**\n` +
-                `• Total Interest: $${data.lifetimeCost.totalInterest.toLocaleString()}\n` +
-                `• Total Paid: $${data.lifetimeCost.totalPaid.toLocaleString()} over ${data.loanTermYears} years\n\n` +
-                (data.needsPMI ? `⚠️ **PMI Alert**: Put down $${data.amountToAvoidPMI.toLocaleString()} more to avoid PMI and save $${data.monthlyPayment.pmi.toLocaleString()}/month!\n\n` : '') +
-                `💡 **Pro tip**: 15-year mortgage costs less total interest but has higher monthly payments. Run both scenarios to compare!`;
+                `- Total Interest: $${data.lifetimeCost.totalInterest.toLocaleString()}\n` +
+                `- Total Paid: $${data.lifetimeCost.totalPaid.toLocaleString()} over ${data.loanTermYears} years\n\n` +
+                (data.needsPMI ? `**PMI Alert**: Put down $${data.amountToAvoidPMI.toLocaleString()} more to avoid PMI and save $${data.monthlyPayment.pmi.toLocaleString()}/month.\n\n` : '') +
+                `**Pro tip**: 15-year mortgage costs less total interest but has higher monthly payments. Run both scenarios to compare.`;
             } else if (action.type === 'tax_optimization_analyzed') {
               const data = action.data;
-              return `📊 **Tax Optimization Analysis**\n\n` +
+              return `**Tax Optimization Analysis**\n\n` +
                 `**Your Current Tax Situation:**\n` +
-                `• Annual Income: $${data.annualIncome.toLocaleString()}\n` +
-                `• Filing Status: ${data.filingStatus.replace('_', ' ')}\n` +
-                `• Current Tax: $${data.currentTax.toLocaleString()}\n` +
-                `• Effective Rate: ${data.effectiveTaxRate}%\n` +
-                `• Standard Deduction: $${data.standardDeduction.toLocaleString()}\n\n` +
+                `- Annual Income: $${data.annualIncome.toLocaleString()}\n` +
+                `- Filing Status: ${data.filingStatus.replace('_', ' ')}\n` +
+                `- Current Tax: $${data.currentTax.toLocaleString()}\n` +
+                `- Effective Rate: ${data.effectiveTaxRate}%\n` +
+                `- Standard Deduction: $${data.standardDeduction.toLocaleString()}\n\n` +
                 `**Retirement Account Optimization:**\n` +
-                `• Current Contribution: $${data.retirementOptimization.currentContribution.toLocaleString()}/year\n` +
-                `• Recommended Increase: $${data.retirementOptimization.recommendedIncrease.toLocaleString()}/year\n` +
-                `• **Immediate Tax Savings**: $${data.retirementOptimization.taxSavings.toLocaleString()}\n` +
-                `• Annual Limit: $${data.retirementOptimization.annualLimit.toLocaleString()}\n\n` +
+                `- Current Contribution: $${data.retirementOptimization.currentContribution.toLocaleString()}/year\n` +
+                `- Recommended Increase: $${data.retirementOptimization.recommendedIncrease.toLocaleString()}/year\n` +
+                `- **Immediate Tax Savings**: $${data.retirementOptimization.taxSavings.toLocaleString()}\n` +
+                `- Annual Limit: $${data.retirementOptimization.annualLimit.toLocaleString()}\n\n` +
                 `**Top Tax Optimization Strategies:**\n\n` +
                 data.strategies.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n\n') + `\n\n` +
-                `💰 **Total Potential Savings**: $${data.potentialSavings.toLocaleString()}/year\n\n` +
-                `💡 **Best move**: Max tax-advantaged accounts first - it's the closest thing to a guaranteed return!`;
+                `**Total Potential Savings**: $${data.potentialSavings.toLocaleString()}/year\n\n` +
+                `**Best move**: Max tax-advantaged accounts first - it's the closest thing to a guaranteed return.`;
             }
             return '';
           }).filter(Boolean).join('\n\n');
@@ -4549,7 +4549,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         return res.status(400).json({ message: "Message is required" });
       }
       
-      console.log(`🧠 [TierAI] Request from user ${userId}: "${message.substring(0, 100)}..."`);
+      console.log(`[TierAI] Request from user ${userId}: "${message.substring(0, 100)}..."`);
       
       // Call tier-aware router for quota enforcement
       const response = await routeWithTierCheck(userId, message, storage);
@@ -4557,7 +4557,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       // Check if quota exceeded
       if ('type' in response && response.type === 'quota_exceeded') {
         const quotaError = response as QuotaExceededError;
-        console.log(`⚠️  [TierAI] Quota exceeded: model=${quotaError.model}, used=${quotaError.used}/${quotaError.limit}`);
+        console.log(`[TierAI] Quota exceeded: model=${quotaError.model}, used=${quotaError.used}/${quotaError.limit}`);
         
         // Return 429 Too Many Requests with upgrade CTA
         return res.status(429).json({
@@ -4570,7 +4570,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       // Success - log tier/model/quota context (cast to HybridAIResponse after quota check)
       const successResponse = response as HybridAIResponse;
       console.log(
-        `✅ [TierAI] Response: model=${successResponse.modelSlug}, ` +
+        `[TierAI] Response: model=${successResponse.modelSlug}, ` +
         `escalated=${successResponse.escalated}, ` +
         `tokens=${successResponse.tokensIn}+${successResponse.tokensOut}, ` +
         `cost=$${successResponse.cost.toFixed(6)}, ` +
@@ -4604,7 +4604,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const userId = getUserIdFromRequest(req);
       await storage.resetUsage(userId);
       
-      console.log(`🔄 Usage reset for user ${userId}`);
+      console.log(`Usage reset for user ${userId}`);
       res.json({ 
         message: "Usage reset successfully",
         userId: userId,

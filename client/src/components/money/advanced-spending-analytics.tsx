@@ -92,18 +92,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
  };
 
  const getCategoryIcon = (category: string) => {
-  const icons: any = {
-   rent: '🏠',
-   utilities: '',
-   groceries: 'Groceries',
-   dining: 'Dining',
-   transport: '🚗',
-   healthcare: '🏥',
-   entertainment: '🎬',
-   shopping: '🛍️',
-   other: ''
-  };
-  return icons[category] || '';
+  return '';
  };
 
  return (
