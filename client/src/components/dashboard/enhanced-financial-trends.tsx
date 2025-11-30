@@ -236,7 +236,7 @@ export default function EnhancedFinancialTrends() {
     {/* Trend Cards */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
      {trends.map((trend, index) => (
-      <Card key={trend.label} className="p-4 border-l-4 border-l-indigo-500 bg-white dark:bg-gray-900">
+      <Card key={trend.label} className="p-4 border-l-4 border-l-blue-500 bg-white dark:bg-gray-900">
        <div className="flex items-center justify-between mb-3">
         <h4 className="font-medium text-sm">{trend.label}</h4>
         <Badge 
@@ -272,7 +272,7 @@ export default function EnhancedFinancialTrends() {
     {spendingInsights ? (
      <div className="space-y-4">
       <h3 className="text-base font-semibold flex items-center gap-2">
-       <PieChart size={16} className="text-indigo-600" />
+       <PieChart size={16} className="text-blue-600" />
        Spending Analysis
       </h3>
       
@@ -339,7 +339,7 @@ export default function EnhancedFinancialTrends() {
           return (
            <div key={category} className="flex items-center justify-between p-2 bg-muted/50 rounded">
             <div className="flex items-center gap-2">
-             <div className={`w-2 h-2 rounded-full ${index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-blue-500' : 'bg-purple-500'}`} />
+             <div className={`w-2 h-2 rounded-full ${index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-blue-500' : 'bg-blue-500'}`} />
              <span className="text-sm capitalize">{category}</span>
             </div>
             <div className="text-right">

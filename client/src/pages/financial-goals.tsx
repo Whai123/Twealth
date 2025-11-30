@@ -383,12 +383,12 @@ export default function FinancialGoals() {
       <Card className="group relative overflow-hidden p-4 sm:p-6 border-border/50">
        <div className="relative">
         <div className="flex items-center gap-2 mb-3">
-         <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-950/30">
-          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-600 dark:text-purple-400" />
+         <div className="p-1.5 sm:p-2 rounded-lg bg-slate-100 dark:bg-slate-950/30">
+          <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-600 dark:text-slate-400" />
          </div>
          <span className="text-xs sm:text-sm font-medium text-muted-foreground">Avg Progress</span>
         </div>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+        <p className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-600 dark:text-slate-400">
          {Math.round(
           financialGoals.reduce((sum: number, goal: any) => {
            const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;

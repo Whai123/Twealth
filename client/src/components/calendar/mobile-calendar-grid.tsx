@@ -68,7 +68,7 @@ export default function MobileCalendarGrid({
   const duration = actualDuration || plannedDuration;
   const timeValue = Math.round((duration / 60) * 50); // $50/hr default
   
-  if (timeValue > 500) return { color: 'bg-purple-500', label: '$$$' };
+  if (timeValue > 500) return { color: 'bg-blue-500', label: '$$$' };
   if (timeValue > 200) return { color: 'bg-blue-500', label: '$$' };
   if (timeValue > 0) return { color: 'bg-green-500', label: '$' };
   return { color: 'bg-gray-400', label: '•' };

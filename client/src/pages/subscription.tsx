@@ -259,23 +259,23 @@ export default function SubscriptionPage() {
 
  {/* Sonnet Queries - REASONING MODEL (Pro/Enterprise) */}
  {usage.sonnetUsage.limit > 0 && (
- <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-purple-200/30 dark:border-purple-800/30 space-y-4">
+ <div className="p-4 sm:p-6 bg-white dark:bg-gray-900 rounded-xl border border-blue-200/30 dark:border-blue-800/30 space-y-4">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-2">
- <Sparkles className="w-4 h-4 text-purple-600" />
+ <Sparkles className="w-4 h-4 text-blue-600" />
  <span className="text-sm font-semibold">Sonnet Queries</span>
  </div>
- <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Smart</Badge>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Smart</Badge>
  </div>
  <div className="flex items-baseline gap-1">
- <span className="text-2xl font-bold text-purple-600">
+ <span className="text-2xl font-bold text-blue-600">
  {usage.sonnetUsage.used}
  </span>
  <span className="text-muted-foreground text-sm">/ {usage.sonnetUsage.limit}</span>
  </div>
  <Progress 
  value={(usage.sonnetUsage.used / usage.sonnetUsage.limit) * 100} 
- className="h-2 bg-purple-100 dark:bg-purple-900/30"
+ className="h-2 bg-blue-100 dark:bg-blue-900/30"
  />
  {usage.sonnetUsage.used >= usage.sonnetUsage.limit * 0.8 && (
  <div className="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/20 rounded-lg p-2">
@@ -525,14 +525,14 @@ export default function SubscriptionPage() {
 
  {/* Sonnet Queries - REASONING MODEL (Pro/Enterprise) */}
  {plan.sonnetLimit > 0 && (
- <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-purple-200/30 dark:border-purple-800/30">
+ <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-blue-200/30 dark:border-blue-800/30">
  <div className="flex items-center gap-2">
- <Sparkles className="w-4 h-4 text-purple-600" />
+ <Sparkles className="w-4 h-4 text-blue-600" />
  <span className="text-sm font-medium">Sonnet Queries</span>
- <Badge className="bg-purple-500 text-white text-xs px-2 py-0.5">Smart</Badge>
+ <Badge className="bg-blue-500 text-white text-xs px-2 py-0.5">Smart</Badge>
  </div>
  <div className="text-right">
- <span className="text-base font-bold text-purple-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
+ <span className="text-base font-bold text-blue-600 block" data-testid={`text-${plan.name.toLowerCase()}-sonnet-limit`}>
  {plan.sonnetLimit}
  </span>
  <span className="text-xs text-muted-foreground">per month</span>
@@ -685,8 +685,8 @@ export default function SubscriptionPage() {
  <div className="text-sm text-muted-foreground">Always available when you need help</div>
  </div>
  
- <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-purple-200/50 dark:border-purple-800/50">
- <div className="text-3xl md:text-4xl font-bold text-purple-600">$9.99</div>
+ <div className="text-center space-y-3 p-6 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+ <div className="text-3xl md:text-4xl font-bold text-blue-600">$9.99</div>
  <div className="font-semibold">Professional Access</div>
  <div className="text-sm text-muted-foreground">Pro tier starting price</div>
  </div>

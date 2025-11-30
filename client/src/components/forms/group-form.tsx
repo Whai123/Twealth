@@ -87,7 +87,7 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
   { value:"#10B981", label:"Green", color:"bg-green-500" },
   { value:"#F59E0B", label:"Yellow", color:"bg-yellow-500" },
   { value:"#EF4444", label:"Red", color:"bg-red-500" },
-  { value:"#8B5CF6", label:"Purple", color:"bg-purple-500" },
+  { value:"#3B82F6", label:"Blue", color:"bg-blue-500" },
   { value:"#EC4899", label:"Pink", color:"bg-pink-500" },
  ];
 

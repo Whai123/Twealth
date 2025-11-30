@@ -386,7 +386,7 @@ export default function FinancialProfile() {
                       })()}%
                     </p>
                   </div>
-                  <Building2 className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+                  <Building2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
               </CardContent>
             </Card>

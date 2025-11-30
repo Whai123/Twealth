@@ -25,7 +25,7 @@ function Sparkline({ data, color = 'blue', className = '' }: SparklineProps) {
     green: 'stroke-green-600 dark:stroke-green-400',
     red: 'stroke-red-600 dark:stroke-red-400',
     blue: 'stroke-blue-600 dark:stroke-blue-400',
-    purple: 'stroke-indigo-600 dark:stroke-indigo-400',
+    purple: 'stroke-blue-600 dark:stroke-blue-400',
     gray: 'stroke-gray-400 dark:stroke-gray-500'
   };
 

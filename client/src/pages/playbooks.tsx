@@ -162,7 +162,7 @@ export default function Playbooks() {
     const colors = {
       low: "bg-gray-100 text-gray-700 dark:bg-gray-950/20 dark:text-gray-400",
       medium: "bg-blue-100 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400",
-      high: "bg-purple-100 text-purple-700 dark:bg-purple-950/20 dark:text-purple-400",
+      high: "bg-blue-100 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400",
     };
     return colors[impact as keyof typeof colors] || colors.medium;
   };

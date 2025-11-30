@@ -14,7 +14,7 @@ export default function NotFound() {
  const quickActions = [
  { icon: Home, label: t('navigation.dashboard'), path:"/", color:"bg-blue-500" },
  { icon: TrendingUp, label: t('navigation.money'), path:"/money-tracking", color:"bg-green-500" },
- { icon: Sparkles, label: t('navigation.aiAssistant'), path:"/ai-assistant", color:"bg-purple-500" },
+ { icon: Sparkles, label: t('navigation.aiAssistant'), path:"/ai-assistant", color:"bg-blue-500" },
  { icon: Compass, label: t('navigation.goals'), path:"/financial-goals", color:"bg-orange-500" }
  ];
 

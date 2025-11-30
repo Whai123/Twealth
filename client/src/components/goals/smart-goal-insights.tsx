@@ -216,7 +216,7 @@ export default function SmartGoalInsights({ goals, onActionClick }: SmartGoalIns
   switch (type) {
    case 'success': return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20';
    case 'warning': return 'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20';
-   case 'achievement': return 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20';
+   case 'achievement': return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20';
    default: return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20';
   }
  };
@@ -225,7 +225,7 @@ export default function SmartGoalInsights({ goals, onActionClick }: SmartGoalIns
   switch (type) {
    case 'success': return 'text-green-600';
    case 'warning': return 'text-yellow-600';
-   case 'achievement': return 'text-purple-600';
+   case 'achievement': return 'text-blue-600';
    default: return 'text-blue-600';
   }
  };

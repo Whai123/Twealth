@@ -255,7 +255,7 @@ export default function SmartInsights() {
    case 'achievement':
     return <CheckCircle className="text-green-500" size={16} />;
    default:
-    return <Zap className="text-purple-500" size={16} />;
+    return <Zap className="text-blue-500" size={16} />;
   }
  };
 

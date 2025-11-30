@@ -160,7 +160,7 @@ export default function ReferralsPage() {
  const levelProgress = ((referrals.length % 5) / 5) * 100;
 
  const getLevelBadge = (level: number) => {
- if (level >= 10) return { icon: Crown, color:"text-purple-600", bg:"bg-purple-100 dark:bg-purple-900/20", title:"Referral Royalty" };
+ if (level >= 10) return { icon: Crown, color:"text-blue-600", bg:"bg-blue-100 dark:bg-blue-900/20", title:"Referral Royalty" };
  if (level >= 7) return { icon: Trophy, color:"text-yellow-600", bg:"bg-yellow-100 dark:bg-yellow-900/20", title:"Referral Champion" };
  if (level >= 4) return { icon: Star, color:"text-blue-600", bg:"bg-blue-100 dark:bg-blue-900/20", title:"Referral Expert" };
  if (level >= 2) return { icon: Award, color:"text-green-600", bg:"bg-green-100 dark:bg-green-900/20", title:"Referral Pro" };
@@ -172,7 +172,7 @@ export default function ReferralsPage() {
  return (
  <>
  {/* Gamified Header */}
- <header className="bg-purple-50 dark:bg-purple-900/30 border-b border-border/50">
+ <header className="bg-blue-50 dark:bg-blue-900/30 border-b border-border/50">
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
  <div className="flex items-center justify-between mb-6">
  <div className="flex-1">
@@ -181,7 +181,7 @@ export default function ReferralsPage() {
  <Users className="w-8 h-8 text-white" />
  </div>
  <div>
- <h1 className="text-2xl md:text-4xl font-bold text-purple-600 dark:text-purple-400" data-testid="heading-referrals">
+ <h1 className="text-2xl md:text-4xl font-bold text-blue-600 dark:text-blue-400" data-testid="heading-referrals">
  Referral Rewards
  </h1>
  <p className="text-xl text-muted-foreground">Share the wealth, grow together!</p>
@@ -195,7 +195,7 @@ export default function ReferralsPage() {
  <levelBadge.icon className={`w-5 h-5 ${levelBadge.color}`} />
  <span className="text-sm font-medium">Current Level</span>
  </div>
- <div className="text-2xl font-bold text-purple-600">{referralLevel}</div>
+ <div className="text-2xl font-bold text-blue-600">{referralLevel}</div>
  <div className="text-xs text-muted-foreground">{levelBadge.title}</div>
  </div>
  

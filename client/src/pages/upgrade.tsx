@@ -316,7 +316,7 @@ export default function UpgradePage() {
                       <div className="flex items-center gap-2 mb-4">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                           isPro 
-                            ? "bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400"
+                            ? "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
                             : isEnterprise
                             ? "bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400"
                             : "bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400"

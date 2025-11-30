@@ -442,7 +442,7 @@ export default function AIAssistantPage() {
  className={`
  text-xs font-medium px-2.5 py-0.5
  ${tier === 'Enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white border-0' : ''}
- ${tier === 'Pro' ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0' : ''}
+ ${tier === 'Pro' ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0' : ''}
  ${tier === 'Free' ? 'border-border/50' : ''}
  `}
  data-testid="badge-tier"
@@ -538,23 +538,23 @@ export default function AIAssistantPage() {
 
  {/* Sonnet - REASONING MODEL (Pro/Enterprise) */}
  {usage.sonnetUsage && usage.sonnetUsage.limit > 0 ? (
- <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-purple-200/30 dark:border-purple-800/30 bg-white dark:bg-gray-900" data-testid="quota-sonnet">
+ <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-blue-200/30 dark:border-blue-800/30 bg-white dark:bg-gray-900" data-testid="quota-sonnet">
  <div className="flex items-center gap-2">
- <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+ <div className="w-2 h-2 rounded-full bg-blue-500"></div>
  <div>
  <p className="text-sm font-medium">Sonnet</p>
- <Badge className="bg-purple-500 text-white text-[10px] px-1.5 py-0">Smart</Badge>
+ <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">Smart</Badge>
  </div>
  </div>
  <div className="text-right">
- <p className="text-base font-bold text-purple-600">{usage.sonnetUsage.remaining}</p>
+ <p className="text-base font-bold text-blue-600">{usage.sonnetUsage.remaining}</p>
  <p className="text-xs text-muted-foreground">remaining</p>
  </div>
  </div>
  ) : (
  <div className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-dashed border-border/50 bg-muted/10 opacity-60" data-testid="quota-sonnet-locked">
  <div className="flex items-center gap-2">
- <div className="w-2 h-2 rounded-full bg-purple-300"></div>
+ <div className="w-2 h-2 rounded-full bg-blue-300"></div>
  <div>
  <p className="text-sm font-medium text-muted-foreground">Sonnet</p>
  <p className="text-xs text-muted-foreground">Pro tier</p>

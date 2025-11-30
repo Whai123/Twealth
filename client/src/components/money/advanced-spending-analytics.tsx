@@ -86,7 +86,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
    'bg-yellow-500',
    'bg-green-500',
    'bg-blue-500',
-   'bg-purple-500'
+   'bg-blue-500'
   ];
   return colors[index % colors.length];
  };

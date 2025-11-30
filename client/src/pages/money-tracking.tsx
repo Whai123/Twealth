@@ -409,17 +409,17 @@ export default function MoneyTracking() {
 
  {/* Smart Categorization Banner */}
  {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length > 0 && (
- <Card className="p-4 mb-6 bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800">
+ <Card className="p-4 mb-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
  <div className="flex items-center justify-between gap-4">
  <div className="flex items-center gap-3 flex-1">
  <div className="w-10 h-10 bg-white dark:bg-gray-900 rounded-lg flex items-center justify-center flex-shrink-0">
  <Sparkles className="w-5 h-5 text-white" />
  </div>
  <div className="min-w-0 flex-1">
- <h4 className="font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2">
+ <h4 className="font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
  <span>AI Smart Categorization</span>
  </h4>
- <p className="text-sm text-purple-700 dark:text-purple-300">
+ <p className="text-sm text-blue-700 dark:text-blue-300">
  {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length} uncategorized transactions detected. Let AI categorize them automatically!
  </p>
  </div>

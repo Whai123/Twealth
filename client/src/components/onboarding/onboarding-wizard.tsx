@@ -167,8 +167,8 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  </p>
  </div>
  </div>
- <div className="flex items-start gap-3 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20">
- <PiggyBank className="w-5 h-5 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-0.5" />
+ <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+ <PiggyBank className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
  <div>
  <h4 className="font-semibold text-sm mb-1">AI-Powered Insights</h4>
  <p className="text-sm text-muted-foreground">
@@ -205,7 +205,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  {step === 2 && (
  <Card className="border-2 shadow-xl">
  <CardHeader>
- <div className="mx-auto mb-4 w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
+ <div className="mx-auto mb-4 w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center">
  <DollarSign className="w-6 h-6 text-white" />
  </div>
  <CardTitle className="text-center">Tell us about your finances</CardTitle>
@@ -294,7 +294,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
  {step === 3 && (
  <Card className="border-2 shadow-xl">
  <CardHeader>
- <div className="mx-auto mb-4 w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
+ <div className="mx-auto mb-4 w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center">
  <Target className="w-6 h-6 text-white" />
  </div>
  <CardTitle className="text-center">Set your first goal</CardTitle>

@@ -351,8 +351,8 @@ export default function Dashboard() {
           <Card className="border-border/50">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-lg bg-purple-100 dark:bg-purple-950/30">
-                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-950/30">
+                  <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">Next Milestone</h3>
               </div>
@@ -374,7 +374,7 @@ export default function Dashboard() {
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-purple-500 rounded-full transition-all"
+                        className="h-full bg-blue-500 rounded-full transition-all"
                         style={{ width: `${Math.min(100, nextGoalProgress)}%` }}
                       ></div>
                     </div>

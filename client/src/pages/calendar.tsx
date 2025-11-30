@@ -400,18 +400,18 @@ export default function Calendar() {
  <div className="text-xs text-blue-700 dark:text-blue-300">This month</div>
  </div>
  
- <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200 dark:border-purple-800">
+ <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200 dark:border-blue-800">
  <div className="flex items-center gap-2 mb-1">
- <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
- <span className="text-xs sm:text-sm font-medium text-purple-900 dark:text-purple-100">Value</span>
+ <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+ <span className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-100">Value</span>
  </div>
- <div className="text-xl sm:text-2xl font-bold text-purple-600">
+ <div className="text-xl sm:text-2xl font-bold text-blue-600">
  ${Math.round(filteredEvents?.reduce((sum: number, event: any) => {
  const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
  return sum + (duration * 50);
  }, 0) || 0)}
  </div>
- <div className="text-xs text-purple-700 dark:text-purple-300">Time value</div>
+ <div className="text-xs text-blue-700 dark:text-blue-300">Time value</div>
  </div>
  
  <div className="bg-white dark:bg-gray-900 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200 dark:border-green-800">
@@ -652,7 +652,7 @@ export default function Calendar() {
  {dayEvents.slice(0, 3).map((event, i) => {
  const duration = (event.actualDurationMinutes || event.plannedDurationMinutes || 0) / 60;
  const timeValue = Math.round(duration * 50);
- const color = timeValue > 200 ? 'bg-purple-500' : timeValue > 100 ? 'bg-blue-500' : 'bg-green-500';
+ const color = timeValue > 200 ? 'bg-blue-500' : timeValue > 100 ? 'bg-blue-500' : 'bg-green-500';
  
  return (
  <div 
@@ -812,23 +812,23 @@ export default function Calendar() {
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
  <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <Clock className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Time Tracking</h4>
  <p className="text-sm text-blue-600 dark:text-blue-300">Log actual vs planned time</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+ <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <BarChart3 className="h-6 w-6 text-white" />
  </div>
- <h4 className="font-bold mb-2 text-purple-800 dark:text-purple-200">Event Analytics</h4>
- <p className="text-sm text-purple-600 dark:text-purple-300">Productivity insights & trends</p>
+ <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Event Analytics</h4>
+ <p className="text-sm text-blue-600 dark:text-blue-300">Productivity insights & trends</p>
  </div>
  
  <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+ <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
  <Sparkles className="h-6 w-6 text-white" />
  </div>
  <h4 className="font-bold mb-2 text-pink-800 dark:text-pink-200">Smart Scheduling</h4>

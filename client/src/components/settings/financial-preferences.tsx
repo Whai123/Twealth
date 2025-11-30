@@ -264,7 +264,7 @@ export default function FinancialPreferences({ }: FinancialPreferencesProps) {
    <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
     <CardHeader className="p-4 sm:p-6">
      <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-      <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+      <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
       Goal Defaults
      </CardTitle>
      <CardDescription className="text-sm sm:text-base mt-1">

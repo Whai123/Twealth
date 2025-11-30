@@ -222,10 +222,10 @@ export default function AdvancedFilters({
       </div>
 
       {/* ROI Filter */}
-      <Card className="border-purple-200 dark:border-purple-800">
+      <Card className="border-blue-200 dark:border-blue-800">
        <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
-         <TrendingUp className="text-purple-600" size={16} />
+         <TrendingUp className="text-blue-600" size={16} />
          ROI Threshold
         </CardTitle>
        </CardHeader>
@@ -251,10 +251,10 @@ export default function AdvancedFilters({
 
       {/* Group Filter */}
       {availableGroups.length > 0 && (
-       <Card className="border-indigo-200 dark:border-indigo-800">
+       <Card className="border-blue-200 dark:border-blue-800">
         <CardHeader className="pb-3">
          <CardTitle className="text-sm flex items-center gap-2">
-          <Users className="text-indigo-600" size={16} />
+          <Users className="text-blue-600" size={16} />
           Group Events
          </CardTitle>
         </CardHeader>

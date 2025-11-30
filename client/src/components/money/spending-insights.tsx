@@ -270,11 +270,11 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
      <div className="flex items-center justify-between">
       <div>
        <p className="text-sm text-muted-foreground">Insights Generated</p>
-       <p className="text-2xl font-bold text-purple-600">{insights.length}</p>
+       <p className="text-2xl font-bold text-blue-600">{insights.length}</p>
        <p className="text-xs text-muted-foreground mt-1">AI-powered</p>
       </div>
-      <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-       <Brain className="text-purple-600" size={24} />
+      <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+       <Brain className="text-blue-600" size={24} />
       </div>
      </div>
     </Card>

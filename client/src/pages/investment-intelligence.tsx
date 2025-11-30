@@ -279,7 +279,7 @@ export default function InvestmentIntelligence() {
     <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
       <div className="flex items-center gap-4">
-       <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center">
+       <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center">
         <TrendingUp className="w-6 h-6 text-white" />
        </div>
        <div className="flex-1">
@@ -376,7 +376,7 @@ export default function InvestmentIntelligence() {
        transition={{ duration: 0.5 }}
       >
        <div className="flex items-center gap-3 mb-4">
-        <Sparkles className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+        <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
         <h2 className="text-xl sm:text-2xl font-semibold">
          Personalized For You
         </h2>
@@ -385,7 +385,7 @@ export default function InvestmentIntelligence() {
         {personalizedRecommendations.map((strategy) => (
          <Card 
           key={strategy.id}
-          className="border-2 border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900"
+          className="border-2 border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-900"
           data-testid={`card-recommended-${strategy.id}`}
          >
           <CardHeader>
@@ -408,9 +408,9 @@ export default function InvestmentIntelligence() {
             </span>
             <span className="text-sm text-muted-foreground">expected return</span>
            </div>
-           <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-purple-200 dark:border-purple-800">
+           <div className="bg-white/60 dark:bg-black/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
             <div className="flex items-start gap-2">
-             <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
+             <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
              <p className="text-sm text-foreground/90">
               <span className="font-semibold">Why this? </span>
               {strategy.reason}

@@ -284,7 +284,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
    case 'bronze': return 'text-orange-600';
    case 'silver': return 'text-gray-600';
    case 'gold': return 'text-yellow-600';
-   case 'platinum': return 'text-purple-600';
+   case 'platinum': return 'text-blue-600';
    default: return 'text-gray-600';
   }
  };
@@ -294,7 +294,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
    case 'bronze': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300';
    case 'silver': return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
    case 'gold': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
-   case 'platinum': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
+   case 'platinum': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
    default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
   }
  };
@@ -339,12 +339,12 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
    </CardHeader>
    <CardContent>
     {/* Achievement Summary */}
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-white dark:bg-gray-900 rounded-lg border border-purple-200 dark:border-purple-800">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 p-4 bg-white dark:bg-gray-900 rounded-lg border border-blue-200 dark:border-blue-800">
      <div className="text-center">
-      <div className="text-2xl font-bold text-purple-600">
+      <div className="text-2xl font-bold text-blue-600">
        {milestones.filter(m => m.status === 'completed').length}
       </div>
-      <div className="text-xs text-purple-600/70">Unlocked</div>
+      <div className="text-xs text-blue-600/70">Unlocked</div>
      </div>
      <div className="text-center">
       <div className="text-2xl font-bold text-blue-600">

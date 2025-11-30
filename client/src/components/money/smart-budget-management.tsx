@@ -479,12 +479,12 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  </Badge>
  </div>
  
- <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
- <div className="text-3xl font-bold text-purple-600">
+ <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+ <div className="text-3xl font-bold text-blue-600">
  ${(totalBudget - totalSpent > 0 ? totalBudget - totalSpent : 0).toLocaleString()}
  </div>
  <p className="text-sm text-muted-foreground">Left to Spend</p>
- <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 mt-2">
+ <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 mt-2">
  This Month
  </Badge>
  </div>

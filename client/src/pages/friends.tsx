@@ -221,24 +221,24 @@ export default function Friends() {
          </p>
          
          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-10">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-pink-200/50 dark:border-pink-700/50">
-           <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+           <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
             <Target className="h-6 w-6 text-white" />
            </div>
-           <h4 className="font-bold mb-2 text-pink-800 dark:text-pink-200">Shared Goals</h4>
-           <p className="text-sm text-pink-600 dark:text-pink-300">Collaborate on financial targets</p>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-purple-200/50 dark:border-purple-700/50">
-           <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-            <Calendar className="h-6 w-6 text-white" />
-           </div>
-           <h4 className="font-bold mb-2 text-purple-800 dark:text-purple-200">Group Events</h4>
-           <p className="text-sm text-purple-600 dark:text-purple-300">Plan activities together</p>
+           <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Shared Goals</h4>
+           <p className="text-sm text-blue-600 dark:text-blue-300">Collaborate on financial targets</p>
           </div>
           
           <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
-           <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+           <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+            <Calendar className="h-6 w-6 text-white" />
+           </div>
+           <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Group Events</h4>
+           <p className="text-sm text-blue-600 dark:text-blue-300">Plan activities together</p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+           <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
             <TrendingUp className="h-6 w-6 text-white" />
            </div>
            <h4 className="font-bold mb-2 text-blue-800 dark:text-blue-200">Social Motivation</h4>

@@ -182,7 +182,7 @@ export default function SmartCalendarInsights({ events, timeRange }: CalendarIns
   <div className="space-y-4">
    <div className="flex items-center justify-between">
     <h3 className="text-lg font-semibold flex items-center gap-2">
-     <Brain className="text-purple-600" size={20} />
+     <Brain className="text-blue-600" size={20} />
      Smart Insights
     </h3>
     <Badge variant="outline" className="text-xs">
@@ -259,10 +259,10 @@ export default function SmartCalendarInsights({ events, timeRange }: CalendarIns
     <CardContent className="p-4">
      <div className="flex items-center justify-between mb-3">
       <h4 className="font-semibold flex items-center gap-2">
-       <TrendingUp className="text-purple-600" size={16} />
+       <TrendingUp className="text-blue-600" size={16} />
        Calendar Health Score
       </h4>
-      <Badge className="bg-purple-600 text-white">
+      <Badge className="bg-blue-600 text-white">
        {Math.min(100, Math.max(0, 75 + (insights.filter(i => i.type === 'achievement').length * 10) - (insights.filter(i => i.type === 'warning').length * 15)))}%
       </Badge>
      </div>

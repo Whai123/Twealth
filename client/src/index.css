@@ -169,27 +169,27 @@
   --card-foreground: hsl(220, 15%, 9%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(220, 15%, 9%);
-  --primary: hsl(262, 90%, 50%); /* Vibrant purple inspired by modern fintech */
-  --primary-foreground: hsl(0, 0%, 98%);
+  --primary: hsl(217, 91%, 60%); /* Royal blue - professional fintech */
+  --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(220, 14%, 96%);
   --secondary-foreground: hsl(220, 9%, 46%);
   --muted: hsl(220, 14%, 96%);
   --muted-foreground: hsl(220, 9%, 46%);
-  --accent: hsl(262, 90%, 95%);
-  --accent-foreground: hsl(262, 90%, 15%);
+  --accent: hsl(217, 91%, 96%);
+  --accent-foreground: hsl(217, 91%, 20%);
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 98%);
   --border: hsl(220, 13%, 91%);
   --input: hsl(220, 13%, 91%);
-  --ring: hsl(262, 90%, 50%);
-  --chart-1: hsl(262, 90%, 50%);
+  --ring: hsl(217, 91%, 60%);
+  --chart-1: hsl(217, 91%, 60%);
   --chart-2: hsl(142, 76%, 36%);
   --chart-3: hsl(45, 93%, 47%);
   --chart-4: hsl(0, 84%, 60%);
-  --chart-5: hsl(271, 81%, 56%);
+  --chart-5: hsl(217, 70%, 45%);
   
   /* Modern Color System - Single Primary with Status Colors */
-  --brand-primary: 262 90% 50%;
+  --brand-primary: 217 91% 60%;
   --success: 142 71% 45%;
   --warning: 38 92% 50%;
   --error: 0 84% 60%;
@@ -199,12 +199,12 @@
   
   --sidebar: hsl(0, 0%, 100%);
   --sidebar-foreground: hsl(220, 15%, 9%);
-  --sidebar-primary: hsl(262, 90%, 50%);
-  --sidebar-primary-foreground: hsl(0, 0%, 98%);
+  --sidebar-primary: hsl(217, 91%, 60%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
   --sidebar-accent: hsl(220, 14%, 96%);
-  --sidebar-accent-foreground: hsl(262, 90%, 50%);
+  --sidebar-accent-foreground: hsl(217, 91%, 60%);
   --sidebar-border: hsl(220, 13%, 91%);
-  --sidebar-ring: hsl(262, 90%, 50%);
+  --sidebar-ring: hsl(217, 91%, 60%);
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
@@ -275,27 +275,27 @@
   --card-foreground: hsl(220, 15%, 97%);
   --popover: hsl(220, 15%, 12%);
   --popover-foreground: hsl(220, 15%, 97%);
-  --primary: hsl(262, 83%, 58%); /* Vibrant purple for dark mode */
-  --primary-foreground: hsl(0, 0%, 98%);
+  --primary: hsl(217, 91%, 65%); /* Royal blue for dark mode */
+  --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(220, 15%, 15%);
   --secondary-foreground: hsl(220, 15%, 60%);
   --muted: hsl(220, 15%, 15%);
   --muted-foreground: hsl(220, 15%, 60%);
-  --accent: hsl(262, 90%, 95%);
-  --accent-foreground: hsl(262, 90%, 15%);
+  --accent: hsl(217, 91%, 20%);
+  --accent-foreground: hsl(217, 91%, 95%);
   --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 98%);
   --border: hsl(220, 15%, 18%);
   --input: hsl(220, 15%, 18%);
-  --ring: hsl(262, 83%, 58%);
+  --ring: hsl(217, 91%, 65%);
   --sidebar: hsl(220, 15%, 12%);
   --sidebar-foreground: hsl(220, 15%, 97%);
-  --sidebar-primary: hsl(262, 83%, 58%);
-  --sidebar-primary-foreground: hsl(0, 0%, 98%);
+  --sidebar-primary: hsl(217, 91%, 65%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
   --sidebar-accent: hsl(220, 15%, 15%);
-  --sidebar-accent-foreground: hsl(262, 83%, 58%);
+  --sidebar-accent-foreground: hsl(217, 91%, 65%);
   --sidebar-border: hsl(220, 15%, 18%);
-  --sidebar-ring: hsl(262, 83%, 58%);
+  --sidebar-ring: hsl(217, 91%, 65%);
 }
 
 @layer base {
@@ -550,7 +550,7 @@
   
   /* Professional Icon Container Styles */
   .icon-container-primary {
-    @apply bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl flex items-center justify-center;
+    @apply bg-blue-600 dark:bg-blue-500 text-white rounded-xl flex items-center justify-center;
   }
   
   .icon-container-success {

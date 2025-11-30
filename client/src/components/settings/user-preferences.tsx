@@ -270,7 +270,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
    <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
     <CardHeader className="p-4 sm:p-6">
      <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-      <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+      <Palette className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
       Theme & Appearance
      </CardTitle>
      <CardDescription className="text-sm sm:text-base mt-1">
@@ -289,12 +289,12 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
          disabled={updatePreferencesMutation.isPending}
          className={`min-h-[88px] sm:min-h-[100px] p-4 sm:p-5 rounded-xl border-2 transition-all ${
           preferences.theme === theme.value 
-           ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/30 shadow-md' 
-           : 'border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-600 bg-white dark:bg-slate-800/50'
+           ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/30 shadow-md' 
+           : 'border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 bg-white dark:bg-slate-800/50'
          } ${updatePreferencesMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer[1.02]'}`}
         >
          <div className="flex items-center justify-center mb-2 sm:mb-3">
-          <theme.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${preferences.theme === theme.value ? 'text-purple-600' : 'text-slate-400'}`} />
+          <theme.icon className={`w-6 h-6 sm:w-7 sm:h-7 ${preferences.theme === theme.value ? 'text-blue-600' : 'text-slate-400'}`} />
          </div>
          <h4 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">{theme.label}</h4>
          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">{theme.description}</p>
@@ -353,7 +353,7 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
 
      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between min-h-[60px] p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
       <div className="flex items-start gap-3 mb-3 sm:mb-0">
-       <Smartphone className="text-purple-600 w-5 h-5 mt-0.5 flex-shrink-0" />
+       <Smartphone className="text-blue-600 w-5 h-5 mt-0.5 flex-shrink-0" />
        <div>
         <p className="font-medium text-sm sm:text-base text-slate-900 dark:text-white">Weekly Reports</p>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Weekly financial insights and tips</p>
@@ -606,8 +606,8 @@ export default function UserPreferencesSettings({ }: UserPreferencesProps) {
      </Button>
 
      {(financialData.monthlyIncome && financialData.monthlyExpenses) && (
-      <div className="bg-white dark:bg-gray-900 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
-       <p className="text-sm font-medium text-purple-900 dark:text-purple-200">
+      <div className="bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+       <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
         Monthly Surplus: {preferences?.currency === 'USD' ? '$' : ''}
         {(parseFloat(financialData.monthlyIncome) - parseFloat(financialData.monthlyExpenses)).toFixed(2)}
        </p>

@@ -32,7 +32,7 @@ export default function MobileFloatingActions({
    id: 'quick-event',
    label: 'Quick Event',
    icon: <Clock size={20} />,
-   color: 'bg-purple-500 hover:bg-purple-600',
+   color: 'bg-blue-500 hover:bg-blue-600',
    action: () => {
     setIsExpanded(false);
     onQuickEventClick();

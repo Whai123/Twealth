@@ -369,10 +369,10 @@ export default function Groups() {
  
  <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 border border-white/20">
  <div className="flex items-center gap-2 mb-2">
- <TrendingUp className="w-5 h-5 text-purple-500" />
+ <TrendingUp className="w-5 h-5 text-blue-500" />
  <span className="text-sm font-medium">Success Rate</span>
  </div>
- <div className="text-2xl font-bold text-purple-600">85%</div>
+ <div className="text-2xl font-bold text-blue-600">85%</div>
  <div className="text-xs text-muted-foreground">Event viability</div>
  </div>
  
@@ -465,12 +465,12 @@ export default function Groups() {
  <p className="text-sm text-blue-600 dark:text-blue-300">AI-powered event scheduling with optimal timing suggestions</p>
  </div>
  
- <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-purple-200/50 dark:border-purple-700/50">
+ <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-blue-200/50 dark:border-blue-700/50">
  <div className="w-14 h-14 bg-white dark:bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
  <TrendingUp className="h-7 w-7 text-white" />
  </div>
- <h4 className="font-bold text-lg mb-3 text-purple-800 dark:text-purple-200">Success Analytics</h4>
- <p className="text-sm text-purple-600 dark:text-purple-300">Track engagement and optimize group performance</p>
+ <h4 className="font-bold text-lg mb-3 text-blue-800 dark:text-blue-200">Success Analytics</h4>
+ <p className="text-sm text-blue-600 dark:text-blue-300">Track engagement and optimize group performance</p>
  </div>
  </div>
  
@@ -541,7 +541,7 @@ export default function Groups() {
  <div className="flex items-center justify-between mb-4">
  <div className="min-w-0 flex-1 pr-2">
  <div className="flex items-center gap-3 mb-2">
- <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+ <div className="w-10 h-10 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
  <Users className="w-5 h-5 text-white" />
  </div>
  <CardTitle 

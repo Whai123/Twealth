@@ -233,7 +233,7 @@ export function AchievementShareCard({ achievement, shareData }: AchievementShar
  bronze: 'bg-orange-500',
  silver: 'bg-gray-400', 
  gold: 'bg-yellow-500',
- platinum: 'bg-purple-500'
+ platinum: 'bg-blue-500'
  };
 
  const categoryLabels = {

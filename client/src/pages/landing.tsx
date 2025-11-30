@@ -147,8 +147,8 @@ export default function Landing() {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="p-6 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center mb-5">
-              <Brain className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center mb-5">
+              <Brain className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.aiAdvisor.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -197,8 +197,8 @@ export default function Landing() {
           </Card>
           
           <Card className="p-6 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-950/50 flex items-center justify-center mb-5">
-              <Shield className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+            <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-950/50 flex items-center justify-center mb-5">
+              <Shield className="w-6 h-6 text-slate-600 dark:text-slate-400" />
             </div>
             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">{t('landing.features.healthScore.title')}</h3>
             <p className="text-gray-600 dark:text-gray-400 leading-relaxed">

@@ -165,16 +165,16 @@ export default function Planning() {
  return (
  <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
  {/* Modern Header with gradient background */}
- <header className="bg-indigo-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+ <header className="bg-blue-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 md:py-6">
  <div className="flex items-center justify-between mb-4">
  <div className="flex-1">
  <div className="flex items-center gap-3 mb-3">
- <div className="w-12 h-12 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+ <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
  <Brain className="w-6 h-6 text-white" />
  </div>
  <div>
- <h1 className="text-2xl md:text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+ <h1 className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">
  Smart Financial Planning
  </h1>
  <p className="text-muted-foreground text-lg">AI-powered insights to accelerate your financial success</p>
@@ -188,7 +188,7 @@ export default function Planning() {
  <Star className="w-4 h-4 text-yellow-500" />
  <span className="text-sm font-medium text-foreground">Planning Score</span>
  </div>
- <div className="text-xl font-bold text-indigo-600 dark:text-indigo-400">85/100</div>
+ <div className="text-xl font-bold text-blue-600 dark:text-blue-400">85/100</div>
  </div>
  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
  <div className="flex items-center gap-2">
@@ -206,10 +206,10 @@ export default function Planning() {
  </div>
  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
  <div className="flex items-center gap-2">
- <Zap className="w-4 h-4 text-purple-500" />
+ <Zap className="w-4 h-4 text-blue-500" />
  <span className="text-sm font-medium text-foreground">AI Insights</span>
  </div>
- <div className="text-xl font-bold text-purple-600 dark:text-purple-400">{suggestions.length}</div>
+ <div className="text-xl font-bold text-blue-600 dark:text-blue-400">{suggestions.length}</div>
  </div>
  </div>
  </div>
@@ -224,7 +224,7 @@ export default function Planning() {
  <TabsTrigger 
  value="suggestions" 
  data-testid="tab-suggestions"
- className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg flex items-center justify-center gap-1.5 px-2 text-sm"
+ className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg flex items-center justify-center gap-1.5 px-2 text-sm"
  >
  <Sparkles className="w-4 h-4 flex-shrink-0" />
  <span className="hidden sm:inline">Suggestions</span>
@@ -233,7 +233,7 @@ export default function Planning() {
  <TabsTrigger 
  value="insights" 
  data-testid="tab-insights"
- className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg flex items-center justify-center gap-1.5 px-2 text-sm"
+ className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg flex items-center justify-center gap-1.5 px-2 text-sm"
  >
  <BarChart3 className="w-4 h-4 flex-shrink-0" />
  <span className="truncate">Insights</span>
@@ -241,7 +241,7 @@ export default function Planning() {
  <TabsTrigger 
  value="projections" 
  data-testid="tab-projections"
- className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white data-[state=active]:shadow-lg flex items-center justify-center gap-1.5 px-2 text-sm"
+ className="data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg flex items-center justify-center gap-1.5 px-2 text-sm"
  >
  <Target className="w-4 h-4 flex-shrink-0" />
  <span className="hidden sm:inline">Projections</span>
@@ -254,7 +254,7 @@ export default function Planning() {
  <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg transition-all">
  <CardHeader className="pb-4">
  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
- <Rocket className="w-6 h-6 text-indigo-600" />
+ <Rocket className="w-6 h-6 text-blue-600" />
  Quick Actions to Boost Your Wealth
  </CardTitle>
  <p className="text-muted-foreground">Take immediate action to improve your financial position</p>
@@ -293,7 +293,7 @@ export default function Planning() {
  <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg transition-all">
  <CardHeader className="pb-4">
  <CardTitle className="text-xl font-bold text-foreground flex items-center gap-2">
- <Brain className="w-6 h-6 text-purple-600" />
+ <Brain className="w-6 h-6 text-blue-600" />
  AI-Powered Recommendations
  </CardTitle>
  <p className="text-muted-foreground">Smart insights tailored to your financial behavior and goals</p>

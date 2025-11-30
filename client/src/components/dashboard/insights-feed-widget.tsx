@@ -92,7 +92,7 @@ export default function InsightsFeedWidget() {
         metric: `${goalsNearCompletion.length}`,
         priority: 'normal',
         icon: Award,
-        color: 'text-purple-600 dark:text-purple-400'
+        color: 'text-blue-600 dark:text-blue-400'
       });
     }
 
@@ -194,7 +194,7 @@ export default function InsightsFeedWidget() {
         comparison: 'vs. 2-5 typical',
         priority: 'low',
         icon: Zap,
-        color: 'text-indigo-600 dark:text-indigo-400'
+        color: 'text-blue-600 dark:text-blue-400'
       });
     }
 

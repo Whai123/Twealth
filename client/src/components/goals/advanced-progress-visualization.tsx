@@ -154,12 +154,12 @@ export default function AdvancedProgressVisualization({
        <div className="text-xs text-green-600/70">Completed</div>
       </div>
       <div className="text-center">
-       <div className="text-2xl font-bold text-purple-600">${totalSaved.toLocaleString()}</div>
-       <div className="text-xs text-purple-600/70">Total Saved</div>
+       <div className="text-2xl font-bold text-blue-600">${totalSaved.toLocaleString()}</div>
+       <div className="text-xs text-blue-600/70">Total Saved</div>
       </div>
       <div className="text-center">
-       <div className="text-2xl font-bold text-indigo-600">{Math.round(overallProgress)}%</div>
-       <div className="text-xs text-indigo-600/70">Overall Progress</div>
+       <div className="text-2xl font-bold text-blue-600">{Math.round(overallProgress)}%</div>
+       <div className="text-xs text-blue-600/70">Overall Progress</div>
       </div>
      </div>
      
