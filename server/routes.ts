@@ -7,6 +7,7 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
+import { stripeLogger } from "./utils/logger";
 
 // Rate limiters for different endpoint types
 const aiChatLimiter = rateLimit({
@@ -5750,10 +5751,16 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
+  // Idempotency cache for webhook events (in-memory, cleared on restart)
+  const processedWebhookEvents = new Set<string>();
+  const WEBHOOK_EVENT_CACHE_SIZE = 1000;
+  
   // Stripe Webhook Handler for payment completion
+  // Stripe automatically retries webhooks on 5xx errors with exponential backoff
   app.post('/api/webhooks/stripe', async (req, res) => {
     try {
       if (!stripe) {
+        stripeLogger.warn('Webhook received but Stripe not configured');
         return res.status(503).json({ message: "Stripe not configured" });
       }
 
@@ -5763,46 +5770,54 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
 
       try {
         if (endpointSecret && sig) {
-          // Production: Verify webhook signature with raw body
           event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
         } else if (process.env.NODE_ENV === 'development') {
-          // Development only: Parse body directly when no secret configured
-          console.warn('⚠️  Webhook signature verification disabled in development');
+          stripeLogger.warn('Webhook signature verification disabled in development');
           event = JSON.parse(req.body.toString());
         } else {
-          // Production without secret - security risk, reject
-          console.error('❌ Webhook secret required in production');
+          stripeLogger.error('Webhook secret required in production');
           return res.status(401).json({ 
             error: "Webhook secret required for signature verification" 
           });
         }
       } catch (err: any) {
-        console.error('Webhook signature verification failed:', err.message);
+        stripeLogger.error('Webhook signature verification failed', err);
         return res.status(400).send(`Webhook Error: ${err.message}`);
       }
+
+      // Idempotency check - prevent duplicate processing
+      if (processedWebhookEvents.has(event.id)) {
+        stripeLogger.info('Duplicate webhook event received', { data: { eventId: event.id, type: event.type } });
+        return res.json({ received: true, duplicate: true });
+      }
+      
+      // Add to processed events (with size limit)
+      if (processedWebhookEvents.size >= WEBHOOK_EVENT_CACHE_SIZE) {
+        const firstEvent = processedWebhookEvents.values().next().value;
+        if (firstEvent) processedWebhookEvents.delete(firstEvent);
+      }
+      processedWebhookEvents.add(event.id);
+
+      stripeLogger.info('Processing webhook event', { data: { eventId: event.id, type: event.type } });
 
       // Handle the event
       switch (event.type) {
         case 'checkout.session.completed':
-          // User completed Stripe Checkout - most common for new subscriptions
           const session = event.data.object;
           await handleCheckoutSessionCompleted(session);
           break;
 
         case 'customer.subscription.created':
-          // Subscription was created (backup to checkout.session.completed)
           const createdSubscription = event.data.object;
           await handleSubscriptionCreated(createdSubscription);
           break;
 
         case 'customer.subscription.updated':
-          // Subscription was updated (plan change, renewal, etc.)
           const updatedSubscription = event.data.object;
           await handleSubscriptionUpdated(updatedSubscription);
           break;
 
         case 'customer.subscription.deleted':
-          // Subscription was cancelled or expired
           const deletedSubscription = event.data.object;
           await handleSubscriptionDeleted(deletedSubscription);
           break;
@@ -5818,12 +5833,13 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           break;
           
         default:
-          console.log(`Unhandled event type ${event.type}`);
+          stripeLogger.debug('Unhandled event type', { data: { type: event.type } });
       }
 
       res.json({ received: true });
     } catch (error: any) {
-      console.error('Webhook error:', error);
+      // Log error and return 500 to trigger Stripe's automatic retry
+      stripeLogger.error('Webhook processing failed - Stripe will retry', error, { data: { eventId: (req.body as any)?.id } });
       res.status(500).json({ message: error.message });
     }
   });
