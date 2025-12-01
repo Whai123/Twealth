@@ -39,12 +39,11 @@ export function ResponsiveTransactionDialog({
 
   const defaultTrigger = (
     <Button
-      className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm min-h-[52px]"
+      className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm min-h-[44px] hidden md:flex"
       data-testid="button-add-transaction"
     >
-      <Plus className="h-4 w-4 sm:mr-2" />
-      <span className="hidden sm:inline">Add Transaction</span>
-      <span className="sm:hidden">Add</span>
+      <Plus className="h-4 w-4 mr-2" />
+      Add
     </Button>
   );
 

@@ -144,13 +144,12 @@ export default function FloatingAIWidget() {
   if (!isOpen) {
     return (
       <div 
-        className="fixed right-4 z-50 md:bottom-6 md:right-6"
-        style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+        className="fixed right-4 z-50 bottom-[calc(72px+env(safe-area-inset-bottom,0px))] md:bottom-6 md:right-6"
       >
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="rounded-full h-12 w-12 min-h-[48px] min-w-[48px] shadow-lg md:static"
+          className="rounded-full h-12 w-12 min-h-[48px] min-w-[48px] shadow-lg"
           data-testid="button-open-ai-widget"
         >
           <Sparkles className="h-5 w-5" />
@@ -161,8 +160,7 @@ export default function FloatingAIWidget() {
 
   return (
     <div 
-      className="fixed right-2 z-50 w-[calc(100vw-16px)] sm:w-96 max-w-[400px] md:bottom-6 md:right-6"
-      style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+      className="fixed right-2 z-50 w-[calc(100vw-16px)] sm:w-96 max-w-[400px] bottom-[calc(72px+env(safe-area-inset-bottom,0px))] md:bottom-6 md:right-6"
     >
       <Card className="shadow-2xl">
         <CardHeader className="pb-3">

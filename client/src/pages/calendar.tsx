@@ -274,15 +274,15 @@ export default function Calendar() {
 
  return (
  <div className="min-h-screen bg-background">
- {/* Clean Professional Header */}
+ {/* Clean Professional Header - Compact on mobile */}
  <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
- <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
- <div className="flex items-center justify-between gap-4">
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-6">
+ <div className="flex items-center justify-between gap-2 sm:gap-4">
  <div className="flex-1 min-w-0">
- <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+ <h1 className="text-lg sm:text-3xl font-semibold tracking-tight text-foreground">
  Calendar
  </h1>
- <p className="text-sm text-muted-foreground mt-1">Manage your schedule and events</p>
+ <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Manage your schedule and events</p>
  </div>
  
  {/* Action Buttons - Touch-friendly */}

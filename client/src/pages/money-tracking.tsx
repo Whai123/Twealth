@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from"react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
-import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText, Download } from"lucide-react";
+import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText, Download, ChevronDown } from"lucide-react";
 import { Button } from"@/components/ui/button";
 import EmptyState from"@/components/ui/empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
@@ -32,6 +32,7 @@ export default function MoneyTracking() {
  const { toast } = useToast();
  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
  const [activeTab, setActiveTab] = useState("overview");
+ const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
  
  // Check for add query parameter and open dialog automatically
  useEffect(() => {
@@ -202,15 +203,15 @@ export default function MoneyTracking() {
 
  return (
  <div className="min-h-screen bg-background">
- {/* Clean Professional Header */}
+ {/* Clean Professional Header - Compact on mobile */}
  <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
- <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
- <div className="flex items-center justify-between gap-4">
+ <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-6">
+ <div className="flex items-center justify-between gap-2 sm:gap-4">
  <div className="flex-1 min-w-0">
- <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+ <h1 className="text-lg sm:text-3xl font-semibold tracking-tight text-foreground">
  Money Tracking
  </h1>
- <p className="text-sm text-muted-foreground mt-1">Monitor your income, expenses, and cash flow</p>
+ <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">Monitor your income, expenses, and cash flow</p>
  </div>
  
  <ResponsiveTransactionDialog 
@@ -222,111 +223,119 @@ export default function MoneyTracking() {
  </header>
  
  <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
- {/* Modern Tab Interface */}
+ {/* Mobile-First Tab Interface - horizontal scroll on mobile */}
  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
- <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 mb-6 p-1">
- <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-overview">
- <DollarSign size={16} className="flex-shrink-0" />
- <span className="hidden sm:inline truncate">Overview</span>
+ <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-4 scrollbar-none">
+ <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-5 p-1 gap-1">
+ <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px]" data-testid="tab-overview">
+ <DollarSign size={14} className="flex-shrink-0" />
+ <span>Overview</span>
  </TabsTrigger>
- <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-analytics">
- <BarChart3 size={16} className="flex-shrink-0" />
- <span className="hidden sm:inline truncate">Analytics</span>
+ <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px]" data-testid="tab-analytics">
+ <BarChart3 size={14} className="flex-shrink-0" />
+ <span>Analytics</span>
  </TabsTrigger>
- <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-budget">
- <Target size={16} className="flex-shrink-0" />
- <span className="hidden sm:inline truncate">Budget</span>
+ <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px]" data-testid="tab-budget">
+ <Target size={14} className="flex-shrink-0" />
+ <span>Budget</span>
  </TabsTrigger>
- <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-insights">
- <Lightbulb size={16} className="flex-shrink-0" />
- <span className="hidden sm:inline truncate">Insights</span>
+ <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px]" data-testid="tab-insights">
+ <Lightbulb size={14} className="flex-shrink-0" />
+ <span>Insights</span>
  </TabsTrigger>
- <TabsTrigger value="csv-analyzer" className="flex items-center justify-center gap-1.5 px-2 text-sm" data-testid="tab-csv-analyzer">
- <FileText size={16} className="flex-shrink-0" />
- <span className="hidden sm:inline truncate">CSV Analyzer</span>
+ <TabsTrigger value="csv-analyzer" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px]" data-testid="tab-csv-analyzer">
+ <FileText size={14} className="flex-shrink-0" />
+ <span>CSV</span>
  </TabsTrigger>
  </TabsList>
+ </div>
 
  {/* Overview Tab */}
- <TabsContent value="overview" className="space-y-4 sm:space-y-6">
- {/* Mobile-First Summary Cards */}
- <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
- <Card className="group relative overflow-hidden p-6 border-border/50">
+ <TabsContent value="overview" className="space-y-3 sm:space-y-6">
+ {/* Mobile-First Compact Summary Cards */}
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+ <Card className="group relative overflow-hidden p-3 sm:p-6 border-border/50">
  <div className="absolute inset-0 bg-green-500/5 pointer-events-none"></div>
  <div className="relative">
- <div className="flex items-center gap-2.5 mb-4">
- <div className="p-2 rounded-lg bg-green-100 dark:bg-green-950/30">
- <TrendingUp className="text-green-600 dark:text-green-400" size={20} />
+ <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2 sm:mb-4">
+ <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-950/30">
+ <TrendingUp className="text-green-600 dark:text-green-400 w-4 h-4 sm:w-5 sm:h-5" />
  </div>
- <span className="text-sm font-medium text-muted-foreground">Total Income</span>
+ <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Income</span>
  </div>
- <p className="text-4xl font-bold tracking-tight text-green-600 dark:text-green-400" data-testid="text-total-income">
+ <p className="text-xl sm:text-4xl font-bold tracking-tight text-green-600 dark:text-green-400" data-testid="text-total-income">
  ${totalIncome.toLocaleString()}
  </p>
  </div>
  </Card>
 
- <Card className="group relative overflow-hidden p-6 border-border/50">
+ <Card className="group relative overflow-hidden p-3 sm:p-6 border-border/50">
  <div className="absolute inset-0 bg-red-500/5 pointer-events-none"></div>
  <div className="relative">
- <div className="flex items-center gap-2.5 mb-4">
- <div className="p-2 rounded-lg bg-red-100 dark:bg-red-950/30">
- <TrendingDown className="text-red-600 dark:text-red-400" size={20} />
+ <div className="flex items-center gap-1.5 sm:gap-2.5 mb-2 sm:mb-4">
+ <div className="p-1.5 sm:p-2 rounded-lg bg-red-100 dark:bg-red-950/30">
+ <TrendingDown className="text-red-600 dark:text-red-400 w-4 h-4 sm:w-5 sm:h-5" />
  </div>
- <span className="text-sm font-medium text-muted-foreground">Total Expenses</span>
+ <span className="text-xs sm:text-sm font-medium text-muted-foreground">Expenses</span>
  </div>
- <p className="text-4xl font-bold tracking-tight text-red-600 dark:text-red-400" data-testid="text-total-expenses">
+ <p className="text-xl sm:text-4xl font-bold tracking-tight text-red-600 dark:text-red-400" data-testid="text-total-expenses">
  ${totalExpenses.toLocaleString()}
  </p>
  </div>
  </Card>
 
- <Card className="p-6 hover:shadow-primary/10 [1.01] cursor-pointer">
+ <Card className="p-3 sm:p-6">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm text-muted-foreground">Net Cash Flow</p>
- <p className={`text-2xl font-bold ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="text-net-cash-flow">
+ <p className="text-xs sm:text-sm text-muted-foreground">Net Flow</p>
+ <p className={`text-lg sm:text-2xl font-bold ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="text-net-cash-flow">
  ${netCashFlow.toLocaleString()}
  </p>
  </div>
- <div className={`w-12 h-12 ${netCashFlow >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'} rounded-lg flex items-center justify-center`}>
- <DollarSign className={netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'} size={24} />
+ <div className={`w-8 h-8 sm:w-12 sm:h-12 ${netCashFlow >= 0 ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'} rounded-lg flex items-center justify-center`}>
+ <DollarSign className={`w-4 h-4 sm:w-6 sm:h-6 ${netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`} />
  </div>
  </div>
  </Card>
 
- <Card className="p-6 hover:shadow-primary/10 [1.01] cursor-pointer">
+ <Card className="p-3 sm:p-6">
  <div className="flex items-center justify-between">
  <div>
- <p className="text-sm text-muted-foreground">Total Savings</p>
- <p className="text-2xl font-bold text-blue-600" data-testid="text-total-savings">
+ <p className="text-xs sm:text-sm text-muted-foreground">Savings</p>
+ <p className="text-lg sm:text-2xl font-bold text-blue-600" data-testid="text-total-savings">
  ${(stats as any)?.totalSavings?.toLocaleString() || '0'}
  </p>
  </div>
- <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
- <DollarSign className="text-blue-600" size={24} />
+ <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+ <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-blue-600" />
  </div>
  </div>
  </Card>
  </div>
 
- {/* Filters */}
- <Card className="p-6 mb-6">
- <div className="flex items-center justify-between mb-4">
- <h3 className="text-lg font-semibold flex items-center">
- <Filter className="mr-2" size={20} />
- Filters
- </h3>
- <span className="text-sm text-muted-foreground">
- {filteredTransactions.length} transactions
+ {/* Filters - Collapsible on mobile */}
+ <Card className="p-3 sm:p-6">
+ <button 
+ className="flex items-center justify-between w-full md:cursor-default"
+ onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+ data-testid="button-toggle-filters"
+ >
+ <div className="flex items-center gap-2">
+ <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
+ <span className="text-sm sm:text-lg font-semibold">Filters</span>
+ <span className="text-xs sm:text-sm text-muted-foreground">
+ ({filteredTransactions.length})
  </span>
  </div>
+ <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${isFiltersExpanded ? 'rotate-180' : ''}`} />
+ </button>
  
- <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+ <div className={`${isFiltersExpanded ? 'block' : 'hidden'} md:block mt-3 sm:mt-4`}>
+ <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
  <div>
- <label className="text-sm font-medium mb-1 block">Time Range</label>
+ <label className="text-xs sm:text-sm font-medium mb-1 block">Time Range</label>
  <Select value={timeRange} onValueChange={setTimeRange}>
- <SelectTrigger data-testid="select-time-range">
+ <SelectTrigger data-testid="select-time-range" className="h-9 sm:h-10 text-xs sm:text-sm">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -339,9 +348,9 @@ export default function MoneyTracking() {
  </div>
 
  <div>
- <label className="text-sm font-medium mb-1 block">Type</label>
+ <label className="text-xs sm:text-sm font-medium mb-1 block">Type</label>
  <Select value={filterType} onValueChange={setFilterType}>
- <SelectTrigger data-testid="select-transaction-type">
+ <SelectTrigger data-testid="select-transaction-type" className="h-9 sm:h-10 text-xs sm:text-sm">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -354,9 +363,9 @@ export default function MoneyTracking() {
  </div>
 
  <div>
- <label className="text-sm font-medium mb-1 block">Category</label>
+ <label className="text-xs sm:text-sm font-medium mb-1 block">Category</label>
  <Select value={filterCategory} onValueChange={setFilterCategory}>
- <SelectTrigger data-testid="select-filter-category">
+ <SelectTrigger data-testid="select-filter-category" className="h-9 sm:h-10 text-xs sm:text-sm">
  <SelectValue />
  </SelectTrigger>
  <SelectContent>
@@ -372,20 +381,23 @@ export default function MoneyTracking() {
  </Select>
  </div>
 
- <div className="flex items-end gap-2">
+ <div className="flex items-end gap-1 sm:gap-2 col-span-2 md:col-span-1">
  <Button 
  variant="outline" 
+ size="sm"
  onClick={() => {
  setFilterType("all");
  setFilterCategory("all");
  setTimeRange("30");
  }}
  data-testid="button-clear-filters"
+ className="text-xs h-9 sm:h-10"
  >
- Clear Filters
+ Clear
  </Button>
  <Button 
  variant="outline"
+ size="sm"
  onClick={() => {
  const params = new URLSearchParams();
  if (filterType !== 'all') params.set('type', filterType);
@@ -399,10 +411,12 @@ export default function MoneyTracking() {
  window.location.href = `/api/transactions/export?${params.toString()}`;
  }}
  data-testid="button-export-csv"
+ className="text-xs h-9 sm:h-10"
  >
- <Download size={16} className="mr-2" />
- Export CSV
+ <Download size={14} className="mr-1 sm:mr-2" />
+ Export
  </Button>
+ </div>
  </div>
  </div>
  </Card>
