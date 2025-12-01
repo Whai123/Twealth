@@ -34,6 +34,7 @@ export async function seedSubscriptionPlans() {
       aiDeepAnalysisLimit: 0,
       aiInsightsFrequency: "never",
       isLifetimeLimit: false,
+      sortOrder: 1,
       features: [
         "50 Scout queries/month Fast",
         "Basic financial tracking",
@@ -60,6 +61,7 @@ export async function seedSubscriptionPlans() {
       aiDeepAnalysisLimit: 30,
       aiInsightsFrequency: "daily",
       isLifetimeLimit: false,
+      sortOrder: 2,
       features: [
         "Unlimited Scout queries Fast",
         "25 Sonnet queries/month Smart",
@@ -89,6 +91,7 @@ export async function seedSubscriptionPlans() {
       aiDeepAnalysisLimit: 90,
       aiInsightsFrequency: "daily",
       isLifetimeLimit: false,
+      sortOrder: 3,
       features: [
         "Unlimited Scout queries Fast",
         "60 Sonnet queries/month Smart",
@@ -105,25 +108,42 @@ export async function seedSubscriptionPlans() {
     },
   ];
 
-  // Upsert plans (update existing or insert new)
+  // Upsert plans - only update pricing and quotas, insert if missing
   for (const plan of plans) {
     const existing = await db.query.subscriptionPlans.findFirst({
       where: (plans, { eq }) => eq(plans.name, plan.name),
     });
 
     if (existing) {
-      // Update existing plan with new quotas
+      // Only update pricing and quota fields - preserve other production customizations
+      const pricingUpdates: Record<string, any> = {
+        priceUsd: plan.priceUsd,
+        priceThb: plan.priceThb,
+        scoutLimit: plan.scoutLimit,
+        sonnetLimit: plan.sonnetLimit,
+        gpt5Limit: plan.gpt5Limit,
+        opusLimit: plan.opusLimit,
+        aiChatLimit: plan.aiChatLimit,
+        aiDeepAnalysisLimit: plan.aiDeepAnalysisLimit,
+        sortOrder: plan.sortOrder,
+      };
+      
+      // Only update stripePriceId if env var is set - don't null out production values
+      if (plan.stripePriceId !== null) {
+        pricingUpdates.stripePriceId = plan.stripePriceId;
+      }
+      
       await db
         .update(subscriptionPlans)
-        .set(plan)
+        .set(pricingUpdates)
         .where(eq(subscriptionPlans.name, plan.name));
-      console.log(`  Updated plan: ${plan.name}`);
+      console.log(`  Updated pricing for: ${plan.name} ($${plan.priceUsd})${plan.stripePriceId ? ' [Stripe ID updated]' : ''}`);
     } else {
-      // Insert new plan
+      // Insert new plan with all fields
       await db.insert(subscriptionPlans).values(plan);
       console.log(`  Inserted plan: ${plan.name}`);
     }
   }
 
-  console.log("Subscription plans seeded successfully");
+  console.log("Subscription plans synced successfully");
 }

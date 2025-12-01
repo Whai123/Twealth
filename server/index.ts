@@ -70,18 +70,14 @@ app.use((req, res, next) => {
     log("Failed to seed investment data:", error?.message || error);
   }
 
-  // Auto-seed subscription plans if database is empty
+  // Always sync subscription plans to ensure pricing is up-to-date
   try {
-    const { subscriptionPlans } = await import("@shared/schema");
-    const existingPlans = await db.select().from(subscriptionPlans).limit(1);
-    if (existingPlans.length === 0) {
-      log("Subscription plans not found, seeding database...");
-      const { seedSubscriptionPlans } = await import("./seed-subscriptions");
-      await seedSubscriptionPlans();
-      log("Subscription plans seeded successfully");
-    }
+    log("Syncing subscription plans with latest configuration...");
+    const { seedSubscriptionPlans } = await import("./seed-subscriptions");
+    await seedSubscriptionPlans();
+    log("Subscription plans synced successfully");
   } catch (error: any) {
-    log("Failed to seed subscription plans:", error?.message || error);
+    log("Failed to sync subscription plans:", error?.message || error);
   }
 
   const server = await registerRoutes(app);
