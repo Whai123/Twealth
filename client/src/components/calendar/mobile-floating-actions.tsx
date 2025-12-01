@@ -65,8 +65,11 @@ export default function MobileFloatingActions({
     )}
    </AnimatePresence>
 
-   {/* Floating Action Menu */}
-   <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 md:hidden">
+   {/* Floating Action Menu - positioned above bottom nav with safe-area */}
+   <div 
+    className="fixed right-4 z-50 flex flex-col items-end gap-3 md:hidden"
+    style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+   >
     {/* Secondary Actions */}
     <AnimatePresence>
      {isExpanded && (

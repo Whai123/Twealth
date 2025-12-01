@@ -263,11 +263,12 @@ export function ConversationSidebar({
     </div>
    </aside>
 
-   {/* Mobile Toggle Button */}
+   {/* Mobile Toggle Button - positioned above bottom nav with safe-area */}
    <Button
     variant="outline"
     size="icon"
-    className="fixed bottom-4 left-4 lg:hidden z-30 shadow-lg"
+    className="fixed left-4 lg:hidden z-[45] shadow-lg min-w-[48px] min-h-[48px]"
+    style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
     onClick={onToggle}
     data-testid="button-toggle-sidebar"
    >

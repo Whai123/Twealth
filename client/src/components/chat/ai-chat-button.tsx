@@ -130,10 +130,13 @@ export default function AIChatButton() {
 
  if (!isOpen) {
   return (
-   <div className="fixed bottom-24 left-4 md:bottom-6 md:right-6 md:left-auto z-50 group" style={{ bottom: 'max(6rem, calc(6rem + env(safe-area-inset-bottom)))' }}>
+   <div 
+    className="fixed left-4 md:left-auto md:right-6 md:bottom-6 z-50 group"
+    style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+   >
     <Button
      onClick={() => setIsOpen(true)}
-     className="h-14 w-14 md:h-16 md:w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+     className="h-14 w-14 min-w-[56px] min-h-[56px] md:h-16 md:w-16 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
      data-testid="button-open-chat"
     >
      <MessageCircle className="h-6 w-6 text-gray-900 dark:text-gray-100" />
