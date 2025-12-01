@@ -92,9 +92,12 @@ export default function MobileNavigation() {
 
  return (
  <>
- {/* Floating Action Button - positioned above bottom nav */}
+ {/* Floating Action Button - positioned well above bottom nav */}
  {location !== '/calendar' && (
- <div className="fixed bottom-20 left-4 z-50 md:hidden" style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+ <div 
+ className="fixed left-4 z-50 md:hidden"
+ style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+ >
  <Button
  size="lg"
  onClick={() => setIsQuickActionsOpen(true)}
