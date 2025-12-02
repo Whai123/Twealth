@@ -3,6 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+ * MOBILE-FIRST FOUNDATION
+ * Native app experience for phones & tablets
+ * ============================================ */
+
 /* Safe area insets for mobile devices (iPhone notch, Android punch-hole) */
 @supports (padding: env(safe-area-inset-top)) {
   body {
@@ -11,6 +16,96 @@
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
+}
+
+/* Prevent body scroll when modal/drawer is open */
+body.modal-open,
+body.drawer-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile viewport height fix for iOS Safari */
+:root {
+  --vh: 1vh;
+  --mobile-header-height: 64px;
+  --mobile-nav-height: 72px;
+  --mobile-safe-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+/* Full height utility that works on mobile */
+.h-screen-mobile {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+.min-h-screen-mobile {
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Mobile touch optimization */
+@media (pointer: coarse) {
+  /* Larger touch targets on touch devices */
+  button, 
+  a, 
+  input[type="checkbox"], 
+  input[type="radio"],
+  [role="button"],
+  [role="link"],
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent text selection on interactive elements */
+  button,
+  [role="button"],
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Faster tap response on iOS */
+  a, button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+/* Smooth scrolling containers */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbars but keep functionality */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Horizontal scroll snap for tabs/carousels */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Prevent pull-to-refresh on specific containers */
+.no-pull-refresh {
+  overscroll-behavior-y: contain;
 }
 
 /* Line clamp utilities for text truncation */
@@ -137,6 +232,351 @@
   }
   
   /* Removed gradient backgrounds and animations for professional design */
+  
+  /* ============================================
+   * MOBILE LAYOUT UTILITIES
+   * Responsive patterns for all screen sizes
+   * ============================================ */
+  
+  /* Mobile-first responsive container */
+  .container-mobile {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .container-mobile {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-mobile {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  /* Mobile card that stacks properly */
+  .card-mobile {
+    @apply rounded-xl border bg-card;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+    border-radius: 0;
+  }
+  
+  @media (min-width: 640px) {
+    .card-mobile {
+      margin-left: 0;
+      margin-right: 0;
+      border-radius: var(--radius);
+    }
+  }
+  
+  /* Responsive grid that works on mobile */
+  .grid-mobile-1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .grid-mobile-1 {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .grid-mobile-1 {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  
+  /* Two column mobile grid */
+  .grid-mobile-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .grid-mobile-2 {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+  }
+  
+  /* Full width on mobile, constrained on desktop */
+  .w-full-mobile {
+    width: 100%;
+  }
+  
+  @media (min-width: 640px) {
+    .w-full-mobile {
+      width: auto;
+    }
+  }
+  
+  /* Hide on mobile, show on desktop */
+  .hide-mobile {
+    display: none;
+  }
+  
+  @media (min-width: 768px) {
+    .hide-mobile {
+      display: block;
+    }
+  }
+  
+  /* Show on mobile, hide on desktop */
+  .show-mobile {
+    display: block;
+  }
+  
+  @media (min-width: 768px) {
+    .show-mobile {
+      display: none;
+    }
+  }
+  
+  /* Mobile-first flex layouts */
+  .flex-col-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .flex-col-mobile {
+      flex-direction: row;
+      gap: 1rem;
+    }
+  }
+  
+  /* Stack to row layout */
+  .stack-to-row {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  @media (min-width: 768px) {
+    .stack-to-row {
+      flex-direction: row;
+    }
+  }
+  
+  /* Mobile text scaling */
+  .text-responsive-xs {
+    font-size: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-xs {
+      font-size: 0.875rem;
+    }
+  }
+  
+  .text-responsive-sm {
+    font-size: 0.875rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-sm {
+      font-size: 1rem;
+    }
+  }
+  
+  .text-responsive-base {
+    font-size: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-base {
+      font-size: 1.125rem;
+    }
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.125rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-lg {
+      font-size: 1.25rem;
+    }
+  }
+  
+  .text-responsive-xl {
+    font-size: 1.25rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-xl {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .text-responsive-2xl {
+    font-size: 1.5rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-2xl {
+      font-size: 2rem;
+    }
+  }
+  
+  .text-responsive-3xl {
+    font-size: 1.875rem;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-3xl {
+      font-size: 2.25rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-responsive-3xl {
+      font-size: 3rem;
+    }
+  }
+  
+  /* Mobile spacing scale */
+  .p-mobile {
+    padding: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .p-mobile {
+      padding: 1rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .p-mobile {
+      padding: 1.5rem;
+    }
+  }
+  
+  .px-mobile {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .px-mobile {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .px-mobile {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  .py-mobile {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .py-mobile {
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+  }
+  
+  /* Mobile gap utilities */
+  .gap-mobile {
+    gap: 0.75rem;
+  }
+  
+  @media (min-width: 640px) {
+    .gap-mobile {
+      gap: 1rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .gap-mobile {
+      gap: 1.5rem;
+    }
+  }
+  
+  /* Mobile button - full width on mobile */
+  .btn-mobile {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .btn-mobile {
+      width: auto;
+      min-height: 40px;
+      font-size: 0.875rem;
+    }
+  }
+  
+  /* Fixed bottom action bar for mobile */
+  .fixed-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    background: var(--background);
+    border-top: 1px solid var(--border);
+    z-index: 40;
+  }
+  
+  @media (min-width: 768px) {
+    .fixed-bottom-bar {
+      position: static;
+      padding: 0;
+      background: transparent;
+      border-top: none;
+    }
+  }
+  
+  /* Mobile-friendly input */
+  .input-mobile {
+    min-height: 48px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+    padding: 0.75rem 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .input-mobile {
+      min-height: 40px;
+      font-size: 14px;
+      padding: 0.5rem 0.75rem;
+    }
+  }
+  
+  /* Swipe container */
+  .swipe-container {
+    touch-action: pan-x;
+    overflow-x: hidden;
+  }
+  
+  /* Bottom sheet handle */
+  .sheet-handle {
+    width: 48px;
+    height: 4px;
+    background: var(--muted);
+    border-radius: 2px;
+    margin: 8px auto 16px;
+  }
   
   /* Enhanced modern utilities */
   .glass-effect {

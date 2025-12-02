@@ -3,6 +3,21 @@ import App from"./App";
 import"./index.css";
 import"./i18n"; // Initialize i18n
 
+// Mobile viewport height fix for iOS Safari
+// This sets a CSS variable --vh that represents 1% of the actual viewport height
+function setViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Set on load and resize
+setViewportHeight();
+window.addEventListener('resize', setViewportHeight);
+window.addEventListener('orientationchange', () => {
+  // Small delay to ensure the browser has updated the dimensions
+  setTimeout(setViewportHeight, 100);
+});
+
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
  window.addEventListener('load', async () => {
