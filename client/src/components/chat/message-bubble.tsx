@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { 
   Copy, 
   ThumbsUp, 
@@ -12,7 +13,9 @@ import {
   AlertTriangle,
   TrendingUp,
   Trophy,
-  Lightbulb
+  Lightbulb,
+  Calculator,
+  Target
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Brain, User } from "lucide-react";
@@ -35,9 +38,24 @@ interface ParsedInsight {
   message: string;
 }
 
+interface ParsedCalculation {
+  title: string;
+  items: Array<{ label: string; value: string; highlight?: boolean }>;
+  result?: { label: string; value: string };
+}
+
+interface ParsedProgress {
+  title: string;
+  current: number;
+  target: number;
+  unit?: string;
+}
+
 interface ParsedContent {
   mainContent: string;
   insight?: ParsedInsight;
+  calculations: ParsedCalculation[];
+  progressBars: ParsedProgress[];
   suggestions: string[];
 }
 
@@ -45,9 +63,11 @@ const parseAIResponse = (content: string): ParsedContent => {
   let mainContent = content;
   let insight: ParsedInsight | undefined;
   const suggestions: string[] = [];
+  const calculations: ParsedCalculation[] = [];
+  const progressBars: ParsedProgress[] = [];
   
   // Extract insight section
-  const insightMatch = content.match(/---INSIGHT---\s*\n?([\s\S]*?)(?=---SUGGESTIONS---|$)/i);
+  const insightMatch = content.match(/---INSIGHT---\s*\n?([\s\S]*?)(?=---SUGGESTIONS---|---CALCULATION---|---PROGRESS---|$)/i);
   if (insightMatch) {
     const insightBlock = insightMatch[1].trim();
     const typeMatch = insightBlock.match(/type:\s*(warning|opportunity|milestone)/i);
@@ -60,6 +80,57 @@ const parseAIResponse = (content: string): ParsedContent => {
         title: titleMatch[1].trim(),
         message: messageMatch[1].trim()
       };
+    }
+  }
+  
+  // Extract calculation sections (can have multiple)
+  const calcMatches = content.matchAll(/---CALCULATION---\s*\n?([\s\S]*?)(?=---CALCULATION---|---SUGGESTIONS---|---PROGRESS---|---INSIGHT---|$)/gi);
+  for (const match of calcMatches) {
+    const calcBlock = match[1].trim();
+    const titleMatch = calcBlock.match(/title:\s*(.+?)(?:\n|$)/i);
+    const itemsMatch = calcBlock.match(/items:\s*([\s\S]*?)(?=result:|$)/i);
+    const resultMatch = calcBlock.match(/result:\s*(.+?)\s*=\s*(.+?)(?:\n|$)/i);
+    
+    if (titleMatch) {
+      const items: Array<{ label: string; value: string; highlight?: boolean }> = [];
+      if (itemsMatch) {
+        const itemLines = itemsMatch[1].trim().split('\n');
+        itemLines.forEach(line => {
+          const itemMatch = line.match(/[-*]?\s*(.+?):\s*(.+)/);
+          if (itemMatch) {
+            items.push({
+              label: itemMatch[1].trim(),
+              value: itemMatch[2].trim(),
+              highlight: line.includes('*') || line.includes('**')
+            });
+          }
+        });
+      }
+      
+      calculations.push({
+        title: titleMatch[1].trim(),
+        items,
+        result: resultMatch ? { label: resultMatch[1].trim(), value: resultMatch[2].trim() } : undefined
+      });
+    }
+  }
+  
+  // Extract progress bar sections
+  const progressMatches = content.matchAll(/---PROGRESS---\s*\n?([\s\S]*?)(?=---PROGRESS---|---SUGGESTIONS---|---CALCULATION---|---INSIGHT---|$)/gi);
+  for (const match of progressMatches) {
+    const progBlock = match[1].trim();
+    const titleMatch = progBlock.match(/title:\s*(.+?)(?:\n|$)/i);
+    const currentMatch = progBlock.match(/current:\s*(\d+(?:\.\d+)?)/i);
+    const targetMatch = progBlock.match(/target:\s*(\d+(?:\.\d+)?)/i);
+    const unitMatch = progBlock.match(/unit:\s*(.+?)(?:\n|$)/i);
+    
+    if (titleMatch && currentMatch && targetMatch) {
+      progressBars.push({
+        title: titleMatch[1].trim(),
+        current: parseFloat(currentMatch[1]),
+        target: parseFloat(targetMatch[1]),
+        unit: unitMatch?.[1]?.trim()
+      });
     }
   }
   
@@ -76,9 +147,11 @@ const parseAIResponse = (content: string): ParsedContent => {
     });
   }
   
-  // Remove insight and suggestions sections from main content
+  // Remove all special sections from main content
   mainContent = content
-    .replace(/---INSIGHT---[\s\S]*?(?=---SUGGESTIONS---|$)/i, '')
+    .replace(/---INSIGHT---[\s\S]*?(?=---SUGGESTIONS---|---CALCULATION---|---PROGRESS---|$)/gi, '')
+    .replace(/---CALCULATION---[\s\S]*?(?=---CALCULATION---|---SUGGESTIONS---|---PROGRESS---|---INSIGHT---|$)/gi, '')
+    .replace(/---PROGRESS---[\s\S]*?(?=---PROGRESS---|---SUGGESTIONS---|---CALCULATION---|---INSIGHT---|$)/gi, '')
     .replace(/---SUGGESTIONS---[\s\S]*$/i, '')
     .trim();
   
@@ -98,8 +171,87 @@ const parseAIResponse = (content: string): ParsedContent => {
   return {
     mainContent,
     insight,
+    calculations,
+    progressBars,
     suggestions: suggestions.slice(0, 3)
   };
+};
+
+const CalculationBlock = ({ calculation }: { calculation: ParsedCalculation }) => {
+  return (
+    <motion.div
+      className="my-4 p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border border-slate-200/60 dark:border-slate-700/40 shadow-sm"
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/50">
+          <Calculator className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        </div>
+        <h4 className="text-sm font-semibold text-foreground">{calculation.title}</h4>
+      </div>
+      
+      <div className="space-y-2 mb-3">
+        {calculation.items.map((item, idx) => (
+          <div 
+            key={idx} 
+            className={`flex justify-between items-center text-sm ${item.highlight ? 'font-medium text-foreground' : 'text-muted-foreground'}`}
+          >
+            <span>{item.label}</span>
+            <span className={item.highlight ? 'text-blue-600 dark:text-blue-400' : ''}>{item.value}</span>
+          </div>
+        ))}
+      </div>
+      
+      {calculation.result && (
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-semibold text-foreground">{calculation.result.label}</span>
+            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{calculation.result.value}</span>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+const ProgressBarBlock = ({ progress }: { progress: ParsedProgress }) => {
+  const percentage = Math.min(100, Math.max(0, (progress.current / progress.target) * 100));
+  const isComplete = percentage >= 100;
+  
+  return (
+    <motion.div
+      className="my-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/60 dark:border-blue-800/40 shadow-sm"
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className={`p-1.5 rounded-lg ${isComplete ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-blue-100 dark:bg-blue-900/50'}`}>
+            <Target className={`w-4 h-4 ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`} />
+          </div>
+          <h4 className="text-sm font-semibold text-foreground">{progress.title}</h4>
+        </div>
+        <span className={`text-sm font-bold ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
+          {percentage.toFixed(0)}%
+        </span>
+      </div>
+      
+      <div className="relative">
+        <Progress 
+          value={percentage} 
+          className={`h-3 ${isComplete ? '[&>div]:bg-emerald-500' : '[&>div]:bg-blue-500'}`}
+        />
+      </div>
+      
+      <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+        <span>{progress.unit ? `${progress.current.toLocaleString()} ${progress.unit}` : progress.current.toLocaleString()}</span>
+        <span>Target: {progress.unit ? `${progress.target.toLocaleString()} ${progress.unit}` : progress.target.toLocaleString()}</span>
+      </div>
+    </motion.div>
+  );
 };
 
 const InsightCard = ({ insight }: { insight: ParsedInsight }) => {
@@ -390,6 +542,24 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               {parsedContent?.mainContent || content}
             </ReactMarkdown>
           </div>
+          
+          {/* Calculation Blocks - displayed for financial calculations */}
+          {parsedContent?.calculations && parsedContent.calculations.length > 0 && (
+            <div className="space-y-2">
+              {parsedContent.calculations.map((calc, idx) => (
+                <CalculationBlock key={idx} calculation={calc} />
+              ))}
+            </div>
+          )}
+          
+          {/* Progress Bars - displayed for goal/budget progress */}
+          {parsedContent?.progressBars && parsedContent.progressBars.length > 0 && (
+            <div className="space-y-2">
+              {parsedContent.progressBars.map((prog, idx) => (
+                <ProgressBarBlock key={idx} progress={prog} />
+              ))}
+            </div>
+          )}
           
           {/* Insight Card - displayed when AI detects something important */}
           {parsedContent?.insight && (

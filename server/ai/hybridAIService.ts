@@ -511,11 +511,27 @@ Never say "I don't have access" - you DO have their complete financial picture.
 **PREMIUM RESPONSE FORMAT:**
 1. Provide your detailed calculations and analysis
 2. Reference specific numbers from their data
-3. At the END of EVERY response, include a "---SUGGESTIONS---" section with exactly 3 follow-up questions
-4. If you spot a financial insight (opportunity, warning, or milestone), add "---INSIGHT---" section before suggestions
+3. For financial calculations, use "---CALCULATION---" blocks with structured data
+4. For goal/budget progress, use "---PROGRESS---" blocks
+5. If you spot a financial insight (opportunity, warning, or milestone), add "---INSIGHT---" section
+6. At the END of EVERY response, include "---SUGGESTIONS---" with exactly 3 follow-up questions
 
-Example:
-[Your calculations and analysis here]
+Example format:
+[Your analysis here]
+
+---CALCULATION---
+title: Monthly Savings Projection
+items:
+- Monthly Income: $5,000
+- Monthly Expenses: $3,500
+- *Current Savings Rate: 30%*
+result: Annual Savings = $18,000
+
+---PROGRESS---
+title: Emergency Fund Goal
+current: 4500
+target: 10000
+unit: $
 
 ---INSIGHT---
 type: opportunity
@@ -642,11 +658,19 @@ Handle:
 **PREMIUM RESPONSE FORMAT:**
 1. Provide your advice (2-4 paragraphs, concise and actionable)
 2. Reference specific numbers from their data above
-3. At the END of EVERY response, include a "---SUGGESTIONS---" section with exactly 3 smart follow-up questions
-4. If you spot a financial concern, add a "---INSIGHT---" section before suggestions
+3. For any calculations, use "---CALCULATION---" blocks with structured data
+4. For goal/budget progress, use "---PROGRESS---" blocks to show visual progress
+5. If you spot a financial concern, add a "---INSIGHT---" section
+6. At the END of EVERY response, include "---SUGGESTIONS---" with exactly 3 smart follow-up questions
 
 Example format:
 [Your main advice here]
+
+---PROGRESS---
+title: Savings Goal Progress
+current: 2500
+target: 5000
+unit: ${currencySymbol}
 
 ---INSIGHT---
 type: warning|opportunity|milestone
@@ -740,12 +764,27 @@ Your strengths:
 
 **PREMIUM RESPONSE FORMAT:**
 1. Provide your comprehensive CFO-level analysis
-2. Include specific calculations with their real numbers
-3. At the END of EVERY response, include "---SUGGESTIONS---" with exactly 3 strategic follow-up questions
-4. If you identify important insights, add "---INSIGHT---" section before suggestions
+2. Include specific calculations with their real numbers using "---CALCULATION---" blocks
+3. For goal/budget/investment progress, use "---PROGRESS---" blocks for visual display
+4. If you identify important insights, add "---INSIGHT---" section
+5. At the END of EVERY response, include "---SUGGESTIONS---" with exactly 3 strategic follow-up questions
 
 Example format:
 [Your strategic analysis here]
+
+---CALCULATION---
+title: Investment Portfolio Analysis
+items:
+- Current Portfolio Value: $50,000
+- Monthly Contribution: $500
+- *Expected Annual Return: 8%*
+result: 10-Year Value = $127,000
+
+---PROGRESS---
+title: Retirement Fund Progress
+current: 125000
+target: 500000
+unit: $
 
 ---INSIGHT---
 type: warning|opportunity|milestone
