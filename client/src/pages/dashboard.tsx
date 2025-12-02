@@ -13,6 +13,8 @@ import NotificationsBell from "@/components/dashboard/notifications-bell";
 import OnboardingWizard from "@/components/onboarding/onboarding-wizard";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { UserPreferences, FinancialGoal } from "@shared/schema";
+import { SmartNudgeBanner } from "@/components/smart-nudges";
+import { StreakWidget, AchievementBadges } from "@/components/streak-system";
 
 interface DashboardStats {
   totalTransactions: number;
@@ -240,6 +242,8 @@ export default function Dashboard() {
       </header>
 
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-10">
+        
+        <SmartNudgeBanner />
         
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -661,6 +665,24 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.55 }}
+          >
+            <StreakWidget />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.6 }}
+          >
+            <AchievementBadges />
+          </motion.div>
+        </div>
       </div>
     </div>
   );

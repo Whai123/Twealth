@@ -143,6 +143,33 @@ export const goalMilestones = pgTable("goal_milestones", {
   unique("unique_goal_milestone").on(table.goalId, table.milestone),
 ]);
 
+export const userStreaks = pgTable("user_streaks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  currentStreak: integer("current_streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  totalCheckIns: integer("total_check_ins").default(0),
+  lastCheckIn: timestamp("last_check_in"),
+  weeklyProgress: jsonb("weekly_progress").default([false, false, false, false, false, false, false]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_streaks_user_id").on(table.userId),
+]);
+
+export const userAchievements = pgTable("user_achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  achievementId: varchar("achievement_id").notNull(),
+  progress: integer("progress").default(0),
+  target: integer("target").notNull(),
+  earnedAt: timestamp("earned_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_achievements_user_id").on(table.userId),
+  unique("unique_user_achievement").on(table.userId, table.achievementId),
+]);
+
 export const investmentStrategies = pgTable("investment_strategies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(), // "S&P 500 Index Funds", "High-Yield Savings", etc.
@@ -607,6 +634,18 @@ export const insertGoalMilestoneSchema = createInsertSchema(goalMilestones).omit
   isSeen: true,
 });
 
+export const insertUserStreakSchema = createInsertSchema(userStreaks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
+  id: true,
+  createdAt: true,
+  earnedAt: true,
+});
+
 export const insertInvestmentStrategySchema = createInsertSchema(investmentStrategies).omit({
   id: true,
   createdAt: true,
@@ -854,6 +893,12 @@ export type InsertGoalContribution = z.infer<typeof insertGoalContributionSchema
 
 export type GoalMilestone = typeof goalMilestones.$inferSelect;
 export type InsertGoalMilestone = z.infer<typeof insertGoalMilestoneSchema>;
+
+export type UserStreak = typeof userStreaks.$inferSelect;
+export type InsertUserStreak = z.infer<typeof insertUserStreakSchema>;
+
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
 
 export type InvestmentStrategy = typeof investmentStrategies.$inferSelect;
 export type InsertInvestmentStrategy = z.infer<typeof insertInvestmentStrategySchema>;

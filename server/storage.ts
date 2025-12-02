@@ -18,6 +18,10 @@ import {
   type InsertGoalContribution,
   type GoalMilestone,
   type InsertGoalMilestone,
+  type UserStreak,
+  type InsertUserStreak,
+  type UserAchievement,
+  type InsertUserAchievement,
   type GroupInvite,
   type InsertGroupInvite,
   type CalendarShare,
@@ -103,6 +107,8 @@ import {
   budgets,
   goalContributions,
   goalMilestones,
+  userStreaks,
+  userAchievements,
   groupInvites,
   calendarShares,
   friendRequests,
@@ -235,6 +241,11 @@ export interface IStorage {
   createGoalMilestone(milestone: InsertGoalMilestone): Promise<GoalMilestone>;
   markMilestonesSeen(userId: string): Promise<void>;
   checkAndCreateMilestones(userId: string, goalId: string, currentAmount: number, targetAmount: number): Promise<GoalMilestone[]>;
+
+  // Streak methods
+  getUserStreak(userId: string): Promise<UserStreak | null>;
+  checkInStreak(userId: string): Promise<{ streakIncreased: boolean; newStreak: number; newAchievements: string[] }>;
+  getUserAchievements(userId: string): Promise<UserAchievement[]>;
 
   // Dashboard methods
   getUserStats(userId: string): Promise<{
@@ -1104,6 +1115,157 @@ export class DatabaseStorage implements IStorage {
     }
 
     return createdMilestones;
+  }
+
+  // Streak methods
+  async getUserStreak(userId: string): Promise<UserStreak | null> {
+    const [streak] = await db
+      .select()
+      .from(userStreaks)
+      .where(eq(userStreaks.userId, userId));
+    return streak ?? null;
+  }
+
+  private computeWeeklyProgress(existingProgress: boolean[] | null, lastCheckIn: Date | null): boolean[] {
+    const now = new Date();
+    const todayIndex = now.getDay();
+    
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    let weekProgress: boolean[] = [false, false, false, false, false, false, false];
+    
+    if (existingProgress && Array.isArray(existingProgress) && lastCheckIn) {
+      const lastCheckInDate = new Date(lastCheckIn);
+      lastCheckInDate.setHours(0, 0, 0, 0);
+      
+      if (lastCheckInDate >= startOfWeek) {
+        weekProgress = [...existingProgress];
+      }
+    }
+    
+    weekProgress[todayIndex] = true;
+    
+    return weekProgress;
+  }
+
+  async checkInStreak(userId: string): Promise<{ streakIncreased: boolean; newStreak: number; newAchievements: string[] }> {
+    const existingStreak = await this.getUserStreak(userId);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const newAchievements: string[] = [];
+    
+    if (!existingStreak) {
+      const weeklyProgress = this.computeWeeklyProgress(null, null);
+      await db.insert(userStreaks).values({
+        userId,
+        currentStreak: 1,
+        longestStreak: 1,
+        totalCheckIns: 1,
+        lastCheckIn: now,
+        weeklyProgress,
+      });
+      
+      await this.checkAndUnlockAchievements(userId, 1, 1, newAchievements);
+      return { streakIncreased: true, newStreak: 1, newAchievements };
+    }
+    
+    const lastCheckIn = new Date(existingStreak.lastCheckIn);
+    const lastCheckInDate = new Date(lastCheckIn.getFullYear(), lastCheckIn.getMonth(), lastCheckIn.getDate());
+    const diffDays = Math.floor((today.getTime() - lastCheckInDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return { streakIncreased: false, newStreak: existingStreak.currentStreak, newAchievements: [] };
+    }
+    
+    const existingProgress = existingStreak.weeklyProgress as boolean[] | null;
+    const weeklyProgress = this.computeWeeklyProgress(existingProgress, existingStreak.lastCheckIn);
+    const newTotalCheckIns = (existingStreak.totalCheckIns ?? 0) + 1;
+    
+    if (diffDays === 1) {
+      const newStreak = existingStreak.currentStreak + 1;
+      const newLongest = Math.max(existingStreak.longestStreak, newStreak);
+      await db
+        .update(userStreaks)
+        .set({ 
+          currentStreak: newStreak, 
+          longestStreak: newLongest, 
+          totalCheckIns: newTotalCheckIns,
+          lastCheckIn: now,
+          weeklyProgress,
+          updatedAt: now,
+        })
+        .where(eq(userStreaks.userId, userId));
+      
+      await this.checkAndUnlockAchievements(userId, newStreak, newTotalCheckIns, newAchievements);
+      return { streakIncreased: true, newStreak, newAchievements };
+    } else {
+      await db
+        .update(userStreaks)
+        .set({ 
+          currentStreak: 1, 
+          totalCheckIns: newTotalCheckIns,
+          lastCheckIn: now,
+          weeklyProgress,
+          updatedAt: now,
+        })
+        .where(eq(userStreaks.userId, userId));
+      
+      await this.checkAndUnlockAchievements(userId, 1, newTotalCheckIns, newAchievements);
+      return { streakIncreased: true, newStreak: 1, newAchievements };
+    }
+  }
+
+  private async checkAndUnlockAchievements(userId: string, currentStreak: number, totalCheckIns: number, newAchievements: string[]): Promise<void> {
+    const existingAchievements = await this.getUserAchievements(userId);
+    const existingIds = new Set(existingAchievements.map(a => a.achievementId));
+    
+    const streakMilestones = [
+      { id: 'streak_7', streak: 7, target: 7 },
+      { id: 'streak_30', streak: 30, target: 30 },
+    ];
+    
+    for (const milestone of streakMilestones) {
+      if (currentStreak >= milestone.streak && !existingIds.has(milestone.id)) {
+        try {
+          await db.insert(userAchievements).values({
+            userId,
+            achievementId: milestone.id,
+            progress: currentStreak,
+            target: milestone.target,
+            earnedAt: new Date(),
+          });
+          newAchievements.push(milestone.id);
+        } catch (e) {
+        }
+      }
+    }
+    
+    for (const milestone of streakMilestones) {
+      if (!existingIds.has(milestone.id) && currentStreak < milestone.streak) {
+        try {
+          await db.insert(userAchievements).values({
+            userId,
+            achievementId: milestone.id,
+            progress: currentStreak,
+            target: milestone.target,
+          }).onConflictDoUpdate({
+            target: [userAchievements.userId, userAchievements.achievementId],
+            set: { progress: currentStreak, updatedAt: new Date() },
+          });
+        } catch (e) {
+        }
+      }
+    }
+  }
+
+  async getUserAchievements(userId: string): Promise<UserAchievement[]> {
+    return await db
+      .select()
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId))
+      .orderBy(desc(userAchievements.earnedAt));
   }
 
   // Dashboard methods

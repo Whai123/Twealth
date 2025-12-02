@@ -109,6 +109,30 @@ import { routeWithTierCheck, type QuotaExceededError } from './ai/tierAwareRoute
 import Stripe from "stripe";
 import { log } from "./vite";
 
+// Achievement helper functions
+const achievementDefinitions: Record<string, { title: string; description: string; icon: string; target: number }> = {
+  'streak_7': { title: 'Week Warrior', description: '7 day check-in streak', icon: 'flame', target: 7 },
+  'streak_30': { title: 'Monthly Master', description: '30 day check-in streak', icon: 'flame', target: 30 },
+  'goals_1': { title: 'Goal Setter', description: 'Create your first goal', icon: 'target', target: 1 },
+  'goals_5': { title: 'Goal Crusher', description: 'Complete 5 goals', icon: 'trophy', target: 5 },
+  'savings_1000': { title: 'First Grand', description: 'Save $1,000 total', icon: 'star', target: 1000 },
+  'savings_10000': { title: 'Five Figures', description: 'Save $10,000 total', icon: 'zap', target: 10000 },
+  'ai_10': { title: 'AI Explorer', description: 'Ask 10 AI questions', icon: 'trending', target: 10 },
+  'ai_50': { title: 'AI Power User', description: 'Ask 50 AI questions', icon: 'award', target: 50 },
+};
+
+function getAchievementTitle(id: string): string {
+  return achievementDefinitions[id]?.title ?? 'Unknown Achievement';
+}
+
+function getAchievementDescription(id: string): string {
+  return achievementDefinitions[id]?.description ?? '';
+}
+
+function getAchievementIcon(id: string): string {
+  return achievementDefinitions[id]?.icon ?? 'trophy';
+}
+
 // Utility function to safely parse amount strings (handles "$300", "300", "300.50", null, undefined)
 // Returns "0.00" for invalid/missing values instead of throwing
 function parseAmount(value: string | number | null | undefined): string {
@@ -825,6 +849,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error: any) {
       console.error('Error marking milestones seen:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Streak Routes
+  app.get("/api/streaks", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const streak = await storage.getUserStreak(userId);
+      const achievements = await storage.getUserAchievements(userId);
+      
+      res.json({
+        currentStreak: streak?.currentStreak ?? 0,
+        longestStreak: streak?.longestStreak ?? 0,
+        lastCheckIn: streak?.lastCheckIn ?? null,
+        totalCheckIns: streak?.totalCheckIns ?? 0,
+        weeklyProgress: streak?.weeklyProgress ?? [false, false, false, false, false, false, false],
+        achievements: achievements.map(a => ({
+          id: a.achievementId,
+          title: getAchievementTitle(a.achievementId),
+          description: getAchievementDescription(a.achievementId),
+          icon: getAchievementIcon(a.achievementId),
+          earnedAt: a.earnedAt,
+          progress: a.progress ?? 0,
+          target: a.target,
+        })),
+      });
+    } catch (error: any) {
+      console.error('Error fetching streak:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/streaks/check-in", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const result = await storage.checkInStreak(userId);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error checking in streak:', error);
       res.status(500).json({ message: error.message });
     }
   });

@@ -33,6 +33,8 @@ const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
 import FloatingAIWidget from "./components/ai/floating-ai-widget";
 import { MilestoneCelebration } from "./components/milestone-celebration";
+import { CommandPalette } from "./components/command-palette";
+import { ProductTour } from "./components/product-tour";
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
@@ -155,6 +157,12 @@ function Router() {
      
      {/* Milestone Celebration - shows when user reaches goal milestones */}
      <MilestoneCelebration />
+     
+     {/* Command Palette - Cmd+K for power users */}
+     {location !=="/welcome" && <CommandPalette />}
+     
+     {/* Product Tour - Onboarding for new users */}
+     {location !=="/welcome" && <ProductTour />}
     </div>
    </SidebarProvider>
   </OnboardingRedirect>
