@@ -13,7 +13,6 @@ import { Card } from"./components/ui/card";
 const Dashboard = lazy(() => import("./pages/dashboard"));
 const Welcome = lazy(() => import("./pages/welcome"));
 const Groups = lazy(() => import("./pages/groups"));
-const Calendar = lazy(() => import("./pages/calendar"));
 const FinancialGoals = lazy(() => import("./pages/financial-goals"));
 const MoneyTracking = lazy(() => import("./pages/money-tracking"));
 const Planning = lazy(() => import("./pages/planning"));
@@ -25,16 +24,11 @@ const Upgrade = lazy(() => import("./pages/upgrade"));
 const Pricing = lazy(() => import("./pages/pricing"));
 const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
-const Crypto = lazy(() => import("./pages/crypto"));
 const Friends = lazy(() => import("./pages/friends"));
 const InvitePage = lazy(() => import("./pages/invite"));
-const PublicCalendar = lazy(() => import("./pages/public-calendar"));
 const NotFound = lazy(() => import("./pages/not-found"));
 const Landing = lazy(() => import("./pages/landing.tsx"));
 const Login = lazy(() => import("./pages/login.tsx"));
-const InvestmentIntelligence = lazy(() => import("./pages/investment-intelligence"));
-const PredictiveInsights = lazy(() => import("./pages/predictive-insights"));
-const Playbooks = lazy(() => import("./pages/playbooks"));
 const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
 import FloatingAIWidget from "./components/ai/floating-ai-widget";
@@ -73,23 +67,6 @@ function Router() {
   return <PageLoader />;
  }
  
- // Public routes that don't need sidebar
- const isPublicRoute = location.startsWith('/shared/');
- 
- if (isPublicRoute) {
-  return (
-   <main className="min-h-screen">
-    <ErrorBoundary>
-     <Suspense fallback={<PageLoader />}>
-      <Switch>
-       <Route path="/shared/calendar/:token" component={PublicCalendar} />
-       <Route component={NotFound} />
-      </Switch>
-     </Suspense>
-    </ErrorBoundary>
-   </main>
-  );
- }
  
  // Show login/landing page for unauthenticated users
  if (!isAuthenticated) {
@@ -149,16 +126,11 @@ function Router() {
          <Route path="/welcome" component={Welcome} />
          <Route path="/invite/:token" component={InvitePage} />
          <Route path="/groups" component={Groups} />
-         <Route path="/calendar" component={Calendar} />
          <Route path="/financial-goals" component={FinancialGoals} />
          <Route path="/money-tracking" component={MoneyTracking} />
          <Route path="/planning" component={Planning} />
-         <Route path="/crypto" component={Crypto} />
          <Route path="/friends" component={Friends} />
          <Route path="/ai-assistant" component={AIAssistant} />
-         <Route path="/playbooks" component={Playbooks} />
-         <Route path="/predictive-insights" component={PredictiveInsights} />
-         <Route path="/investments" component={InvestmentIntelligence} />
          <Route path="/referrals" component={Referrals} />
          <Route path="/subscription" component={Subscription} />
          <Route path="/checkout/:planId" component={Checkout} />

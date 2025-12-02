@@ -3,22 +3,16 @@ import { Link, useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 import { 
  Home, 
- Calendar, 
  Target, 
  DollarSign,
  Users,
  Plus,
  Brain,
  Crown,
- Gift,
- Bitcoin,
- BarChart3,
- LineChart,
  Wallet
 } from"lucide-react";
 import { cn } from"../lib/utils";
 import { Button } from"./ui/button";
-import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import {
  Drawer,
  DrawerContent,
@@ -27,13 +21,12 @@ import {
 } from"./ui/drawer";
 import GoalForm from"./forms/goal-form";
 import TransactionForm from"./forms/transaction-form";
-import EventForm from"./forms/event-form";
 
 const getNavigation = (t: (key: string) => string) => [
  { name: t('navigation.dashboard'), href:"/", icon: Home, label: t('navigation.labels.home') },
  { name: t('navigation.aiAssistant'), href:"/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
  { name:"Money", href:"/money-tracking", icon: Wallet, label:"Money" },
- { name: t('navigation.calendar'), href:"/calendar", icon: Calendar, label: t('navigation.labels.calendar') },
+ { name: t('navigation.groups'), href:"/groups", icon: Users, label:"Groups" },
  { name: t('navigation.premium'), href:"/subscription", icon: Crown, label: t('navigation.labels.premium') },
 ];
 
@@ -43,7 +36,7 @@ export default function MobileNavigation() {
  const navigation = getNavigation(t);
  
  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
- const [activeAction, setActiveAction] = useState<'goal' | 'transaction' | 'event' | null>(null);
+ const [activeAction, setActiveAction] = useState<'goal' | 'transaction' | null>(null);
  
  // Only render on mobile viewports
  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
@@ -73,15 +66,6 @@ export default function MobileNavigation() {
  color:"text-success",
  bgColor:"bg-success/10",
  action: () => { setActiveAction('transaction'); setIsQuickActionsOpen(false); }
- },
- {
- id:"schedule-event",
- title: t('quickActions.scheduleEvent'),
- description: t('quickActions.scheduleEventDesc'),
- icon: Calendar,
- color:"text-warning",
- bgColor:"bg-warning/10",
- action: () => { setActiveAction('event'); setIsQuickActionsOpen(false); }
  }
  ];
 
@@ -93,7 +77,6 @@ export default function MobileNavigation() {
  return (
  <>
  {/* Floating Action Button - positioned well above bottom nav */}
- {location !== '/calendar' && (
  <div 
  className="fixed left-4 z-50 md:hidden"
  style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
@@ -108,7 +91,6 @@ export default function MobileNavigation() {
  <Plus size={22} />
  </Button>
  </div>
- )}
 
  {/* Quick Actions Drawer */}
  <Drawer open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
@@ -172,21 +154,6 @@ export default function MobileNavigation() {
  </DrawerContent>
  </Drawer>
 
- {/* Event Creation Drawer */}
- <Drawer open={activeAction === 'event'} onOpenChange={(open) => !open && setActiveAction(null)}>
- <DrawerContent className="max-h-[85vh] overflow-y-auto">
- <div className="p-4 pb-6">
- <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
- <Calendar className="h-5 w-5 text-warning" />
- {t('calendar.scheduleNew')}
- </DrawerTitle>
- <DrawerDescription className="text-muted-foreground mb-4">
- {t('calendar.scheduleNewDesc')}
- </DrawerDescription>
- <EventForm onSuccess={() => setActiveAction(null)} />
- </div>
- </DrawerContent>
- </Drawer>
 
  {/* Bottom Tab Bar - Compact Design */}
  <nav 

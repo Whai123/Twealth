@@ -32,6 +32,9 @@ export const groups = pgTable("groups", {
   ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   color: text("color").default("#3B82F6"),
   status: text("status").default("active"), // active, planning, archived
+  category: text("category").default("other"), // house, car, savings, other
+  budget: decimal("budget", { precision: 12, scale: 2 }), // target amount for the group goal
+  currentAmount: decimal("current_amount", { precision: 12, scale: 2 }).default("0"), // contributed so far
   createdAt: timestamp("created_at").defaultNow(),
 });
 

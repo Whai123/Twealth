@@ -3,25 +3,16 @@ import { useTranslation } from 'react-i18next';
 import { 
  Home, 
  Users, 
- Calendar, 
  Target, 
- TrendingUp, 
- Lightbulb,
  Settings,
- User,
  Crown,
  Brain,
- Gift,
  Moon,
  Sun,
- Bitcoin,
- UserPlus,
+ User,
  Wallet,
- BarChart3,
  LogOut,
- Loader2,
- LineChart,
- FileText
+ Loader2
 } from"lucide-react";
 import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import { cn } from"@/lib/utils";
@@ -29,7 +20,6 @@ import LanguageSwitcher from"@/components/language-switcher";
 import { useTheme } from"@/components/theme-provider";
 import { Button } from"@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from"@/components/ui/tooltip";
-import CryptoTicker from"@/components/crypto-ticker";
 import { useAuth } from"@/hooks/useAuth";
 import {
  Sidebar as SidebarWrapper,
@@ -79,28 +69,16 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  description: t('navigation.descriptions.goals')
  },
  { 
- name:"AI Playbooks", 
- href:"/playbooks", 
- icon: FileText,
- description:"Weekly AI-generated financial reports and insights"
- },
- { 
  name: t('navigation.money'), 
  href:"/money-tracking", 
  icon: Wallet,
  description:"Track income, expenses, and budgets"
  },
  { 
- name:"Investments", 
- href:"/investments", 
- icon: TrendingUp,
- description:"Stocks, crypto, and passive income opportunities"
- },
- { 
- name: t('navigation.calendar'), 
- href:"/calendar", 
- icon: Calendar,
- description:"Schedule and group events"
+ name: t('navigation.groups'), 
+ href:"/groups", 
+ icon: Users,
+ description:"Shared goals and cost splitting with others"
  },
  ]
  },
@@ -238,9 +216,6 @@ export default function Sidebar() {
  </SidebarContent>
  
  <SidebarFooter>
- <div className="px-4 mb-4">
- <CryptoTicker />
- </div>
  
  <div className="px-4 mb-4">
  <div className="bg-muted rounded-lg p-4">
