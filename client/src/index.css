@@ -935,6 +935,19 @@
     }
   }
   
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+  
   /* Skeleton variants */
   .skeleton-text {
     @apply skeleton rounded h-4;
