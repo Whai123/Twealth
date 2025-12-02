@@ -1,39 +1,41 @@
-import { useState, useEffect, useRef } from"react";
-import { useQuery, useMutation } from"@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'wouter';
-import { Button } from"@/components/ui/button";
-import { Textarea } from"@/components/ui/textarea";
-import { ScrollArea } from"@/components/ui/scroll-area";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
- Select,
- SelectContent,
- SelectItem,
- SelectTrigger,
- SelectValue,
-} from"@/components/ui/select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
- Send,
- Brain,
- Zap,
- BarChart3,
- Crown,
- Sparkles,
- TrendingUp,
- PiggyBank,
- Target,
- DollarSign,
- Shield,
- Gem
-} from"lucide-react";
-import { useToast } from"@/hooks/use-toast";
-import { ToastAction } from"@/components/ui/toast";
-import { apiRequest, queryClient, RateLimitError } from"@/lib/queryClient";
-import { ConversationSidebar } from"@/components/chat/conversation-sidebar";
-import { MessageBubble, TypingIndicator } from"@/components/chat/message-bubble";
-import { Badge } from"@/components/ui/badge";
-import { Progress } from"@/components/ui/progress";
-import { Card } from"@/components/ui/card";
+  Send,
+  Brain,
+  Zap,
+  BarChart3,
+  Crown,
+  Sparkles,
+  TrendingUp,
+  PiggyBank,
+  Target,
+  DollarSign,
+  Shield,
+  Gem,
+  MessageSquare,
+  Menu
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { apiRequest, queryClient, RateLimitError } from "@/lib/queryClient";
+import { ConversationSidebar } from "@/components/chat/conversation-sidebar";
+import { MessageBubble, TypingIndicator } from "@/components/chat/message-bubble";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
 
 interface UsageInfo {
  scoutUsage: {
@@ -671,6 +673,10 @@ export default function AIAssistantPage() {
  if (lastUserMessage) {
  sendMessageMutation.mutate(lastUserMessage.content);
  }
+ }}
+ onFollowUp={(prompt) => {
+ setCurrentMessage(prompt);
+ setTimeout(() => sendMessageMutation.mutate(prompt), 100);
  }}
  />
  ))}
