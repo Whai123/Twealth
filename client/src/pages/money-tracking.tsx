@@ -382,20 +382,20 @@ export default function MoneyTracking() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen-mobile bg-background pb-24 md:pb-0">
       <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-3 sm:py-6">
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
+          <div className="flex items-center justify-between gap-3">
             <motion.div 
               className="flex-1 min-w-0"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <h1 className="text-lg sm:text-3xl font-semibold tracking-tight text-foreground">
+              <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground truncate">
                 Money Tracking
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block line-clamp-1">
                 Monitor your income, expenses, and cash flow
               </p>
             </motion.div>
@@ -414,32 +414,32 @@ export default function MoneyTracking() {
         </div>
       </header>
       
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 md:py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <motion.div 
-            className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-4 sm:mb-6 scrollbar-none"
+            className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-4 sm:mb-6 scrollbar-none scroll-snap-x"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-5 p-1 gap-1 bg-muted/50">
-              <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px] data-[state=active]:bg-background data-[state=active]:shadow-sm" data-testid="tab-overview">
+              <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-overview">
                 <DollarSign size={14} className="flex-shrink-0" />
                 <span>Overview</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px] data-[state=active]:bg-background data-[state=active]:shadow-sm" data-testid="tab-analytics">
+              <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-analytics">
                 <BarChart3 size={14} className="flex-shrink-0" />
                 <span>Analytics</span>
               </TabsTrigger>
-              <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px] data-[state=active]:bg-background data-[state=active]:shadow-sm" data-testid="tab-budget">
+              <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-budget">
                 <Target size={14} className="flex-shrink-0" />
                 <span>Budget</span>
               </TabsTrigger>
-              <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px] data-[state=active]:bg-background data-[state=active]:shadow-sm" data-testid="tab-insights">
+              <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-insights">
                 <Lightbulb size={14} className="flex-shrink-0" />
                 <span>Insights</span>
               </TabsTrigger>
-              <TabsTrigger value="csv-analyzer" className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap min-h-[40px] data-[state=active]:bg-background data-[state=active]:shadow-sm" data-testid="tab-csv-analyzer">
+              <TabsTrigger value="csv-analyzer" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-csv-analyzer">
                 <FileText size={14} className="flex-shrink-0" />
                 <span>CSV</span>
               </TabsTrigger>

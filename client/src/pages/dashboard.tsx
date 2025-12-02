@@ -215,33 +215,33 @@ export default function Dashboard() {
   const healthColors = getHealthColor(healthScore);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen-mobile bg-gradient-to-b from-background to-muted/20 pb-20 md:pb-0">
       <header className="bg-background/80 backdrop-blur-xl border-b border-border/40 sticky top-0 z-30">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-4 sm:py-6">
-          <div className="flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold tracking-tight text-foreground">
+                <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground truncate">
                   {getGreeting()}
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1 hidden sm:block">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-1 sm:line-clamp-none">
                   {getMotivationalMessage(healthScore, savingsRate)}
                 </p>
               </motion.div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <NotificationsBell />
             </div>
           </div>
         </div>
       </header>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-10">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-10 space-y-4 sm:space-y-6 lg:space-y-10">
         
         <SmartNudgeBanner />
         
@@ -250,38 +250,38 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900/50 overflow-hidden">
+          <Card className="border-0 shadow-lg sm:shadow-xl bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900/50 overflow-hidden">
             <CardContent className="p-0">
               <div className="grid lg:grid-cols-2 gap-0">
-                <div className="p-6 sm:p-8 lg:p-10">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
+                  <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
                     <Badge 
-                      className={`${healthColors.light} ${healthColors.text} ${healthColors.border} border text-xs font-medium px-3 py-1`}
+                      className={`${healthColors.light} ${healthColors.text} ${healthColors.border} border text-xs font-medium px-2 sm:px-3 py-0.5 sm:py-1`}
                     >
                       {healthGrade}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">AI-Powered Analysis</span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">AI-Powered Analysis</span>
                   </div>
                   
-                  <h2 className="text-sm sm:text-base font-medium text-muted-foreground mb-3">
+                  <h2 className="text-xs sm:text-sm lg:text-base font-medium text-muted-foreground mb-2 sm:mb-3">
                     Financial Health Score
                   </h2>
                   
                   {healthLoading ? (
-                    <Skeleton className="h-24 w-40" />
+                    <Skeleton className="h-16 sm:h-20 lg:h-24 w-32 sm:w-40" />
                   ) : (
-                    <div className="flex items-end gap-3 mb-4">
+                    <div className="flex items-end gap-2 sm:gap-3 mb-3 sm:mb-4">
                       <span 
-                        className={`text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tighter ${healthColors.text}`}
+                        className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter ${healthColors.text}`}
                         data-testid="hero-health-score"
                       >
                         <AnimatedNumber value={healthScore} />
                       </span>
-                      <span className="text-2xl sm:text-3xl font-semibold text-muted-foreground/30 mb-2">/100</span>
+                      <span className="text-xl sm:text-2xl lg:text-3xl font-semibold text-muted-foreground/30 mb-1 sm:mb-2">/100</span>
                     </div>
                   )}
                   
-                  <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-4">
+                  <div className="h-1.5 sm:h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-3 sm:mb-4">
                     <motion.div 
                       className={`h-full ${healthColors.bg} rounded-full`}
                       initial={{ width: 0 }}
@@ -290,87 +290,87 @@ export default function Dashboard() {
                     />
                   </div>
                   
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
                     Based on savings rate, emergency fund, debt ratio, and goal progress
                   </p>
                 </div>
                 
-                <div className="bg-gray-50/50 dark:bg-gray-800/30 p-6 sm:p-8 lg:p-10 border-t lg:border-t-0 lg:border-l border-border/30">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-6">Key Metrics</h3>
+                <div className="bg-gray-50/50 dark:bg-gray-800/30 p-4 sm:p-6 lg:p-8 xl:p-10 border-t lg:border-t-0 lg:border-l border-border/30">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-4 sm:mb-6">Key Metrics</h3>
                   
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-2 gap-4 sm:gap-6">
                     <motion.div 
-                      className="space-y-1"
+                      className="space-y-0.5 sm:space-y-1"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: 0.4 }}
                       data-testid="metric-savings-rate"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30">
-                          <PiggyBank className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30">
+                          <PiggyBank className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <span className="text-xs text-muted-foreground">Savings Rate</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">Savings Rate</span>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-bold text-foreground">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                         <AnimatedNumber value={savingsRate} suffix="%" decimals={1} />
                       </div>
                     </motion.div>
                     
                     <motion.div 
-                      className="space-y-1"
+                      className="space-y-0.5 sm:space-y-1"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: 0.5 }}
                       data-testid="metric-emergency-fund"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
-                          <Star className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                          <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <span className="text-xs text-muted-foreground">Emergency Fund</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">Emergency Fund</span>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-bold text-foreground">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                         <AnimatedNumber value={emergencyFundMonths} suffix=" mo" decimals={1} />
                       </div>
                     </motion.div>
                     
                     <motion.div 
-                      className="space-y-1"
+                      className="space-y-0.5 sm:space-y-1"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: 0.6 }}
                       data-testid="metric-cash-flow"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-md ${isPositiveCashFlow ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className={`p-1 sm:p-1.5 rounded-md ${isPositiveCashFlow ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
                           {isPositiveCashFlow ? (
-                            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
                           ) : (
-                            <ArrowDownRight className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                            <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-600 dark:text-red-400" />
                           )}
                         </div>
-                        <span className="text-xs text-muted-foreground">Monthly Flow</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">Monthly Flow</span>
                       </div>
-                      <div className={`text-2xl sm:text-3xl font-bold ${isPositiveCashFlow ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                      <div className={`text-xl sm:text-2xl lg:text-3xl font-bold ${isPositiveCashFlow ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                         {isPositiveCashFlow ? '+' : ''}<AnimatedNumber value={netCashFlow} prefix="$" />
                       </div>
                     </motion.div>
                     
                     <motion.div 
-                      className="space-y-1"
+                      className="space-y-0.5 sm:space-y-1"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: 0.7 }}
                       data-testid="metric-goals"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
-                          <Target className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <div className="p-1 sm:p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
+                          <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-600 dark:text-purple-400" />
                         </div>
-                        <span className="text-xs text-muted-foreground">Active Goals</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground">Active Goals</span>
                       </div>
-                      <div className="text-2xl sm:text-3xl font-bold text-foreground">
+                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                         <AnimatedNumber value={activeGoals.length} />
                       </div>
                     </motion.div>
@@ -381,25 +381,25 @@ export default function Dashboard() {
           </Card>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
             <Card className="h-full border-border/40 hover:border-border/60 transition-colors">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                    <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-foreground">AI Insights</h3>
-                    <p className="text-xs text-muted-foreground">Personalized recommendations</p>
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground">AI Insights</h3>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Personalized recommendations</p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <AnimatePresence>
                     {aiNextSteps.length > 0 ? (
                       aiNextSteps.map((step, idx) => (
@@ -411,18 +411,18 @@ export default function Dashboard() {
                         >
                           <Link href={step.href}>
                             <button 
-                              className="w-full text-left p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-primary/5 transition-all group"
+                              className="w-full text-left p-3 sm:p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-primary/5 transition-all group min-h-[56px] touch-target"
                               data-testid={`ai-step-${idx}`}
                             >
-                              <div className="flex items-start gap-3">
-                                <div className={`p-2 rounded-lg ${
+                              <div className="flex items-start gap-2 sm:gap-3">
+                                <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
                                   step.priority === 'high' 
                                     ? 'bg-orange-100 dark:bg-orange-900/30' 
                                     : step.priority === 'medium' 
                                     ? 'bg-blue-100 dark:bg-blue-900/30' 
                                     : 'bg-gray-100 dark:bg-gray-800'
                                 }`}>
-                                  <step.icon className={`w-4 h-4 ${
+                                  <step.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                                     step.priority === 'high' 
                                       ? 'text-orange-600 dark:text-orange-400' 
                                       : step.priority === 'medium' 
@@ -431,11 +431,11 @@ export default function Dashboard() {
                                   }`} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-2 mb-1">
-                                    <span className="font-medium text-sm text-foreground">{step.title}</span>
-                                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-primary transition-all" />
+                                  <div className="flex items-center justify-between gap-2 mb-0.5 sm:mb-1">
+                                    <span className="font-medium text-xs sm:text-sm text-foreground truncate">{step.title}</span>
+                                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-primary transition-all flex-shrink-0" />
                                   </div>
-                                  <p className="text-xs text-muted-foreground leading-relaxed">{step.description}</p>
+                                  <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2">{step.description}</p>
                                 </div>
                               </div>
                             </button>
@@ -444,24 +444,24 @@ export default function Dashboard() {
                       ))
                     ) : (
                       <motion.div 
-                        className="text-center py-8"
+                        className="text-center py-6 sm:py-8"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                       >
-                        <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-3">
-                          <Award className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-2 sm:mb-3">
+                          <Award className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <p className="text-sm font-medium text-foreground">Excellent work!</p>
-                        <p className="text-xs text-muted-foreground mt-1">No urgent actions needed</p>
+                        <p className="text-xs sm:text-sm font-medium text-foreground">Excellent work!</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">No urgent actions needed</p>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
                 
                 <Link href="/ai-assistant">
-                  <Button className="w-full mt-6 group" data-testid="button-view-ai-insights">
+                  <Button className="w-full mt-4 sm:mt-6 group min-h-[44px]" data-testid="button-view-ai-insights">
                     <Brain className="w-4 h-4 mr-2" />
-                    Ask AI Anything
+                    <span className="text-sm sm:text-base">Ask AI Anything</span>
                     <ArrowRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
@@ -475,39 +475,39 @@ export default function Dashboard() {
             transition={{ duration: 0.4, delay: 0.3 }}
           >
             <Card className="h-full border-border/40 hover:border-border/60 transition-colors">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20">
-                    <Target className="w-5 h-5 text-white" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-foreground">Next Goal</h3>
-                    <p className="text-xs text-muted-foreground">Track your progress</p>
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground">Next Goal</h3>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Track your progress</p>
                   </div>
                 </div>
                 
                 {nextGoal ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <h4 className="font-medium text-foreground mb-1 truncate">{nextGoal.title}</h4>
+                      <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{nextGoal.title}</h4>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-foreground">
+                        <span className="text-xl sm:text-2xl font-bold text-foreground">
                           ${parseFloat(nextGoal.currentAmount || '0').toLocaleString()}
                         </span>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-xs sm:text-sm text-muted-foreground">
                           / ${parseFloat(String(nextGoal.targetAmount)).toLocaleString()}
                         </span>
                       </div>
                     </div>
                     
                     <div>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
                         <span className="font-medium">{nextGoalProgress.toFixed(0)}% complete</span>
                         {nextGoal.targetDate && (
                           <span>{new Date(nextGoal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                         )}
                       </div>
-                      <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                      <div className="h-2.5 sm:h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                         <motion.div 
                           className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
                           initial={{ width: 0 }}
@@ -518,34 +518,34 @@ export default function Dashboard() {
                     </div>
                     
                     {nextGoal.targetDate && (
-                      <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
-                        <p className="text-xs text-muted-foreground mb-1">Monthly contribution needed</p>
-                        <p className="text-xl font-bold text-foreground">
+                      <div className="p-3 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Monthly contribution needed</p>
+                        <p className="text-lg sm:text-xl font-bold text-foreground">
                           ${Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
                             Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))).toFixed(0)}
-                          <span className="text-sm font-normal text-muted-foreground">/month</span>
+                          <span className="text-xs sm:text-sm font-normal text-muted-foreground">/month</span>
                         </p>
                       </div>
                     )}
                     
                     <Link href="/financial-goals">
-                      <Button variant="outline" className="w-full group" data-testid="button-manage-goals">
-                        Manage Goals
+                      <Button variant="outline" className="w-full group min-h-[44px]" data-testid="button-manage-goals">
+                        <span className="text-sm">Manage Goals</span>
                         <ArrowRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
                       </Button>
                     </Link>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-                      <Target className="w-6 h-6 text-muted-foreground" />
+                  <div className="text-center py-6 sm:py-8">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                      <Target className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                     </div>
-                    <p className="text-sm font-medium text-foreground mb-1">No active goals</p>
-                    <p className="text-xs text-muted-foreground mb-6">Set a target to start tracking</p>
+                    <p className="text-xs sm:text-sm font-medium text-foreground mb-1">No active goals</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mb-4 sm:mb-6">Set a target to start tracking</p>
                     <Link href="/financial-goals?create=1">
-                      <Button className="w-full" data-testid="button-create-first-goal">
+                      <Button className="w-full min-h-[44px]" data-testid="button-create-first-goal">
                         <Target className="w-4 h-4 mr-2" />
-                        Create First Goal
+                        <span className="text-sm">Create First Goal</span>
                       </Button>
                     </Link>
                   </div>
@@ -558,59 +558,60 @@ export default function Dashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
+            className="md:col-span-2 lg:col-span-1"
           >
             <Card className="h-full border-border/40 hover:border-border/60 transition-colors">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
-                    <Zap className="w-5 h-5 text-white" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-foreground">Quick Actions</h3>
-                    <p className="text-xs text-muted-foreground">Common tasks</p>
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground">Quick Actions</h3>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Common tasks</p>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <Link href="/money-tracking?add=1">
-                    <Button variant="outline" className="w-full justify-start h-12 group" data-testid="button-add-transaction">
-                      <div className="p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 mr-3">
-                        <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <Button variant="outline" className="w-full justify-start h-11 sm:h-12 group touch-target" data-testid="button-add-transaction">
+                      <div className="p-1 sm:p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 mr-2 sm:mr-3">
+                        <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400" />
                       </div>
-                      Add Transaction
+                      <span className="text-sm">Add Transaction</span>
                       <ChevronRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
                   
                   <Link href="/money-tracking">
-                    <Button variant="outline" className="w-full justify-start h-12 group" data-testid="button-view-spending">
-                      <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30 mr-3">
-                        <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <Button variant="outline" className="w-full justify-start h-11 sm:h-12 group touch-target" data-testid="button-view-spending">
+                      <div className="p-1 sm:p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30 mr-2 sm:mr-3">
+                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
                       </div>
-                      View Spending
+                      <span className="text-sm">View Spending</span>
                       <ChevronRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
                   
                   <Link href="/subscription">
-                    <Button variant="outline" className="w-full justify-start h-12 group" data-testid="button-upgrade-plan">
-                      <div className="p-1.5 rounded-md bg-violet-100 dark:bg-violet-900/30 mr-3">
-                        <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                    <Button variant="outline" className="w-full justify-start h-11 sm:h-12 group touch-target" data-testid="button-upgrade-plan">
+                      <div className="p-1 sm:p-1.5 rounded-md bg-violet-100 dark:bg-violet-900/30 mr-2 sm:mr-3">
+                        <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-600 dark:text-violet-400" />
                       </div>
-                      AI Plan
-                      <Badge variant="secondary" className="ml-auto text-xs">
+                      <span className="text-sm">AI Plan</span>
+                      <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs">
                         {tierName}
                       </Badge>
                     </Button>
                   </Link>
                 </div>
                 
-                <div className="mt-6 pt-6 border-t border-border/40">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">AI Queries</span>
-                    <span className="text-sm text-muted-foreground">{queriesRemaining} remaining</span>
+                <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border/40">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <span className="text-xs sm:text-sm font-medium text-foreground">AI Queries</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">{queriesRemaining} remaining</span>
                   </div>
-                  <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 sm:h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                     <motion.div 
                       className="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"
                       initial={{ width: 0 }}
@@ -618,7 +619,7 @@ export default function Dashboard() {
                       transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5 sm:mt-2">
                     {scoutUsed} of {scoutLimit} used this month
                   </p>
                 </div>
@@ -633,31 +634,31 @@ export default function Dashboard() {
           transition={{ duration: 0.4, delay: 0.5 }}
         >
           <Card className="border-border/40 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/30">
-            <CardContent className="p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">Explore More</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Access detailed analytics, transaction history, and advanced features
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <div className="w-full sm:w-auto">
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Explore More</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
+                    Access detailed analytics and advanced features
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  <Link href="/money-tracking">
-                    <Button variant="outline" size="sm" className="group" data-testid="button-view-transactions">
-                      Transactions
-                      <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
+                <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+                  <Link href="/money-tracking" className="flex-1 sm:flex-none">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto group min-h-[40px] touch-target" data-testid="button-view-transactions">
+                      <span className="text-xs sm:text-sm">Transactions</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <Link href="/financial-goals">
-                    <Button variant="outline" size="sm" className="group" data-testid="button-all-goals">
-                      All Goals
-                      <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <Link href="/financial-goals" className="flex-1 sm:flex-none">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto group min-h-[40px] touch-target" data-testid="button-all-goals">
+                      <span className="text-xs sm:text-sm">All Goals</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <Link href="/groups">
-                    <Button variant="outline" size="sm" className="group" data-testid="button-groups">
-                      Groups
-                      <ArrowRight className="w-3.5 h-3.5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <Link href="/groups" className="flex-1 sm:flex-none">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto group min-h-[40px] touch-target" data-testid="button-groups">
+                      <span className="text-xs sm:text-sm">Groups</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
                 </div>
@@ -666,7 +667,7 @@ export default function Dashboard() {
           </Card>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

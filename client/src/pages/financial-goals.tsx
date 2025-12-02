@@ -593,7 +593,7 @@ export default function FinancialGoals() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen-mobile bg-background pb-20 md:pb-0">
       <Drawer open={isFirstGoalDialogOpen} onOpenChange={setIsFirstGoalDialogOpen}>
         <DrawerContent className="max-h-[90vh]">
           <div className="p-4 pb-6">

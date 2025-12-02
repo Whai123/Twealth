@@ -219,18 +219,18 @@ function QuotaCard({
   if (locked) {
     return (
       <motion.div 
-        className="flex items-center justify-between p-4 rounded-xl border-2 border-dashed border-border/40 bg-muted/5"
+        className="flex flex-col sm:flex-row items-center sm:justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 border-dashed border-border/40 bg-muted/5 gap-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center">
-            <Crown className="w-4 h-4 text-muted-foreground/50" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-muted/30 flex items-center justify-center">
+            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground/50" />
           </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{name}</p>
-            <p className="text-xs text-muted-foreground/60">{lockText}</p>
+          <div className="text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">{name}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground/60">{lockText}</p>
           </div>
         </div>
       </motion.div>
@@ -239,35 +239,35 @@ function QuotaCard({
 
   return (
     <motion.div 
-      className={`relative p-4 rounded-xl border ${colors.border} ${colors.bg} overflow-hidden`}
+      className={`relative p-3 sm:p-4 rounded-lg sm:rounded-xl border ${colors.border} ${colors.bg} overflow-hidden`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3">
           <CircularProgress 
             value={isUnlimited ? 100 : remaining} 
             max={isUnlimited ? 100 : limit} 
             color={color}
-            size={44}
-            strokeWidth={4}
+            size={36}
+            strokeWidth={3}
           />
-          <div>
-            <p className="text-sm font-semibold">{name}</p>
-            <Badge className={`${colors.badge} text-[10px] px-1.5 py-0 font-medium`}>{badge}</Badge>
+          <div className="text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-semibold">{name}</p>
+            <Badge className={`${colors.badge} text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0 font-medium`}>{badge}</Badge>
           </div>
         </div>
-        <div className="text-right">
-          <p className={`text-xl font-bold ${colors.text}`}>
+        <div className="text-center sm:text-right">
+          <p className={`text-lg sm:text-xl font-bold ${colors.text}`}>
             {isUnlimited ? (
-              <span className="text-2xl">∞</span>
+              <span className="text-xl sm:text-2xl">∞</span>
             ) : (
               <AnimatedNumber value={remaining} />
             )}
           </p>
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
+          <p className="text-[8px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wide">
             {isUnlimited ? 'unlimited' : 'remaining'}
           </p>
         </div>
@@ -557,7 +557,7 @@ export default function AIAssistantPage() {
   const opusLimit = usage?.opusUsage?.limit || 0;
 
   return (
-    <div className="flex h-screen bg-gradient-to-b from-gray-50/50 to-white dark:from-zinc-950 dark:to-black" style={{ height: '100dvh' }}>
+    <div className="flex h-screen-mobile md:h-screen bg-gradient-to-b from-gray-50/50 to-white dark:from-zinc-950 dark:to-black" style={{ height: 'var(--app-height, 100dvh)' }}>
       <ConversationSidebar
         currentConversationId={currentConversationId}
         onSelectConversation={setCurrentConversationId}
@@ -566,7 +566,7 @@ export default function AIAssistantPage() {
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden pb-16 md:pb-0">
         <header className="shrink-0 border-b border-border/40 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -631,9 +631,9 @@ export default function AIAssistantPage() {
         </header>
 
         <div className="shrink-0 border-b border-border/40 bg-white/50 dark:bg-black/50 backdrop-blur-sm">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4">
+          <div className="max-w-3xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
             <motion.div 
-              className={`relative rounded-2xl transition-all duration-300 ${
+              className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${
                 inputFocused 
                   ? 'ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10' 
                   : 'shadow-md hover:shadow-lg'
@@ -649,12 +649,12 @@ export default function AIAssistantPage() {
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
                 placeholder="Ask anything about your finances..."
-                className="min-h-[56px] max-h-[140px] resize-none pr-16 text-base w-full rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-4 px-5 placeholder:text-muted-foreground/60"
+                className="min-h-[48px] sm:min-h-[56px] max-h-[120px] sm:max-h-[140px] resize-none pr-14 sm:pr-16 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-3 sm:py-4 px-4 sm:px-5 placeholder:text-muted-foreground/60"
                 rows={1}
                 data-testid="input-message"
               />
               <motion.div
-                className="absolute right-3 bottom-3"
+                className="absolute right-2.5 sm:right-3 bottom-2 sm:bottom-3"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -662,7 +662,7 @@ export default function AIAssistantPage() {
                   onClick={handleSendMessage}
                   disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
                   size="icon"
-                  className={`h-10 w-10 rounded-xl transition-all duration-300 ${
+                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${
                     currentMessage.trim() 
                       ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30' 
                       : 'bg-gray-200 dark:bg-gray-800'
@@ -692,7 +692,7 @@ export default function AIAssistantPage() {
             
             {usage && !hasMessages && (
               <motion.div 
-                className="grid grid-cols-2 sm:grid-cols-4 gap-3"
+                className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
@@ -780,7 +780,7 @@ export default function AIAssistantPage() {
                 </motion.p>
 
                 <motion.div 
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-4xl"
+                  className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 w-full max-w-4xl"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
@@ -789,7 +789,7 @@ export default function AIAssistantPage() {
                     <motion.button
                       key={index}
                       onClick={() => setCurrentMessage(prompt.prompt)}
-                      className={`group relative flex items-start gap-3 p-4 text-left rounded-xl border border-border/50 bg-gradient-to-br ${prompt.gradient} hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300`}
+                      className={`group relative flex flex-col sm:flex-row items-start gap-2 sm:gap-3 p-3 sm:p-4 text-left rounded-lg sm:rounded-xl border border-border/50 bg-gradient-to-br ${prompt.gradient} hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 touch-target min-h-[80px] sm:min-h-0`}
                       data-testid={`starter-prompt-${index}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -797,16 +797,16 @@ export default function AIAssistantPage() {
                       whileHover={{ y: -2 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-md transition-shadow">
-                        <span className="text-blue-600 dark:text-blue-400">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-md transition-shadow">
+                        <span className="text-blue-600 dark:text-blue-400 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-5 sm:[&>svg]:h-5">
                           {prompt.icon}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prompt.title}</p>
-                        <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">{prompt.prompt}</p>
+                        <p className="font-semibold text-xs sm:text-sm mb-0.5 sm:mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prompt.title}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed hidden sm:block">{prompt.prompt}</p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0 mt-1" />
+                      <ChevronRight className="hidden sm:block w-4 h-4 text-muted-foreground/30 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0 mt-1" />
                     </motion.button>
                   ))}
                 </motion.div>

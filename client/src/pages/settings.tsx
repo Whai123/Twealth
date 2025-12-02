@@ -170,45 +170,43 @@ function Settings() {
  }
 
  return (
-  <div className="min-h-screen bg-background">
-   {/* Clean Professional Header - Stripe/Coinbase Style */}
+  <div className="min-h-screen-mobile bg-background pb-20 md:pb-0">
    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
-     <div className="flex items-center justify-between gap-4">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
+     <div className="flex items-center justify-between gap-3">
       <div className="flex-1 min-w-0">
-       <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+       <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground">
         {t('settings.title', 'Settings')}
        </h1>
-       <p className="text-sm text-muted-foreground mt-1">
+       <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">
         {t('settings.subtitle', 'Manage your account and preferences')}
        </p>
       </div>
       <Button
        variant="outline"
+       size="sm"
        onClick={handleLogout}
        disabled={logoutMutation.isPending}
-       className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950"
+       className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950 min-h-[44px] touch-target"
        data-testid="button-logout"
       >
        {logoutMutation.isPending ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
        ) : (
-        <LogOut className="w-4 h-4 mr-2" />
+        <LogOut className="w-4 h-4 sm:mr-2" />
        )}
-       Sign out
+       <span className="hidden sm:inline">Sign out</span>
       </Button>
      </div>
     </div>
    </header>
 
-   {/* Main Content */}
-   <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+   <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-     {/* Clean Tab Interface */}
-     <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-8 p-1 h-auto">
+     <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4 sm:mb-6 lg:mb-8 p-1 h-auto bg-muted/50">
       <TabsTrigger 
        value="account" 
-       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
        data-testid="tab-account"
       >
        <User className="w-4 h-4" />
@@ -216,7 +214,7 @@ function Settings() {
       </TabsTrigger>
       <TabsTrigger 
        value="preferences" 
-       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
        data-testid="tab-preferences"
       >
        <Palette className="w-4 h-4" />
@@ -224,7 +222,7 @@ function Settings() {
       </TabsTrigger>
       <TabsTrigger 
        value="financial" 
-       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
        data-testid="tab-financial"
       >
        <CreditCard className="w-4 h-4" />
@@ -232,7 +230,7 @@ function Settings() {
       </TabsTrigger>
       <TabsTrigger 
        value="privacy" 
-       className="flex items-center justify-center gap-2 py-3 text-sm font-medium"
+       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
        data-testid="tab-privacy"
       >
        <Shield className="w-4 h-4" />

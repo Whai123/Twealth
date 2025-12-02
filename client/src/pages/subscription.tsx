@@ -525,18 +525,18 @@ export default function SubscriptionPage() {
   const userCurrency = userPreferences?.currency || 'USD';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen-mobile bg-background pb-20 md:pb-0">
       <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
+            <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground">
               Subscription Plans
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-1">
               Upgrade your account to unlock advanced features
             </p>
           </motion.div>

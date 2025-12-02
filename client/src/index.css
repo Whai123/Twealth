@@ -1622,4 +1622,124 @@ body.drawer-open {
       font-size: 0.875em;
     }
   }
+  
+  /* ==========================================
+     MOBILE PERFORMANCE OPTIMIZATIONS
+     ========================================== */
+  
+  /* Optimize repaints on mobile - use will-change sparingly */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Touch-action optimizations for specific elements */
+  .touch-pan-x {
+    touch-action: pan-x;
+  }
+  
+  .touch-pan-y {
+    touch-action: pan-y;
+  }
+  
+  .touch-pinch-zoom {
+    touch-action: pinch-zoom;
+  }
+  
+  /* Prevent rubber-banding on iOS for specific containers */
+  .no-overscroll {
+    overscroll-behavior: none;
+  }
+  
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+  
+  /* Mobile-specific reduced animations */
+  @media (hover: none) and (pointer: coarse) {
+    .mobile-reduce-motion * {
+      transition-duration: 0.15s !important;
+    }
+    
+    /* Disable hover effects on touch devices */
+    .no-hover-mobile:hover {
+      transform: none !important;
+      box-shadow: inherit !important;
+    }
+  }
+  
+  /* Mobile content visibility optimization */
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+  }
+  
+  /* Mobile-specific contain for layout optimization */
+  .contain-layout {
+    contain: layout;
+  }
+  
+  .contain-paint {
+    contain: paint;
+  }
+  
+  .contain-strict {
+    contain: strict;
+  }
+  
+  /* Improve text rendering on mobile */
+  @media (max-width: 768px) {
+    body {
+      text-rendering: optimizeSpeed;
+    }
+  }
+  
+  /* iOS-specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    /* Prevent iOS text size adjust */
+    body {
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Fix iOS button styling */
+    button,
+    input[type="button"],
+    input[type="submit"] {
+      -webkit-appearance: none;
+    }
+    
+    /* Fix iOS tap highlight */
+    a, button, input, select, textarea {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+  }
+  
+  /* Improve scroll performance */
+  .scroll-smooth-mobile {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbar on mobile but keep functionality */
+  .scrollbar-hide-mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide-mobile::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Mobile image optimization */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Lazy load hint for below-fold content */
+  .lazy-load-container {
+    content-visibility: auto;
+    contain-intrinsic-block-size: 200px;
+  }
 }
