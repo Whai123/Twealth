@@ -3069,7 +3069,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           : userContext;
         
         // Use tier-aware AI router for intelligent model selection and quota enforcement
-        const tierResult = await routeWithTierCheck(userId, userMessage, storage);
+        // Pass conversation history for context (last 6 messages for memory)
+        const tierResult = await routeWithTierCheck(userId, userMessage, storage, conversationHistory.slice(-6));
         
         // Handle quota exceeded response
         if ('type' in tierResult && tierResult.type === 'quota_exceeded') {

@@ -35,12 +35,21 @@ import { getTwealthTools, getTwealthIdentity } from './tools';
 export type ModelAccess = 'scout' | 'sonnet' | 'gpt5' | 'opus';
 
 /**
+ * Conversation message for memory
+ */
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
  * Options for generating AI advice
  */
 export interface GenerateAdviceOptions {
   forceModel?: ModelAccess; // Override auto-escalation with tier-selected model
   preselectedContext?: FinancialContext; // Pre-built context to avoid double assembly
   skipAutoEscalation?: boolean; // Disable internal escalation logic
+  conversationHistory?: ConversationMessage[]; // Previous messages for context
 }
 
 /**
@@ -77,10 +86,13 @@ export async function generateHybridAdvice(
   storage: IStorage,
   options: GenerateAdviceOptions = {}
 ): Promise<HybridAIResponse> {
-  const { forceModel, preselectedContext, skipAutoEscalation } = options;
+  const { forceModel, preselectedContext, skipAutoEscalation, conversationHistory = [] } = options;
   
   // Step 1: Build or use pre-selected financial context
   const context = preselectedContext || await buildFinancialContext(userId, storage);
+  
+  // Add conversation history to context for handlers
+  (context as any).conversationHistory = conversationHistory;
   
   // Step 2: Determine which model to use
   let targetModel: ModelAccess;
@@ -140,11 +152,16 @@ async function handleGPT5Query(
   // Build optimized prompt with financial context
   const systemPrompt = buildGPT5SystemPrompt(context);
   
+  // Build messages array with conversation history (last 6 messages for context)
+  const conversationHistory = (context.conversationHistory || []).slice(-6);
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
+    { role: 'user', content: userMessage },
+  ];
+  
   const response = await client.chat({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage },
-    ],
+    messages,
     tools: getTwealthTools(), // Pass tools for action-taking
   });
   
@@ -174,11 +191,16 @@ async function handleScoutQuery(
   // Build simple prompt with context
   const systemPrompt = buildScoutSystemPrompt(context);
   
+  // Build messages array with conversation history (last 6 messages for context)
+  const conversationHistory = (context.conversationHistory || []).slice(-6);
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
+    { role: 'user', content: userMessage },
+  ];
+  
   const response = await client.chat({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage },
-    ],
+    messages,
     temperature: 0.7,
     maxTokens: 1000,
     tools: getTwealthTools(), // Pass tools for action-taking
@@ -358,11 +380,16 @@ async function handleGenericReasoningQuery(
   // Build comprehensive prompt with context
   const systemPrompt = buildReasoningSystemPrompt(context);
   
+  // Build messages array with conversation history (last 6 messages for context)
+  const conversationHistory = (context.conversationHistory || []).slice(-6);
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
+    { role: 'user', content: userMessage },
+  ];
+  
   const response = await client.chat({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage },
-    ],
+    messages,
     temperature: 0.5,
     maxTokens: 2000,
     tools: getTwealthTools(), // Pass tools for action-taking
@@ -481,6 +508,25 @@ Your strengths:
 CRITICAL: When user asks about their goals or finances, USE THE DATA ABOVE.
 Never say "I don't have access" - you DO have their complete financial picture.
 
+**PREMIUM RESPONSE FORMAT:**
+1. Provide your detailed calculations and analysis
+2. Reference specific numbers from their data
+3. At the END of EVERY response, include a "---SUGGESTIONS---" section with exactly 3 follow-up questions
+4. If you spot a financial insight (opportunity, warning, or milestone), add "---INSIGHT---" section before suggestions
+
+Example:
+[Your calculations and analysis here]
+
+---INSIGHT---
+type: opportunity
+title: Investment Potential
+message: With your $X surplus, you could earn $Y more annually
+
+---SUGGESTIONS---
+1. What if I increased my monthly contribution?
+2. How does this compare to alternative strategies?
+3. What's my break-even point?
+
 Use available tools to provide detailed calculations. Keep responses focused on measurable outcomes with specific numbers and actionable steps. Always use the user's local currency and apply their country's tax rates when relevant.`;
 
   return prompt;
@@ -593,8 +639,26 @@ Handle:
 - Budget recommendations based on their actual spending patterns
 - Debt payoff strategies based on their actual debts
 
-Keep responses concise (2-4 paragraphs) and actionable. Reference specific numbers from their data.
-Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you.`;
+**PREMIUM RESPONSE FORMAT:**
+1. Provide your advice (2-4 paragraphs, concise and actionable)
+2. Reference specific numbers from their data above
+3. At the END of EVERY response, include a "---SUGGESTIONS---" section with exactly 3 smart follow-up questions
+4. If you spot a financial concern, add a "---INSIGHT---" section before suggestions
+
+Example format:
+[Your main advice here]
+
+---INSIGHT---
+type: warning|opportunity|milestone
+title: Brief insight title
+message: Specific insight based on their data
+
+---SUGGESTIONS---
+1. Specific follow-up question based on conversation
+2. Another relevant question they might ask
+3. A proactive question about improving their finances
+
+Keep responses focused. Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you.`;
 
   return prompt;
 }
@@ -673,6 +737,25 @@ Your strengths:
 - Country-specific retirement contribution strategies
 - Comprehensive CFO-level analysis for high-stakes decisions
 - Cost comparisons for luxury goods and major purchases in local currency
+
+**PREMIUM RESPONSE FORMAT:**
+1. Provide your comprehensive CFO-level analysis
+2. Include specific calculations with their real numbers
+3. At the END of EVERY response, include "---SUGGESTIONS---" with exactly 3 strategic follow-up questions
+4. If you identify important insights, add "---INSIGHT---" section before suggestions
+
+Example format:
+[Your strategic analysis here]
+
+---INSIGHT---
+type: warning|opportunity|milestone
+title: Critical Finding
+message: Based on your data, specific insight about their situation
+
+---SUGGESTIONS---
+1. Strategic question about optimizing their approach
+2. Question exploring alternative scenarios
+3. Question about long-term implications
 
 Use available tools to provide detailed, well-reasoned analysis with specific numbers in ${currencySymbol} (${context.countryContext?.currency || 'USD'}). Apply local tax rates and financial regulations. Think step-by-step through complex problems.`;
   

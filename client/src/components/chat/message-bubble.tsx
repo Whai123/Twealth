@@ -8,7 +8,11 @@ import {
   RefreshCw,
   Check,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  AlertTriangle,
+  TrendingUp,
+  Trophy,
+  Lightbulb
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Brain, User } from "lucide-react";
@@ -25,40 +29,127 @@ interface MessageBubbleProps {
   onFollowUp?: (prompt: string) => void;
 }
 
-const extractFollowUpSuggestions = (content: string): string[] => {
+interface ParsedInsight {
+  type: 'warning' | 'opportunity' | 'milestone';
+  title: string;
+  message: string;
+}
+
+interface ParsedContent {
+  mainContent: string;
+  insight?: ParsedInsight;
+  suggestions: string[];
+}
+
+const parseAIResponse = (content: string): ParsedContent => {
+  let mainContent = content;
+  let insight: ParsedInsight | undefined;
   const suggestions: string[] = [];
   
-  if (content.toLowerCase().includes('budget') || content.toLowerCase().includes('spending')) {
-    suggestions.push("Show my spending breakdown");
-    suggestions.push("How can I reduce expenses?");
-  }
-  if (content.toLowerCase().includes('save') || content.toLowerCase().includes('saving')) {
-    suggestions.push("Create a savings goal");
-    suggestions.push("Best savings strategies for me");
-  }
-  if (content.toLowerCase().includes('invest') || content.toLowerCase().includes('portfolio')) {
-    suggestions.push("Explain index funds");
-    suggestions.push("Risk assessment for my situation");
-  }
-  if (content.toLowerCase().includes('debt') || content.toLowerCase().includes('loan')) {
-    suggestions.push("Debt payoff strategies");
-    suggestions.push("Should I pay debt or invest?");
-  }
-  if (content.toLowerCase().includes('retirement') || content.toLowerCase().includes('401k')) {
-    suggestions.push("Retirement calculator");
-    suggestions.push("Optimize my 401k contributions");
-  }
-  if (content.toLowerCase().includes('emergency') || content.toLowerCase().includes('fund')) {
-    suggestions.push("How much emergency fund?");
-    suggestions.push("Where to keep emergency fund");
+  // Extract insight section
+  const insightMatch = content.match(/---INSIGHT---\s*\n?([\s\S]*?)(?=---SUGGESTIONS---|$)/i);
+  if (insightMatch) {
+    const insightBlock = insightMatch[1].trim();
+    const typeMatch = insightBlock.match(/type:\s*(warning|opportunity|milestone)/i);
+    const titleMatch = insightBlock.match(/title:\s*(.+?)(?:\n|$)/i);
+    const messageMatch = insightBlock.match(/message:\s*([\s\S]+?)(?=\n\n|$)/i);
+    
+    if (typeMatch && titleMatch && messageMatch) {
+      insight = {
+        type: typeMatch[1].toLowerCase() as 'warning' | 'opportunity' | 'milestone',
+        title: titleMatch[1].trim(),
+        message: messageMatch[1].trim()
+      };
+    }
   }
   
+  // Extract suggestions section
+  const suggestionsMatch = content.match(/---SUGGESTIONS---\s*\n?([\s\S]*?)$/i);
+  if (suggestionsMatch) {
+    const suggestionsBlock = suggestionsMatch[1].trim();
+    const lines = suggestionsBlock.split('\n');
+    lines.forEach(line => {
+      const cleaned = line.replace(/^\d+\.\s*/, '').replace(/^-\s*/, '').trim();
+      if (cleaned && cleaned.length > 5 && cleaned.length < 100) {
+        suggestions.push(cleaned);
+      }
+    });
+  }
+  
+  // Remove insight and suggestions sections from main content
+  mainContent = content
+    .replace(/---INSIGHT---[\s\S]*?(?=---SUGGESTIONS---|$)/i, '')
+    .replace(/---SUGGESTIONS---[\s\S]*$/i, '')
+    .trim();
+  
+  // Fallback suggestions if none parsed
   if (suggestions.length === 0) {
-    suggestions.push("Tell me more");
-    suggestions.push("What should I do next?");
+    if (content.toLowerCase().includes('budget') || content.toLowerCase().includes('spending')) {
+      suggestions.push("Show my spending breakdown", "How can I reduce expenses?");
+    } else if (content.toLowerCase().includes('save') || content.toLowerCase().includes('goal')) {
+      suggestions.push("Create a savings goal", "Best strategies for me");
+    } else if (content.toLowerCase().includes('debt') || content.toLowerCase().includes('loan')) {
+      suggestions.push("Debt payoff strategies", "Should I pay debt or invest?");
+    } else {
+      suggestions.push("Tell me more", "What should I do next?");
+    }
   }
   
-  return suggestions.slice(0, 3);
+  return {
+    mainContent,
+    insight,
+    suggestions: suggestions.slice(0, 3)
+  };
+};
+
+const InsightCard = ({ insight }: { insight: ParsedInsight }) => {
+  const iconMap = {
+    warning: AlertTriangle,
+    opportunity: TrendingUp,
+    milestone: Trophy
+  };
+  const colorMap = {
+    warning: {
+      bg: 'bg-amber-50 dark:bg-amber-950/30',
+      border: 'border-amber-200 dark:border-amber-800',
+      icon: 'text-amber-600 dark:text-amber-400',
+      title: 'text-amber-800 dark:text-amber-200'
+    },
+    opportunity: {
+      bg: 'bg-emerald-50 dark:bg-emerald-950/30',
+      border: 'border-emerald-200 dark:border-emerald-800',
+      icon: 'text-emerald-600 dark:text-emerald-400',
+      title: 'text-emerald-800 dark:text-emerald-200'
+    },
+    milestone: {
+      bg: 'bg-blue-50 dark:bg-blue-950/30',
+      border: 'border-blue-200 dark:border-blue-800',
+      icon: 'text-blue-600 dark:text-blue-400',
+      title: 'text-blue-800 dark:text-blue-200'
+    }
+  };
+  
+  const Icon = iconMap[insight.type];
+  const colors = colorMap[insight.type];
+  
+  return (
+    <motion.div
+      className={`mt-4 p-4 rounded-xl border ${colors.bg} ${colors.border}`}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, delay: 0.2 }}
+    >
+      <div className="flex items-start gap-3">
+        <div className={`p-2 rounded-lg ${colors.bg}`}>
+          <Icon className={`w-4 h-4 ${colors.icon}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-semibold ${colors.title}`}>{insight.title}</p>
+          <p className="text-sm text-muted-foreground mt-1">{insight.message}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
 function StreamingText({ content, onComplete }: { content: string; onComplete?: () => void }) {
@@ -104,6 +195,9 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
   const [streamComplete, setStreamComplete] = useState(!isLatest);
   
+  // Parse AI response to extract main content, insights, and suggestions
+  const parsedContent = role === 'assistant' ? parseAIResponse(content) : null;
+  
   useEffect(() => {
     if (isLatest && role === 'assistant') {
       const timer = setTimeout(() => setShowActions(true), 800);
@@ -114,7 +208,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
   }, [isLatest, role]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(content);
+    await navigator.clipboard.writeText(parsedContent?.mainContent || content);
     setCopied(true);
     toast({
       title: "Copied to clipboard",
@@ -131,7 +225,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
     });
   };
 
-  const followUpSuggestions = isLatest && role === 'assistant' ? extractFollowUpSuggestions(content) : [];
+  const followUpSuggestions = isLatest && role === 'assistant' && parsedContent ? parsedContent.suggestions : [];
 
   if (role === 'user') {
     return (
@@ -293,9 +387,14 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
                 },
               }}
             >
-              {content}
+              {parsedContent?.mainContent || content}
             </ReactMarkdown>
           </div>
+          
+          {/* Insight Card - displayed when AI detects something important */}
+          {parsedContent?.insight && (
+            <InsightCard insight={parsedContent.insight} />
+          )}
         </motion.div>
         
         <AnimatePresence>

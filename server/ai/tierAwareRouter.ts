@@ -269,12 +269,21 @@ function isCFOQuery(msg: string): boolean {
 }
 
 /**
+ * Conversation message for memory
+ */
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
  * Main orchestrator: Routes AI queries with tier-based access control
  */
 export async function routeWithTierCheck(
   userId: string,
   message: string,
-  storage: IStorage
+  storage: IStorage,
+  conversationHistory: ConversationMessage[] = []
 ): Promise<TierAwareResponse> {
   try {
     // CRITICAL: Sanitize message at entry point to prevent TypeError
@@ -371,6 +380,7 @@ export async function routeWithTierCheck(
       forceModel: selectedModel,
       preselectedContext: context,
       skipAutoEscalation: true, // Tier router has already decided
+      conversationHistory, // Pass conversation history for context
     };
     
     const response = await generateHybridAdvice(userId, sanitizedMessage, storage, options);
