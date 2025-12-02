@@ -1,4 +1,4 @@
-import { useState, useEffect } from"react";
+import { useState, useEffect, useMemo, useCallback } from"react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Share2, Users, Globe, Clock, DollarSign, TrendingUp, Edit, Trash2, BarChart3, Filter, ChevronDown, Sparkles } from"lucide-react";
@@ -208,7 +208,7 @@ export default function Calendar() {
  }
  };
 
- const getDaysInMonth = () => {
+ const days = useMemo(() => {
  const year = currentDate.getFullYear();
  const month = currentDate.getMonth();
  const firstDay = new Date(year, month, 1);
@@ -216,17 +216,17 @@ export default function Calendar() {
  const daysInMonth = lastDay.getDate();
  const startingDayOfWeek = firstDay.getDay();
 
- const days = [];
+ const result = [];
  for (let i = 0; i < startingDayOfWeek; i++) {
- days.push(null);
+ result.push(null);
  }
  for (let day = 1; day <= daysInMonth; day++) {
- days.push(new Date(year, month, day));
+ result.push(new Date(year, month, day));
  }
- return days;
- };
+ return result;
+ }, [currentDate]);
 
- const getFilteredEvents = () => {
+ const filteredEvents = useMemo(() => {
  if (!events || !Array.isArray(events)) return [];
  
  return events.filter((event: any) => {
@@ -252,25 +252,29 @@ export default function Calendar() {
  
  return true;
  });
- };
- 
- const getEventsForDate = (date: Date) => {
- const filteredEvents = getFilteredEvents();
- return filteredEvents.filter((event: any) => {
- const eventDate = new Date(event.startTime);
- return (
- eventDate.getFullYear() === date.getFullYear() &&
- eventDate.getMonth() === date.getMonth() &&
- eventDate.getDate() === date.getDate()
- );
- });
- };
+ }, [events, filters]);
 
- const days = getDaysInMonth();
- const filteredEvents = getFilteredEvents();
- const availableCategories: string[] = Array.from(new Set(
- events.map((event: any) => event.category).filter(Boolean)
- ));
+ const eventsGroupedByDate = useMemo(() => {
+ const map = new Map<string, any[]>();
+ filteredEvents.forEach((event: any) => {
+ const eventDate = new Date(event.startTime);
+ const key = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+ if (!map.has(key)) {
+ map.set(key, []);
+ }
+ map.get(key)!.push(event);
+ });
+ return map;
+ }, [filteredEvents]);
+ 
+ const getEventsForDate = useCallback((date: Date) => {
+ const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+ return eventsGroupedByDate.get(key) || [];
+ }, [eventsGroupedByDate]);
+
+ const availableCategories: string[] = useMemo(() => 
+ Array.from(new Set(events.map((event: any) => event.category).filter(Boolean))),
+ [events]);
 
  return (
  <div className="min-h-screen bg-background">

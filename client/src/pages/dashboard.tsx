@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Target, Sparkles, TrendingUp, Brain, ChevronRight, Award, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -106,8 +106,8 @@ export default function Dashboard() {
     return <OnboardingWizard onComplete={completeOnboarding} />;
   }
 
-  // Generate AI-powered next steps based on real data
-  const getAINextSteps = () => {
+  // Generate AI-powered next steps based on real data - memoized for performance
+  const aiNextSteps = useMemo(() => {
     const steps = [];
     
     // Emergency fund priority
@@ -162,9 +162,7 @@ export default function Dashboard() {
     }
     
     return steps.slice(0, 3); // Max 3 steps
-  };
-
-  const aiNextSteps = getAINextSteps();
+  }, [emergencyFundMonths, savingsRate, monthlySavingsCapacity, nextGoal, nextGoalProgress, queriesRemaining]);
 
   return (
     <>

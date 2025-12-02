@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from"react";
+import { useState, useEffect, lazy, Suspense, useMemo } from"react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
 import { Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText, Download, ChevronDown } from"lucide-react";
@@ -131,7 +131,9 @@ export default function MoneyTracking() {
  },
  });
 
- const filteredTransactions = transactions?.filter((transaction: any) => {
+ const filteredTransactions = useMemo(() => {
+ if (!transactions) return [];
+ return transactions.filter((transaction: any) => {
  const typeMatch = filterType ==="all" || transaction.type === filterType;
  const categoryMatch = filterCategory ==="all" || transaction.category === filterCategory;
  
@@ -140,17 +142,20 @@ export default function MoneyTracking() {
  const dateMatch = transactionDate >= daysAgo;
  
  return typeMatch && categoryMatch && dateMatch;
- }) || [];
+ });
+ }, [transactions, filterType, filterCategory, timeRange]);
 
- const totalIncome = filteredTransactions
+ const { totalIncome, totalExpenses, netCashFlow } = useMemo(() => {
+ const income = filteredTransactions
  .filter((t: any) => t.type ==="income")
  .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
 
- const totalExpenses = filteredTransactions
+ const expenses = filteredTransactions
  .filter((t: any) => t.type ==="expense")
  .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
 
- const netCashFlow = totalIncome - totalExpenses;
+ return { totalIncome: income, totalExpenses: expenses, netCashFlow: income - expenses };
+ }, [filteredTransactions]);
 
  const getTransactionIcon = (type: string) => {
  switch (type) {
