@@ -388,7 +388,6 @@ export function InfiniteScrollList<T>({
 
 export function CollapsibleList<T>({
   items,
-  itemHeight,
   renderItem,
   keyExtractor,
   initialVisible = 5,
@@ -398,7 +397,6 @@ export function CollapsibleList<T>({
   emptyState,
 }: {
   items: T[];
-  itemHeight: number;
   renderItem: (item: T, index: number) => React.ReactNode;
   keyExtractor: (item: T) => string | number;
   initialVisible?: number;

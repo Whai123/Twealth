@@ -706,7 +706,6 @@ export default function MoneyTracking() {
                       ) : (
                         <CollapsibleList
                           items={filteredTransactions}
-                          itemHeight={72}
                           keyExtractor={(t: any) => t.id}
                           initialVisible={10}
                           showMoreLabel="View all transactions"

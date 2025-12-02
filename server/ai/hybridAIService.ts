@@ -50,6 +50,7 @@ export interface GenerateAdviceOptions {
   preselectedContext?: FinancialContext; // Pre-built context to avoid double assembly
   skipAutoEscalation?: boolean; // Disable internal escalation logic
   conversationHistory?: ConversationMessage[]; // Previous messages for context
+  skipTools?: boolean; // Skip tool calling - use for plain text/JSON responses (e.g., playbooks)
 }
 
 /**
@@ -86,13 +87,14 @@ export async function generateHybridAdvice(
   storage: IStorage,
   options: GenerateAdviceOptions = {}
 ): Promise<HybridAIResponse> {
-  const { forceModel, preselectedContext, skipAutoEscalation, conversationHistory = [] } = options;
+  const { forceModel, preselectedContext, skipAutoEscalation, conversationHistory = [], skipTools = false } = options;
   
   // Step 1: Build or use pre-selected financial context
   const context = preselectedContext || await buildFinancialContext(userId, storage);
   
-  // Add conversation history to context for handlers
+  // Add conversation history and skipTools flag to context for handlers
   (context as any).conversationHistory = conversationHistory;
+  (context as any).skipTools = skipTools;
   
   // Step 2: Determine which model to use
   let targetModel: ModelAccess;
@@ -199,11 +201,14 @@ async function handleScoutQuery(
     { role: 'user', content: userMessage },
   ];
   
+  // Only pass tools if not in skipTools mode (for plain text/JSON responses)
+  const skipTools = context.skipTools === true;
+  
   const response = await client.chat({
     messages,
     temperature: 0.7,
     maxTokens: 1000,
-    tools: getTwealthTools(), // Pass tools for action-taking
+    tools: skipTools ? undefined : getTwealthTools(), // Skip tools for playbook generation
   });
   
   return {

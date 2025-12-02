@@ -189,7 +189,7 @@ Provide ${insightsCount} insights focused on actionable observations.`;
       userId,
       insightsPrompt,
       storage,
-      { forceModel: modelToUse }
+      { forceModel: modelToUse, skipTools: true }
     );
     
     totalTokensUsed += (aiResponse.tokensIn || 0) + (aiResponse.tokensOut || 0);
@@ -258,7 +258,7 @@ Provide exactly 3 actions.`;
       userId,
       actionsPrompt,
       storage,
-      { forceModel: modelToUse }
+      { forceModel: modelToUse, skipTools: true }
     );
     
     totalTokensUsed += (actionsResponse.tokensIn || 0) + (actionsResponse.tokensOut || 0);
