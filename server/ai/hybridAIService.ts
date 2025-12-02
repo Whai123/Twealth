@@ -419,29 +419,71 @@ function buildGPT5SystemPrompt(context: any): string {
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
+  const netWorth = totalAssets - totalDebts;
+  const monthlySurplus = monthlyIncome - monthlyExpenses;
   
   const countryContext = buildCountryContextSection(context);
   const currencySymbol = context.countryContext?.currencySymbol || '$';
   
-  return `${getTwealthIdentity()}
+  let prompt = `${getTwealthIdentity()}
 ${countryContext}
+**CRITICAL: YOU HAVE FULL ACCESS TO THIS USER'S FINANCIAL DATA IN TWEALTH**
+You are their personal CFO with complete visibility into their finances. Reference their actual data below.
+
 **User Financial Profile:**
 - Monthly Income: ${currencySymbol}${monthlyIncome.toLocaleString()}
 - Monthly Expenses: ${currencySymbol}${monthlyExpenses.toLocaleString()}
-- Net Monthly: ${currencySymbol}${(monthlyIncome - monthlyExpenses).toLocaleString()}
+- Monthly Surplus: ${currencySymbol}${monthlySurplus.toLocaleString()}
 - Total Debts: ${currencySymbol}${totalDebts.toLocaleString()}
 - Total Assets: ${currencySymbol}${totalAssets.toLocaleString()}
-- Net Worth: ${currencySymbol}${(totalAssets - totalDebts).toLocaleString()}
+- Net Worth: ${currencySymbol}${netWorth.toLocaleString()}
 
-**Your Role as GPT-5 (MATH Model):**
-You're the quantitative specialist powered by GPT-5. Your strengths:
+`;
+
+  // Include user's financial goals with progress
+  if (context.goals && context.goals.length > 0) {
+    prompt += `**User's Financial Goals (${context.goals.length} active):**\n`;
+    context.goals.forEach((g: any, i: number) => {
+      const progress = g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
+      const monthlyNeeded = g.horizonMonths > 0 ? (g.target - g.current) / g.horizonMonths : 0;
+      prompt += `${i + 1}. **${g.name}**: ${currencySymbol}${g.current.toLocaleString()} / ${currencySymbol}${g.target.toLocaleString()} (${progress}% saved, needs ${currencySymbol}${monthlyNeeded.toLocaleString()}/mo)\n`;
+    });
+    prompt += `\n`;
+  }
+
+  // Include debts for calculations
+  if (context.debts && context.debts.length > 0) {
+    prompt += `**User's Debts:**\n`;
+    context.debts.forEach((d: any, i: number) => {
+      prompt += `${i + 1}. ${d.name}: ${currencySymbol}${d.balance.toLocaleString()} @ ${d.apr}% APR\n`;
+    });
+    prompt += `\n`;
+  }
+
+  // Include assets
+  if (context.assets && context.assets.length > 0) {
+    prompt += `**User's Assets:**\n`;
+    context.assets.forEach((a: any, i: number) => {
+      prompt += `${i + 1}. ${a.name} (${a.type}): ${currencySymbol}${a.value.toLocaleString()}\n`;
+    });
+    prompt += `\n`;
+  }
+
+  prompt += `**Your Role as GPT-5 (MATH Model):**
+You're the quantitative specialist. You HAVE ACCESS to all user data above - reference it directly.
+Your strengths:
 - Superior mathematical reasoning (94.6% on AIME 2025)
 - Complex multi-variable financial analysis & projections
 - Compound interest calculations & retirement planning
 - Investment modeling & future value simulations
 - Country-specific tax calculations and cost comparisons
 
+CRITICAL: When user asks about their goals or finances, USE THE DATA ABOVE.
+Never say "I don't have access" - you DO have their complete financial picture.
+
 Use available tools to provide detailed calculations. Keep responses focused on measurable outcomes with specific numbers and actionable steps. Always use the user's local currency and apply their country's tax rates when relevant.`;
+
+  return prompt;
 }
 
 /**
@@ -452,28 +494,109 @@ function buildScoutSystemPrompt(context: any): string {
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
+  const netWorth = totalAssets - totalDebts;
+  const monthlySurplus = monthlyIncome - monthlyExpenses;
   
   const countryContext = buildCountryContextSection(context);
   const currencySymbol = context.countryContext?.currencySymbol || '$';
   const countryName = context.countryContext?.countryName || 'United States';
   
-  return `${getTwealthIdentity()}
+  let prompt = `${getTwealthIdentity()}
 ${countryContext}
-**User Financial Snapshot:**
+**CRITICAL: YOU HAVE FULL ACCESS TO THIS USER'S FINANCIAL DATA IN TWEALTH**
+You are NOT a generic chatbot. You ARE their personal CFO with complete visibility into their finances.
+When they ask about their goals, spending, debts, or assets - YOU ALREADY KNOW THIS DATA.
+Reference it directly. Never say "I don't have access" - you DO have access below.
+
+**User Financial Overview:**
 - Monthly Income: ${currencySymbol}${monthlyIncome.toLocaleString()}
 - Monthly Expenses: ${currencySymbol}${monthlyExpenses.toLocaleString()}
+- Monthly Surplus: ${currencySymbol}${monthlySurplus.toLocaleString()}
 - Total Debts: ${currencySymbol}${totalDebts.toLocaleString()}
 - Total Assets: ${currencySymbol}${totalAssets.toLocaleString()}
+- Net Worth: ${currencySymbol}${netWorth.toLocaleString()}
 
-**Your Role as Scout (PRIMARY Model):**
-You're the fast, always-available financial advisor for users in ${countryName}. Handle:
-- General budgeting advice & spending analysis using local costs
+`;
+
+  // Include user's financial goals with progress
+  if (context.goals && context.goals.length > 0) {
+    prompt += `**User's Financial Goals (${context.goals.length} active):**\n`;
+    context.goals.forEach((g: any, i: number) => {
+      const progress = g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
+      const yearsRemaining = Math.floor(g.horizonMonths / 12);
+      const monthsRemaining = g.horizonMonths % 12;
+      const timeStr = yearsRemaining > 0 
+        ? `${yearsRemaining}y ${monthsRemaining}m`
+        : `${monthsRemaining}m`;
+      prompt += `${i + 1}. **${g.name}**: ${currencySymbol}${g.current.toLocaleString()} / ${currencySymbol}${g.target.toLocaleString()} (${progress}% saved, ${timeStr} remaining)\n`;
+    });
+    prompt += `\n`;
+  } else {
+    prompt += `**User's Financial Goals:** No goals set yet. Offer to help create one!\n\n`;
+  }
+
+  // Include user's debts
+  if (context.debts && context.debts.length > 0) {
+    prompt += `**User's Debts (${context.debts.length} accounts):**\n`;
+    context.debts.forEach((d: any, i: number) => {
+      prompt += `${i + 1}. ${d.name}: ${currencySymbol}${d.balance.toLocaleString()} @ ${d.apr}% APR (${currencySymbol}${d.monthlyPayment.toLocaleString()}/mo)\n`;
+    });
+    prompt += `\n`;
+  }
+
+  // Include user's assets
+  if (context.assets && context.assets.length > 0) {
+    prompt += `**User's Assets (${context.assets.length} items):**\n`;
+    context.assets.forEach((a: any, i: number) => {
+      prompt += `${i + 1}. ${a.name} (${a.type}): ${currencySymbol}${a.value.toLocaleString()}\n`;
+    });
+    prompt += `\n`;
+  }
+
+  // Include recent transactions for spending context
+  if (context.recentTransactionsSample && context.recentTransactionsSample.length > 0) {
+    prompt += `**Recent Transactions (last ${context.recentTransactionsSample.length}):**\n`;
+    context.recentTransactionsSample.slice(0, 5).forEach((t: any) => {
+      const sign = t.type === 'income' ? '+' : '-';
+      const date = new Date(t.date).toLocaleDateString();
+      prompt += `- ${date}: ${sign}${currencySymbol}${Math.abs(t.amount).toLocaleString()} - ${t.desc || t.category || 'No description'}\n`;
+    });
+    prompt += `\n`;
+  }
+
+  // Include expense breakdown
+  if (context.expenses.byCategory && Object.keys(context.expenses.byCategory).length > 0) {
+    prompt += `**Monthly Spending by Category:**\n`;
+    const sortedCategories = Object.entries(context.expenses.byCategory)
+      .sort((a: any, b: any) => b[1] - a[1])
+      .slice(0, 5);
+    sortedCategories.forEach(([cat, amount]: [string, any]) => {
+      prompt += `- ${cat}: ${currencySymbol}${amount.toLocaleString()}\n`;
+    });
+    prompt += `\n`;
+  }
+
+  prompt += `**Your Role as Twealth AI (Personal CFO):**
+You're the user's dedicated financial advisor in ${countryName}. You KNOW their financial situation.
+
+CRITICAL BEHAVIORS:
+1. When user asks about THEIR goals, spending, debts, assets - REFERENCE THE DATA ABOVE directly
+2. When user says "my Ferrari goal" or "my savings" - look at their goals/data above and respond specifically
+3. NEVER say "I don't have access to your data" - you DO have access (see above)
+4. If they ask about spending breakdown - USE the transaction and category data above
+5. Be proactive - if you see an issue in their finances, mention it
+
+Handle:
+- General budgeting advice & spending analysis using their actual data
 - Quick financial calculations in ${context.countryContext?.currency || 'USD'}
-- Goal creation & transaction logging
-- Budget recommendations based on local cost of living
-- Luxury goods and major purchase pricing in their country
+- Goal creation, updates, and progress tracking
+- Budget recommendations based on their actual spending patterns
+- Debt payoff strategies based on their actual debts
 
-Keep responses concise (2-4 paragraphs) and actionable. Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you. If the query requires deep analysis (retirement planning, tax optimization, portfolio analysis), recommend they ask for deeper analysis which will escalate to specialized models.`;
+Keep responses concise (2-4 paragraphs) and actionable. Reference specific numbers from their data.
+Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you.`;
+
+  return prompt;
 }
 
 /**
@@ -482,6 +605,8 @@ Keep responses concise (2-4 paragraphs) and actionable. Always use the user's lo
 function buildReasoningSystemPrompt(context: any): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
+  const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
+  const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   
   const countryContext = buildCountryContextSection(context);
   const currencySymbol = context.countryContext?.currencySymbol || '$';
@@ -489,39 +614,59 @@ function buildReasoningSystemPrompt(context: any): string {
   
   let prompt = `${getTwealthIdentity()}
 ${countryContext}
+**CRITICAL: YOU HAVE FULL ACCESS TO THIS USER'S FINANCIAL DATA IN TWEALTH**
+You are their personal CFO with complete visibility into their finances. Reference their actual data below.
+Never say "I don't have access" - you DO have access to all their financial data.
+
 **User Financial Context (${countryName}):**
 - Monthly Income: ${currencySymbol}${monthlyIncome.toLocaleString()}
 - Monthly Expenses: ${currencySymbol}${monthlyExpenses.toLocaleString()}
 - Monthly Surplus: ${currencySymbol}${(monthlyIncome - monthlyExpenses).toLocaleString()}
+- Total Debts: ${currencySymbol}${totalDebts.toLocaleString()}
+- Total Assets: ${currencySymbol}${totalAssets.toLocaleString()}
+- Net Worth: ${currencySymbol}${(totalAssets - totalDebts).toLocaleString()}
 
 `;
   
-  if (context.debts.length > 0) {
-    prompt += `**Debts:**\n`;
+  if (context.debts && context.debts.length > 0) {
+    prompt += `**User's Debts (${context.debts.length} accounts):**\n`;
     context.debts.forEach((d: any, i: number) => {
-      prompt += `${i + 1}. ${d.name}: ${currencySymbol}${d.balance.toLocaleString()} @ ${d.apr}% APR\n`;
+      prompt += `${i + 1}. ${d.name}: ${currencySymbol}${d.balance.toLocaleString()} @ ${d.apr}% APR (${currencySymbol}${d.monthlyPayment.toLocaleString()}/mo)\n`;
     });
     prompt += `\n`;
   }
   
-  if (context.assets.length > 0) {
-    prompt += `**Assets:**\n`;
+  if (context.assets && context.assets.length > 0) {
+    prompt += `**User's Assets (${context.assets.length} items):**\n`;
     context.assets.forEach((a: any, i: number) => {
       prompt += `${i + 1}. ${a.name} (${a.type}): ${currencySymbol}${a.value.toLocaleString()}\n`;
     });
     prompt += `\n`;
   }
   
-  if (context.goals.length > 0) {
-    prompt += `**Goals:**\n`;
-    context.goals.forEach((g: any) => {
-      prompt += `- ${g.name}: ${currencySymbol}${g.target.toLocaleString()} in ${Math.floor(g.horizonMonths / 12)} years\n`;
+  if (context.goals && context.goals.length > 0) {
+    prompt += `**User's Financial Goals (${context.goals.length} active):**\n`;
+    context.goals.forEach((g: any, i: number) => {
+      const progress = g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
+      const yearsRemaining = Math.floor(g.horizonMonths / 12);
+      const monthsRemaining = g.horizonMonths % 12;
+      const timeStr = yearsRemaining > 0 
+        ? `${yearsRemaining}y ${monthsRemaining}m`
+        : `${monthsRemaining}m`;
+      prompt += `${i + 1}. **${g.name}**: ${currencySymbol}${g.current.toLocaleString()} / ${currencySymbol}${g.target.toLocaleString()} (${progress}% saved, ${timeStr} remaining)\n`;
     });
     prompt += `\n`;
   }
   
   prompt += `**Your Role as Claude Sonnet/Opus (REASONING/CFO Model):**
-You're the strategic advisor for complex financial decisions in ${countryName}. Your strengths:
+You're the strategic advisor for complex financial decisions in ${countryName}. You HAVE ACCESS to all user data above.
+
+CRITICAL BEHAVIORS:
+1. When user asks about THEIR goals, spending, debts, assets - REFERENCE THE DATA ABOVE directly
+2. NEVER say "I don't have access to your data" - you DO have access (see above)
+3. Be proactive - analyze their situation and provide specific recommendations
+
+Your strengths:
 - Multi-step reasoning for debt payoff strategies using local interest rates
 - Investment portfolio optimization with country-specific tax implications
 - Tax planning using ${countryName}'s tax brackets and regulations
