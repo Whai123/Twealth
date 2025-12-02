@@ -1366,7 +1366,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     // AUTO-DETECT LANGUAGE from user message (override profile setting)
     const detectedLanguage = detectLanguage(userMessage);
     if (detectedLanguage !== context.language) {
-      console.log(`Language auto-detected: ${detectedLanguage} (profile says: ${context.language})`);
       context = { ...context, language: detectedLanguage };
     }
 
@@ -1383,8 +1382,7 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         // Check if messages are very similar (>80% overlap)
         const similarity = this.calculateSimilarity(prevMsg, lastMsg);
         if (similarity > 0.8) {
-          console.warn('AI LOOP DETECTED - Preventing repetition');
-          // Add context to break the loop
+          // Add context to break the AI loop
           userMessage = `[IMPORTANT: Do NOT repeat your previous response. User's actual message: "${userMessage}". Provide a DIFFERENT, more specific answer with NEW details and actionable steps.]`;
         }
       }
@@ -1393,7 +1391,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     // Check cache first (only for non-tool-using queries)
     const cachedResponse = responseCache.get(userMessage, context);
     if (cachedResponse && conversationHistory.length < 2) {
-      console.log('Cache hit - saved API call');
       return { response: cachedResponse };
     }
 
@@ -1646,12 +1643,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         
         // RESPONSE QUALITY VALIDATION: Enforce fallback if Scout should have used tools but didn't
         if (needsImmediateAction || desireAnalysisNeeded) {
-          console.warn(`QUALITY WARNING: Expected tool use but got text-only response!
-            - needsImmediateAction: ${needsImmediateAction}
-            - desireAnalysisNeeded: ${desireAnalysisNeeded}
-            - tool_choice was set to: "required"
-            - Original response: "${text.substring(0, 150)}..."
-            → ENFORCING FALLBACK RESPONSE`);
           
           // ENFORCED FALLBACK: Provide structured response when Scout fails to use tools
           let fallbackResponse = '';
@@ -1681,9 +1672,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
         
         // Cache normal responses (when tools weren't expected)
         responseCache.set(userMessage, context, text, tokenCount);
-        console.log(`Groq call made - ~${tokenCount} tokens`);
-      } else {
-        console.log(`Groq call with ${toolCalls.length} tool(s):`, toolCalls.map(t => t.name).join(', '));
       }
       
       return { response: text, toolCalls };
@@ -1821,7 +1809,6 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
     const cacheKey = `insight_${savingsRate.toFixed(0)}_${context.activeGoals}`;
     const cached = responseCache.get(cacheKey, context);
     if (cached) {
-      console.log('Insight cache hit');
       return cached;
     }
 
@@ -1842,11 +1829,9 @@ RESPONSE QUALITY STANDARDS: Always include real numbers and specific advice. Exa
       
       // Cache insight
       responseCache.set(cacheKey, context, text, this.estimateTokenCount(insightPrompt + text));
-      console.log('Insight call made');
-      
       return text;
     } catch (error) {
-      console.error('Proactive Insight Error:', error);
+      console.error('[AI Service] Proactive insight error:', error);
       return 'Focus on tracking your spending patterns this week.';
     }
   }

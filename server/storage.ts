@@ -539,21 +539,12 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     try {
-      console.log('[Storage] upsertUser called with:', {
-        id: userData.id,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName
-      });
-
       // First try to find existing user by ID
       const existingById = await db
         .select()
         .from(users)
         .where(sql`${users.id} = ${userData.id}`)
         .limit(1);
-      
-      console.log('[Storage] Existing user by ID:', existingById.length > 0 ? 'Found' : 'Not found');
       
       // If found by ID, update that user
       if (existingById.length > 0) {
@@ -565,7 +556,6 @@ export class DatabaseStorage implements IStorage {
           })
           .where(sql`${users.id} = ${userData.id}`)
           .returning();
-        console.log('[Storage] User updated:', user.id);
         return user;
       }
       
@@ -576,8 +566,6 @@ export class DatabaseStorage implements IStorage {
           .from(users)
           .where(sql`${users.email} = ${userData.email}`)
           .limit(1);
-        
-        console.log('[Storage] Existing user by email:', existingByEmail.length > 0 ? 'Found' : 'Not found');
         
         if (existingByEmail.length > 0) {
           // Update existing user found by email - DO NOT change ID to avoid FK violations
@@ -590,22 +578,18 @@ export class DatabaseStorage implements IStorage {
             })
             .where(sql`${users.id} = ${existingByEmail[0].id}`)
             .returning();
-          console.log('[Storage] User updated by email:', user.id);
           return user;
         }
       }
       
       // No existing user found - insert new
-      console.log('[Storage] Inserting new user with ID:', userData.id);
       const [user] = await db
         .insert(users)
         .values(userData)
         .returning();
-      console.log('[Storage] User created successfully:', user.id);
       return user;
     } catch (error) {
       console.error('[Storage] ERROR in upsertUser:', error);
-      console.error('[Storage] User data that failed:', userData);
       throw error;
     }
   }

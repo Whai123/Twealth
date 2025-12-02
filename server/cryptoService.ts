@@ -281,7 +281,6 @@ export class CryptoService {
     const url = `${COINGECKO_API}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
     
     try {
-      console.log(`[CryptoService] Fetching prices for coin IDs: ${coinIds.join(', ')}`);
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -327,8 +326,6 @@ export class CryptoService {
   }>> {
     try {
       const url = `${COINGECKO_API}/search?query=${encodeURIComponent(query)}`;
-      console.log(`[CryptoService] Searching for: ${query}`);
-      
       const response = await fetch(url);
       
       if (!response.ok) {

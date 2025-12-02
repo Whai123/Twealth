@@ -342,9 +342,6 @@ export async function routeWithTierCheck(
     
     // TESTING MODE: Bypass quota checks and grant access to all models
     if (TESTING_MODE) {
-      console.log('TESTING MODE ENABLED - Bypassing quota limits');
-      console.log(`   User requested: ${preferredModel}`);
-      console.log(`   Granting access to: ${preferredModel} (no quota check)`);
       selectedModel = preferredModel; // Use preferred model directly
       downgradedFrom = null; // No downgrade in testing mode
     } else {

@@ -195,19 +195,10 @@ export async function extractAndUpdateMemory(
       await storage.updateUserPreferences(userId, {
         conversationMemory: newMemory as any
       });
-
-      console.log('Updated conversation memory:', {
-        userId,
-        priorities: priorities.length,
-        investments: investments.length,
-        lifeEvents: lifeEvents.length,
-        habits: habits.length,
-        riskTolerance
-      });
     }
   } catch (error) {
-    console.error('Error updating conversation memory:', error);
-    // Don't throw - memory update failures shouldn't break the chat
+    console.error('[ConversationMemory] Update failed:', error);
+    // Memory update failures shouldn't break the chat
   }
 }
 
@@ -251,7 +242,7 @@ export async function getMemoryContext(storage: IStorage, userId: string): Promi
 
     return `\n\nREMEMBERED USER CONTEXT (from previous conversations):\n${parts.join('\n')}`;
   } catch (error) {
-    console.error('Error getting memory context:', error);
+    console.error('[ConversationMemory] Get context failed:', error);
     return '';
   }
 }
