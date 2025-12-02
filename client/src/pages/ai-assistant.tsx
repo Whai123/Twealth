@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'wouter';
@@ -93,7 +93,7 @@ interface ChatConversation {
 }
 
 interface StarterPrompt {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   prompt: string;
   gradient: string;
@@ -131,7 +131,8 @@ function CircularProgress({ value, max, size = 44, strokeWidth = 3, color = "blu
 }) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  const clampedValue = Math.max(0, Math.min(value, max));
+  const percentage = max > 0 ? Math.min((clampedValue / max) * 100, 100) : 0;
   const offset = circumference - (percentage / 100) * circumference;
   
   const colorMap: Record<string, string> = {
@@ -188,7 +189,7 @@ function QuotaCard({
   lockText?: string;
 }) {
   const isUnlimited = limit === 999999;
-  const remaining = limit - used;
+  const remaining = Math.max(0, limit - used);
   
   const colorMap: Record<string, { bg: string; text: string; badge: string; border: string }> = {
     blue: { 
