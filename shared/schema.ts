@@ -129,6 +129,20 @@ export const goalContributions = pgTable("goal_contributions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const goalMilestones = pgTable("goal_milestones", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  goalId: varchar("goal_id").notNull().references(() => financialGoals.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  milestone: integer("milestone").notNull(), // 25, 50, 75, 100 (percentage)
+  amountAtMilestone: decimal("amount_at_milestone", { precision: 10, scale: 2 }).notNull(),
+  celebratedAt: timestamp("celebrated_at").defaultNow(),
+  isSeen: boolean("is_seen").default(false),
+}, (table) => [
+  index("idx_milestones_goal_id").on(table.goalId),
+  index("idx_milestones_user_id").on(table.userId),
+  unique("unique_goal_milestone").on(table.goalId, table.milestone),
+]);
+
 export const investmentStrategies = pgTable("investment_strategies", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(), // "S&P 500 Index Funds", "High-Yield Savings", etc.
@@ -587,6 +601,12 @@ export const insertGoalContributionSchema = createInsertSchema(goalContributions
   createdAt: true,
 });
 
+export const insertGoalMilestoneSchema = createInsertSchema(goalMilestones).omit({
+  id: true,
+  celebratedAt: true,
+  isSeen: true,
+});
+
 export const insertInvestmentStrategySchema = createInsertSchema(investmentStrategies).omit({
   id: true,
   createdAt: true,
@@ -832,6 +852,9 @@ export type InsertBudget = z.infer<typeof insertBudgetSchema>;
 export type GoalContribution = typeof goalContributions.$inferSelect;
 export type InsertGoalContribution = z.infer<typeof insertGoalContributionSchema>;
 
+export type GoalMilestone = typeof goalMilestones.$inferSelect;
+export type InsertGoalMilestone = z.infer<typeof insertGoalMilestoneSchema>;
+
 export type InvestmentStrategy = typeof investmentStrategies.$inferSelect;
 export type InsertInvestmentStrategy = z.infer<typeof insertInvestmentStrategySchema>;
 
@@ -1006,6 +1029,17 @@ export const goalContributionsRelations = relations(goalContributions, ({ one })
   transaction: one(transactions, {
     fields: [goalContributions.transactionId],
     references: [transactions.id],
+  }),
+}));
+
+export const goalMilestonesRelations = relations(goalMilestones, ({ one }) => ({
+  goal: one(financialGoals, {
+    fields: [goalMilestones.goalId],
+    references: [financialGoals.id],
+  }),
+  user: one(users, {
+    fields: [goalMilestones.userId],
+    references: [users.id],
   }),
 }));
 

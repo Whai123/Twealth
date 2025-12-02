@@ -16,6 +16,8 @@ import {
   type InsertBudget,
   type GoalContribution,
   type InsertGoalContribution,
+  type GoalMilestone,
+  type InsertGoalMilestone,
   type GroupInvite,
   type InsertGroupInvite,
   type CalendarShare,
@@ -100,6 +102,7 @@ import {
   transactions,
   budgets,
   goalContributions,
+  goalMilestones,
   groupInvites,
   calendarShares,
   friendRequests,
@@ -225,6 +228,13 @@ export interface IStorage {
   // Goal contribution methods
   getGoalContributions(goalId: string): Promise<GoalContribution[]>;
   createGoalContribution(contribution: InsertGoalContribution): Promise<GoalContribution>;
+
+  // Goal milestone methods
+  getGoalMilestones(goalId: string): Promise<GoalMilestone[]>;
+  getUnseenMilestones(userId: string): Promise<(GoalMilestone & { goal: FinancialGoal })[]>;
+  createGoalMilestone(milestone: InsertGoalMilestone): Promise<GoalMilestone>;
+  markMilestonesSeen(userId: string): Promise<void>;
+  checkAndCreateMilestones(userId: string, goalId: string, currentAmount: number, targetAmount: number): Promise<GoalMilestone[]>;
 
   // Dashboard methods
   getUserStats(userId: string): Promise<{
@@ -1030,6 +1040,70 @@ export class DatabaseStorage implements IStorage {
       .values(insertContribution)
       .returning();
     return contribution;
+  }
+
+  // Goal milestone methods
+  async getGoalMilestones(goalId: string): Promise<GoalMilestone[]> {
+    return await db.select().from(goalMilestones).where(eq(goalMilestones.goalId, goalId)).orderBy(goalMilestones.milestone);
+  }
+
+  async getUnseenMilestones(userId: string): Promise<(GoalMilestone & { goal: FinancialGoal })[]> {
+    const results = await db
+      .select()
+      .from(goalMilestones)
+      .innerJoin(financialGoals, eq(goalMilestones.goalId, financialGoals.id))
+      .where(and(eq(goalMilestones.userId, userId), eq(goalMilestones.isSeen, false)))
+      .orderBy(desc(goalMilestones.celebratedAt));
+    
+    return results.map(r => ({
+      ...r.goal_milestones,
+      goal: r.financial_goals,
+    }));
+  }
+
+  async createGoalMilestone(milestone: InsertGoalMilestone): Promise<GoalMilestone> {
+    const [created] = await db
+      .insert(goalMilestones)
+      .values(milestone)
+      .returning();
+    return created;
+  }
+
+  async markMilestonesSeen(userId: string): Promise<void> {
+    await db
+      .update(goalMilestones)
+      .set({ isSeen: true })
+      .where(and(eq(goalMilestones.userId, userId), eq(goalMilestones.isSeen, false)));
+  }
+
+  async checkAndCreateMilestones(userId: string, goalId: string, currentAmount: number, targetAmount: number): Promise<GoalMilestone[]> {
+    const milestoneThresholds = [25, 50, 75, 100];
+    const currentPercentage = targetAmount > 0 ? (currentAmount / targetAmount) * 100 : 0;
+    const createdMilestones: GoalMilestone[] = [];
+
+    const existingMilestones = await this.getGoalMilestones(goalId);
+    const existingMilestoneValues = new Set(existingMilestones.map(m => m.milestone));
+
+    for (const threshold of milestoneThresholds) {
+      if (currentPercentage >= threshold && !existingMilestoneValues.has(threshold)) {
+        try {
+          const milestone = await this.createGoalMilestone({
+            goalId,
+            userId,
+            milestone: threshold,
+            amountAtMilestone: currentAmount.toFixed(2),
+          });
+          createdMilestones.push(milestone);
+        } catch (error: any) {
+          // Ignore unique constraint violations (milestone already exists)
+          if (!error.message?.includes('unique')) {
+            console.error('Error creating milestone:', error);
+          }
+        }
+      }
+    }
+
+    return createdMilestones;
   }
 
   // Dashboard methods

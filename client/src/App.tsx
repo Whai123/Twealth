@@ -32,6 +32,7 @@ const Login = lazy(() => import("./pages/login.tsx"));
 const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
 import FloatingAIWidget from "./components/ai/floating-ai-widget";
+import { MilestoneCelebration } from "./components/milestone-celebration";
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
@@ -151,6 +152,9 @@ function Router() {
      
      {/* Floating AI Widget - accessible from any page except welcome */}
      {location !=="/welcome" && <FloatingAIWidget />}
+     
+     {/* Milestone Celebration - shows when user reaches goal milestones */}
+     <MilestoneCelebration />
     </div>
    </SidebarProvider>
   </OnboardingRedirect>

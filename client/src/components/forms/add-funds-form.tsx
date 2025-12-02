@@ -102,6 +102,7 @@ export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetA
    queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
    queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+   queryClient.invalidateQueries({ queryKey: ["/api/goal-milestones"] });
    toast({
     title:"Funds added successfully",
     description: `$${parseFloat(variables.amount).toLocaleString()} has been added to your ${goalTitle} goal.`,

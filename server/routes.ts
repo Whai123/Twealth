@@ -775,7 +775,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updateData = insertFinancialGoalSchema.partial().parse(goalData);
       const goal = await storage.updateFinancialGoal(req.params.id, updateData);
-      res.json(goal);
+      
+      // Check for new milestones if currentAmount was updated
+      if (updateData.currentAmount) {
+        const currentAmount = parseFloat(goal.currentAmount || '0');
+        const targetAmount = parseFloat(String(goal.targetAmount));
+        const newMilestones = await storage.checkAndCreateMilestones(
+          goal.userId,
+          goal.id,
+          currentAmount,
+          targetAmount
+        );
+        
+        // Return goal with any new milestones
+        res.json({ ...goal, newMilestones });
+      } else {
+        res.json(goal);
+      }
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -786,6 +802,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteFinancialGoal(req.params.id);
       res.status(204).send();
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Goal Milestone routes
+  app.get("/api/goal-milestones", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const milestones = await storage.getUnseenMilestones(userId);
+      res.json(milestones);
+    } catch (error: any) {
+      console.error('Error fetching milestones:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/goal-milestones/mark-seen", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      await storage.markMilestonesSeen(userId);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Error marking milestones seen:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/financial-goals/:id/milestones", isAuthenticated, async (req: any, res) => {
+    try {
+      const milestones = await storage.getGoalMilestones(req.params.id);
+      res.json(milestones);
+    } catch (error: any) {
+      console.error('Error fetching goal milestones:', error);
       res.status(500).json({ message: error.message });
     }
   });

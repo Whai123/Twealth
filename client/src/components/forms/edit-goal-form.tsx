@@ -82,6 +82,7 @@ export default function EditGoalForm({ goal, onSuccess }: EditGoalFormProps) {
   onSuccess: () => {
    queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+   queryClient.invalidateQueries({ queryKey: ["/api/goal-milestones"] });
    toast({
     title:"Goal updated",
     description:"Your financial goal has been updated successfully.",
