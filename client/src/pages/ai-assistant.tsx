@@ -33,6 +33,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { apiRequest, queryClient, RateLimitError } from "@/lib/queryClient";
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar";
 import { MessageBubble, TypingIndicator } from "@/components/chat/message-bubble";
+import { ProactiveInsightsPanel } from "@/components/chat/proactive-insights-panel";
 import { Badge } from "@/components/ui/badge";
 
 interface UsageInfo {
@@ -807,6 +808,21 @@ export default function AIAssistantPage() {
                       <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0 mt-1" />
                     </motion.button>
                   ))}
+                </motion.div>
+
+                <motion.div
+                  className="w-full max-w-4xl mt-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.0 }}
+                >
+                  <ProactiveInsightsPanel 
+                    maxItems={3}
+                    onAskAbout={(prompt) => {
+                      setCurrentMessage(prompt);
+                      setTimeout(() => sendMessageMutation.mutate(prompt), 100);
+                    }}
+                  />
                 </motion.div>
 
                 <motion.div
