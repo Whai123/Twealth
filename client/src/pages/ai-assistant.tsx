@@ -34,6 +34,7 @@ import { apiRequest, queryClient, RateLimitError } from "@/lib/queryClient";
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar";
 import { MessageBubble, TypingIndicator } from "@/components/chat/message-bubble";
 import { ProactiveInsightsPanel } from "@/components/chat/proactive-insights-panel";
+import { WeeklySummaryCard } from "@/components/weekly-summary-card";
 import { Badge } from "@/components/ui/badge";
 
 interface UsageInfo {
@@ -811,7 +812,7 @@ export default function AIAssistantPage() {
                 </motion.div>
 
                 <motion.div
-                  className="w-full max-w-4xl mt-8"
+                  className="w-full max-w-4xl mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.0 }}
@@ -823,6 +824,7 @@ export default function AIAssistantPage() {
                       setTimeout(() => sendMessageMutation.mutate(prompt), 100);
                     }}
                   />
+                  <WeeklySummaryCard />
                 </motion.div>
 
                 <motion.div
