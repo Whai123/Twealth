@@ -25,6 +25,7 @@ import SmartBudgetManagement from "@/components/money/smart-budget-management";
 import SpendingInsights from "@/components/money/spending-insights";
 import { SwipeableTransactionItem } from "@/components/transactions/swipeable-transaction-item";
 import { ResponsiveTransactionDialog } from "@/components/dialogs/responsive-transaction-dialog";
+import { CollapsibleList } from "@/components/virtual-list";
 
 const CSVAnalysisPanel = lazy(() => import("@/components/money/csv-analysis-panel"));
 
@@ -703,36 +704,22 @@ export default function MoneyTracking() {
                           </div>
                         )
                       ) : (
-                        <div className="space-y-2 sm:space-y-3">
-                          <AnimatePresence mode="popLayout">
-                            {filteredTransactions.slice(0, 10).map((transaction: any, index: number) => (
-                              <motion.div
-                                key={transaction.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, x: -100 }}
-                                transition={{ duration: 0.2, delay: index * 0.05 }}
-                              >
-                                <SwipeableTransactionItem
-                                  transaction={transaction}
-                                  onArchive={(id) => archiveTransactionMutation.mutate(id)}
-                                  onFlag={(id) => flagTransactionMutation.mutate(id)}
-                                />
-                              </motion.div>
-                            ))}
-                          </AnimatePresence>
-                          {filteredTransactions.length > 10 && (
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              className="pt-4 text-center"
-                            >
-                              <Button variant="outline" size="sm" className="text-xs">
-                                View All {filteredTransactions.length} Transactions
-                              </Button>
-                            </motion.div>
+                        <CollapsibleList
+                          items={filteredTransactions}
+                          itemHeight={72}
+                          keyExtractor={(t: any) => t.id}
+                          initialVisible={10}
+                          showMoreLabel="View all transactions"
+                          showLessLabel="Show fewer transactions"
+                          className="space-y-2 sm:space-y-3"
+                          renderItem={(transaction: any) => (
+                            <SwipeableTransactionItem
+                              transaction={transaction}
+                              onArchive={(id) => archiveTransactionMutation.mutate(id)}
+                              onFlag={(id) => flagTransactionMutation.mutate(id)}
+                            />
                           )}
-                        </div>
+                        />
                       )}
                     </CardContent>
                   </Card>

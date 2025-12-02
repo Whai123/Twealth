@@ -25,6 +25,7 @@ import SmartGoalInsights from "@/components/goals/smart-goal-insights";
 import AutomatedSavingsSuggestions from "@/components/goals/automated-savings-suggestions";
 import AchievementMilestones from "@/components/goals/achievement-milestones";
 import ShareGoalDialog from "@/components/sharing/share-goal-dialog";
+import { CollapsibleList } from "@/components/virtual-list";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
