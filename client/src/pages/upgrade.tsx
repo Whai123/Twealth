@@ -99,7 +99,7 @@ export default function UpgradePage() {
     setSelectedPlan(planId);
     const plan = plans.find((p: any) => p.id === planId);
     
-    if (plan?.name === 'Free' || parseFloat(plan?.priceUsd || '0') === 0) {
+    if (plan?.name === 'free' || parseFloat(plan?.priceUsd || '0') === 0) {
       upgradeMutation.mutate(planId);
     } else {
       if (stripePromise) {
@@ -116,9 +116,9 @@ export default function UpgradePage() {
 
   const getPlanIcon = (planName: string) => {
     switch (planName) {
-      case 'Free': return <Sparkles className="w-5 h-5" />;
-      case 'Pro': return <Crown className="w-5 h-5" />;
-      case 'Enterprise': return <Zap className="w-5 h-5" />;
+      case 'free': return <Sparkles className="w-5 h-5" />;
+      case 'pro': return <Crown className="w-5 h-5" />;
+      case 'enterprise': return <Zap className="w-5 h-5" />;
       default: return <Sparkles className="w-5 h-5" />;
     }
   };
@@ -139,19 +139,19 @@ export default function UpgradePage() {
   const getPlanFeatures = (plan: any) => {
     const features: string[] = [];
     
-    if (plan.name === "Free") {
+    if (plan.name === "free") {
       features.push("50 Scout AI queries/month");
       features.push("Basic financial tracking");
       features.push("Up to 3 financial goals");
       features.push("30-day transaction history");
-    } else if (plan.name === "Pro") {
+    } else if (plan.name === "pro") {
       features.push("Unlimited Scout AI queries");
       features.push("25 Sonnet reasoning queries/month");
       features.push("5 GPT-5 math queries/month");
       features.push("Unlimited goals & history");
       features.push("Crypto portfolio tracking");
       features.push("Advanced analytics");
-    } else if (plan.name === "Enterprise") {
+    } else if (plan.name === "enterprise") {
       features.push("Everything in Pro, plus:");
       features.push("60 Sonnet reasoning/month");
       features.push("10 GPT-5 math/month");
@@ -164,7 +164,7 @@ export default function UpgradePage() {
   };
 
   const sortedPlans = [...plans].sort((a: any, b: any) => {
-    const order: Record<string, number> = { Free: 0, Pro: 1, Enterprise: 2 };
+    const order: Record<string, number> = { free: 0, pro: 1, enterprise: 2 };
     return (order[a.name] || 0) - (order[b.name] || 0);
   });
 
@@ -280,8 +280,8 @@ export default function UpgradePage() {
           ) : (
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {sortedPlans.map((plan: any) => {
-                const isPro = plan.name === 'Pro';
-                const isEnterprise = plan.name === 'Enterprise';
+                const isPro = plan.name === 'pro';
+                const isEnterprise = plan.name === 'enterprise';
                 const isCurrent = isCurrentPlan(plan.id);
                 const { amount, period } = formatPrice(plan.priceUsd, plan.billingInterval);
                 const features = getPlanFeatures(plan);

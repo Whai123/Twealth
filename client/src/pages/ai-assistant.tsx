@@ -340,10 +340,10 @@ export default function AIAssistantPage() {
   }, []);
 
   const getCurrentTier = () => {
-    if (!usage) return 'Free';
-    if (usage.opusUsage && usage.opusUsage.limit > 0) return 'Enterprise';
-    if (usage.sonnetUsage && usage.sonnetUsage.limit > 0) return 'Pro';
-    return 'Free';
+    if (!usage) return 'free';
+    if (usage.opusUsage && usage.opusUsage.limit > 0) return 'enterprise';
+    if (usage.sonnetUsage && usage.sonnetUsage.limit > 0) return 'pro';
+    return 'free';
   };
 
   const getUpgradeMessage = (exceededModel?: string) => {
@@ -358,7 +358,7 @@ export default function AIAssistantPage() {
     }
     
     if (exceededModel === 'gpt5') {
-      if (tier === 'Enterprise') {
+      if (tier === 'enterprise') {
         return {
           title: "GPT-5 Quota Exceeded",
           description: "You've used all your GPT-5 math queries. Your queries will use Sonnet for reasoning until quota resets.",
@@ -380,7 +380,7 @@ export default function AIAssistantPage() {
       };
     }
     
-    if (tier === 'Pro') {
+    if (tier === 'pro') {
       return {
         title: "Upgrade to Enterprise",
         description: "Unlock Opus for CFO-level analysis, more GPT-5 for math, and higher Sonnet limits.",
@@ -439,7 +439,7 @@ export default function AIAssistantPage() {
       } else if (error.isQuotaError) {
         const upgradeMsg = getUpgradeMessage(error.exceededModel);
         const tier = getCurrentTier();
-        const needsUpgrade = tier === 'Free' || (tier === 'Pro' && error.exceededModel === 'sonnet');
+        const needsUpgrade = tier === 'free' || (tier === 'pro' && error.exceededModel === 'sonnet');
         
         toast({
           title: upgradeMsg.title,
@@ -614,16 +614,16 @@ export default function AIAssistantPage() {
                 <Badge 
                   className={`
                     text-xs font-semibold px-3 py-1 rounded-full shadow-sm
-                    ${tier === 'Enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-0' : ''}
-                    ${tier === 'Pro' ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-0' : ''}
-                    ${tier === 'Free' ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-border/50' : ''}
+                    ${tier === 'enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-0' : ''}
+                    ${tier === 'pro' ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-0' : ''}
+                    ${tier === 'free' ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-border/50' : ''}
                   `}
                   data-testid="badge-tier"
                 >
-                  {tier === 'Enterprise' && <Gem className="w-3 h-3 mr-1.5" />}
-                  {tier === 'Pro' && <Crown className="w-3 h-3 mr-1.5" />}
-                  {tier === 'Free' && <Shield className="w-3 h-3 mr-1.5" />}
-                  {tier}
+                  {tier === 'enterprise' && <Gem className="w-3 h-3 mr-1.5" />}
+                  {tier === 'pro' && <Crown className="w-3 h-3 mr-1.5" />}
+                  {tier === 'free' && <Shield className="w-3 h-3 mr-1.5" />}
+                  {tier.charAt(0).toUpperCase() + tier.slice(1)}
                 </Badge>
               </motion.div>
             )}

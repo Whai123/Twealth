@@ -223,9 +223,9 @@ function PlanCard({
   onUpgrade: () => void;
   delay?: number;
 }) {
-  const isPro = plan.name === 'Pro';
-  const isEnterprise = plan.name === 'Enterprise';
-  const isFree = plan.priceUsd === '0.00';
+  const isPro = plan.name === 'pro';
+  const isEnterprise = plan.name === 'enterprise';
+  const isFree = plan.priceUsd === '0.00' || plan.name === 'free';
   
   const basePrice = parseFloat(plan.priceUsd);
   const localizedPrice = getLocalizedPrice(basePrice, userCurrency);
@@ -453,7 +453,7 @@ export default function SubscriptionPage() {
   });
 
   const handleUpgrade = async (planId: string, planName: string) => {
-    if (planName === 'Free') {
+    if (planName === 'free') {
       apiRequest("POST", "/api/subscription/upgrade", { planId })
         .then(() => {
           toast({
@@ -642,8 +642,8 @@ export default function SubscriptionPage() {
         <AIROICalculator 
           userCurrency={userCurrency}
           currentTier={
-            currentPlan?.name === 'Enterprise' ? 'enterprise' :
-            currentPlan?.name === 'Pro' ? 'pro' : 'free'
+            currentPlan?.name === 'enterprise' ? 'enterprise' :
+            currentPlan?.name === 'pro' ? 'pro' : 'free'
           }
         />
 

@@ -31,23 +31,23 @@ export default function Pricing() {
     queryKey: ["/api/subscription/current"],
   });
 
-  const currentPlanName = (currentSubscription as any)?.subscription?.plan?.name || "Free";
+  const currentPlanName = (currentSubscription as any)?.subscription?.plan?.name || "free";
 
   const sortedPlans = [...plans].sort((a, b) => {
-    const order = { Free: 0, Pro: 1, Enterprise: 2 };
-    return (order[a.name as keyof typeof order] || 0) - (order[b.name as keyof typeof order] || 0);
+    const order: Record<string, number> = { free: 0, pro: 1, enterprise: 2 };
+    return (order[a.name] || 0) - (order[b.name] || 0);
   });
 
   const getPlanFeatures = (plan: Plan) => {
     const features: string[] = [];
     
-    if (plan.name === "Free") {
+    if (plan.name === "free") {
       features.push("50 Scout AI queries/month");
       features.push("Basic financial tracking");
       features.push("Up to 3 financial goals");
       features.push("30-day transaction history");
       features.push("11 language support");
-    } else if (plan.name === "Pro") {
+    } else if (plan.name === "pro") {
       features.push("Unlimited Scout AI queries");
       features.push("25 Sonnet reasoning queries/month");
       features.push("5 GPT-5 math queries/month");
@@ -56,7 +56,7 @@ export default function Pricing() {
       features.push("Crypto portfolio tracking");
       features.push("Advanced analytics & reports");
       features.push("Priority support");
-    } else if (plan.name === "Enterprise") {
+    } else if (plan.name === "enterprise") {
       features.push("Everything in Pro, plus:");
       features.push("60 Sonnet reasoning queries/month");
       features.push("10 GPT-5 math queries/month");
@@ -72,9 +72,9 @@ export default function Pricing() {
 
   const getPlanIcon = (planName: string) => {
     switch (planName) {
-      case "Free": return <Sparkles className="w-5 h-5" />;
-      case "Pro": return <Crown className="w-5 h-5" />;
-      case "Enterprise": return <Zap className="w-5 h-5" />;
+      case "free": return <Sparkles className="w-5 h-5" />;
+      case "pro": return <Crown className="w-5 h-5" />;
+      case "enterprise": return <Zap className="w-5 h-5" />;
       default: return <Sparkles className="w-5 h-5" />;
     }
   };
@@ -143,8 +143,8 @@ export default function Pricing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {sortedPlans.slice(0, 3).map((plan) => {
               const isCurrentPlan = currentPlanName === plan.name;
-              const isPro = plan.name === "Pro";
-              const isEnterprise = plan.name === "Enterprise";
+              const isPro = plan.name === "pro";
+              const isEnterprise = plan.name === "enterprise";
               const { amount, period } = formatPrice(plan.priceUsd, plan.billingInterval);
               const features = getPlanFeatures(plan);
 
