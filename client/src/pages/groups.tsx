@@ -19,9 +19,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GroupForm from "@/components/forms/group-form";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useUserId } from "@/lib/userContext";
+import { useUserId, useUserCurrency } from "@/lib/userContext";
 
-function AnimatedNumber({ value, prefix = "$" }: { value: number; prefix?: string }) {
+function AnimatedNumber({ value, formatFn }: { value: number; formatFn: (val: number) => string }) {
   const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
@@ -43,7 +43,7 @@ function AnimatedNumber({ value, prefix = "$" }: { value: number; prefix?: strin
     return () => clearInterval(timer);
   }, [value]);
   
-  return <span>{prefix}{Math.round(displayValue).toLocaleString()}</span>;
+  return <span>{formatFn(Math.round(displayValue))}</span>;
 }
 
 function CircularProgress({ progress, size = 60 }: { progress: number; size?: number }) {
@@ -95,11 +95,13 @@ function CircularProgress({ progress, size = 60 }: { progress: number; size?: nu
 function ExpenseSplitCalculator({ 
   totalAmount, 
   memberCount,
-  onClose
+  onClose,
+  formatAmount
 }: { 
   totalAmount: number; 
   memberCount: number;
   onClose: () => void;
+  formatAmount: (val: number) => string;
 }) {
   const [splitType, setSplitType] = useState<'equal' | 'custom'>('equal');
   const [customSplits, setCustomSplits] = useState<Record<number, number>>({});
@@ -121,7 +123,7 @@ function ExpenseSplitCalculator({
       <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl">
         <div>
           <p className="text-xs text-muted-foreground">Total Amount</p>
-          <p className="text-2xl font-bold text-primary">${totalAmount.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-primary">{formatAmount(totalAmount)}</p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">Members</p>
@@ -151,7 +153,7 @@ function ExpenseSplitCalculator({
       {splitType === 'equal' ? (
         <div className="p-4 bg-muted/50 rounded-xl">
           <p className="text-sm text-muted-foreground mb-2">Each person pays:</p>
-          <p className="text-3xl font-bold text-primary">${equalSplit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          <p className="text-3xl font-bold text-primary">{formatAmount(equalSplit)}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -172,8 +174,8 @@ function ExpenseSplitCalculator({
           {remaining !== 0 && (
             <p className={`text-sm ${remaining > 0 ? 'text-amber-600' : 'text-red-600'}`}>
               {remaining > 0 
-                ? `$${remaining.toFixed(2)} remaining to assign`
-                : `$${Math.abs(remaining).toFixed(2)} over the total`
+                ? `${formatAmount(remaining)} remaining to assign`
+                : `${formatAmount(Math.abs(remaining))} over the total`
               }
             </p>
           )}
@@ -192,12 +194,14 @@ function GroupCard({
   onInvite, 
   onDelete,
   onContribute,
+  formatAmount,
   delay = 0
 }: { 
   group: any; 
   onInvite: () => void; 
   onDelete: () => void;
   onContribute: () => void;
+  formatAmount: (val: number) => string;
   delay?: number;
 }) {
   const targetAmount = parseFloat(group.budget || '0');
@@ -304,18 +308,18 @@ function GroupCard({
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-baseline gap-1">
                   <span className="text-lg sm:text-xl font-bold text-primary">
-                    <AnimatedNumber value={currentAmount} />
+                    <AnimatedNumber value={currentAmount} formatFn={formatAmount} />
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    / ${targetAmount.toLocaleString()}
+                    / {formatAmount(targetAmount)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  ${remaining.toLocaleString()} remaining
+                  {formatAmount(remaining)} remaining
                 </p>
                 {memberCount > 1 && remaining > 0 && (
                   <p className="text-xs text-primary font-medium">
-                    ${Math.ceil(remaining / memberCount).toLocaleString()}/person needed
+                    {formatAmount(Math.ceil(remaining / memberCount))}/person needed
                   </p>
                 )}
               </div>
@@ -359,12 +363,14 @@ function SummaryCard({
   value, 
   icon: Icon, 
   colorClass,
+  formatAmount,
   delay = 0
 }: { 
   title: string; 
   value: string | number; 
   icon: any; 
   colorClass: string;
+  formatAmount?: (val: number) => string;
   delay?: number;
 }) {
   return (
@@ -382,7 +388,7 @@ function SummaryCard({
             <div>
               <p className="text-xs text-muted-foreground">{title}</p>
               <p className={`text-lg sm:text-xl font-bold ${colorClass}`}>
-                {typeof value === 'number' ? <AnimatedNumber value={value} /> : value}
+                {typeof value === 'number' && formatAmount ? <AnimatedNumber value={value} formatFn={formatAmount} /> : value}
               </p>
             </div>
           </div>
@@ -404,6 +410,7 @@ export default function Groups() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const { formatAmount } = useUserCurrency();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -675,6 +682,7 @@ export default function Groups() {
                 value={totalTarget}
                 icon={Target}
                 colorClass="text-primary"
+                formatAmount={formatAmount}
                 delay={0}
               />
               <SummaryCard
@@ -682,6 +690,7 @@ export default function Groups() {
                 value={totalCurrent}
                 icon={TrendingUp}
                 colorClass="text-green-600 dark:text-green-400"
+                formatAmount={formatAmount}
                 delay={0.1}
               />
               <SummaryCard
@@ -702,6 +711,7 @@ export default function Groups() {
                     onInvite={() => handleCreateInvite(group.id)}
                     onDelete={() => handleDeleteGroup(group.id)}
                     onContribute={() => handleContribute(group)}
+                    formatAmount={formatAmount}
                     delay={index * 0.1}
                   />
                 ))}
@@ -805,6 +815,7 @@ export default function Groups() {
               totalAmount={parseFloat(selectedGroup.budget || '0') - parseFloat(selectedGroup.currentAmount || '0')}
               memberCount={selectedGroup.memberCount || 1}
               onClose={() => setCalculatorDialogOpen(false)}
+              formatAmount={formatAmount}
             />
           )}
         </DialogContent>

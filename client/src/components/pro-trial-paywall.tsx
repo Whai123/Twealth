@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useUserCurrency } from "@/lib/userContext";
 
 interface ProTrialPaywallProps {
   feature: string;
@@ -40,6 +41,7 @@ export function ProTrialPaywall({
 }: ProTrialPaywallProps) {
   const [showModal, setShowModal] = useState(false);
   const [, setLocation] = useLocation();
+  const { formatAmount, convertFromUSD } = useUserCurrency();
 
   return (
     <>
@@ -136,6 +138,7 @@ interface ProUpgradeModalProps {
 
 export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
   const [, setLocation] = useLocation();
+  const { formatAmount, convertFromUSD } = useUserCurrency();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -192,7 +195,7 @@ export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
 
             <div className="bg-muted/50 rounded-xl p-4 mb-6">
               <div className="flex items-baseline justify-center gap-1 mb-1">
-                <span className="text-3xl font-bold">$9.99</span>
+                <span className="text-3xl font-bold">{formatAmount(convertFromUSD(9.99))}</span>
                 <span className="text-muted-foreground">/month</span>
               </div>
               <p className="text-center text-xs text-muted-foreground">
@@ -218,7 +221,7 @@ export function ProUpgradeModal({ open, onOpenChange }: ProUpgradeModalProps) {
                 Start Pro Trial
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                7-day free trial, then $9.99/month
+                7-day free trial, then {formatAmount(convertFromUSD(9.99))}/month
               </p>
             </motion.div>
           </div>

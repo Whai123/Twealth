@@ -20,6 +20,7 @@ import {
 import { differenceInDays, format, addDays } from"date-fns";
 import ShareButton from"@/components/social/share-button";
 import { getAchievementShareContent, AchievementShareData } from"@/lib/social-sharing";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface Goal {
  id: string;
@@ -55,6 +56,8 @@ interface Milestone {
 }
 
 export default function AchievementMilestones({ goals, onCelebrate }: AchievementMilestonesProps) {
+ const { formatAmount } = useUserCurrency();
+ 
  const generateMilestones = (): Milestone[] => {
   const milestones: Milestone[] = [];
   const completedGoals = goals.filter(goal => goal.status === 'completed');
@@ -124,7 +127,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
      type: 'upcoming',
      icon: Star,
      title: 'First Quarter Goal',
-     description: `${(parseFloat(goal.targetAmount) * 0.25 - amount).toLocaleString()} away from 25% completion`,
+     description: `${formatAmount(parseFloat(goal.targetAmount) * 0.25 - amount)} away from 25% completion`,
      status: 'upcoming',
      progress: progress,
      category: 'bronze',
@@ -137,7 +140,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
      type: 'upcoming',
      icon: Medal,
      title: 'Halfway Point',
-     description: `${(parseFloat(goal.targetAmount) * 0.5 - amount).toLocaleString()} away from 50% completion`,
+     description: `${formatAmount(parseFloat(goal.targetAmount) * 0.5 - amount)} away from 50% completion`,
      status: 'upcoming',
      progress: progress,
      category: 'silver',
@@ -150,7 +153,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
      type: 'upcoming',
      icon: Trophy,
      title: 'Three-Quarter Mark',
-     description: `${(parseFloat(goal.targetAmount) * 0.75 - amount).toLocaleString()} away from 75% completion`,
+     description: `${formatAmount(parseFloat(goal.targetAmount) * 0.75 - amount)} away from 75% completion`,
      status: 'upcoming',
      progress: progress,
      category: 'gold',
@@ -163,7 +166,7 @@ export default function AchievementMilestones({ goals, onCelebrate }: Achievemen
      type: 'upcoming',
      icon: Crown,
      title: 'Goal Completion',
-     description: `${(parseFloat(goal.targetAmount) - amount).toLocaleString()} away from completing this goal!`,
+     description: `${formatAmount(parseFloat(goal.targetAmount) - amount)} away from completing this goal!`,
      status: 'upcoming',
      progress: progress,
      category: 'platinum',

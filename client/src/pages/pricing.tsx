@@ -3,6 +3,7 @@ import { Check, ArrowRight, Zap, Crown, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useUserCurrency } from "@/lib/userContext";
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 interface Plan {
@@ -22,6 +23,7 @@ interface Plan {
 
 export default function Pricing() {
   const [, setLocation] = useLocation();
+  const { formatAmount, currencySymbol } = useUserCurrency();
 
   const { data: plans = [], isLoading } = useQuery<Plan[]>({
     queryKey: ["/api/subscription/plans"],
@@ -81,9 +83,9 @@ export default function Pricing() {
 
   const formatPrice = (priceUsd: string | undefined, billingInterval: string) => {
     const price = parseFloat(priceUsd || "0");
-    if (isNaN(price) || price === 0) return { amount: "$0", period: "forever" };
+    if (isNaN(price) || price === 0) return { amount: `${currencySymbol}0`, period: "forever" };
     return { 
-      amount: `$${price.toFixed(2)}`, 
+      amount: formatAmount(price), 
       period: `/${billingInterval === "monthly" ? "mo" : billingInterval}` 
     };
   };

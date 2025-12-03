@@ -4,6 +4,7 @@ import { Button } from"@/components/ui/button";
 import EmptyState from"@/components/ui/empty-state";
 import { Plus, ArrowDown, ArrowUp, Home, ShoppingCart, PiggyBank, Receipt } from"lucide-react";
 import { Link, useLocation } from"wouter";
+import { useUserCurrency } from"@/lib/userContext";
 
 const getTransactionIcon = (category: string, type: string) => {
  if (type ==="income") return ArrowDown;
@@ -28,6 +29,7 @@ const getTransactionColor = (type: string) => {
 
 export default function RecentTransactions() {
  const [, setLocation] = useLocation();
+ const { formatAmount } = useUserCurrency();
  
  const { data: transactions, isLoading } = useQuery({
   queryKey: ["/api/transactions"],
@@ -109,7 +111,7 @@ export default function RecentTransactions() {
           </div>
          </div>
          <span className={`font-semibold ${colors.amount}`}>
-          {sign}${Math.abs(amount).toLocaleString()}
+          {sign}{formatAmount(Math.abs(amount))}
          </span>
         </div>
        );

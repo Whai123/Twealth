@@ -10,6 +10,7 @@ import { Check, Zap, Crown, ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import PaymentForm from "@/components/payment-form";
+import { useUserCurrency } from "@/lib/userContext";
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY 
   ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
@@ -21,6 +22,7 @@ export default function UpgradePage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [paymentMode, setPaymentMode] = useState<'upgrade' | 'payment'>('upgrade');
+  const { formatAmount, convertFromUSD } = useUserCurrency();
 
   const { data: plans = [], isLoading: plansLoading } = useQuery({
     queryKey: ['/api/subscription/plans'],
@@ -125,9 +127,9 @@ export default function UpgradePage() {
 
   const formatPrice = (priceUsd: string | undefined, billingInterval: string) => {
     const price = parseFloat(priceUsd || "0");
-    if (isNaN(price) || price === 0) return { amount: "$0", period: "forever" };
+    if (isNaN(price) || price === 0) return { amount: formatAmount(0), period: "forever" };
     return { 
-      amount: `$${price.toFixed(2)}`, 
+      amount: formatAmount(convertFromUSD(price)), 
       period: `/${billingInterval === "monthly" ? "mo" : billingInterval}` 
     };
   };

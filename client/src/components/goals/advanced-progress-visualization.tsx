@@ -16,6 +16,7 @@ import {
  AlertTriangle
 } from"lucide-react";
 import { format, differenceInDays, differenceInMonths } from"date-fns";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface Goal {
  id: string;
@@ -39,6 +40,8 @@ export default function AdvancedProgressVisualization({
  goals, 
  onGoalClick 
 }: AdvancedProgressVisualizationProps) {
+ const { formatAmount } = useUserCurrency();
+ 
  // Memoize filtered goals to prevent recreation on each render
  const activeGoals = useMemo(() => 
   goals.filter(goal => goal.status === 'active'),
@@ -154,7 +157,7 @@ export default function AdvancedProgressVisualization({
        <div className="text-xs text-green-600/70">Completed</div>
       </div>
       <div className="text-center">
-       <div className="text-2xl font-bold text-blue-600">${totalSaved.toLocaleString()}</div>
+       <div className="text-2xl font-bold text-blue-600">{formatAmount(totalSaved)}</div>
        <div className="text-xs text-blue-600/70">Total Saved</div>
       </div>
       <div className="text-center">
@@ -166,7 +169,7 @@ export default function AdvancedProgressVisualization({
      <div className="space-y-2">
       <div className="flex justify-between text-sm">
        <span>Portfolio Progress</span>
-       <span>${totalSaved.toLocaleString()} of ${totalTargets.toLocaleString()}</span>
+       <span>{formatAmount(totalSaved)} of {formatAmount(totalTargets)}</span>
       </div>
       <Progress value={overallProgress} className="h-3" />
      </div>
@@ -192,7 +195,7 @@ export default function AdvancedProgressVisualization({
            <Badge variant="secondary" className="text-xs">{count} goals</Badge>
           </div>
           <span className="text-sm text-muted-foreground">
-           ${saved.toLocaleString()} / ${target.toLocaleString()}
+           {formatAmount(saved)} / {formatAmount(target)}
           </span>
          </div>
          <Progress value={progress} className="h-2" />
@@ -241,10 +244,10 @@ export default function AdvancedProgressVisualization({
          </div>
          <div className="text-right">
           <div className="text-2xl font-bold">
-           ${parseFloat(goal.currentAmount).toLocaleString()}
+           {formatAmount(parseFloat(goal.currentAmount))}
           </div>
           <div className="text-sm text-muted-foreground">
-           of ${parseFloat(goal.targetAmount).toLocaleString()}
+           of {formatAmount(parseFloat(goal.targetAmount))}
           </div>
          </div>
         </div>
@@ -270,7 +273,7 @@ export default function AdvancedProgressVisualization({
           <div className="flex items-center space-x-2">
            <TrendingUp className="h-4 w-4 text-muted-foreground" />
            <div>
-            <div className="font-medium">${velocity.toFixed(2)}</div>
+            <div className="font-medium">{formatAmount(velocity)}</div>
             <div className="text-xs text-muted-foreground">daily rate</div>
            </div>
           </div>
@@ -278,7 +281,7 @@ export default function AdvancedProgressVisualization({
           <div className="flex items-center space-x-2">
            <DollarSign className="h-4 w-4 text-muted-foreground" />
            <div>
-            <div className="font-medium">${monthlyNeeded.toFixed(0)}</div>
+            <div className="font-medium">{formatAmount(monthlyNeeded)}</div>
             <div className="text-xs text-muted-foreground">monthly needed</div>
            </div>
           </div>

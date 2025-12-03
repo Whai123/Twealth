@@ -19,6 +19,7 @@ import {
  Award
 } from"lucide-react";
 import { differenceInDays, subWeeks, startOfWeek, endOfWeek, format } from"date-fns";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface SpendingInsightsProps {
  transactions: any[];
@@ -27,6 +28,7 @@ interface SpendingInsightsProps {
 
 export default function SpendingInsights({ transactions, timeRange }: SpendingInsightsProps) {
  const [selectedInsight, setSelectedInsight] = useState<string>('all');
+ const { formatAmount } = useUserCurrency();
 
  // Memoize filtered transactions to prevent recreation on each render
  const expenseTransactions = useMemo(() => 
@@ -107,7 +109,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
    insights.push({
     type: 'behavior',
     title: 'Frequent Small Purchases',
-    description: `${smallPurchases} small purchases under $50. These add up quickly.`,
+    description: `${smallPurchases} small purchases adding up quickly.`,
     potential_saving: smallPurchases * 15,
     action: 'Track micro-spending',
     priority: 'high',
@@ -198,7 +200,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
    type: 'automation',
    title: 'Round-Up Savings',
    description: `Automatically save spare change from purchases.`,
-   benefit: `$${roundUpSavings.toFixed(0)} saved this period`,
+   benefit: `${formatAmount(roundUpSavings)} saved this period`,
    action: 'Enable round-up',
    difficulty: 'Easy'
   });
@@ -214,7 +216,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
     type: 'optimization',
     title: 'Subscription Audit',
     description: 'Review recurring entertainment expenses for unused services.',
-    benefit: 'Save $50-200/month',
+    benefit: 'Significant monthly savings',
     action: 'Review subscriptions',
     difficulty: 'Medium'
    });
@@ -230,7 +232,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
     type: 'lifestyle',
     title: 'Meal Prep Opportunity',
     description: 'High dining expenses. Meal prepping could reduce costs significantly.',
-    benefit: `Save $${(diningExpenses * 0.4).toFixed(0)}/month`,
+    benefit: `Save ${formatAmount(diningExpenses * 0.4)}/month`,
     action: 'Start meal prepping',
     difficulty: 'Medium'
    });
@@ -284,7 +286,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
       <div>
        <p className="text-sm text-muted-foreground">Potential Savings</p>
        <p className="text-2xl font-bold text-green-600">
-        ${insights.reduce((sum, insight) => sum + (insight.potential_saving || 0), 0).toFixed(0)}
+        {formatAmount(insights.reduce((sum, insight) => sum + (insight.potential_saving || 0), 0))}
        </p>
        <p className="text-xs text-muted-foreground mt-1">per month</p>
       </div>
@@ -341,7 +343,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
           <p className="text-sm text-muted-foreground">{insight.description}</p>
           {insight.potential_saving > 0 && (
            <p className="text-sm text-green-600 font-medium mt-1">
-            Save ${insight.potential_saving.toFixed(0)}/month
+            Save {formatAmount(insight.potential_saving)}/month
            </p>
           )}
          </div>
@@ -415,7 +417,7 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
             style={{ width: `${(amount / Math.max(...Object.values(dayOfWeekSpending).map(Number))) * 100}%` }}
            ></div>
           </div>
-          <span className="text-sm font-medium">${amount.toFixed(0)}</span>
+          <span className="text-sm font-medium">{formatAmount(amount)}</span>
          </div>
         </div>
        ))}

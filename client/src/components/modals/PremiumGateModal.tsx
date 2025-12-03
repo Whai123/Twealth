@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useLocation } from "wouter";
+import { useUserCurrency } from "@/lib/userContext";
 
 interface PremiumGateModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function PremiumGateModal({
   orchestratorType
 }: PremiumGateModalProps) {
   const [, setLocation] = useLocation();
+  const { formatAmount, convertFromUSD } = useUserCurrency();
 
   const handleUpgrade = () => {
     setLocation("/upgrade");
@@ -102,7 +104,7 @@ export function PremiumGateModal({
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-sm">Premium Plan</p>
                   <Badge variant="secondary" className="text-xs bg-white/20 dark:bg-black/20 hover:bg-white/20">
-                    $9.99/mo
+                    {formatAmount(convertFromUSD(9.99))}/mo
                   </Badge>
                 </div>
                 <p className="text-xs opacity-90">

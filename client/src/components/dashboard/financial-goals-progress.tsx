@@ -6,8 +6,11 @@ import { Lightbulb, Target, TrendingUp } from"lucide-react";
 import { Link } from"wouter";
 import { ErrorState } from"@/components/ui/error-state";
 import { queryClient } from"@/lib/queryClient";
+import { useUserCurrency } from"@/lib/userContext";
 
 export default function FinancialGoalsProgress() {
+ const { formatAmount } = useUserCurrency();
+ 
  const { data: goals, isLoading, error } = useQuery({
   queryKey: ["/api/financial-goals"],
   queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
@@ -96,16 +99,16 @@ export default function FinancialGoalsProgress() {
             {goal.title}
            </h3>
            <p className="text-sm text-muted-foreground">
-            Target: ${parseFloat(goal.targetAmount).toLocaleString()} by {new Date(goal.targetDate).toLocaleDateString()}
+            Target: {formatAmount(parseFloat(goal.targetAmount))} by {new Date(goal.targetDate).toLocaleDateString()}
            </p>
           </div>
           <span className="text-sm font-medium text-foreground">
-           ${parseFloat(goal.currentAmount).toLocaleString()} / ${parseFloat(goal.targetAmount).toLocaleString()}
+           {formatAmount(parseFloat(goal.currentAmount))} / {formatAmount(parseFloat(goal.targetAmount))}
           </span>
          </div>
          <Progress value={progress} className="h-3 mb-1" />
          <p className="text-xs text-muted-foreground">
-          {Math.round(progress)}% complete • ${remaining.toLocaleString()} remaining
+          {Math.round(progress)}% complete • {formatAmount(remaining)} remaining
          </p>
         </div>
        );

@@ -4,8 +4,11 @@ import { Crown, TrendingUp, DollarSign, Plus } from"lucide-react";
 import { Badge } from"@/components/ui/badge";
 import { Button } from"@/components/ui/button";
 import { Link } from"wouter";
+import { useUserCurrency } from"@/lib/userContext";
 
 export default function PremiumROIWidget() {
+ const { formatAmount, convertFromUSD } = useUserCurrency();
+ 
  const { data: subscription } = useQuery({
   queryKey: ["/api/subscription/current"],
  });
@@ -83,7 +86,7 @@ export default function PremiumROIWidget() {
     <div className="space-y-3">
      <div className="flex items-center justify-between text-sm">
       <span className="text-muted-foreground">Premium Subscription</span>
-      <span className="font-medium text-red-600">-${subscriptionCost}</span>
+      <span className="font-medium text-red-600">-{formatAmount(convertFromUSD(subscriptionCost))}</span>
      </div>
      
      <div className="flex items-center justify-between text-sm">
@@ -91,7 +94,7 @@ export default function PremiumROIWidget() {
        <Plus className="h-4 w-4 text-blue-500" />
        <span className="text-muted-foreground">AI Time Savings</span>
       </div>
-      <span className="font-medium text-green-600">+${Math.round(timeSavingsValue)}</span>
+      <span className="font-medium text-green-600">+{formatAmount(convertFromUSD(Math.round(timeSavingsValue)))}</span>
      </div>
 
      <div className="flex items-center justify-between text-sm">
@@ -99,7 +102,7 @@ export default function PremiumROIWidget() {
        <TrendingUp className="h-4 w-4 text-emerald-500" />
        <span className="text-muted-foreground">Budget Optimization</span>
       </div>
-      <span className="font-medium text-green-600">+${Math.round(budgetSavings)}</span>
+      <span className="font-medium text-green-600">+{formatAmount(convertFromUSD(Math.round(budgetSavings)))}</span>
      </div>
 
      <div className="flex items-center justify-between text-sm">
@@ -107,7 +110,7 @@ export default function PremiumROIWidget() {
        <DollarSign className="h-4 w-4 text-amber-500" />
        <span className="text-muted-foreground">Goal Tracking Value</span>
       </div>
-      <span className="font-medium text-green-600">+${goalValue}</span>
+      <span className="font-medium text-green-600">+{formatAmount(convertFromUSD(goalValue))}</span>
      </div>
 
      <div className="h-px bg-border my-3"></div>
@@ -116,7 +119,7 @@ export default function PremiumROIWidget() {
      <div className="flex items-center justify-between">
       <span className="font-semibold">Net Benefit</span>
       <span className={`text-xl font-bold ${netBenefit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-       {netBenefit >= 0 ? '+' : ''}${netBenefit}
+       {netBenefit >= 0 ? '+' : ''}{formatAmount(convertFromUSD(netBenefit))}
       </span>
      </div>
 
@@ -131,7 +134,7 @@ export default function PremiumROIWidget() {
     {/* CTA */}
     <div className="pt-2">
      <p className="text-xs text-muted-foreground text-center mb-3">
-      Premium features help you save an average of ${totalValue}/month through better financial management
+      Premium features help you save an average of {formatAmount(convertFromUSD(totalValue))}/month through better financial management
      </p>
      <Button variant="outline" className="w-full" asChild>
       <Link href="/subscription">

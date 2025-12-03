@@ -19,6 +19,7 @@ import {
 } from"lucide-react";
 import { Progress } from"@/components/ui/progress";
 import NotificationActions from"./notification-actions";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface Transaction {
  id: string;
@@ -56,6 +57,8 @@ interface SmartInsight {
 }
 
 export default function SmartInsights() {
+ const { formatAmount } = useUserCurrency();
+ 
  // Fetch user data
  const { data: transactions = [] } = useQuery<Transaction[]>({
   queryKey: ["/api/transactions"],
@@ -135,7 +138,7 @@ export default function SmartInsights() {
      type: 'warning',
      title: `High ${topExpenseCategory[0]} Spending`,
      description: `${categoryPercent.toFixed(1)}% of your expenses are in ${topExpenseCategory[0]}. Consider reviewing this category.`,
-     value: `$${topExpenseCategory[1].toFixed(2)}`,
+     value: formatAmount(topExpenseCategory[1]),
      priority: 'medium',
      actionable: true,
      action: {
@@ -159,7 +162,7 @@ export default function SmartInsights() {
     insights.push({
      type: 'achievement',
      title: `${goal.title} Almost Complete! `,
-     description: `You're ${progressPercent.toFixed(0)}% done! Just $${(targetAmount - currentAmount).toFixed(2)} more to go.`,
+     description: `You're ${progressPercent.toFixed(0)}% done! Just ${formatAmount(targetAmount - currentAmount)} more to go.`,
      value: `${progressPercent.toFixed(0)}%`,
      priority: 'medium',
      actionable: true,
@@ -177,8 +180,8 @@ export default function SmartInsights() {
     insights.push({
      type: 'warning',
      title: `${goal.title} Behind Schedule`,
-     description: `With ${daysUntilTarget} days left, you need to save $${requiredDaily.toFixed(2)} daily to reach your goal.`,
-     value: `$${requiredDaily.toFixed(2)}/day`,
+     description: `With ${daysUntilTarget} days left, you need to save ${formatAmount(requiredDaily)} daily to reach your goal.`,
+     value: `${formatAmount(requiredDaily)}/day`,
      priority: 'high',
      actionable: true,
      action: {
@@ -219,8 +222,8 @@ export default function SmartInsights() {
     insights.push({
      type: 'suggestion',
      title: 'Optimize Your Savings',
-     description: `Consider saving an additional $${additionalSavings.toFixed(2)} monthly to reach the recommended 15% savings rate.`,
-     value: `+$${additionalSavings.toFixed(2)}`,
+     description: `Consider saving an additional ${formatAmount(additionalSavings)} monthly to reach the recommended 15% savings rate.`,
+     value: `+${formatAmount(additionalSavings)}`,
      priority: 'medium',
      actionable: true,
      action: {

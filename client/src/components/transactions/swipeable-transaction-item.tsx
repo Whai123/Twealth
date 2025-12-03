@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { motion, PanInfo, useMotionValue, useTransform, animate } from "framer-motion";
 import { Archive, Flag, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useUserCurrency } from "@/lib/userContext";
 
 interface Transaction {
   id: number;
@@ -32,6 +33,7 @@ export function SwipeableTransactionItem({
   const [isFocused, setIsFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
+  const { formatAmount } = useUserCurrency();
   
   const archiveOpacity = useTransform(x, [-SWIPE_THRESHOLD, 0], [1, 0]);
   const flagOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
@@ -133,7 +135,7 @@ export function SwipeableTransactionItem({
       ref={containerRef}
       tabIndex={0}
       role="button"
-      aria-label={`${transaction.description || transaction.category}: ${transaction.type === "income" ? "+" : "-"}$${Math.abs(parseFloat(transaction.amount)).toLocaleString()}. Press left arrow or A to archive, right arrow or F to flag.`}
+      aria-label={`${transaction.description || transaction.category}: ${transaction.type === "income" ? "+" : "-"}${formatAmount(Math.abs(parseFloat(transaction.amount)))}. Press left arrow or A to archive, right arrow or F to flag.`}
       onKeyDown={handleKeyDown}
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
@@ -234,7 +236,7 @@ export function SwipeableTransactionItem({
             style={{ fontSize: 'var(--text-base)' }}
             data-testid={`text-amount-${transaction.id}`}
           >
-            {transaction.type === "income" ? "+" : "-"}${Math.abs(parseFloat(transaction.amount)).toLocaleString()}
+            {transaction.type === "income" ? "+" : "-"}{formatAmount(Math.abs(parseFloat(transaction.amount)))}
           </span>
           {transaction.goalId && (
             <p 

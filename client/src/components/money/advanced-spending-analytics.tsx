@@ -17,6 +17,7 @@ import {
  CheckCircle
 } from"lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths, differenceInDays } from"date-fns";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface AdvancedSpendingAnalyticsProps {
  transactions: any[];
@@ -25,6 +26,7 @@ interface AdvancedSpendingAnalyticsProps {
 
 export default function AdvancedSpendingAnalytics({ transactions, timeRange }: AdvancedSpendingAnalyticsProps) {
  const [selectedPeriod, setSelectedPeriod] = useState<string>('month');
+ const { formatAmount } = useUserCurrency();
 
  // Calculate spending by category
  const expenseTransactions = transactions.filter(t => t.type === 'expense');
@@ -125,7 +127,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
       <div>
        <p className="text-sm text-muted-foreground">Daily Average</p>
        <p className="text-2xl font-bold text-blue-600">
-        ${dailyAverage.toFixed(0)}
+        {formatAmount(dailyAverage)}
        </p>
        <p className="text-xs text-muted-foreground mt-1">
         last {timeRange} days
@@ -142,7 +144,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
       <div>
        <p className="text-sm text-muted-foreground">Spending Velocity</p>
        <p className="text-2xl font-bold text-orange-600">
-        ${weeklyVelocity.toFixed(0)}/day
+        {formatAmount(weeklyVelocity)}/day
        </p>
        <Badge 
         variant={velocityChange === 'increasing' ? 'destructive' : 'secondary'}
@@ -180,7 +182,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
            </span>
           </div>
           <div className="text-right">
-           <p className="font-semibold">${amount.toLocaleString()}</p>
+           <p className="font-semibold">{formatAmount(amount)}</p>
            <p className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</p>
           </div>
          </div>
@@ -217,7 +219,7 @@ export default function AdvancedSpendingAnalytics({ transactions, timeRange }: A
            </p>
           </div>
          </div>
-         <p className="font-bold">${amount.toLocaleString()}</p>
+         <p className="font-bold">{formatAmount(amount)}</p>
         </div>
        ))}
       </div>

@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useUserCurrency } from "@/lib/userContext";
 
 interface Nudge {
   id: string;
@@ -63,6 +64,7 @@ export function SmartNudgeBanner() {
   const [, setLocation] = useLocation();
   const [dismissedNudges, setDismissedNudges] = useState<Set<string>>(new Set());
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { formatAmount } = useUserCurrency();
 
   const { data: subscription } = useQuery<any>({
     queryKey: ['/api/subscription'],
@@ -109,7 +111,7 @@ export function SmartNudgeBanner() {
           id: "overspending-warning",
           type: "warning",
           title: "Spending Exceeds Income",
-          message: `You're spending $${(monthlyExpenses - monthlyIncome).toLocaleString()} more than you earn. Let's fix this.`,
+          message: `You're spending ${formatAmount(monthlyExpenses - monthlyIncome)} more than you earn. Let's fix this.`,
           action: { label: "Review Spending", href: "/money-tracking" },
           icon: AlertTriangle,
           priority: 2,

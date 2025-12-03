@@ -15,10 +15,12 @@ import {
   Zap
 } from "lucide-react";
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
+import { useUserCurrency } from "@/lib/userContext";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
   const { t } = useTranslation();
+  const { formatAmount, convertFromUSD } = useUserCurrency();
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -127,7 +129,7 @@ export default function Landing() {
               <div className="text-sm text-gray-600 dark:text-gray-400">{t('landing.stats.uptime')}</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-1">$0</div>
+              <div className="text-3xl sm:text-4xl font-bold text-black dark:text-white mb-1">{formatAmount(convertFromUSD(0))}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400">{t('landing.stats.setupFee')}</div>
             </div>
           </div>
@@ -225,7 +227,7 @@ export default function Landing() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-black dark:text-white mb-1">{t('landing.pricing.free.name')}</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-black dark:text-white">$0</span>
+                  <span className="text-4xl font-bold text-black dark:text-white">{formatAmount(convertFromUSD(0))}</span>
                   <span className="text-gray-500">{t('landing.pricing.perMonth')}</span>
                 </div>
               </div>
@@ -260,7 +262,7 @@ export default function Landing() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-black dark:text-white mb-1">{t('landing.pricing.pro.name')}</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-black dark:text-white">$9.99</span>
+                  <span className="text-4xl font-bold text-black dark:text-white">{formatAmount(convertFromUSD(9.99))}</span>
                   <span className="text-gray-500">{t('landing.pricing.perMonth')}</span>
                 </div>
               </div>
@@ -291,7 +293,7 @@ export default function Landing() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-black dark:text-white mb-1">{t('landing.pricing.enterprise.name')}</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-black dark:text-white">$49.99</span>
+                  <span className="text-4xl font-bold text-black dark:text-white">{formatAmount(convertFromUSD(49.99))}</span>
                   <span className="text-gray-500">{t('landing.pricing.perMonth')}</span>
                 </div>
               </div>

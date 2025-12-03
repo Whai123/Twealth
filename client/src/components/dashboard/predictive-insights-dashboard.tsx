@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { useUserCurrency } from "@/lib/userContext";
 
 interface SpendingForecast {
   category: string;
@@ -66,6 +67,8 @@ interface SavingsOpportunity {
 }
 
 export default function PredictiveInsightsDashboard() {
+  const { formatAmount } = useUserCurrency();
+  
   const { data: spendingForecast = [], isLoading: loadingForecast } = useQuery<SpendingForecast[]>({
     queryKey: ["/api/predictive/spending-forecast?days=30"],
   });
@@ -212,11 +215,11 @@ export default function PredictiveInsightsDashboard() {
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
                           <div className="text-muted-foreground">Historical Avg</div>
-                          <div className="font-semibold">${forecast.historicalAverage?.toFixed(0) ?? '0'}</div>
+                          <div className="font-semibold">{formatAmount(forecast.historicalAverage ?? 0)}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Predicted</div>
-                          <div className="font-semibold text-primary">${forecast.predictedAmount?.toFixed(0) ?? '0'}</div>
+                          <div className="font-semibold text-primary">{formatAmount(forecast.predictedAmount ?? 0)}</div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Change</div>
@@ -283,7 +286,7 @@ export default function PredictiveInsightsDashboard() {
                           </div>
                           <div>
                             <div className="text-muted-foreground">Monthly Required</div>
-                            <div className="font-semibold">${prediction.requiredMonthlyContribution?.toFixed(0) ?? '0'}</div>
+                            <div className="font-semibold">{formatAmount(prediction.requiredMonthlyContribution ?? 0)}</div>
                           </div>
                         </div>
                         <div className="p-3 bg-muted rounded-lg text-sm">
@@ -320,7 +323,7 @@ export default function PredictiveInsightsDashboard() {
                         <div>
                           <div className="font-semibold">{new Date(forecast.date).toLocaleDateString()}</div>
                           <div className="text-sm text-muted-foreground">
-                            ${(forecast.projectedBalance ?? 0).toLocaleString()} balance
+                            {formatAmount(forecast.projectedBalance ?? 0)} balance
                           </div>
                         </div>
                       </div>
@@ -362,7 +365,7 @@ export default function PredictiveInsightsDashboard() {
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">
-                            ${opportunity.potentialSavings}
+                            {formatAmount(opportunity.potentialSavings)}
                           </div>
                           <div className="text-xs text-muted-foreground">per {opportunity.timeframe}</div>
                         </div>

@@ -16,6 +16,7 @@ import {
 } from"lucide-react";
 import { differenceInDays, differenceInMonths, addDays, format } from"date-fns";
 import { useQuery } from"@tanstack/react-query";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface Goal {
  id: string;
@@ -63,6 +64,7 @@ export default function AutomatedSavingsSuggestions({
  goals, 
  onImplementSuggestion 
 }: AutomatedSavingsSuggestionsProps) {
+ const { formatAmount } = useUserCurrency();
  const [selectedFilter, setSelectedFilter] = useState<string>('all');
  
  const { data: transactions } = useQuery({
@@ -109,8 +111,8 @@ export default function AutomatedSavingsSuggestions({
     id: 'round-up-savings',
     type: 'automation',
     title: 'Round-Up Savings',
-    description: `Automatically round up purchases and save the change. Based on your spending, this could save ~$${roundUpPotential.toFixed(0)} monthly.`,
-    impact: `+$${(roundUpPotential * 12).toFixed(0)} annually`,
+    description: `Automatically round up purchases and save the change. Based on your spending, this could save ~${formatAmount(roundUpPotential)} monthly.`,
+    impact: `+${formatAmount(roundUpPotential * 12)} annually`,
     difficulty: 'easy',
     timeToSee: '1 week',
     monthlyIncrease: roundUpPotential,
@@ -127,8 +129,8 @@ export default function AutomatedSavingsSuggestions({
     id: 'reduce-discretionary',
     type: 'optimization',
     title: 'Optimize Discretionary Spending',
-    description: `Reducing entertainment and dining expenses by 15% could free up $${reduction.toFixed(0)} monthly for goals.`,
-    impact: `+$${(reduction * 12).toFixed(0)} annually`,
+    description: `Reducing entertainment and dining expenses by 15% could free up ${formatAmount(reduction)} monthly for goals.`,
+    impact: `+${formatAmount(reduction * 12)} annually`,
     difficulty: 'medium',
     timeToSee: '2 weeks',
     monthlyIncrease: reduction,
@@ -155,7 +157,7 @@ export default function AutomatedSavingsSuggestions({
      type: 'amount',
      goalId: goal.id,
      title: `Accelerate"${goal.title}"`,
-     description: `Increase monthly contributions by $${suggestedIncrease.toFixed(0)} to complete this goal ${Math.ceil(suggestedIncrease / requiredMonthly * 30)} days earlier.`,
+     description: `Increase monthly contributions by ${formatAmount(suggestedIncrease)} to complete this goal ${Math.ceil(suggestedIncrease / requiredMonthly * 30)} days earlier.`,
      impact: `Goal completion ${Math.ceil(suggestedIncrease / requiredMonthly * 30)} days sooner`,
      difficulty: 'easy',
      timeToSee: '1 month',
@@ -172,7 +174,7 @@ export default function AutomatedSavingsSuggestions({
      type: 'automation',
      goalId: goal.id,
      title: `Automate"${goal.title}" Savings`,
-     description: `Set up automatic weekly transfers of $${(requiredMonthly / 4).toFixed(0)} to stay on track without thinking about it.`,
+     description: `Set up automatic weekly transfers of ${formatAmount(requiredMonthly / 4)} to stay on track without thinking about it.`,
      impact: 'Consistent progress without manual effort',
      difficulty: 'easy',
      timeToSee: 'Immediate',
@@ -209,7 +211,7 @@ export default function AutomatedSavingsSuggestions({
     id: 'emergency-fund',
     type: 'optimization',
     title: 'Create Emergency Fund Goal',
-    description: `Build a safety net of $${emergencyTarget.toFixed(0)} (3 months of expenses) before focusing on other goals.`,
+    description: `Build a safety net of ${formatAmount(emergencyTarget)} (3 months of expenses) before focusing on other goals.`,
     impact: 'Financial security and peace of mind',
     difficulty: 'medium',
     timeToSee: '6-12 months',
@@ -225,8 +227,8 @@ export default function AutomatedSavingsSuggestions({
     id: 'high-yield-savings',
     type: 'optimization',
     title: 'Optimize Savings Account',
-    description: `With $${totalSavings.toLocaleString()} saved, switching to a high-yield account could earn an extra $${(totalSavings * 0.04).toFixed(0)} annually.`,
-    impact: `+$${(totalSavings * 0.04).toFixed(0)} annually in interest`,
+    description: `With ${formatAmount(totalSavings)} saved, switching to a high-yield account could earn an extra ${formatAmount(totalSavings * 0.04)} annually.`,
+    impact: `+${formatAmount(totalSavings * 0.04)} annually in interest`,
     difficulty: 'easy',
     timeToSee: '1 month',
     annualIncrease: totalSavings * 0.04,

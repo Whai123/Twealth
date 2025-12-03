@@ -26,6 +26,7 @@ import {
  Loader2
 } from"lucide-react";
 import { format, startOfMonth, endOfMonth } from"date-fns";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface SmartBudgetManagementProps {
  transactions: any[];
@@ -49,6 +50,7 @@ const availableCategories = [
 
 export default function SmartBudgetManagement({ transactions, timeRange }: SmartBudgetManagementProps) {
  const { toast } = useToast();
+ const { formatAmount } = useUserCurrency();
  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
  const [editingBudget, setEditingBudget] = useState<any>(null);
  const [formData, setFormData] = useState({ category:"", monthlyLimit:"" });
@@ -187,7 +189,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  recommendations.push({
  type: 'warning',
  title: 'Reduce Overspending',
- description: `Cut back on ${overspent[0].category} by $${(overspent[0].spent - overspent[0].limit).toFixed(0)}`,
+ description: `Cut back on ${overspent[0].category} by ${formatAmount(overspent[0].spent - overspent[0].limit)}`,
  impact: `Get back on track this month`
  });
  }
@@ -213,7 +215,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  <div>
  <p className="text-sm text-muted-foreground">Total Budget</p>
  <p className="text-2xl font-bold text-blue-600">
- ${totalBudget.toLocaleString()}
+ {formatAmount(totalBudget)}
  </p>
  <p className="text-xs text-muted-foreground mt-1">
  {budgets.length} {budgets.length === 1 ? 'category' : 'categories'}
@@ -233,7 +235,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  {budgetUsedPercentage.toFixed(0)}%
  </p>
  <p className="text-xs text-muted-foreground mt-1">
- ${totalSpent.toLocaleString()} spent
+ {formatAmount(totalSpent)} spent
  </p>
  </div>
  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
@@ -247,7 +249,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  <div>
  <p className="text-sm text-muted-foreground">Remaining</p>
  <p className="text-2xl font-bold text-green-600">
- ${(totalBudget - totalSpent).toLocaleString()}
+ {formatAmount(totalBudget - totalSpent)}
  </p>
  <p className="text-xs text-muted-foreground mt-1">
  for this month
@@ -335,7 +337,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  <div className="flex-1">
  <p className="font-medium">{getCategoryLabel(budget.category)}</p>
  <p className="text-xs text-muted-foreground">
- ${budget.spent.toLocaleString()} of ${budget.limit.toLocaleString()}
+ {formatAmount(budget.spent)} of {formatAmount(budget.limit)}
  </p>
  </div>
  </div>
@@ -370,12 +372,12 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  <Progress value={Math.min(budget.percentage, 100)} className="h-2" />
  {budget.status === 'good' && budget.remaining > 0 && (
  <p className="text-xs text-green-600">
- ${budget.remaining.toFixed(0)} remaining this month
+ {formatAmount(budget.remaining)} remaining this month
  </p>
  )}
  {budget.status === 'over' && (
  <p className="text-xs text-red-600">
- Over budget by ${(budget.spent - budget.limit).toFixed(0)}
+ Over budget by {formatAmount(budget.spent - budget.limit)}
  </p>
  )}
  </div>
@@ -481,7 +483,7 @@ export default function SmartBudgetManagement({ transactions, timeRange }: Smart
  
  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
  <div className="text-3xl font-bold text-blue-600">
- ${(totalBudget - totalSpent > 0 ? totalBudget - totalSpent : 0).toLocaleString()}
+ {formatAmount(totalBudget - totalSpent > 0 ? totalBudget - totalSpent : 0)}
  </div>
  <p className="text-sm text-muted-foreground">Left to Spend</p>
  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 mt-2">

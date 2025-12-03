@@ -17,6 +17,7 @@ import {
 } from"lucide-react";
 import { differenceInDays, differenceInMonths, addMonths } from"date-fns";
 import { useQuery } from"@tanstack/react-query";
+import { useUserCurrency } from"@/lib/userContext";
 
 interface Goal {
  id: string;
@@ -46,6 +47,8 @@ interface SmartGoalInsightsProps {
 }
 
 export default function SmartGoalInsights({ goals, onActionClick }: SmartGoalInsightsProps) {
+ const { formatAmount } = useUserCurrency();
+ 
  // Fetch transaction data for analysis
  const { data: transactions } = useQuery({
   queryKey: ["/api/transactions"],
@@ -145,7 +148,7 @@ export default function SmartGoalInsights({ goals, onActionClick }: SmartGoalIns
      type: 'info',
      icon: DollarSign,
      title: 'Savings Opportunity Identified',
-     description: `Based on your income patterns, you could potentially save an additional $${potentialSavings.toFixed(0)} monthly towards your goals.`,
+     description: `Based on your income patterns, you could potentially save an additional ${formatAmount(potentialSavings)} monthly towards your goals.`,
      action: 'optimize-budget',
      priority: 4
     });

@@ -303,7 +303,7 @@ function PlanCard({
                   </div>
                 )}
                 {userCurrency !== 'USD' && (
-                  <p className="text-xs text-muted-foreground">~${basePrice.toFixed(2)} USD</p>
+                  <p className="text-xs text-muted-foreground">~{formatCurrency(basePrice, 'USD')} USD</p>
                 )}
               </>
             )}
@@ -617,7 +617,7 @@ export default function SubscriptionPage() {
                   {[
                     { label: 'Insights Generated', value: usage?.insights || 0, icon: Sparkles },
                     { label: 'Tokens Used', value: usage?.totalTokens || 0, icon: Zap },
-                    { label: 'AI Costs', value: `$${usage?.estimatedCost || '0.00'}`, icon: TrendingUp },
+                    { label: 'AI Costs', value: formatCurrency(parseFloat(usage?.estimatedCost || '0'), 'USD'), icon: TrendingUp },
                   ].map((stat, index) => (
                     <motion.div
                       key={stat.label}
