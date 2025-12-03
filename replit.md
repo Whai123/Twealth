@@ -24,6 +24,10 @@ Twealth offers a three-tier subscription model (Free, Pro, Enterprise) with an i
 
 The architecture incorporates a comprehensive caching strategy (system prompt, market data, React Query optimization) and database indexing for performance. Authentication handles OIDC foreign key constraints. Automatic investment data seeding populates strategies for new deployments. Production stability is ensured through a health check endpoint, global error handlers for server-side and React error boundaries for client-side issues, currency rate fallback, and AI service resilience with rate limit detection and exponential backoff retry logic.
 
+## Mobile-First Responsive Design
+
+All pages use mobile-first responsive breakpoints: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` for proper mobile stacking. Touch targets meet 44px minimum height requirement (`min-h-[44px]`). iOS safe-area padding uses `env(safe-area-inset-*)` CSS variables. The `/assets` middleware in server/index.ts serves static assets with cache headers and proper 404 handling to prevent MIME type errors on mobile. Subscription and pricing pages limit display to exactly 3 plans (Free, Pro, Enterprise) using `.slice(0, 3)`.
+
 # External Dependencies
 
 -   **React 18**: Frontend framework.
