@@ -1,9 +1,38 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProgressiveOnboardingWizard } from "@/components/onboarding/progressive-onboarding-wizard";
 import { Button } from "@/components/ui/button";
-import { Check, Zap, Target, ArrowRight, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Check, Zap, Target, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
+
+const expressFormSchema = z.object({
+  fullName: z.string().min(1, "Please enter your name"),
+  currency: z.string().min(1, "Please select your currency"),
+});
+
+type ExpressFormData = z.infer<typeof expressFormSchema>;
 
 function GradientMeshBackground() {
   return (
@@ -50,17 +79,195 @@ function GradientMeshBackground() {
   );
 }
 
+const CURRENCIES = [
+  { value: "USD", label: "USD - US Dollar" },
+  { value: "EUR", label: "EUR - Euro" },
+  { value: "GBP", label: "GBP - British Pound" },
+  { value: "CAD", label: "CAD - Canadian Dollar" },
+  { value: "AUD", label: "AUD - Australian Dollar" },
+  { value: "JPY", label: "JPY - Japanese Yen" },
+  { value: "CHF", label: "CHF - Swiss Franc" },
+  { value: "CNY", label: "CNY - Chinese Yuan" },
+  { value: "INR", label: "INR - Indian Rupee" },
+  { value: "MXN", label: "MXN - Mexican Peso" },
+  { value: "BRL", label: "BRL - Brazilian Real" },
+  { value: "SGD", label: "SGD - Singapore Dollar" },
+];
+
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
   const [mode, setMode] = useState<'choice' | 'express' | 'full'>('choice');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const expressForm = useForm<ExpressFormData>({
+    resolver: zodResolver(expressFormSchema),
+    defaultValues: {
+      fullName: "",
+      currency: "USD",
+    },
+  });
+
+  const savePreferencesMutation = useMutation({
+    mutationFn: async (data: { fullName: string; currency: string }) => {
+      return apiRequest("PUT", "/api/user-preferences", {
+        onboardingData: {
+          fullName: data.fullName,
+        },
+        currency: data.currency,
+        onboardingCompleted: true,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/users/me"] });
+      toast({
+        title: "Welcome to Twealth!",
+        description: "Your preferences have been saved. Let's get started!",
+      });
+      setLocation("/");
+    },
+    onError: () => {
+      toast({
+        title: "Something went wrong",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleOnboardingComplete = () => {
     setLocation("/");
   };
 
-  const handleExpressStart = () => {
-    setLocation("/");
+  const handleExpressSubmit = (data: ExpressFormData) => {
+    savePreferencesMutation.mutate(data);
   };
+
+  const handleSelectExpress = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMode('express');
+  };
+
+  const handleSelectFull = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMode('full');
+  };
+
+  if (mode === 'express') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+        <GradientMeshBackground />
+        
+        <div className="w-full max-w-md mx-auto relative z-10">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full scale-150 motion-safe:animate-[gentlePulse_4s_ease-in-out_infinite]" />
+                <img src={logoUrl} alt="Twealth" className="w-12 h-12 relative drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
+              </div>
+              <span className="text-2xl font-semibold text-white tracking-tight">Twealth</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
+              Quick Setup
+            </h1>
+            <p className="text-slate-400 text-lg">
+              Just two quick questions to get started
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-b from-slate-900 to-slate-900/80 border border-slate-700/80 rounded-3xl p-8 backdrop-blur-sm">
+            <Form {...expressForm}>
+              <form onSubmit={expressForm.handleSubmit(handleExpressSubmit)} className="space-y-6">
+                <FormField
+                  control={expressForm.control}
+                  name="fullName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-200">What should we call you?</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your name"
+                          className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500 h-12"
+                          data-testid="input-name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={expressForm.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-slate-200">Preferred currency</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger 
+                            className="bg-slate-800/50 border-slate-600 text-white h-12"
+                            data-testid="select-currency"
+                          >
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-slate-800 border-slate-600">
+                          {CURRENCIES.map((currency) => (
+                            <SelectItem 
+                              key={currency.value} 
+                              value={currency.value}
+                              className="text-white hover:bg-slate-700"
+                            >
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={savePreferencesMutation.isPending}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-500/30 text-base mt-4"
+                  data-testid="button-submit-express"
+                >
+                  {savePreferencesMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Setting up...
+                    </>
+                  ) : (
+                    <>
+                      Get Started
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </div>
+
+          <div className="mt-8 text-center">
+            <Button 
+              variant="ghost" 
+              onClick={() => setMode('choice')}
+              className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
+              data-testid="button-back-to-choice"
+            >
+              Back to options
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'full') {
     return (
@@ -87,11 +294,11 @@ export default function WelcomePage() {
           <div className="mt-8 text-center">
             <Button 
               variant="ghost" 
-              onClick={handleExpressStart}
+              onClick={() => setMode('choice')}
               className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
-              data-testid="button-skip-onboarding"
+              data-testid="button-back-to-choice"
             >
-              Skip for now
+              Back to options
             </Button>
           </div>
         </div>
@@ -126,7 +333,7 @@ export default function WelcomePage() {
         <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           <div 
             className="relative group cursor-pointer pt-5"
-            onClick={handleExpressStart}
+            onClick={handleSelectExpress}
             data-testid="card-express-start"
           >
             <div className="absolute top-0 left-6 z-10">
@@ -150,7 +357,7 @@ export default function WelcomePage() {
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-700/20 flex items-center justify-center border border-blue-500/30">
                     <Check className="w-3.5 h-3.5 text-blue-400" />
                   </div>
-                  <span className="text-base">Start tracking immediately</span>
+                  <span className="text-base">Just name & currency</span>
                 </li>
                 <li className="flex items-center gap-4 text-slate-200">
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-700/20 flex items-center justify-center border border-blue-500/30">
@@ -166,7 +373,7 @@ export default function WelcomePage() {
                 </li>
               </ul>
               <Button 
-                onClick={handleExpressStart}
+                onClick={handleSelectExpress}
                 className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-500/30 text-base"
                 data-testid="button-express-start"
               >
@@ -178,7 +385,7 @@ export default function WelcomePage() {
 
           <div 
             className="relative group cursor-pointer pt-5"
-            onClick={() => setMode('full')}
+            onClick={handleSelectFull}
             data-testid="card-guided-setup"
           >
             <div className="h-full bg-gradient-to-b from-slate-900 to-slate-900/80 border border-slate-700/80 rounded-3xl p-7 sm:p-9 pt-10 transition-all duration-300 group-hover:border-slate-500/70 group-hover:shadow-2xl group-hover:shadow-slate-500/10 group-hover:-translate-y-1 backdrop-blur-sm">
@@ -212,7 +419,7 @@ export default function WelcomePage() {
                 </li>
               </ul>
               <Button 
-                onClick={() => setMode('full')}
+                onClick={handleSelectFull}
                 variant="outline"
                 className="w-full h-14 bg-transparent border-2 border-slate-600 text-white hover:bg-slate-800/50 hover:border-slate-500 font-semibold rounded-2xl transition-all duration-300 text-base"
                 data-testid="button-guided-setup"
