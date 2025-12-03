@@ -28,6 +28,7 @@ import ShareGoalDialog from "@/components/sharing/share-goal-dialog";
 import { CollapsibleList } from "@/components/virtual-list";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useUserCurrency } from "@/lib/userContext";
 
 function AnimatedNumber({ value, prefix = "$", delay = 0 }: { value: number; prefix?: string; delay?: number }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -137,6 +138,7 @@ function CircularProgress({
 }
 
 function RecentContributions({ goalId }: { goalId: string }) {
+  const { formatAmount } = useUserCurrency();
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions", goalId],
     queryFn: () => fetch(`/api/transactions?goalId=${goalId}&limit=5`).then(res => res.json()),
@@ -206,7 +208,7 @@ function RecentContributions({ goalId }: { goalId: string }) {
               </div>
               <div className="text-right">
                 <span className={`font-semibold ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                  +${parseFloat(transaction.amount).toLocaleString()}
+                  +{formatAmount(parseFloat(transaction.amount))}
                 </span>
               </div>
             </motion.div>
@@ -239,6 +241,7 @@ function GoalCard({
   onShare: () => void;
   delay?: number;
 }) {
+  const { formatAmount, currencySymbol } = useUserCurrency();
   const progress = (parseFloat(goal.currentAmount) / parseFloat(goal.targetAmount)) * 100;
   const remaining = parseFloat(goal.targetAmount) - parseFloat(goal.currentAmount);
   const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -331,12 +334,12 @@ function GoalCard({
               <div>
                 <p className="text-xs text-muted-foreground">Current</p>
                 <p className="text-lg sm:text-xl font-bold text-primary">
-                  <AnimatedNumber value={parseFloat(goal.currentAmount)} delay={delay * 1000 + 100} />
+                  <AnimatedNumber value={parseFloat(goal.currentAmount)} prefix={currencySymbol} delay={delay * 1000 + 100} />
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Target</p>
-                <p className="text-sm font-medium">${parseFloat(goal.targetAmount).toLocaleString()}</p>
+                <p className="text-sm font-medium">{formatAmount(parseFloat(goal.targetAmount))}</p>
               </div>
             </div>
           </div>
@@ -355,7 +358,7 @@ function GoalCard({
               <DollarSign className="w-4 h-4 text-muted-foreground" />
               <div className="min-w-0">
                 <p className="text-[10px] sm:text-xs text-muted-foreground">Remaining</p>
-                <p className="text-xs sm:text-sm font-semibold">${remaining.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm font-semibold">{formatAmount(remaining)}</p>
               </div>
             </div>
           </div>
@@ -365,7 +368,7 @@ function GoalCard({
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-primary" />
                 <p className="text-xs text-muted-foreground">
-                  Save <span className="font-semibold text-foreground">${Math.ceil(remaining / daysLeft).toLocaleString()}/day</span> to reach your goal
+                  Save <span className="font-semibold text-foreground">{formatAmount(Math.ceil(remaining / daysLeft))}/day</span> to reach your goal
                 </p>
               </div>
             </div>
@@ -404,7 +407,8 @@ function SummaryCard({
   colorClass, 
   bgClass,
   delay = 0,
-  suffix = ""
+  suffix = "",
+  currencyPrefix = ""
 }: { 
   title: string; 
   value: number; 
@@ -413,6 +417,7 @@ function SummaryCard({
   bgClass: string;
   delay?: number;
   suffix?: string;
+  currencyPrefix?: string;
 }) {
   return (
     <motion.div
@@ -429,7 +434,7 @@ function SummaryCard({
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</span>
           </div>
           <p className={`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight ${colorClass}`}>
-            <AnimatedNumber value={value} prefix={suffix ? "" : "$"} delay={delay * 1000} />
+            <AnimatedNumber value={value} prefix={suffix ? "" : currencyPrefix} delay={delay * 1000} />
             {suffix && <span className="text-lg sm:text-xl text-muted-foreground/60">{suffix}</span>}
           </p>
         </CardContent>
@@ -440,6 +445,7 @@ function SummaryCard({
 
 export default function FinancialGoals() {
   const { t } = useTranslation();
+  const { formatAmount, currencySymbol } = useUserCurrency();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isFirstGoalDialogOpen, setIsFirstGoalDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -701,6 +707,7 @@ export default function FinancialGoals() {
                     colorClass="text-green-600 dark:text-green-400"
                     bgClass="bg-green-100 dark:bg-green-900/30"
                     delay={0}
+                    currencyPrefix={currencySymbol}
                   />
                   <SummaryCard
                     title="Active Goals"
@@ -826,15 +833,15 @@ export default function FinancialGoals() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-muted/50">
                     <p className="text-xs text-muted-foreground mb-1">Current Amount</p>
-                    <p className="text-xl font-bold text-green-600">${parseFloat(selectedGoal.currentAmount).toLocaleString()}</p>
+                    <p className="text-xl font-bold text-green-600">{formatAmount(parseFloat(selectedGoal.currentAmount))}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-muted/50">
                     <p className="text-xs text-muted-foreground mb-1">Target Amount</p>
-                    <p className="text-xl font-bold">${parseFloat(selectedGoal.targetAmount).toLocaleString()}</p>
+                    <p className="text-xl font-bold">{formatAmount(parseFloat(selectedGoal.targetAmount))}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-muted/50">
                     <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-                    <p className="text-xl font-bold">${(parseFloat(selectedGoal.targetAmount) - parseFloat(selectedGoal.currentAmount)).toLocaleString()}</p>
+                    <p className="text-xl font-bold">{formatAmount(parseFloat(selectedGoal.targetAmount) - parseFloat(selectedGoal.currentAmount))}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-muted/50">
                     <p className="text-xs text-muted-foreground mb-1">Target Date</p>
