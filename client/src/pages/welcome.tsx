@@ -25,6 +25,7 @@ import {
 import { Check, Zap, Target, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getSupportedCurrencies } from "@/lib/currency";
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 const expressFormSchema = z.object({
@@ -79,20 +80,6 @@ function GradientMeshBackground() {
   );
 }
 
-const CURRENCIES = [
-  { value: "USD", label: "USD - US Dollar" },
-  { value: "EUR", label: "EUR - Euro" },
-  { value: "GBP", label: "GBP - British Pound" },
-  { value: "CAD", label: "CAD - Canadian Dollar" },
-  { value: "AUD", label: "AUD - Australian Dollar" },
-  { value: "JPY", label: "JPY - Japanese Yen" },
-  { value: "CHF", label: "CHF - Swiss Franc" },
-  { value: "CNY", label: "CNY - Chinese Yuan" },
-  { value: "INR", label: "INR - Indian Rupee" },
-  { value: "MXN", label: "MXN - Mexican Peso" },
-  { value: "BRL", label: "BRL - Brazilian Real" },
-  { value: "SGD", label: "SGD - Singapore Dollar" },
-];
 
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
@@ -215,14 +202,14 @@ export default function WelcomePage() {
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-slate-800 border-slate-600">
-                          {CURRENCIES.map((currency) => (
+                        <SelectContent className="bg-slate-800 border-slate-600 max-h-[300px]">
+                          {getSupportedCurrencies().map((currency) => (
                             <SelectItem 
-                              key={currency.value} 
-                              value={currency.value}
+                              key={currency.code} 
+                              value={currency.code}
                               className="text-white hover:bg-slate-700"
                             >
-                              {currency.label}
+                              {currency.code} - {currency.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
