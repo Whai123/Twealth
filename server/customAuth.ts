@@ -6,6 +6,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
+import { authLogger } from "./utils/logger";
 
 // Safe default for REPLIT_DOMAINS in development
 const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost:5000';
@@ -15,11 +16,19 @@ const PRODUCTION_DOMAIN = 'twealth.ltd';
 const domains = REPLIT_DOMAINS.split(',');
 const isDevelopment = process.env.NODE_ENV === 'development';
 const customDomain = isDevelopment ? domains[0] : PRODUCTION_DOMAIN;
-console.log('[OAuth] Environment:', process.env.NODE_ENV);
-console.log('[OAuth] Using domain for callbacks:', customDomain);
+
+// Development-only debug logging for OAuth setup
+if (isDevelopment) {
+  authLogger.debug('OAuth Environment', { data: { NODE_ENV: process.env.NODE_ENV } });
+  authLogger.debug('Using domain for callbacks', { data: { domain: customDomain } });
+}
+
 const FRONTEND_URL = `https://${customDomain}`;
 const BACKEND_URL = FRONTEND_URL; // Same domain setup
-console.log('[OAuth] Google callback URL:', `${BACKEND_URL}/api/auth/google/callback`);
+
+if (isDevelopment) {
+  authLogger.debug('Google callback URL', { data: { url: `${BACKEND_URL}/api/auth/google/callback` } });
+}
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -35,13 +44,18 @@ export function getSession() {
   const isProduction = process.env.NODE_ENV === 'production' || 
                        process.env.REPLIT_DEPLOYMENT === '1';
   
-  console.log('[Session] Environment:', {
-    NODE_ENV: process.env.NODE_ENV,
-    REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
-    isProduction,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax'
-  });
+  // Development-only session config logging
+  if (isDevelopment) {
+    authLogger.debug('Session configuration', { 
+      data: {
+        NODE_ENV: process.env.NODE_ENV,
+        REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
+        isProduction,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax'
+      }
+    });
+  }
   
   // Use a safe default for SESSION_SECRET in development
   const sessionSecret = process.env.SESSION_SECRET || (isDevelopment ? 'dev-session-secret-change-in-production' : undefined);
@@ -254,26 +268,28 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 };
 
 export function setupAuth(app: Express) {
-  console.log('[OAuth] ===== setupAuth() CALLED =====');
+  if (isDevelopment) authLogger.debug('setupAuth() called');
   
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
-  console.log('[OAuth] Passport initialized');
+  if (isDevelopment) authLogger.debug('Passport initialized');
 
-  // Test route to verify routing works
-  app.get("/api/auth/test", (req, res) => {
-    console.log('[OAuth] Test route hit! Headers:', req.headers);
-    res.json({ message: "OAuth routes working", timestamp: new Date().toISOString() });
-  });
+  // Test route to verify routing works (development only)
+  if (isDevelopment) {
+    app.get("/api/auth/test", (req, res) => {
+      authLogger.debug('Test route hit');
+      res.json({ message: "OAuth routes working", timestamp: new Date().toISOString() });
+    });
+  }
 
   // Google OAuth routes
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    console.log('[OAuth] Registering Google OAuth routes...');
+    if (isDevelopment) authLogger.debug('Registering Google OAuth routes');
     app.get(
       "/api/auth/google",
       (req, res, next) => {
-        console.log('[OAuth] Initiating Google login...');
+        if (isDevelopment) authLogger.debug('Initiating Google login');
         next();
       },
       passport.authenticate("google", { scope: ["profile", "email"] })
@@ -282,44 +298,41 @@ export function setupAuth(app: Express) {
     app.get(
       "/api/auth/google/callback",
       (req, res, next) => {
-        console.log('[OAuth] ===== CALLBACK RECEIVED =====');
-        console.log('[OAuth] Query params:', req.query);
-        console.log('[OAuth] Session ID:', req.sessionID);
-        console.log('[OAuth] Session data:', req.session);
+        if (isDevelopment) {
+          authLogger.debug('Callback received', { data: { query: req.query, sessionID: req.sessionID } });
+        }
         next();
       },
       (req, res, next) => {
         passport.authenticate("google", (err: any, user: any, info: any) => {
-          console.log('[OAuth] Passport authenticate callback triggered');
-          console.log('[OAuth] Error:', err);
-          console.log('[OAuth] User:', user);
-          console.log('[OAuth] Info:', info);
+          if (isDevelopment) {
+            authLogger.debug('Passport authenticate callback', { data: { hasError: !!err, hasUser: !!user } });
+          }
           
           if (err) {
-            console.error('[OAuth] Authentication error:', err);
+            authLogger.error('Authentication error', err);
             return res.redirect("/login");
           }
           
           if (!user) {
-            console.error('[OAuth] No user returned from passport');
+            authLogger.warn('No user returned from passport');
             return res.redirect("/login");
           }
           
           req.login(user, (loginErr) => {
             if (loginErr) {
-              console.error('[OAuth] Login error:', loginErr);
+              authLogger.error('Login error', loginErr);
               return res.redirect("/login");
             }
             
-            console.log('[OAuth] User logged in successfully');
-            console.log('[OAuth] Session after login:', req.session);
+            if (isDevelopment) authLogger.debug('User logged in successfully');
             
             req.session.save((saveErr) => {
               if (saveErr) {
-                console.error('[OAuth] Session save error:', saveErr);
+                authLogger.error('Session save error', saveErr);
                 return res.redirect("/login");
               }
-              console.log('[OAuth] Session saved, redirecting to /');
+              if (isDevelopment) authLogger.debug('Session saved, redirecting');
               res.redirect("/");
             });
           });
@@ -342,7 +355,7 @@ export function setupAuth(app: Express) {
         // Explicitly save session before redirecting
         req.session.save((err) => {
           if (err) {
-            console.error('[OAuth] Facebook session save error:', err);
+            authLogger.error('Facebook session save error', err);
             return res.redirect("/login");
           }
           res.redirect("/");
@@ -365,7 +378,7 @@ export function setupAuth(app: Express) {
         // Explicitly save session before redirecting
         req.session.save((err) => {
           if (err) {
-            console.error('[OAuth] Apple session save error:', err);
+            authLogger.error('Apple session save error', err);
             return res.redirect("/login");
           }
           res.redirect("/");

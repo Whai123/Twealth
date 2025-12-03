@@ -7,7 +7,16 @@ import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { subscriptionPlans } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
-import { stripeLogger } from "./utils/logger";
+import { stripeLogger, aiLogger, createLogger } from "./utils/logger";
+
+// Development-only debug logging
+const isDev = process.env.NODE_ENV === 'development';
+const debugLog = (context: string, message: string, data?: any) => {
+  if (isDev) {
+    const logger = createLogger(context);
+    logger.debug(message, data ? { data } : undefined);
+  }
+};
 
 // Idempotency cache for Stripe webhook events (module-scoped, persists across requests)
 const processedWebhookEvents = new Set<string>();
@@ -1018,23 +1027,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const { groupId, permission } = req.body;
       
-      console.log('[SHARE-WITH-GROUP] Starting share request:', { goalId: req.params.goalId, userId, groupId, permission });
+      debugLog('Goals', 'Starting share request', { goalId: req.params.goalId, userId, groupId, permission });
       
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
-      console.log('[SHARE-WITH-GROUP] Goal found:', { goalUserId: goal?.userId, requestUserId: userId, matches: goal?.userId === userId });
+      debugLog('Goals', 'Goal found', { goalUserId: goal?.userId, requestUserId: userId, matches: goal?.userId === userId });
       if (!goal || goal.userId !== userId) {
-        console.log('[SHARE-WITH-GROUP] FAILED: Ownership check failed');
+        debugLog('Goals', 'Share failed: ownership check failed');
         return res.status(403).json({ message: "You can only share your own goals" });
       }
       
       // Verify user is member of the group
       const members = await storage.getGroupMembers(groupId);
-      console.log('[SHARE-WITH-GROUP] Group members:', { count: members.length, userIds: members.map((m: any) => m.userId), lookingFor: userId });
+      debugLog('Goals', 'Group members found', { count: members.length });
       const isMember = members.some((m: any) => m.userId === userId);
-      console.log('[SHARE-WITH-GROUP] Membership check:', { isMember });
+      debugLog('Goals', 'Membership check', { isMember });
       if (!isMember) {
-        console.log('[SHARE-WITH-GROUP] FAILED: User is not a member of the group');
+        debugLog('Goals', 'Share failed: user not a member of the group');
         return res.status(403).json({ message: "You must be a member of the group to share goals with it" });
       }
       
@@ -1732,7 +1741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (autoCategory !== 'Other') {
           validatedData = { ...validatedData, category: autoCategory };
-          console.log(`[AUTO-CATEGORIZE] "${description}" → ${autoCategory}`);
+          debugLog('Transactions', `Auto-categorized "${description}" → ${autoCategory}`);
         } else {
           // Set to "other" if no category could be detected
           validatedData = { ...validatedData, category: 'other' };
@@ -1845,7 +1854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (autoCategory !== 'Other' && autoCategory !== transaction.category) {
           const updatedTx = await storage.updateTransaction(txId, { category: autoCategory });
           updated.push(updatedTx);
-          console.log(`[BULK-CATEGORIZE] "${description}" → ${autoCategory}`);
+          debugLog('Transactions', `Bulk-categorized "${description}" → ${autoCategory}`);
         }
       }
       
@@ -2995,7 +3004,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save estimates if we found any
       if (Object.keys(estimates).length > 0) {
         await storage.updateUserPreferences(userId, estimates);
-        console.log('Proactively saved financial estimates:', estimates);
+        debugLog('AI', 'Proactively saved financial estimates', estimates);
       }
 
       // Build user context for AI
@@ -3094,10 +3103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasPurchaseIntent = purchaseKeywords.some(kw => msgLower.includes(kw));
       const hasTimeframe = timeKeywords.some(kw => msgLower.includes(kw));
       
-      console.log(`Impossibility Check: message="${userMessage}", hasPurchaseIntent=${hasPurchaseIntent}, hasTimeframe=${hasTimeframe}`);
+      debugLog('AI', 'Impossibility check', { hasPurchaseIntent, hasTimeframe });
       
       if (hasPurchaseIntent && hasTimeframe) {
-        console.log(`Both conditions met, proceeding with feasibility check...`);
+        debugLog('AI', 'Both conditions met, proceeding with feasibility check');
         // Extract potential price (look for common luxury items or dollar amounts)
         const pricePatterns = [
           /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g, // $573,966 or $1,000,000
@@ -3147,10 +3156,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // If we found both goal amount and timeframe, check feasibility
-        console.log(`Extracted: goalAmount=$${goalAmount.toLocaleString()}, yearsExtracted=${yearsExtracted}`);
+        debugLog('AI', `Extracted goal data`, { goalAmount, yearsExtracted });
         
         if (goalAmount > 0 && yearsExtracted > 0 && yearsExtracted <= 30) {
-          console.log(`Running feasibility check: income=$${userContext.monthlyIncome}, expenses=$${userContext.monthlyExpenses}`);
+          debugLog('AI', 'Running feasibility check', { income: userContext.monthlyIncome, expenses: userContext.monthlyExpenses });
           
           const { checkGoalFeasibility } = await import('./financialCalculations');
           const feasibility = checkGoalFeasibility(
@@ -3161,10 +3170,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userContext.totalSavings
           );
           
-          console.log(`Feasibility result: isFeasible=${feasibility.isFeasible}, monthlyNeeded=$${feasibility.monthlyNeeded.toLocaleString()}, capacity=$${feasibility.monthlyCapacity.toLocaleString()}`);
+          debugLog('AI', 'Feasibility result', { isFeasible: feasibility.isFeasible, monthlyNeeded: feasibility.monthlyNeeded, capacity: feasibility.monthlyCapacity });
           
           if (!feasibility.isFeasible) {
-            console.log(`IMPOSSIBLE GOAL DETECTED: $${goalAmount.toLocaleString()} in ${yearsExtracted}y - ${feasibility.reason}`);
+            debugLog('AI', 'Impossible goal detected', { goalAmount, years: yearsExtracted, reason: feasibility.reason });
             
             impossibleGoalFlag = `
 CRITICAL: IMPOSSIBLE GOAL DETECTED
@@ -3236,8 +3245,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
         if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
-          console.log(`========== PROCESSING ${aiResult.toolCalls.length} TOOL CALL(S) ==========`);
-          console.log(`Tools requested:`, aiResult.toolCalls.map((t: any) => t.function.name).join(', '));
+          debugLog('AI', `Processing ${aiResult.toolCalls.length} tool calls`, { tools: aiResult.toolCalls.map((t: any) => t.function.name) });
           for (const toolCall of aiResult.toolCalls) {
             // Extract function details from nested structure
             const toolName = toolCall.function.name;
@@ -3245,15 +3253,14 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             
             try {
               
-              console.log(`\nTool: ${toolName}`);
-              console.log(`Arguments:`, JSON.stringify(toolArgs, null, 2));
+              debugLog('AI', `Executing tool: ${toolName}`, toolArgs);
               
               if (toolName === 'create_financial_goal') {
-                console.log(`[create_financial_goal] Starting goal creation...`);
+                debugLog('AI', 'Starting goal creation');
                 
                 // CRITICAL: Validate user confirmation before creating goal
                 if (toolArgs.userConfirmed !== true) {
-                  console.log(`BLOCKED create_financial_goal: userConfirmed=${toolArgs.userConfirmed} (not true)`);
+                  debugLog('AI', 'Blocked create_financial_goal: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_financial_goal' }
@@ -3261,7 +3268,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   continue;
                 }
                 
-                console.log(`Creating goal for userId=${userId}: "${toolArgs.name}"`);
+                debugLog('AI', 'Creating goal', { userId, name: toolArgs.name });
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
                   title: toolArgs.name,
@@ -3271,7 +3278,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   description: toolArgs.description || null,
                   category: 'savings'
                 });
-                console.log(`Goal created successfully. ID=${goal.id}, Title="${goal.title}"`);
+                debugLog('AI', 'Goal created successfully', { id: goal.id, title: goal.title });
                 actionsPerformed.push({
                   type: 'goal_created',
                   data: goal
@@ -3279,7 +3286,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'create_calendar_event') {
                 // CRITICAL: Validate user confirmation before creating event
                 if (toolArgs.userConfirmed !== true) {
-                  console.log('Blocked create_calendar_event: userConfirmed not true');
+                  debugLog('AI', 'Blocked create_calendar_event: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_calendar_event' }
@@ -3298,7 +3305,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   data: event
                 });
               } else if (toolName === 'add_transaction') {
-                console.log(`[add_transaction] Creating transaction...`);
+                debugLog('AI', 'Creating transaction');
                 const transaction = await storage.createTransaction({
                   userId: userId,
                   type: toolArgs.type,
@@ -3307,7 +3314,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   description: toolArgs.description || null,
                   date: toolArgs.date ? new Date(toolArgs.date) : new Date()
                 });
-                console.log(`[add_transaction] Transaction created successfully. ID=${transaction.id}, Amount=$${transaction.amount}, Category=${transaction.category}`);
+                debugLog('AI', 'Transaction created', { id: transaction.id, amount: transaction.amount, category: transaction.category });
                 actionsPerformed.push({
                   type: 'transaction_added',
                   data: transaction
@@ -3315,7 +3322,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'create_group') {
                 // CRITICAL: Validate user confirmation before creating group
                 if (toolArgs.userConfirmed !== true) {
-                  console.log('Blocked create_group: userConfirmed not true');
+                  debugLog('AI', 'Blocked create_group: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
                     data: { reason: 'User confirmation required', action: 'create_group' }
@@ -3933,7 +3940,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 
                 // If there are CRITICAL ERRORS, don't save - ask user to correct
                 if (errors.length > 0) {
-                  console.log('Financial data ERRORS (not saved):', errors);
+                  debugLog('AI', 'Financial data validation errors (not saved)', { errors });
                   actionsPerformed.push({
                     type: 'financial_estimates_validation_failed',
                     errors: errors,
@@ -3946,14 +3953,14 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 }
                 // If there are warnings but no errors, save with warnings
                 else if (warnings.length > 0) {
-                  console.log('Financial data warnings (saved with flags):', warnings);
+                  debugLog('AI', 'Financial data warnings (saved with flags)', { warnings });
                   actionsPerformed.push({
                     type: 'financial_estimates_saved_with_warnings',
                     data: estimates,
                     warnings: warnings
                   });
                   await storage.updateUserPreferences(userId, estimates);
-                  console.log('Saved financial estimates with warnings:', estimates);
+                  debugLog('AI', 'Saved financial estimates with warnings', { estimates });
                 }
                 // Clean save - no issues
                 else {
@@ -3962,7 +3969,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     data: estimates
                   });
                   await storage.updateUserPreferences(userId, estimates);
-                  console.log('Saved financial estimates:', estimates);
+                  debugLog('AI', 'Saved financial estimates', { estimates });
                 }
               } else if (toolName === 'calculate_car_affordability') {
                 // Car affordability calculator with 20/4/10 rule
@@ -4679,7 +4686,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         return res.status(400).json({ message: "Message is required" });
       }
       
-      console.log(`[TierAI] Request from user ${userId}: "${message.substring(0, 100)}..."`);
+      debugLog('TierAI', 'Request received', { userId, messagePreview: message.substring(0, 100) });
       
       // Call tier-aware router for quota enforcement
       const response = await routeWithTierCheck(userId, message, storage);
@@ -4687,7 +4694,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       // Check if quota exceeded
       if ('type' in response && response.type === 'quota_exceeded') {
         const quotaError = response as QuotaExceededError;
-        console.log(`[TierAI] Quota exceeded: model=${quotaError.model}, used=${quotaError.used}/${quotaError.limit}`);
+        debugLog('TierAI', 'Quota exceeded', { model: quotaError.model, used: quotaError.used, limit: quotaError.limit });
         
         // Return 429 Too Many Requests with upgrade CTA
         return res.status(429).json({
@@ -4699,13 +4706,14 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       
       // Success - log tier/model/quota context (cast to HybridAIResponse after quota check)
       const successResponse = response as HybridAIResponse;
-      console.log(
-        `[TierAI] Response: model=${successResponse.modelSlug}, ` +
-        `escalated=${successResponse.escalated}, ` +
-        `tokens=${successResponse.tokensIn}+${successResponse.tokensOut}, ` +
-        `cost=$${successResponse.cost.toFixed(6)}, ` +
-        `downgraded=${successResponse.tierDowngraded || false}`
-      );
+      debugLog('TierAI', 'Response generated', {
+        model: successResponse.modelSlug,
+        escalated: successResponse.escalated,
+        tokensIn: successResponse.tokensIn,
+        tokensOut: successResponse.tokensOut,
+        cost: successResponse.cost,
+        downgraded: successResponse.tierDowngraded || false
+      });
       
       res.json(successResponse);
     } catch (error: any) {
@@ -4734,7 +4742,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const userId = getUserIdFromRequest(req);
       await storage.resetUsage(userId);
       
-      console.log(`Usage reset for user ${userId}`);
+      debugLog('Subscription', 'Usage reset', { userId });
       res.json({ 
         message: "Usage reset successfully",
         userId: userId,
@@ -5344,13 +5352,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN;
       const baseUrl = `${protocol}://${host}`;
 
-      console.log('[Checkout] Creating session for:', {
-        userId,
-        planId: plan.id,
-        planName: plan.name,
-        stripePriceId: plan.stripePriceId,
-        customerId,
-        baseUrl
+      stripeLogger.info('Creating checkout session', { 
+        data: { userId, planId: plan.id, planName: plan.name, customerId }
       });
 
       const session = await stripe.checkout.sessions.create({
@@ -5370,11 +5373,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         }
       });
 
-      console.log('[Checkout] Session created:', {
-        sessionId: session.id,
-        url: session.url,
-        status: session.status,
-        paymentStatus: session.payment_status
+      stripeLogger.info('Checkout session created', { 
+        data: { sessionId: session.id, status: session.status }
       });
 
       if (!session.url) {
@@ -6140,7 +6140,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           localCurrency: 'THB'
         });
 
-        console.log(`Successfully upgraded user ${userId} to plan ${plan.name} after payment ${paymentIntent.id}`);
+        stripeLogger.info('User upgraded after payment', { data: { userId, planName: plan.name, paymentId: paymentIntent.id } });
       }
     } catch (error) {
       console.error('Error handling payment success:', error);
@@ -6178,7 +6178,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           localCurrency: 'THB'
         });
 
-        console.log(`Successfully updated subscription ${subscription} for user ${userId} to plan ${plan.name}`);
+        stripeLogger.info('Subscription updated', { data: { subscriptionId: subscription, userId, planName: plan.name } });
       }
     } catch (error) {
       console.error('Error handling subscription payment success:', error);
@@ -6235,7 +6235,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         localCurrency: 'USD'
       });
 
-      console.log(`✓ Activated subscription ${subscriptionId} for user ${userId} via checkout session ${session.id}`);
+      stripeLogger.info('Subscription activated via checkout', { data: { subscriptionId, userId, sessionId: session.id } });
     } catch (error) {
       console.error('Error handling checkout session completed:', error);
     }
@@ -6247,7 +6247,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const { userId, planId } = subscription.metadata || {};
       
       if (!userId || !planId) {
-        console.log('No metadata in subscription, skipping (likely handled by checkout.session.completed)');
+        stripeLogger.debug('No metadata in subscription, skipping');
         return;
       }
 
@@ -6275,7 +6275,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           localCurrency: 'USD'
         });
 
-        console.log(`✓ Created subscription ${subscription.id} for user ${userId}`);
+        stripeLogger.info('Subscription created', { data: { subscriptionId: subscription.id, userId } });
       }
     } catch (error) {
       console.error('Error handling subscription created:', error);
@@ -6289,7 +6289,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const currentSubscription = await storage.getSubscriptionByStripeId(subscription.id);
       
       if (!currentSubscription) {
-        console.log(`Subscription ${subscription.id} not found in database, ignoring update`);
+        stripeLogger.debug('Subscription not found in database, ignoring update', { data: { subscriptionId: subscription.id } });
         return;
       }
 
@@ -6314,7 +6314,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           console.error('Free plan not found, cannot downgrade');
           return;
         }
-        console.log(`Downgrading subscription ${subscription.id} to Free plan (price ID not configured)`);
+        stripeLogger.info('Downgrading subscription to Free plan', { data: { subscriptionId: subscription.id } });
         await storage.updateSubscription(currentSubscription.id, {
           planId: freePlan.id,
           status: 'active',
@@ -6335,7 +6335,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         localCurrency: 'USD'
       });
 
-      console.log(`✓ Updated subscription ${subscription.id} to plan ${plan.name}`);
+      stripeLogger.info('Subscription plan updated', { data: { subscriptionId: subscription.id, planName: plan.name } });
     } catch (error) {
       console.error('Error handling subscription updated:', error);
     }
@@ -6348,7 +6348,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       const currentSubscription = await storage.getSubscriptionByStripeId(subscription.id);
       
       if (!currentSubscription) {
-        console.log(`Subscription ${subscription.id} not found in database, ignoring deletion`);
+        stripeLogger.debug('Subscription not found, ignoring deletion', { data: { subscriptionId: subscription.id } });
         return;
       }
 
@@ -6370,7 +6370,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         localCurrency: 'USD'
       });
 
-      console.log(`✓ Cancelled subscription ${subscription.id}, downgraded to Free plan`);
+      stripeLogger.info('Subscription cancelled, downgraded to Free', { data: { subscriptionId: subscription.id } });
     } catch (error) {
       console.error('Error handling subscription deleted:', error);
     }
