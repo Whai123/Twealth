@@ -26,6 +26,7 @@ import SpendingInsights from "@/components/money/spending-insights";
 import { SwipeableTransactionItem } from "@/components/transactions/swipeable-transaction-item";
 import { ResponsiveTransactionDialog } from "@/components/dialogs/responsive-transaction-dialog";
 import { CollapsibleList } from "@/components/virtual-list";
+import { useUserCurrency } from "@/lib/userContext";
 
 const CSVAnalysisPanel = lazy(() => import("@/components/money/csv-analysis-panel"));
 
@@ -97,7 +98,8 @@ function StatCard({
   trendLabel,
   colorClass,
   bgClass,
-  delay = 0
+  delay = 0,
+  currencyPrefix = "$"
 }: { 
   title: string; 
   value: number; 
@@ -107,6 +109,7 @@ function StatCard({
   colorClass: string;
   bgClass: string;
   delay?: number;
+  currencyPrefix?: string;
 }) {
   return (
     <motion.div
@@ -136,7 +139,7 @@ function StatCard({
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">{title}</p>
           <p className={`text-xl sm:text-3xl font-bold tracking-tight ${colorClass}`}>
-            <AnimatedNumber value={value} />
+            <AnimatedNumber value={value} prefix={currencyPrefix} />
           </p>
         </CardContent>
       </Card>
@@ -145,6 +148,7 @@ function StatCard({
 }
 
 function CategoryBreakdown({ transactions }: { transactions: any[] }) {
+  const { formatAmount } = useUserCurrency();
   const categoryTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     transactions
@@ -194,7 +198,7 @@ function CategoryBreakdown({ transactions }: { transactions: any[] }) {
                     </div>
                     <span className="font-medium capitalize">{cat.category}</span>
                   </div>
-                  <span className="font-semibold">${cat.amount.toLocaleString()}</span>
+                  <span className="font-semibold">{formatAmount(cat.amount)}</span>
                 </div>
                 <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                   <motion.div
@@ -218,6 +222,7 @@ function CategoryBreakdown({ transactions }: { transactions: any[] }) {
 
 export default function MoneyTracking() {
   const { t } = useTranslation();
+  const { formatAmount, currencySymbol } = useUserCurrency();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -457,6 +462,7 @@ export default function MoneyTracking() {
                 colorClass="text-green-600 dark:text-green-400"
                 bgClass="bg-green-500/10"
                 delay={0}
+                currencyPrefix={currencySymbol}
               />
               <StatCard
                 title="Total Expenses"
@@ -467,6 +473,7 @@ export default function MoneyTracking() {
                 colorClass="text-red-600 dark:text-red-400"
                 bgClass="bg-red-500/10"
                 delay={0.1}
+                currencyPrefix={currencySymbol}
               />
               <StatCard
                 title="Net Cash Flow"
@@ -477,6 +484,7 @@ export default function MoneyTracking() {
                 colorClass={netCashFlow >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}
                 bgClass={netCashFlow >= 0 ? "bg-green-500/10" : "bg-red-500/10"}
                 delay={0.2}
+                currencyPrefix={currencySymbol}
               />
               <StatCard
                 title="Total Savings"
@@ -487,6 +495,7 @@ export default function MoneyTracking() {
                 colorClass="text-blue-600 dark:text-blue-400"
                 bgClass="bg-blue-500/10"
                 delay={0.3}
+                currencyPrefix={currencySymbol}
               />
             </div>
 
