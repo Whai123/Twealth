@@ -288,13 +288,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.params.id);
+      const requestingUserId = getUserIdFromRequest(req);
+      const targetUserId = req.params.id;
+      
+      // Only allow users to view their own profile or limited public info
+      const user = await storage.getUser(targetUserId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json(user);
+      
+      // Return full profile for own user, limited for others
+      if (requestingUserId === targetUserId) {
+        res.json(user);
+      } else {
+        // Return only public fields for other users
+        res.json({
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          profileImageUrl: user.profileImageUrl
+        });
+      }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -5564,18 +5580,22 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
-  // Initialize investment data (seed database) - Admin only for now
-  app.post("/api/investments/seed", isAuthenticated, async (req: any, res) => {
-    try {
-      // Import seed function dynamically
-      const { seedInvestments } = await import("./seed-investments");
-      await seedInvestments();
-      res.json({ success: true, message: "Investment data seeded successfully" });
-    } catch (error: any) {
-      console.error("Seeding error:", error);
-      res.status(500).json({ message: error.message });
-    }
-  });
+  // Initialize investment data (seed database) - Development only, automatically runs on server start
+  // This endpoint is disabled in production to prevent unauthorized data manipulation
+  if (process.env.NODE_ENV === 'development') {
+    app.post("/api/investments/seed", isAuthenticated, async (req: any, res) => {
+      try {
+        const { seedInvestments } = await import("./seed-investments");
+        await seedInvestments();
+        res.json({ success: true, message: "Investment data seeded successfully" });
+      } catch (error: any) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Seeding error:", error);
+        }
+        res.status(500).json({ message: error.message });
+      }
+    });
+  }
 
   // ===== Crypto Routes =====
   

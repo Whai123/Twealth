@@ -1155,12 +1155,35 @@ export class DatabaseStorage implements IStorage {
       return { streakIncreased: true, newStreak: 1, newAchievements };
     }
     
+    // Handle null lastCheckIn - treat as new streak
+    if (!existingStreak.lastCheckIn) {
+      const weeklyProgress = this.computeWeeklyProgress(null, null);
+      await db
+        .update(userStreaks)
+        .set({ 
+          currentStreak: 1, 
+          longestStreak: 1, 
+          totalCheckIns: 1,
+          lastCheckIn: now,
+          weeklyProgress,
+          updatedAt: now,
+        })
+        .where(eq(userStreaks.userId, userId));
+      
+      await this.checkAndUnlockAchievements(userId, 1, 1, newAchievements);
+      return { streakIncreased: true, newStreak: 1, newAchievements };
+    }
+    
     const lastCheckIn = new Date(existingStreak.lastCheckIn);
     const lastCheckInDate = new Date(lastCheckIn.getFullYear(), lastCheckIn.getMonth(), lastCheckIn.getDate());
     const diffDays = Math.floor((today.getTime() - lastCheckInDate.getTime()) / (1000 * 60 * 60 * 24));
     
+    // Use nullish coalescing to handle nullable integer fields
+    const currentStreakValue = existingStreak.currentStreak ?? 0;
+    const longestStreakValue = existingStreak.longestStreak ?? 0;
+    
     if (diffDays === 0) {
-      return { streakIncreased: false, newStreak: existingStreak.currentStreak, newAchievements: [] };
+      return { streakIncreased: false, newStreak: currentStreakValue, newAchievements: [] };
     }
     
     const existingProgress = existingStreak.weeklyProgress as boolean[] | null;
@@ -1168,8 +1191,8 @@ export class DatabaseStorage implements IStorage {
     const newTotalCheckIns = (existingStreak.totalCheckIns ?? 0) + 1;
     
     if (diffDays === 1) {
-      const newStreak = existingStreak.currentStreak + 1;
-      const newLongest = Math.max(existingStreak.longestStreak, newStreak);
+      const newStreak = currentStreakValue + 1;
+      const newLongest = Math.max(longestStreakValue, newStreak);
       await db
         .update(userStreaks)
         .set({ 
@@ -1236,9 +1259,10 @@ export class DatabaseStorage implements IStorage {
             target: milestone.target,
           }).onConflictDoUpdate({
             target: [userAchievements.userId, userAchievements.achievementId],
-            set: { progress: currentStreak, updatedAt: new Date() },
+            set: { progress: currentStreak },
           });
         } catch (e) {
+          // Silently handle conflicts - achievement already exists
         }
       }
     }
