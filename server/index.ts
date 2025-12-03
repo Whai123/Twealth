@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
@@ -122,6 +123,34 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
+    // ==================== PRODUCTION ASSET HANDLING ====================
+    // Serve /assets with dedicated middleware and proper cache headers
+    // This prevents MIME type errors when old cached HTML requests stale JS chunks
+    const distPath = path.resolve(import.meta.dirname, "public");
+    
+    // Serve hashed assets with long cache headers (immutable)
+    app.use("/assets", express.static(path.resolve(distPath, "assets"), {
+      maxAge: "1y",
+      immutable: true,
+      etag: false,
+    }));
+    
+    // 404 guard for missing assets - prevents SPA fallback from returning HTML
+    app.use("/assets", (_req, res) => {
+      res.status(404).send("Asset not found");
+    });
+    
+    // Prevent caching of HTML pages to reduce stale chunk references
+    app.use((req, res, next) => {
+      const accept = req.headers.accept || "";
+      if (accept.includes("text/html") && !req.path.startsWith("/api") && !req.path.startsWith("/assets")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      }
+      next();
+    });
+    
     serveStatic(app);
   }
 

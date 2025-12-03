@@ -132,16 +132,16 @@ export default function Pricing() {
         </p>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 lg:px-8 pb-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         {isLoading ? (
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-[500px] bg-gray-100 dark:bg-gray-900 rounded-2xl animate-pulse" />
+              <div key={i} className="h-[450px] sm:h-[500px] bg-gray-100 dark:bg-gray-900 rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-8">
-            {sortedPlans.map((plan) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+            {sortedPlans.slice(0, 3).map((plan) => {
               const isCurrentPlan = currentPlanName === plan.name;
               const isPro = plan.name === "Pro";
               const isEnterprise = plan.name === "Enterprise";
@@ -151,7 +151,7 @@ export default function Pricing() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative rounded-2xl p-8 ${
+                  className={`relative rounded-2xl p-5 sm:p-6 lg:p-8 ${
                     isPro
                       ? "border-2 border-black dark:border-white bg-gray-50 dark:bg-gray-950"
                       : "border border-gray-200 dark:border-gray-800"
@@ -173,9 +173,9 @@ export default function Pricing() {
                     </div>
                   )}
 
-                  <div className="mb-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                  <div className="mb-5 sm:mb-8">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center ${
                         isPro 
                           ? "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400"
                           : isEnterprise
@@ -184,26 +184,26 @@ export default function Pricing() {
                       }`}>
                         {getPlanIcon(plan.name)}
                       </div>
-                      <h2 className="text-xl font-semibold text-black dark:text-white">
+                      <h2 className="text-lg sm:text-xl font-semibold text-black dark:text-white">
                         {plan.displayName}
                       </h2>
                     </div>
                     
-                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 h-10">
+                    <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm mb-4 sm:mb-6 min-h-[36px] sm:min-h-[40px]">
                       {plan.description}
                     </p>
 
-                    <div className="flex items-baseline gap-1 mb-6">
-                      <span className="text-4xl font-bold text-black dark:text-white">
+                    <div className="flex items-baseline gap-1 mb-4 sm:mb-6">
+                      <span className="text-3xl sm:text-4xl font-bold text-black dark:text-white">
                         {amount}
                       </span>
-                      <span className="text-gray-500 dark:text-gray-500">
+                      <span className="text-gray-500 dark:text-gray-500 text-sm">
                         {period}
                       </span>
                     </div>
 
                     <Button
-                      className={`w-full h-12 font-medium rounded-xl ${
+                      className={`w-full h-11 sm:h-12 text-sm sm:text-base font-medium rounded-xl min-h-[44px] touch-target ${
                         isPro
                           ? "bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200"
                           : "bg-gray-100 dark:bg-gray-900 text-black dark:text-white hover:bg-gray-200 dark:hover:bg-gray-800"
