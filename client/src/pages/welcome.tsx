@@ -102,7 +102,7 @@ export default function WelcomePage() {
           fullName: data.fullName,
         },
         currency: data.currency,
-        onboardingCompleted: true,
+        hasCompletedOnboarding: true,
       });
     },
     onSuccess: () => {
