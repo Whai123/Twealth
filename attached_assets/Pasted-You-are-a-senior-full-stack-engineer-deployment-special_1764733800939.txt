@@ -1,0 +1,88 @@
+You are a senior full-stack engineer, deployment specialist, and mobile UX expert.
+
+Your mission:
+FIX ALL PROBLEMS shown in both screenshots.
+
+==========================================
+PART A — FIX PIC 1 (MIME ERROR + MOBILE UI)
+==========================================
+
+ISSUE 1: MIME ERROR
+- Fix the error: "'text/html' is not a valid JavaScript MIME type."
+- Ensure the server or hosting platform serves JS files using the correct MIME type.
+- Fix routing so HTML fallback is not served in place of JavaScript bundles.
+- Validate build output (Next.js, Vite, React, or whatever stack I’m using).
+- Ensure CDN caching or rewrites are not causing HTML → JS mix-ups.
+- Fix production build configuration and ensure correct content-type headers.
+
+ISSUE 2: MOBILE ERROR PAGE LAYOUT
+- Redesign the error page to fit mobile properly.
+- Add iOS safe-area padding.
+- Center the card vertically and horizontally.
+- Resize buttons to proper mobile tap-size (min 44px).
+- Adjust spacing, reduce oversized gaps, improve visual hierarchy.
+- Fix dark mode contrast.
+- Make the error page responsive, clean, and modern.
+
+==========================================
+PART B — FIX PIC 2 (PRICING PAGE)
+==========================================
+
+The pricing page should show EXACTLY **3 plans**:
+
+1. Free
+2. Twealth Pro — $9.99/month
+3. Twealth Enterprise — $49.99/month
+
+CURRENT PROBLEMS:
+- Duplicate “Free” plan is showing.
+- Pro and Enterprise are not aligned or properly displayed.
+- Some features/quotas are wrong or mismatched.
+- Desktop layout is squeezed into mobile view (not responsive).
+- Cards have inconsistent height, spacing, alignment, and overflow issues.
+
+FIX ALL OF THIS:
+
+PRICING LOGIC:
+- Fix the pricing data model so it only outputs 3 unique plans.
+- Correct map/render logic to prevent duplication.
+- Ensure pricing, quotas, and features map correctly.
+- Fix conditional rendering, default states, and fallback logic.
+
+PRICING UI:
+- Make a fully responsive layout:
+  • Mobile → 1 column stacked
+  • Tablet → 2 columns
+  • Desktop → 3 columns
+- Equalize card heights.
+- Fix spacing, padding, margins, and typography.
+- Ensure icons align properly.
+- Fix CTA buttons (width, padding, alignment).
+- Improve dark mode consistency.
+
+==========================================
+PART C — GLOBAL MOBILE SUPPORT
+==========================================
+- Apply mobile-first breakpoints.
+- Add fluid typography and spacing.
+- Fix any horizontal overflow.
+- Ensure all cards and containers scale properly.
+- Optimize for iOS and Android safe areas.
+- Improve performance and layout stability.
+- Make the entire UI feel like a 2025 native app.
+
+==========================================
+DELIVERABLES
+==========================================
+Provide:
+
+1. List of all root causes (for MIME, mobile layout, and pricing duplication).
+2. Corrected pricing data (3 plans only).
+3. Fully rewritten responsive pricing component code.
+4. Fully rewritten error page component code.
+5. Updated routing/build configuration for proper MIME handling.
+6. Before vs After explanation.
+7. Final “Mobile Ready + Bug-Free” version of both pages.
+
+Start by saying:
+“FIXING ALL ISSUES NOW — MIME, Mobile UI, and Pricing Page.”
