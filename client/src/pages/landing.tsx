@@ -25,12 +25,32 @@ import {
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 import { useUserCurrency } from "@/lib/userContext";
 
+function useReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+    
+    const handler = (event: MediaQueryListEvent) => setPrefersReducedMotion(event.matches);
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+  
+  return prefersReducedMotion;
+}
+
 function AnimatedCounter({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setCount(value);
+      return;
+    }
     if (isInView) {
       const duration = 2000;
       const steps = 60;
@@ -47,12 +67,18 @@ function AnimatedCounter({ value, suffix = "", prefix = "" }: { value: number; s
       }, duration / steps);
       return () => clearInterval(timer);
     }
-  }, [isInView, value]);
+  }, [isInView, value, prefersReducedMotion]);
 
   return <span ref={ref}>{prefix}{count}{suffix}</span>;
 }
 
 function FloatingElement({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
+  const prefersReducedMotion = useReducedMotion();
+  
+  if (prefersReducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
+  
   return (
     <motion.div
       initial={{ y: 0 }}
