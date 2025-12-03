@@ -23,6 +23,7 @@ export const CURRENCIES: Record<string, Currency> = {
  PHP: { code: 'PHP', name: 'Philippine Peso', symbol: '₱', decimals: 2 },
  MYR: { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', decimals: 2 },
  TRY: { code: 'TRY', name: 'Turkish Lira', symbol: '₺', decimals: 2 },
+ SAR: { code: 'SAR', name: 'Saudi Riyal', symbol: '﷼', decimals: 2 },
 };
 
 // Exchange rates - fetched from backend API with fallback to static rates
@@ -42,6 +43,7 @@ let EXCHANGE_RATES: Record<string, number> = {
  PHP: 56.00,
  MYR: 4.65,
  TRY: 29.50,
+ SAR: 3.75,
 };
 
 let ratesLastFetched = 0;
@@ -274,6 +276,12 @@ export function getRecommendedCurrency(userCountry?: string): string {
   'PH': 'PHP',
   'MY': 'MYR',
   'TR': 'TRY',
+  'SA': 'SAR',
+  'AE': 'SAR',
+  'KW': 'SAR',
+  'QA': 'SAR',
+  'BH': 'SAR',
+  'OM': 'SAR',
  };
 
  return countryToCurrency[userCountry || ''] || 'USD';
