@@ -1421,6 +1421,15 @@ export const bonusCredits = pgTable("bonus_credits", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Stripe Webhook Event Idempotency - Persisted to survive server restarts
+export const webhookEvents = pgTable("webhook_events", {
+  id: varchar("id").primaryKey(), // Stripe event ID (evt_xxx)
+  eventType: text("event_type").notNull(), // checkout.session.completed, etc.
+  processedAt: timestamp("processed_at").defaultNow(),
+}, (table) => [
+  index("idx_webhook_events_processed_at").on(table.processedAt),
+]);
+
 // Crypto tracking tables
 export const cryptoHoldings = pgTable("crypto_holdings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

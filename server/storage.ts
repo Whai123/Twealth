@@ -146,7 +146,8 @@ import {
   userDebts,
   userAssets,
   aiUsageLogs,
-  playbooks
+  playbooks,
+  webhookEvents
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -454,6 +455,11 @@ export interface IStorage {
   initializeDefaultSubscription(userId: string): Promise<Subscription>;
   checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }>;
   resetUsage(userId: string): Promise<void>;
+  
+  // Webhook idempotency
+  isWebhookEventProcessed(eventId: string): Promise<boolean>;
+  markWebhookEventProcessed(eventId: string, eventType: string): Promise<void>;
+  cleanupOldWebhookEvents(maxAgeHours: number): Promise<number>;
   
   // Tier-aware AI methods
   getUserSubscriptionWithUsage(userId: string): Promise<{ subscription: Subscription; usage: UsageTracking | null; plan: SubscriptionPlan } | null>;
@@ -3648,6 +3654,29 @@ export class DatabaseStorage implements IStorage {
         aiInsightsGenerated: 0,
       });
     }
+  }
+
+  // Webhook idempotency methods
+  async isWebhookEventProcessed(eventId: string): Promise<boolean> {
+    const result = await db.select()
+      .from(webhookEvents)
+      .where(eq(webhookEvents.id, eventId))
+      .limit(1);
+    return result.length > 0;
+  }
+
+  async markWebhookEventProcessed(eventId: string, eventType: string): Promise<void> {
+    await db.insert(webhookEvents)
+      .values({ id: eventId, eventType })
+      .onConflictDoNothing();
+  }
+
+  async cleanupOldWebhookEvents(maxAgeHours: number): Promise<number> {
+    const cutoff = new Date(Date.now() - maxAgeHours * 60 * 60 * 1000);
+    const result = await db.delete(webhookEvents)
+      .where(lte(webhookEvents.processedAt, cutoff))
+      .returning();
+    return result.length;
   }
 
   // Tier-aware AI methods

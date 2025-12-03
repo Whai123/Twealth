@@ -18,9 +18,8 @@ const debugLog = (context: string, message: string, data?: any) => {
   }
 };
 
-// Idempotency cache for Stripe webhook events (module-scoped, persists across requests)
-const processedWebhookEvents = new Set<string>();
-const WEBHOOK_EVENT_CACHE_SIZE = 1000;
+// Webhook event idempotency is now database-backed for persistence across restarts
+// Old events are cleaned up periodically (see cleanupOldWebhookEvents)
 
 // Rate limiters for different endpoint types
 const aiChatLimiter = rateLimit({
@@ -5919,18 +5918,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         return res.status(400).send(`Webhook Error: ${err.message}`);
       }
 
-      // Idempotency check - prevent duplicate processing
-      if (processedWebhookEvents.has(event.id)) {
+      // Idempotency check - prevent duplicate processing (database-backed for persistence)
+      const isProcessed = await storage.isWebhookEventProcessed(event.id);
+      if (isProcessed) {
         stripeLogger.info('Duplicate webhook event received', { data: { eventId: event.id, type: event.type } });
         return res.json({ received: true, duplicate: true });
       }
       
-      // Add to processed events (with size limit)
-      if (processedWebhookEvents.size >= WEBHOOK_EVENT_CACHE_SIZE) {
-        const firstEvent = processedWebhookEvents.values().next().value;
-        if (firstEvent) processedWebhookEvents.delete(firstEvent);
-      }
-      processedWebhookEvents.add(event.id);
+      // Mark event as processed before handling to prevent race conditions
+      await storage.markWebhookEventProcessed(event.id, event.type);
 
       stripeLogger.info('Processing webhook event', { data: { eventId: event.id, type: event.type } });
 
