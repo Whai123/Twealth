@@ -15,6 +15,7 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { UserPreferences, FinancialGoal } from "@shared/schema";
 import { SmartNudgeBanner } from "@/components/smart-nudges";
 import { StreakWidget, AchievementBadges } from "@/components/streak-system";
+import { useUserCurrency, useUserPreferences } from "@/lib/userContext";
 
 interface DashboardStats {
   totalTransactions: number;
@@ -104,6 +105,8 @@ function getMotivationalMessage(healthScore: number, savingsRate: number): strin
 export default function Dashboard() {
   const { t } = useTranslation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
+  const { formatAmount, currencySymbol } = useUserCurrency();
+  const { getUserName } = useUserPreferences();
   
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
@@ -170,7 +173,7 @@ export default function Dashboard() {
       steps.push({
         icon: TrendingUp,
         title: "Increase Savings Rate",
-        description: `Currently ${savingsRate.toFixed(0)}%. Potential: $${monthlySavingsCapacity.toLocaleString()}/mo.`,
+        description: `Currently ${savingsRate.toFixed(0)}%. Potential: ${formatAmount(monthlySavingsCapacity)}/mo.`,
         action: "Optimize",
         href: "/money-tracking",
         priority: "medium"
@@ -203,7 +206,7 @@ export default function Dashboard() {
     }
     
     return steps.slice(0, 3);
-  }, [emergencyFundMonths, savingsRate, monthlySavingsCapacity, nextGoal, nextGoalProgress, queriesRemaining]);
+  }, [emergencyFundMonths, savingsRate, monthlySavingsCapacity, nextGoal, nextGoalProgress, queriesRemaining, formatAmount]);
 
   const getHealthColor = (score: number) => {
     if (score >= 75) return { text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500", light: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800" };
@@ -353,7 +356,7 @@ export default function Dashboard() {
                         <span className="text-[10px] sm:text-xs text-muted-foreground">Monthly Flow</span>
                       </div>
                       <div className={`text-xl sm:text-2xl lg:text-3xl font-bold ${isPositiveCashFlow ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {isPositiveCashFlow ? '+' : ''}<AnimatedNumber value={netCashFlow} prefix="$" />
+                        {isPositiveCashFlow ? '+' : ''}<AnimatedNumber value={netCashFlow} prefix={currencySymbol} />
                       </div>
                     </motion.div>
                     
@@ -492,10 +495,10 @@ export default function Dashboard() {
                       <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{nextGoal.title}</h4>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xl sm:text-2xl font-bold text-foreground">
-                          ${parseFloat(nextGoal.currentAmount || '0').toLocaleString()}
+                          {formatAmount(parseFloat(nextGoal.currentAmount || '0'))}
                         </span>
                         <span className="text-xs sm:text-sm text-muted-foreground">
-                          / ${parseFloat(String(nextGoal.targetAmount)).toLocaleString()}
+                          / {formatAmount(parseFloat(String(nextGoal.targetAmount)))}
                         </span>
                       </div>
                     </div>
@@ -521,8 +524,8 @@ export default function Dashboard() {
                       <div className="p-3 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
                         <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Monthly contribution needed</p>
                         <p className="text-lg sm:text-xl font-bold text-foreground">
-                          ${Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
-                            Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))).toFixed(0)}
+                          {formatAmount(Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
+                            Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))))}
                           <span className="text-xs sm:text-sm font-normal text-muted-foreground">/month</span>
                         </p>
                       </div>
