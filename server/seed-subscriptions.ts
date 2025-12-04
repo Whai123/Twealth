@@ -5,6 +5,26 @@ import { eq } from "drizzle-orm";
 export async function seedSubscriptionPlans() {
   console.log("Seeding subscription plans...");
 
+  // Clean up any duplicate or legacy plans first
+  // Only keep the canonical plans: free, pro, enterprise (lowercase)
+  const validPlanNames = ['free', 'pro', 'enterprise'];
+  const allPlans = await db.query.subscriptionPlans.findMany();
+  
+  for (const plan of allPlans) {
+    if (!validPlanNames.includes(plan.name.toLowerCase())) {
+      // Check if any subscriptions reference this plan
+      const subscriptionsWithPlan = await db.query.subscriptions.findFirst({
+        where: (subs, { eq }) => eq(subs.planId, plan.id),
+      });
+      
+      if (!subscriptionsWithPlan) {
+        // Safe to delete orphaned plan
+        await db.delete(subscriptionPlans).where(eq(subscriptionPlans.id, plan.id));
+        console.log(`  Removed orphaned plan: ${plan.name} (${plan.id})`);
+      }
+    }
+  }
+
   // Get Stripe price IDs from environment variables
   const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID || null;
   const STRIPE_ENTERPRISE_PRICE_ID = process.env.STRIPE_ENTERPRISE_PRICE_ID || null;
