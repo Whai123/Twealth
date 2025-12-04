@@ -437,7 +437,6 @@ export default function SubscriptionPage() {
   const [, setLocation] = useLocation();
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
   const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<SubscriptionPlan | null>(null);
-  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/subscription/plans"]
@@ -480,43 +479,9 @@ export default function SubscriptionPage() {
     }
   };
 
-  const handleConfirmCheckout = async () => {
-    if (!selectedPlanForCheckout) return;
-    
-    setIsCheckoutLoading(true);
-    try {
-      const response = await apiRequest("POST", "/api/subscription/create-checkout-session", { 
-        planId: selectedPlanForCheckout.id 
-      });
-      const data = await response.json();
-      const { url } = data;
-      
-      if (url) {
-        handleCloseCheckoutModal();
-        toast({
-          title: "Redirecting to Stripe",
-          description: "You'll be redirected to complete your payment securely.",
-        });
-        setTimeout(() => {
-          window.location.href = url;
-        }, 300);
-      } else {
-        throw new Error("No checkout URL received from Stripe");
-      }
-    } catch (error: any) {
-      toast({
-        title: "Checkout Failed",
-        description: error.message || "Failed to create checkout session",
-        variant: "destructive"
-      });
-      setIsCheckoutLoading(false);
-    }
-  };
-
   const handleCloseCheckoutModal = () => {
     setIsCheckoutModalOpen(false);
     setSelectedPlanForCheckout(null);
-    setIsCheckoutLoading(false);
   };
 
   if (plansLoading || subscriptionLoading) {
@@ -777,8 +742,13 @@ export default function SubscriptionPage() {
           ...getLocalizedPrice(parseFloat(selectedPlanForCheckout.priceUsd), userCurrency),
         } : { amount: 0, currency: { symbol: '$', code: 'USD' } }}
         userCurrency={userCurrency}
-        onConfirm={handleConfirmCheckout}
-        isLoading={isCheckoutLoading}
+        onSuccess={() => {
+          toast({
+            title: "Subscription Activated!",
+            description: `You're now on ${selectedPlanForCheckout?.displayName}. Enjoy your premium features!`,
+          });
+          handleCloseCheckoutModal();
+        }}
       />
     </div>
   );
