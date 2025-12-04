@@ -34,7 +34,7 @@ export async function seedSubscriptionPlans() {
       aiDeepAnalysisLimit: 0,
       aiInsightsFrequency: "never",
       isLifetimeLimit: false,
-      sortOrder: 1,
+      sortOrder: 0,
       features: [
         "50 Scout queries/month Fast",
         "Basic financial tracking",
@@ -61,7 +61,7 @@ export async function seedSubscriptionPlans() {
       aiDeepAnalysisLimit: 30,
       aiInsightsFrequency: "daily",
       isLifetimeLimit: false,
-      sortOrder: 2,
+      sortOrder: 1,
       features: [
         "Unlimited Scout queries Fast",
         "25 Sonnet queries/month Smart",
@@ -91,7 +91,7 @@ export async function seedSubscriptionPlans() {
       aiDeepAnalysisLimit: 90,
       aiInsightsFrequency: "daily",
       isLifetimeLimit: false,
-      sortOrder: 3,
+      sortOrder: 2,
       features: [
         "Unlimited Scout queries Fast",
         "60 Sonnet queries/month Smart",
