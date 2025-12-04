@@ -12,6 +12,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { getLocalizedPrice, formatCurrency, getCurrencySymbol } from "@/lib/currency";
 import AIROICalculator from "@/components/ai-roi-calculator";
+import GlassmorphismCheckoutModal from "@/components/glassmorphism-checkout-modal";
 
 interface SubscriptionPlan {
   id: string;
@@ -434,6 +435,9 @@ const formatFeatureName = (feature: string) => {
 export default function SubscriptionPage() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [selectedPlanForCheckout, setSelectedPlanForCheckout] = useState<SubscriptionPlan | null>(null);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const { data: plans, isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
     queryKey: ["/api/subscription/plans"]
@@ -452,9 +456,9 @@ export default function SubscriptionPage() {
     queryKey: ["/api/user-preferences"],
   });
 
-  const handleUpgrade = async (planId: string, planName: string) => {
-    if (planName === 'free') {
-      apiRequest("POST", "/api/subscription/upgrade", { planId })
+  const handleUpgradeClick = (plan: SubscriptionPlan) => {
+    if (plan.name === 'free') {
+      apiRequest("POST", "/api/subscription/upgrade", { planId: plan.id })
         .then(() => {
           toast({
             title: "Switched to Free Plan",
@@ -471,24 +475,48 @@ export default function SubscriptionPage() {
           });
         });
     } else {
-      try {
-        const response = await apiRequest("POST", "/api/subscription/create-checkout-session", { planId });
-        const data = await response.json();
-        const { url } = data;
-        
-        if (url) {
-          window.location.href = url;
-        } else {
-          throw new Error("No checkout URL received from Stripe");
-        }
-      } catch (error: any) {
-        toast({
-          title: "Checkout Failed",
-          description: error.message || "Failed to create checkout session",
-          variant: "destructive"
-        });
-      }
+      setSelectedPlanForCheckout(plan);
+      setIsCheckoutModalOpen(true);
     }
+  };
+
+  const handleConfirmCheckout = async () => {
+    if (!selectedPlanForCheckout) return;
+    
+    setIsCheckoutLoading(true);
+    try {
+      const response = await apiRequest("POST", "/api/subscription/create-checkout-session", { 
+        planId: selectedPlanForCheckout.id 
+      });
+      const data = await response.json();
+      const { url } = data;
+      
+      if (url) {
+        handleCloseCheckoutModal();
+        toast({
+          title: "Redirecting to Stripe",
+          description: "You'll be redirected to complete your payment securely.",
+        });
+        setTimeout(() => {
+          window.location.href = url;
+        }, 300);
+      } else {
+        throw new Error("No checkout URL received from Stripe");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Checkout Failed",
+        description: error.message || "Failed to create checkout session",
+        variant: "destructive"
+      });
+      setIsCheckoutLoading(false);
+    }
+  };
+
+  const handleCloseCheckoutModal = () => {
+    setIsCheckoutModalOpen(false);
+    setSelectedPlanForCheckout(null);
+    setIsCheckoutLoading(false);
   };
 
   if (plansLoading || subscriptionLoading) {
@@ -687,7 +715,7 @@ export default function SubscriptionPage() {
                 plan={plan}
                 isCurrentPlan={currentPlan?.id === plan.id}
                 userCurrency={userCurrency}
-                onUpgrade={() => handleUpgrade(plan.id, plan.name)}
+                onUpgrade={() => handleUpgradeClick(plan)}
                 delay={index * 0.15}
               />
             ))}
@@ -740,6 +768,18 @@ export default function SubscriptionPage() {
           </Card>
         </motion.div>
       </div>
+
+      <GlassmorphismCheckoutModal
+        isOpen={isCheckoutModalOpen}
+        onClose={handleCloseCheckoutModal}
+        plan={selectedPlanForCheckout}
+        localizedPrice={selectedPlanForCheckout ? {
+          ...getLocalizedPrice(parseFloat(selectedPlanForCheckout.priceUsd), userCurrency),
+        } : { amount: 0, currency: { symbol: '$', code: 'USD' } }}
+        userCurrency={userCurrency}
+        onConfirm={handleConfirmCheckout}
+        isLoading={isCheckoutLoading}
+      />
     </div>
   );
 }
