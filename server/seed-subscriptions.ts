@@ -11,8 +11,8 @@ export async function seedSubscriptionPlans() {
   const allPlans = await db.query.subscriptionPlans.findMany();
   
   for (const canonicalName of validPlanNames) {
-    // Find all plans that match this name (case-insensitive)
-    const matchingPlans = allPlans.filter(p => p.name.toLowerCase() === canonicalName);
+    // Find all plans that match this name (case-insensitive, trimmed)
+    const matchingPlans = allPlans.filter(p => p.name.trim().toLowerCase() === canonicalName);
     
     if (matchingPlans.length > 1) {
       console.log(`  Found ${matchingPlans.length} duplicate "${canonicalName}" plans, consolidating...`);
@@ -53,7 +53,7 @@ export async function seedSubscriptionPlans() {
   // Step 2: Remove any plans that don't match valid names at all
   const remainingPlans = await db.query.subscriptionPlans.findMany();
   for (const plan of remainingPlans) {
-    if (!validPlanNames.includes(plan.name.toLowerCase())) {
+    if (!validPlanNames.includes(plan.name.trim().toLowerCase())) {
       // Check if any subscriptions reference this plan
       const subscriptionsWithPlan = await db.query.subscriptions.findFirst({
         where: (subs, { eq }) => eq(subs.planId, plan.id),
@@ -173,9 +173,9 @@ export async function seedSubscriptionPlans() {
   // Upsert plans - only update pricing and quotas, insert if missing
   // Use case-insensitive matching to handle production databases with capitalized names
   for (const plan of plans) {
-    // Find existing plan with case-insensitive match (handles "Pro" vs "pro")
+    // Find existing plan with case-insensitive match and trim (handles "Pro" vs "pro" and "free " vs "free")
     const existing = await db.query.subscriptionPlans.findFirst({
-      where: (plans, { }) => sql`LOWER(${plans.name}) = ${plan.name.toLowerCase()}`,
+      where: (plans, { }) => sql`LOWER(TRIM(${plans.name})) = ${plan.name.toLowerCase()}`,
     });
 
     if (existing) {
