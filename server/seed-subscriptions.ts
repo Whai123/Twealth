@@ -1,16 +1,58 @@
 import { db } from "./db";
-import { subscriptionPlans } from "../shared/schema";
-import { eq, sql } from "drizzle-orm";
+import { subscriptionPlans, subscriptions } from "../shared/schema";
+import { eq, sql, inArray } from "drizzle-orm";
 
 export async function seedSubscriptionPlans() {
   console.log("Seeding subscription plans...");
 
-  // Clean up any duplicate or legacy plans first
-  // Only keep the canonical plans: free, pro, enterprise (lowercase)
+  // Step 1: Clean up duplicate plans (e.g., "Free" and "free" are duplicates)
+  // For each canonical name, keep only one plan and migrate subscriptions
   const validPlanNames = ['free', 'pro', 'enterprise'];
   const allPlans = await db.query.subscriptionPlans.findMany();
   
-  for (const plan of allPlans) {
+  for (const canonicalName of validPlanNames) {
+    // Find all plans that match this name (case-insensitive)
+    const matchingPlans = allPlans.filter(p => p.name.toLowerCase() === canonicalName);
+    
+    if (matchingPlans.length > 1) {
+      console.log(`  Found ${matchingPlans.length} duplicate "${canonicalName}" plans, consolidating...`);
+      
+      // Pick the canonical plan with deterministic priority:
+      // 1. Prefer exact lowercase name match
+      // 2. Prefer plan with Stripe price ID (production-configured)
+      // 3. Prefer plan with earliest ID (stable tiebreaker)
+      let canonicalPlan = matchingPlans.find(p => p.name === canonicalName);
+      if (!canonicalPlan) {
+        canonicalPlan = matchingPlans.find(p => p.stripePriceId !== null);
+      }
+      if (!canonicalPlan) {
+        canonicalPlan = matchingPlans.sort((a, b) => a.id.localeCompare(b.id))[0];
+      }
+      
+      // Get duplicate plan IDs (all except canonical)
+      const duplicatePlans = matchingPlans.filter(p => p.id !== canonicalPlan.id);
+      const duplicateIds = duplicatePlans.map(p => p.id);
+      
+      if (duplicateIds.length > 0) {
+        // Migrate any subscriptions from duplicates to the canonical plan
+        const migratedCount = await db
+          .update(subscriptions)
+          .set({ planId: canonicalPlan.id })
+          .where(inArray(subscriptions.planId, duplicateIds));
+        
+        // Delete the duplicate plans
+        await db
+          .delete(subscriptionPlans)
+          .where(inArray(subscriptionPlans.id, duplicateIds));
+        
+        console.log(`    Migrated subscriptions and deleted ${duplicateIds.length} duplicate(s): ${duplicatePlans.map(p => `"${p.name}"`).join(', ')}`);
+      }
+    }
+  }
+  
+  // Step 2: Remove any plans that don't match valid names at all
+  const remainingPlans = await db.query.subscriptionPlans.findMany();
+  for (const plan of remainingPlans) {
     if (!validPlanNames.includes(plan.name.toLowerCase())) {
       // Check if any subscriptions reference this plan
       const subscriptionsWithPlan = await db.query.subscriptions.findFirst({
