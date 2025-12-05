@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CreditCard, Check, Loader2, Shield, Lock, Sparkles, Crown, Zap, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, CreditCard, Check, Loader2, Shield, Lock, Sparkles, Crown, Zap, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, Users, Calendar } from "lucide-react";
+import { SiVisa, SiMastercard, SiApplepay, SiGooglepay } from "react-icons/si";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements, PaymentRequestButtonElement } from "@stripe/react-stripe-js";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY 
@@ -75,6 +76,155 @@ const cardElementOptionsDark = {
   },
 };
 
+function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2 mb-4">
+      {Array.from({ length: totalSteps }, (_, i) => (
+        <div key={i} className="flex items-center">
+          <motion.div 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all ${
+              i + 1 <= currentStep 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+            }`}
+            initial={false}
+            animate={{ scale: i + 1 === currentStep ? 1.1 : 1 }}
+          >
+            {i + 1 < currentStep ? <Check className="w-4 h-4" /> : i + 1}
+          </motion.div>
+          {i < totalSteps - 1 && (
+            <div className={`w-8 h-0.5 mx-1 transition-colors ${
+              i + 1 < currentStep ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+            }`} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function QuickPayButtons({ 
+  plan, 
+  localizedPrice, 
+  onSuccess, 
+  onError,
+  isEnterprise,
+  isPro
+}: { 
+  plan: SubscriptionPlan;
+  localizedPrice: any;
+  onSuccess: () => void;
+  onError: (error: string) => void;
+  isEnterprise: boolean;
+  isPro: boolean;
+}) {
+  const stripe = useStripe();
+  const [paymentRequest, setPaymentRequest] = useState<any>(null);
+  const [canMakePayment, setCanMakePayment] = useState(false);
+
+  useEffect(() => {
+    if (!stripe) return;
+
+    const pr = stripe.paymentRequest({
+      country: 'US',
+      currency: localizedPrice.currency.code.toLowerCase(),
+      total: {
+        label: `Twealth ${plan.displayName}`,
+        amount: Math.round(localizedPrice.amount * 100),
+      },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    pr.canMakePayment().then(result => {
+      if (result) {
+        setPaymentRequest(pr);
+        setCanMakePayment(true);
+      }
+    });
+
+    pr.on('paymentmethod', async (ev) => {
+      try {
+        const response = await apiRequest("POST", "/api/subscription/create-payment-intent", { 
+          planId: plan.id 
+        });
+        const data = await response.json();
+
+        if (!data.clientSecret) {
+          ev.complete('fail');
+          onError("Unable to process payment");
+          return;
+        }
+
+        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
+          data.clientSecret,
+          { payment_method: ev.paymentMethod.id },
+          { handleActions: false }
+        );
+
+        if (confirmError) {
+          ev.complete('fail');
+          onError(confirmError.message || "Payment failed");
+        } else if (paymentIntent?.status === 'succeeded') {
+          ev.complete('success');
+          queryClient.invalidateQueries({ queryKey: ['/api/subscription/current'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/subscription/usage'] });
+          onSuccess();
+        } else if (paymentIntent?.status === 'requires_action') {
+          ev.complete('success');
+          const { error } = await stripe.confirmCardPayment(data.clientSecret);
+          if (error) {
+            onError(error.message || "Authentication failed");
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['/api/subscription/current'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/subscription/usage'] });
+            onSuccess();
+          }
+        } else {
+          ev.complete('fail');
+          onError("Payment could not be completed");
+        }
+      } catch (err: any) {
+        ev.complete('fail');
+        onError(err.message || "Payment failed");
+      }
+    });
+  }, [stripe, plan, localizedPrice]);
+
+  if (!canMakePayment || !paymentRequest) return null;
+
+  return (
+    <div className="space-y-3 mb-4">
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        <span>Express Checkout</span>
+        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+      </div>
+      
+      <div className="rounded-xl overflow-hidden border border-gray-200/50 dark:border-gray-700/50">
+        <PaymentRequestButtonElement
+          options={{
+            paymentRequest,
+            style: {
+              paymentRequestButton: {
+                type: 'default',
+                theme: 'dark',
+                height: '48px',
+              },
+            },
+          }}
+        />
+      </div>
+
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+        <span>Or pay with card</span>
+        <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+      </div>
+    </div>
+  );
+}
+
 function EmbeddedPaymentForm({ 
   plan, 
   localizedPrice,
@@ -105,6 +255,7 @@ function EmbeddedPaymentForm({
   });
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
+  const [saveCard, setSaveCard] = useState(true);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'));
@@ -158,6 +309,7 @@ function EmbeddedPaymentForm({
         payment_method: {
           card: cardNumber,
         },
+        setup_future_usage: saveCard ? 'off_session' : undefined,
       });
 
       if (result.error) {
@@ -228,9 +380,21 @@ function EmbeddedPaymentForm({
   };
 
   const currentOptions = isDark ? cardElementOptionsDark : cardElementOptions;
+  const dailyCost = (localizedPrice.amount / 30).toFixed(2);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <StepIndicator currentStep={2} totalSteps={2} />
+      
+      <QuickPayButtons
+        plan={plan}
+        localizedPrice={localizedPrice}
+        onSuccess={onSuccess}
+        onError={setError}
+        isEnterprise={isEnterprise}
+        isPro={isPro}
+      />
+
       <div className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -329,6 +493,18 @@ function EmbeddedPaymentForm({
         </div>
       </div>
 
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700/30">
+        <Checkbox 
+          id="save-card" 
+          checked={saveCard} 
+          onCheckedChange={(checked) => setSaveCard(checked as boolean)}
+          data-testid="checkbox-save-card"
+        />
+        <label htmlFor="save-card" className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+          Save card for future payments
+        </label>
+      </div>
+
       <AnimatePresence>
         {error && (
           <motion.div
@@ -345,6 +521,11 @@ function EmbeddedPaymentForm({
       </AnimatePresence>
 
       <div className="pt-2 space-y-3">
+        <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <Users className="w-3.5 h-3.5" />
+          <span>Join 12,000+ users managing their wealth</span>
+        </div>
+
         <Button
           type="submit"
           disabled={!stripe || !isFormComplete || isProcessing}
@@ -368,6 +549,10 @@ function EmbeddedPaymentForm({
           )}
         </Button>
 
+        <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+          Only {localizedPrice.currency.symbol}{dailyCost}/day
+        </div>
+
         <Button
           type="button"
           variant="ghost"
@@ -384,12 +569,23 @@ function EmbeddedPaymentForm({
       <div className="flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-gray-500 pt-2">
         <div className="flex items-center gap-1.5">
           <Shield className="w-3.5 h-3.5" />
-          <span>Secure payment</span>
+          <span>256-bit SSL</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Lock className="w-3.5 h-3.5" />
-          <span>Encrypted</span>
+          <span>PCI Compliant</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          <span>30-day guarantee</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-3 pt-1">
+        <SiVisa className="w-8 h-5 text-gray-400" />
+        <SiMastercard className="w-8 h-5 text-gray-400" />
+        <SiApplepay className="w-8 h-5 text-gray-400" />
+        <SiGooglepay className="w-8 h-5 text-gray-400" />
       </div>
     </form>
   );
@@ -468,6 +664,7 @@ export default function GlassmorphismCheckoutModal({
 
   const isPro = plan.name === "pro";
   const isEnterprise = plan.name === "enterprise";
+  const dailyCost = (localizedPrice.amount / 30).toFixed(2);
 
   const getGradientColors = () => {
     if (isEnterprise) return "from-amber-500/20 via-yellow-500/10 to-orange-500/20";
@@ -544,15 +741,15 @@ export default function GlassmorphismCheckoutModal({
               stiffness: 300,
               duration: 0.4 
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none overflow-y-auto"
           >
             <div 
-              className={`relative w-full max-w-md pointer-events-auto ${getBorderGlow()}`}
+              className={`relative w-full max-w-md pointer-events-auto my-4 ${getBorderGlow()}`}
               data-testid="modal-checkout"
             >
               <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${getGradientColors()} blur-xl opacity-50`} />
               
-              <div className="relative rounded-3xl border border-white/20 dark:border-white/10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl overflow-hidden">
+              <div className="relative rounded-3xl border border-white/20 dark:border-white/10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl overflow-hidden max-h-[90vh] overflow-y-auto">
                 <button
                   onClick={handleClose}
                   className="absolute top-4 right-4 p-2 rounded-full bg-white/20 dark:bg-gray-800/50 backdrop-blur-sm hover:bg-white/30 dark:hover:bg-gray-700/50 transition-colors z-10"
@@ -571,6 +768,8 @@ export default function GlassmorphismCheckoutModal({
                       transition={{ duration: 0.3 }}
                     >
                       <div className="relative p-6 pb-4">
+                        <StepIndicator currentStep={1} totalSteps={2} />
+                        
                         <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-br ${getGradientColors()} opacity-60`} />
                         
                         <div className="relative">
@@ -614,11 +813,16 @@ export default function GlassmorphismCheckoutModal({
                                   </span>
                                   <span className="text-white/70 text-sm mb-1.5">/{plan.billingInterval}</span>
                                 </div>
-                                {userCurrency !== 'USD' && (
+                                <div className="flex items-center gap-2">
+                                  {userCurrency !== 'USD' && (
+                                    <p className="text-white/60 text-xs">
+                                      ≈ ${parseFloat(plan.priceUsd).toFixed(2)} USD
+                                    </p>
+                                  )}
                                   <p className="text-white/60 text-xs">
-                                    ≈ ${parseFloat(plan.priceUsd).toFixed(2)} USD
+                                    ({localizedPrice.currency.symbol}{dailyCost}/day)
                                   </p>
-                                )}
+                                </div>
                               </div>
                               
                               <div className="flex items-center justify-between">
@@ -664,6 +868,11 @@ export default function GlassmorphismCheckoutModal({
                       </div>
 
                       <div className="px-6 py-4 bg-gray-50/50 dark:bg-gray-800/30 border-t border-gray-200/50 dark:border-gray-700/30">
+                        <div className="flex items-center justify-center gap-2 mb-3 text-xs text-gray-500 dark:text-gray-400">
+                          <Users className="w-3.5 h-3.5" />
+                          <span>Join 12,000+ users managing their wealth</span>
+                        </div>
+
                         <div className="flex items-center justify-center gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-1.5">
                             <Shield className="w-3.5 h-3.5" />
@@ -672,6 +881,10 @@ export default function GlassmorphismCheckoutModal({
                           <div className="flex items-center gap-1.5">
                             <Lock className="w-3.5 h-3.5" />
                             <span>256-bit encryption</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>30-day guarantee</span>
                           </div>
                         </div>
 
@@ -697,7 +910,8 @@ export default function GlassmorphismCheckoutModal({
                           >
                             <div className="flex items-center gap-2">
                               <CreditCard className="w-4 h-4" />
-                              <span>Enter Card Details</span>
+                              <span>Continue</span>
+                              <ArrowRight className="w-4 h-4" />
                             </div>
                           </Button>
                         </div>
@@ -714,7 +928,7 @@ export default function GlassmorphismCheckoutModal({
                       transition={{ duration: 0.3 }}
                       className="p-6"
                     >
-                      <div className="mb-6">
+                      <div className="mb-4">
                         <div className="flex items-center gap-3 mb-2">
                           {getPlanIcon()}
                           <div>
