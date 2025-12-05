@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { subscriptionPlans } from "../shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export async function seedSubscriptionPlans() {
   console.log("Seeding subscription plans...");
@@ -129,14 +129,19 @@ export async function seedSubscriptionPlans() {
   ];
 
   // Upsert plans - only update pricing and quotas, insert if missing
+  // Use case-insensitive matching to handle production databases with capitalized names
   for (const plan of plans) {
+    // Find existing plan with case-insensitive match (handles "Pro" vs "pro")
     const existing = await db.query.subscriptionPlans.findFirst({
-      where: (plans, { eq }) => eq(plans.name, plan.name),
+      where: (plans, { }) => sql`LOWER(${plans.name}) = ${plan.name.toLowerCase()}`,
     });
 
     if (existing) {
-      // Only update pricing and quota fields - preserve other production customizations
+      // Update pricing, quotas, AND normalize name to lowercase
       const pricingUpdates: Record<string, any> = {
+        name: plan.name, // Normalize to lowercase (e.g., "Pro" -> "pro")
+        displayName: plan.displayName,
+        description: plan.description,
         priceUsd: plan.priceUsd,
         priceThb: plan.priceThb,
         scoutLimit: plan.scoutLimit,
@@ -145,6 +150,7 @@ export async function seedSubscriptionPlans() {
         opusLimit: plan.opusLimit,
         aiChatLimit: plan.aiChatLimit,
         aiDeepAnalysisLimit: plan.aiDeepAnalysisLimit,
+        features: plan.features,
         sortOrder: plan.sortOrder,
       };
       
@@ -156,8 +162,10 @@ export async function seedSubscriptionPlans() {
       await db
         .update(subscriptionPlans)
         .set(pricingUpdates)
-        .where(eq(subscriptionPlans.name, plan.name));
-      console.log(`  Updated pricing for: ${plan.name} ($${plan.priceUsd})${plan.stripePriceId ? ' [Stripe ID updated]' : ''}`);
+        .where(eq(subscriptionPlans.id, existing.id));
+      
+      const wasRenamed = existing.name !== plan.name;
+      console.log(`  Updated pricing for: ${plan.name} ($${plan.priceUsd})${plan.stripePriceId ? ' [Stripe ID updated]' : ''}${wasRenamed ? ` [renamed from "${existing.name}"]` : ''}`);
     } else {
       // Insert new plan with all fields
       await db.insert(subscriptionPlans).values(plan);
