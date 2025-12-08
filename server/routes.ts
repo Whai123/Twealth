@@ -110,7 +110,7 @@ import { autoCategorizeTransaction, getCategorySuggestions, getAvailableCategori
 import { spendingPatternService } from "./spendingPatternService";
 import { calculateFinancialHealth } from './financialHealthService';
 import { checkGoalProgress, getGoalMilestones } from './goalMilestoneService';
-import { generateProactiveInsights } from './proactiveInsightsService';
+import { generateProactiveInsights, generateWeeklySummary } from './proactiveInsightsService';
 import { predictiveAnalyticsService } from './predictiveAnalyticsService';
 import { generateHybridAdvice, type HybridAIResponse } from './ai/hybridAIService';
 import { routeWithTierCheck, type QuotaExceededError } from './ai/tierAwareRouter';
@@ -4862,6 +4862,18 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       res.json(insights);
     } catch (error: any) {
       console.error('Proactive insights error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Weekly Summary endpoint
+  app.get("/api/insights/weekly-summary", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const summary = await generateWeeklySummary(storage, userId);
+      res.json(summary);
+    } catch (error: any) {
+      console.error('Weekly summary error:', error);
       res.status(500).json({ message: error.message });
     }
   });

@@ -7,6 +7,21 @@ interface ConversationMemory {
   spendingHabits?: string[];
   riskTolerance?: string;
   lastUpdated?: string;
+  // Enhanced memory features
+  adviceHistory?: Array<{
+    topic: string;
+    advice: string;
+    date: string;
+    outcome?: 'followed' | 'ignored' | 'modified' | 'pending';
+  }>;
+  financialLiteracyLevel?: 'beginner' | 'intermediate' | 'advanced';
+  emotionalState?: {
+    recentStressIndicators?: string[];
+    recentWins?: string[];
+    lastAssessed?: string;
+  };
+  preferredDetailLevel?: 'brief' | 'detailed' | 'comprehensive';
+  followUpTopics?: string[]; // Topics where we need to check back with user
 }
 
 export async function extractAndUpdateMemory(
@@ -181,6 +196,93 @@ export async function extractAndUpdateMemory(
       }
     }
 
+    // Detect financial literacy level from language complexity
+    let financialLiteracyLevel = existingMemory.financialLiteracyLevel;
+    if (!financialLiteracyLevel) {
+      const advancedTerms = ['etf', 'rebalancing', 'asset allocation', 'tax-loss harvesting', 'dividend yield', 'p/e ratio', 'market cap', 'arbitrage', 'derivatives', 'options trading', 'short selling'];
+      const intermediateTerms = ['401k', 'roth ira', 'index fund', 'compound interest', 'expense ratio', 'diversification', 'bonds', 'mutual fund'];
+      const advancedCount = advancedTerms.filter(term => messageLower.includes(term)).length;
+      const intermediateCount = intermediateTerms.filter(term => messageLower.includes(term)).length;
+      
+      if (advancedCount >= 2) {
+        financialLiteracyLevel = 'advanced';
+        updated = true;
+      } else if (intermediateCount >= 2 || advancedCount >= 1) {
+        financialLiteracyLevel = 'intermediate';
+        updated = true;
+      } else if (messageLower.includes("what is") || messageLower.includes("explain") || messageLower.includes("i don't understand") || messageLower.includes("confused about")) {
+        financialLiteracyLevel = 'beginner';
+        updated = true;
+      }
+    }
+
+    // Detect emotional state - stress indicators and wins
+    const emotionalState = existingMemory.emotionalState ?? { recentStressIndicators: [], recentWins: [] };
+    const stressIndicators: string[] = [...(emotionalState.recentStressIndicators || [])];
+    const recentWins: string[] = [...(emotionalState.recentWins || [])];
+
+    // Stress detection
+    const stressPatterns = [
+      { pattern: /can't (afford|pay|save)/i, label: 'affordability concern' },
+      { pattern: /worried|anxious|stressed|scared/i, label: 'financial anxiety' },
+      { pattern: /debt.*overwhelming|drowning in debt/i, label: 'debt stress' },
+      { pattern: /emergency|unexpected expense|crisis/i, label: 'financial emergency' },
+      { pattern: /lost.*job|laid off|unemployed/i, label: 'income loss' },
+      { pattern: /behind on (payments|bills)/i, label: 'payment struggles' },
+    ];
+
+    for (const { pattern, label } of stressPatterns) {
+      if (pattern.test(messageLower) && !stressIndicators.includes(label)) {
+        stressIndicators.push(label);
+        updated = true;
+      }
+    }
+
+    // Win detection - celebrate achievements
+    const winPatterns = [
+      { pattern: /paid off|debt.free/i, label: 'paid off debt' },
+      { pattern: /saved (up|enough)|reached.*goal/i, label: 'reached savings goal' },
+      { pattern: /got.*raise|promotion|new job.*higher/i, label: 'income increase' },
+      { pattern: /emergency fund.*complete|fully funded/i, label: 'emergency fund complete' },
+      { pattern: /first.*investment|started investing/i, label: 'started investing' },
+      { pattern: /under budget|saved more than/i, label: 'budget success' },
+    ];
+
+    for (const { pattern, label } of winPatterns) {
+      if (pattern.test(combinedText) && !recentWins.includes(label)) {
+        recentWins.push(label);
+        updated = true;
+      }
+    }
+
+    // Extract advice topics from AI response for tracking
+    const adviceHistory = [...(existingMemory.adviceHistory || [])].slice(-10); // Keep last 10
+    const adviceTopics = [
+      { pattern: /recommend.*saving|should save/i, topic: 'savings' },
+      { pattern: /recommend.*invest|should invest/i, topic: 'investing' },
+      { pattern: /recommend.*pay.*debt|debt.*strategy/i, topic: 'debt payoff' },
+      { pattern: /recommend.*budget|budget.*strategy/i, topic: 'budgeting' },
+      { pattern: /emergency fund|rainy day/i, topic: 'emergency fund' },
+      { pattern: /retirement|401k|ira/i, topic: 'retirement' },
+      { pattern: /tax.*strategy|tax.*saving/i, topic: 'tax optimization' },
+    ];
+
+    for (const { pattern, topic } of adviceTopics) {
+      if (pattern.test(aiResponse.toLowerCase())) {
+        const recentAdvice = adviceHistory.find(a => a.topic === topic && 
+          new Date(a.date).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000);
+        if (!recentAdvice) {
+          adviceHistory.push({
+            topic,
+            advice: aiResponse.slice(0, 200), // Store summary
+            date: new Date().toISOString(),
+            outcome: 'pending'
+          });
+          updated = true;
+        }
+      }
+    }
+
     // Update memory if anything changed
     if (updated) {
       const newMemory: ConversationMemory = {
@@ -189,6 +291,15 @@ export async function extractAndUpdateMemory(
         ...(lifeEvents.length > 0 && { lifeEvents }),
         ...(habits.length > 0 && { spendingHabits: habits }),
         ...(riskTolerance && { riskTolerance }),
+        ...(financialLiteracyLevel && { financialLiteracyLevel }),
+        ...((stressIndicators.length > 0 || recentWins.length > 0) && {
+          emotionalState: {
+            recentStressIndicators: stressIndicators.slice(-5),
+            recentWins: recentWins.slice(-5),
+            lastAssessed: new Date().toISOString()
+          }
+        }),
+        ...(adviceHistory.length > 0 && { adviceHistory }),
         lastUpdated: new Date().toISOString()
       };
 
@@ -234,6 +345,27 @@ export async function getMemoryContext(storage: IStorage, userId: string): Promi
 
     if (memory.riskTolerance) {
       parts.push(`Risk tolerance: ${memory.riskTolerance}`);
+    }
+
+    // Enhanced memory fields
+    if (memory.financialLiteracyLevel) {
+      parts.push(`Financial expertise level: ${memory.financialLiteracyLevel}`);
+    }
+
+    if (memory.emotionalState) {
+      if (memory.emotionalState.recentStressIndicators && memory.emotionalState.recentStressIndicators.length > 0) {
+        parts.push(`Recent stress indicators: ${memory.emotionalState.recentStressIndicators.join(', ')} - BE SUPPORTIVE AND EMPATHETIC`);
+      }
+      if (memory.emotionalState.recentWins && memory.emotionalState.recentWins.length > 0) {
+        parts.push(`Recent wins to celebrate: ${memory.emotionalState.recentWins.join(', ')} - ACKNOWLEDGE AND ENCOURAGE`);
+      }
+    }
+
+    if (memory.adviceHistory && memory.adviceHistory.length > 0) {
+      const recentAdvice = memory.adviceHistory.slice(-3).map(a => 
+        `${a.topic} (${new Date(a.date).toLocaleDateString()})`
+      ).join(', ');
+      parts.push(`Recent advice given: ${recentAdvice} - FOLLOW UP on pending items and maintain consistency`);
     }
 
     if (parts.length === 0) {

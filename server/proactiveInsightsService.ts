@@ -256,3 +256,181 @@ export async function generateProactiveInsights(
     throw error;
   }
 }
+
+/**
+ * Weekly Financial Summary Generator
+ * Provides a comprehensive overview of the user's financial week
+ */
+export interface WeeklySummary {
+  weekStarting: string; // ISO date string
+  weekEnding: string; // ISO date string
+  totalIncome: number;
+  totalExpenses: number;
+  netCashFlow: number;
+  savingsRate: number;
+  topSpendingCategories: Array<{ category: string; amount: number; percentOfTotal: number }>;
+  comparisonToPreviousWeek: {
+    incomeChange: number;
+    expenseChange: number;
+    trend: 'improving' | 'stable' | 'declining';
+  };
+  goalProgress: Array<{ goalName: string; previousPercent: number; currentPercent: number; change: number }>;
+  keyHighlights: string[];
+  actionItems: string[];
+}
+
+export async function generateWeeklySummary(
+  storage: IStorage,
+  userId: string
+): Promise<WeeklySummary> {
+  const now = new Date();
+  const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const previousWeekStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+  const [transactions, goals, prefs] = await Promise.all([
+    storage.getTransactionsByUserId(userId, 30),
+    storage.getFinancialGoalsByUserId(userId),
+    storage.getUserPreferences(userId)
+  ]);
+
+  // This week's transactions
+  const thisWeekTransactions = transactions.filter(t => t.date >= weekStart);
+  const previousWeekTransactions = transactions.filter(t => t.date >= previousWeekStart && t.date < weekStart);
+
+  // Calculate totals
+  const thisWeekIncome = thisWeekTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const thisWeekExpenses = thisWeekTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const netCashFlow = thisWeekIncome - thisWeekExpenses;
+  const savingsRate = thisWeekIncome > 0 ? ((thisWeekIncome - thisWeekExpenses) / thisWeekIncome) * 100 : 0;
+
+  // Previous week comparison
+  const prevWeekIncome = previousWeekTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  const prevWeekExpenses = previousWeekTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+
+  // Handle edge cases for percentage calculations (avoid NaN/Infinity)
+  const incomeChange = prevWeekIncome > 0 
+    ? Math.round(((thisWeekIncome - prevWeekIncome) / prevWeekIncome) * 100 * 10) / 10 
+    : (thisWeekIncome > 0 ? 100 : 0);
+  const expenseChange = prevWeekExpenses > 0 
+    ? Math.round(((thisWeekExpenses - prevWeekExpenses) / prevWeekExpenses) * 100 * 10) / 10 
+    : (thisWeekExpenses > 0 ? 100 : 0);
+
+  // Determine trend with null-safe comparison
+  const prevNetCashFlow = prevWeekIncome - prevWeekExpenses;
+  let trend: 'improving' | 'stable' | 'declining';
+  if (prevNetCashFlow === 0 && netCashFlow === 0) {
+    trend = 'stable';
+  } else if (prevNetCashFlow === 0) {
+    trend = netCashFlow > 0 ? 'improving' : 'declining';
+  } else if (netCashFlow > prevNetCashFlow * 1.1) {
+    trend = 'improving';
+  } else if (netCashFlow < prevNetCashFlow * 0.9) {
+    trend = 'declining';
+  } else {
+    trend = 'stable';
+  }
+
+  // Top spending categories
+  const categoryTotals = new Map<string, number>();
+  thisWeekTransactions
+    .filter(t => t.type === 'expense')
+    .forEach(t => {
+      categoryTotals.set(t.category, (categoryTotals.get(t.category) || 0) + parseFloat(t.amount));
+    });
+
+  const topSpendingCategories = Array.from(categoryTotals.entries())
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentOfTotal: thisWeekExpenses > 0 ? (amount / thisWeekExpenses) * 100 : 0
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
+  // Goal progress
+  const goalProgress = goals
+    .filter(g => g.status === 'active')
+    .slice(0, 3)
+    .map(goal => {
+      const targetAmount = parseFloat(goal.targetAmount);
+      const currentAmount = parseFloat(goal.currentAmount || '0');
+      const currentPercent = (currentAmount / targetAmount) * 100;
+      const change = netCashFlow > 0 ? (netCashFlow / targetAmount) * 100 : 0;
+      return {
+        goalName: goal.title,
+        previousPercent: Math.max(0, currentPercent - change),
+        currentPercent,
+        change
+      };
+    });
+
+  // Generate key highlights
+  const keyHighlights: string[] = [];
+  if (netCashFlow > 0) {
+    keyHighlights.push(`Positive cash flow: +$${netCashFlow.toLocaleString()}`);
+  } else if (netCashFlow < 0) {
+    keyHighlights.push(`Negative cash flow: -$${Math.abs(netCashFlow).toLocaleString()}`);
+  }
+  if (savingsRate >= 20) {
+    keyHighlights.push(`Strong savings rate: ${savingsRate.toFixed(0)}%`);
+  }
+  if (trend === 'improving') {
+    keyHighlights.push('Financial trend improving vs last week');
+  }
+  if (topSpendingCategories.length > 0) {
+    keyHighlights.push(`Top expense: ${topSpendingCategories[0].category} ($${topSpendingCategories[0].amount.toLocaleString()})`);
+  }
+
+  // Generate action items
+  const actionItems: string[] = [];
+  if (savingsRate < 10 && thisWeekIncome > 0) {
+    actionItems.push('Consider reducing discretionary spending to boost savings');
+  }
+  if (expenseChange > 20) {
+    actionItems.push(`Expenses up ${expenseChange.toFixed(0)}% - review recent purchases`);
+  }
+  if (goalProgress.some(g => g.change > 0)) {
+    actionItems.push('Keep momentum on your savings goals');
+  }
+  if (topSpendingCategories.some(c => c.percentOfTotal > 40 && c.category !== 'housing')) {
+    const highCat = topSpendingCategories.find(c => c.percentOfTotal > 40 && c.category !== 'housing');
+    if (highCat) {
+      actionItems.push(`${highCat.category} is ${highCat.percentOfTotal.toFixed(0)}% of spending - consider setting a budget`);
+    }
+  }
+
+  return {
+    weekStarting: weekStart.toISOString(),
+    weekEnding: now.toISOString(),
+    totalIncome: Math.round(thisWeekIncome * 100) / 100,
+    totalExpenses: Math.round(thisWeekExpenses * 100) / 100,
+    netCashFlow: Math.round(netCashFlow * 100) / 100,
+    savingsRate: Math.round(savingsRate * 10) / 10,
+    topSpendingCategories: topSpendingCategories.map(c => ({
+      ...c,
+      amount: Math.round(c.amount * 100) / 100,
+      percentOfTotal: Math.round(c.percentOfTotal * 10) / 10
+    })),
+    comparisonToPreviousWeek: {
+      incomeChange,
+      expenseChange,
+      trend
+    },
+    goalProgress: goalProgress.map(g => ({
+      ...g,
+      previousPercent: Math.round(g.previousPercent * 10) / 10,
+      currentPercent: Math.round(g.currentPercent * 10) / 10,
+      change: Math.round(g.change * 10) / 10
+    })),
+    keyHighlights,
+    actionItems
+  };
+}
