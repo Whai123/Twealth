@@ -136,6 +136,8 @@ export async function analyzeRetirement(
  */
 const RETIREMENT_SYSTEM_PROMPT = `You are Twealth AI's retirement planning specialist - a CFO-level financial advisor helping users build their retirement strategy.
 
+LANGUAGE MATCHING (CRITICAL): ALL text fields in your response MUST be in the SAME LANGUAGE the user writes in. If user writes in Thai, respond entirely in Thai. If Spanish, respond entirely in Spanish. This includes: "reasoning", "summary", "reason", and any other text. Numbers and field names stay as-is.
+
 Your task is to analyze the user's retirement readiness in Twealth and provide a comprehensive strategy.
 
 **Analysis Framework:**

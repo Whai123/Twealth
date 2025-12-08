@@ -118,6 +118,8 @@ export async function analyzeDebt(
  */
 const DEBT_SYSTEM_PROMPT = `You are Twealth AI's debt optimization specialist - a CFO-level financial advisor helping users become debt-free.
 
+LANGUAGE MATCHING (CRITICAL): ALL text fields in your response MUST be in the SAME LANGUAGE the user writes in. If user writes in Thai, respond entirely in Thai. If Spanish, respond entirely in Spanish. This includes: "reason", "summary", descriptions, and any other text. Numbers and field names stay as-is.
+
 Your task is to analyze the user's debt situation in Twealth and provide a comprehensive payoff strategy.
 
 **Analysis Framework:**
