@@ -26,7 +26,14 @@ import {
   Shield,
   Gem,
   ArrowRight,
-  ChevronRight
+  ChevronRight,
+  Mic,
+  MicOff,
+  Bookmark,
+  BookmarkCheck,
+  Search,
+  Download,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -504,6 +511,79 @@ export default function AIAssistantPage() {
     }
   };
 
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+
+  // Check for speech recognition support
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setSpeechSupported(!!SpeechRecognition);
+  }, []);
+
+  const handleVoiceInput = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({
+        title: "Not Supported",
+        description: "Voice input is not supported in your browser",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setCurrentMessage(prev => prev + (prev ? ' ' : '') + transcript);
+    };
+
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
+
+  // Quick action chips
+  const quickActions = [
+    { label: "Budget", prompt: "Show me my spending by category this month" },
+    { label: "Goals", prompt: "How are my financial goals progressing?" },
+    { label: "Spending", prompt: "Any unusual spending patterns I should know about?" },
+    { label: "Save", prompt: "How can I save more money this month?" },
+  ];
+
+  // Saved prompts functionality
+  const [savedPrompts, setSavedPrompts] = useState<string[]>(() => {
+    const saved = localStorage.getItem('twealth_saved_prompts');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showSavedPrompts, setShowSavedPrompts] = useState(false);
+
+  const toggleSavePrompt = (prompt: string) => {
+    const newSaved = savedPrompts.includes(prompt)
+      ? savedPrompts.filter(p => p !== prompt)
+      : [...savedPrompts, prompt].slice(-10); // Keep max 10
+    setSavedPrompts(newSaved);
+    localStorage.setItem('twealth_saved_prompts', JSON.stringify(newSaved));
+    toast({
+      title: savedPrompts.includes(prompt) ? "Removed" : "Saved",
+      description: savedPrompts.includes(prompt) ? "Prompt removed from favorites" : "Prompt saved to favorites"
+    });
+  };
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
   const starterPrompts: StarterPrompt[] = [
     {
       icon: <Target className="w-5 h-5" />,
@@ -546,6 +626,10 @@ export default function AIAssistantPage() {
   const messages = currentConversation?.messages || [];
   const hasMessages = messages.length > 0;
 
+  const filteredMessages = searchQuery.trim()
+    ? messages.filter(m => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    : messages;
+
   const tier = getCurrentTier();
   const scoutUsed = usage?.scoutUsage?.used || 0;
   const scoutLimit = usage?.scoutUsage?.limit || 0;
@@ -566,7 +650,7 @@ export default function AIAssistantPage() {
         onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden pb-16 md:pb-0">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         <header className="shrink-0 border-b border-border/40 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -605,87 +689,139 @@ export default function AIAssistantPage() {
               </Select>
             </div>
 
-            {usage && (
-              <motion.div 
-                className="flex items-center gap-3 shrink-0"
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-              >
-                <Badge 
-                  className={`
-                    text-xs font-semibold px-3 py-1 rounded-full shadow-sm
-                    ${tier === 'enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-0' : ''}
-                    ${tier === 'pro' ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-0' : ''}
-                    ${tier === 'free' ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-border/50' : ''}
-                  `}
-                  data-testid="badge-tier"
+            <div className="flex items-center gap-2 shrink-0">
+              {hasMessages && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowSearch(!showSearch)}
+                  className="h-9 w-9"
+                  data-testid="button-search-messages"
                 >
-                  {tier === 'enterprise' && <Gem className="w-3 h-3 mr-1.5" />}
-                  {tier === 'pro' && <Crown className="w-3 h-3 mr-1.5" />}
-                  {tier === 'free' && <Shield className="w-3 h-3 mr-1.5" />}
-                  {tier.charAt(0).toUpperCase() + tier.slice(1)}
-                </Badge>
+                  <Search className="w-4 h-4" />
+                </Button>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSavedPrompts(!showSavedPrompts)}
+                className="h-9 w-9"
+                data-testid="button-saved-prompts"
+              >
+                <Bookmark className="w-4 h-4" />
+              </Button>
+
+              {usage && (
+                <motion.div 
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                >
+                  <Badge 
+                    className={`
+                      text-xs font-semibold px-3 py-1 rounded-full shadow-sm
+                      ${tier === 'enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-0' : ''}
+                      ${tier === 'pro' ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border-0' : ''}
+                      ${tier === 'free' ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-border/50' : ''}
+                    `}
+                    data-testid="badge-tier"
+                  >
+                    {tier === 'enterprise' && <Gem className="w-3 h-3 mr-1.5" />}
+                    {tier === 'pro' && <Crown className="w-3 h-3 mr-1.5" />}
+                    {tier === 'free' && <Shield className="w-3 h-3 mr-1.5" />}
+                    {tier.charAt(0).toUpperCase() + tier.slice(1)}
+                  </Badge>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Search bar */}
+          <AnimatePresence>
+            {showSearch && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="border-t border-border/40 overflow-hidden"
+              >
+                <div className="px-4 sm:px-6 py-2 flex items-center gap-2">
+                  <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search messages..."
+                    className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+                    data-testid="input-search-messages"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <span className="text-xs text-muted-foreground">
+                      {filteredMessages.length} found
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => { setShowSearch(false); setSearchQuery(""); }}
+                    className="h-7 w-7"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
               </motion.div>
             )}
-          </div>
-        </header>
+          </AnimatePresence>
 
-        <div className="shrink-0 border-b border-border/40 bg-white/50 dark:bg-black/50 backdrop-blur-sm">
-          <div className="max-w-3xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
-            <motion.div 
-              className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${
-                inputFocused 
-                  ? 'ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10' 
-                  : 'shadow-md hover:shadow-lg'
-              }`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <Textarea
-                ref={textareaRef}
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
-                placeholder="Ask anything about your finances..."
-                className="min-h-[48px] sm:min-h-[56px] max-h-[120px] sm:max-h-[140px] resize-none pr-14 sm:pr-16 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-3 sm:py-4 px-4 sm:px-5 placeholder:text-muted-foreground/60"
-                rows={1}
-                data-testid="input-message"
-              />
+          {/* Saved prompts dropdown */}
+          <AnimatePresence>
+            {showSavedPrompts && savedPrompts.length > 0 && (
               <motion.div
-                className="absolute right-2.5 sm:right-3 bottom-2 sm:bottom-3"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="border-t border-border/40 overflow-hidden"
               >
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
-                  size="icon"
-                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${
-                    currentMessage.trim() 
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30' 
-                      : 'bg-gray-200 dark:bg-gray-800'
-                  }`}
-                  data-testid="button-send-message"
-                  title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
-                >
-                  {rateLimitRetryAfter > 0 ? (
-                    <span className="text-xs font-bold">{rateLimitRetryAfter}</span>
-                  ) : sendMessageMutation.isPending ? (
-                    <motion.div
-                      className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  ) : (
-                    <Send className={`w-4 h-4 ${currentMessage.trim() ? 'text-white' : 'text-gray-400'}`} />
-                  )}
-                </Button>
+                <div className="px-4 sm:px-6 py-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Saved Prompts</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowSavedPrompts(false)}
+                      className="h-6 w-6"
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {savedPrompts.map((prompt, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setCurrentMessage(prompt);
+                          setShowSavedPrompts(false);
+                        }}
+                        className="group flex items-center gap-1.5 px-3 py-1.5 text-xs bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
+                        data-testid={`saved-prompt-${idx}`}
+                      >
+                        <BookmarkCheck className="w-3 h-3" />
+                        <span className="max-w-[150px] truncate">{prompt}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleSavePrompt(prompt); }}
+                          className="opacity-0 group-hover:opacity-100 ml-1"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </motion.div>
-            </motion.div>
-          </div>
-        </div>
+            )}
+          </AnimatePresence>
+        </header>
 
         <div className="flex-1 overflow-y-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto py-6 sm:py-8 space-y-6">
@@ -846,9 +982,9 @@ export default function AIAssistantPage() {
                 </motion.div>
               </motion.div>
             ) : (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-4 sm:space-y-6 pb-32">
                 <AnimatePresence mode="popLayout">
-                  {messages.map((message, index) => (
+                  {(searchQuery ? filteredMessages : messages).map((message, index) => (
                     <MessageBubble
                       key={message.id}
                       role={message.role}
@@ -869,11 +1005,131 @@ export default function AIAssistantPage() {
                   ))}
                 </AnimatePresence>
                 
-                {sendMessageMutation.isPending && <TypingIndicator />}
+                {sendMessageMutation.isPending && <TypingIndicator isDeepAnalysis={analysisMode === 'deep'} />}
                 
                 <div ref={messagesEndRef} />
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Fixed bottom input area */}
+        <div className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+          {/* Quick action chips */}
+          <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-3">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+              {quickActions.map((action, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setCurrentMessage(action.prompt);
+                    sendMessageMutation.mutate(action.prompt);
+                  }}
+                  className="shrink-0 px-3 py-1.5 text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
+                  data-testid={`quick-action-${action.label.toLowerCase()}`}
+                >
+                  {action.label}
+                </button>
+              ))}
+              {currentMessage.trim() && (
+                <button
+                  onClick={() => toggleSavePrompt(currentMessage)}
+                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                    savedPrompts.includes(currentMessage)
+                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                  data-testid="button-save-current-prompt"
+                >
+                  {savedPrompts.includes(currentMessage) ? (
+                    <>
+                      <BookmarkCheck className="w-3 h-3" />
+                      Saved
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-3 h-3" />
+                      Save
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Input box */}
+          <div className="max-w-3xl mx-auto px-3 sm:px-6 pb-3">
+            <motion.div 
+              className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${
+                inputFocused 
+                  ? 'ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10' 
+                  : 'shadow-md hover:shadow-lg'
+              }`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Textarea
+                ref={textareaRef}
+                value={currentMessage}
+                onChange={(e) => setCurrentMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setInputFocused(false)}
+                placeholder="Ask anything about your finances..."
+                className="min-h-[48px] sm:min-h-[56px] max-h-[120px] sm:max-h-[140px] resize-none pr-24 sm:pr-28 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-3 sm:py-4 px-4 sm:px-5 placeholder:text-muted-foreground/60"
+                rows={1}
+                data-testid="input-message"
+              />
+              
+              {/* Voice and Send buttons */}
+              <div className="absolute right-2.5 sm:right-3 bottom-2 sm:bottom-3 flex items-center gap-1.5">
+                {speechSupported && (
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      onClick={handleVoiceInput}
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-all ${
+                        isListening 
+                          ? 'bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 animate-pulse' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                      data-testid="button-voice-input"
+                    >
+                      {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                    </Button>
+                  </motion.div>
+                )}
+                
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
+                    size="icon"
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${
+                      currentMessage.trim() 
+                        ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30' 
+                        : 'bg-gray-200 dark:bg-gray-800'
+                    }`}
+                    data-testid="button-send-message"
+                    title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
+                  >
+                    {rateLimitRetryAfter > 0 ? (
+                      <span className="text-xs font-bold">{rateLimitRetryAfter}</span>
+                    ) : sendMessageMutation.isPending ? (
+                      <motion.div
+                        className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                    ) : (
+                      <Send className={`w-4 h-4 ${currentMessage.trim() ? 'text-white' : 'text-gray-400'}`} />
+                    )}
+                  </Button>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>

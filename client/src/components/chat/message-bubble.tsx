@@ -669,7 +669,28 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
   );
 }
 
-export function TypingIndicator() {
+const analysisStages = [
+  { text: "Analyzing your financial data...", icon: "📊" },
+  { text: "Reviewing market conditions...", icon: "📈" },
+  { text: "Calculating recommendations...", icon: "🧮" },
+  { text: "Preparing personalized advice...", icon: "✨" }
+];
+
+export function TypingIndicator({ isDeepAnalysis = false }: { isDeepAnalysis?: boolean }) {
+  const [stageIndex, setStageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!isDeepAnalysis) return;
+    
+    const interval = setInterval(() => {
+      setStageIndex((prev) => (prev + 1) % analysisStages.length);
+    }, 2500);
+    
+    return () => clearInterval(interval);
+  }, [isDeepAnalysis]);
+
+  const currentStage = analysisStages[stageIndex];
+
   return (
     <motion.div 
       className="flex gap-3" 
@@ -693,40 +714,56 @@ export function TypingIndicator() {
         transition={{ duration: 0.2 }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/30 dark:via-blue-900/20 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-        <div className="relative flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <motion.div 
-              className="w-2 h-2 bg-blue-500 rounded-full"
-              animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 1, 0.5]
-              }}
-              transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
-            />
-            <motion.div 
-              className="w-2 h-2 bg-blue-500 rounded-full"
-              animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 1, 0.5]
-              }}
-              transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
-            />
-            <motion.div 
-              className="w-2 h-2 bg-blue-500 rounded-full"
-              animate={{ 
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 1, 0.5]
-              }}
-              transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
-            />
+        <div className="relative flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <motion.div 
+                className="w-2 h-2 bg-blue-500 rounded-full"
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 1, 0.5]
+                }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
+              />
+              <motion.div 
+                className="w-2 h-2 bg-blue-500 rounded-full"
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 1, 0.5]
+                }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
+              />
+              <motion.div 
+                className="w-2 h-2 bg-blue-500 rounded-full"
+                animate={{ 
+                  scale: [1, 1.3, 1],
+                  opacity: [0.5, 1, 0.5]
+                }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
+              />
+            </div>
+            <motion.span 
+              className="text-xs text-muted-foreground font-medium"
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              {isDeepAnalysis ? "Deep Analysis in progress..." : "Twealth is thinking..."}
+            </motion.span>
           </div>
-          <motion.span 
-            className="text-xs text-muted-foreground font-medium"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            Twealth is thinking...
-          </motion.span>
+          
+          {isDeepAnalysis && (
+            <motion.div 
+              className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400"
+              key={stageIndex}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <span>{currentStage.icon}</span>
+              <span className="font-medium">{currentStage.text}</span>
+            </motion.div>
+          )}
         </div>
       </motion.div>
     </motion.div>
