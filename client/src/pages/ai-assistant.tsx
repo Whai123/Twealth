@@ -514,11 +514,20 @@ export default function AIAssistantPage() {
   // Voice input state
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   // Check for speech recognition support
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setSpeechSupported(!!SpeechRecognition);
+    
+    // Cleanup on unmount
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+      }
+    };
   }, []);
 
   const handleVoiceInput = () => {
@@ -532,25 +541,87 @@ export default function AIAssistantPage() {
       return;
     }
 
+    // Stop if already listening
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      setIsListening(false);
+      return;
+    }
+
+    // Create new recognition instance
     const recognition = new SpeechRecognition();
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+    recognition.onerror = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setCurrentMessage(prev => prev + (prev ? ' ' : '') + transcript);
     };
 
-    if (isListening) {
-      recognition.stop();
-    } else {
-      recognition.start();
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  // Export conversation as text/markdown
+  const handleExportConversation = () => {
+    const exportMessages = currentConversation?.messages || [];
+    if (!currentConversation || exportMessages.length === 0) {
+      toast({
+        title: "Nothing to export",
+        description: "Start a conversation first",
+        variant: "destructive"
+      });
+      return;
     }
+
+    const title = currentConversation.title || 'AI Conversation';
+    const date = new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+
+    let content = `# ${title}\n`;
+    content += `**Exported:** ${date}\n\n---\n\n`;
+
+    exportMessages.forEach((msg) => {
+      const time = new Date(msg.createdAt).toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+      if (msg.role === 'user') {
+        content += `### You (${time})\n${msg.content}\n\n`;
+      } else {
+        content += `### Twealth AI (${time})\n${msg.content}\n\n`;
+      }
+    });
+
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Exported",
+      description: "Conversation downloaded as markdown file"
+    });
   };
 
   // Quick action chips
@@ -691,15 +762,27 @@ export default function AIAssistantPage() {
 
             <div className="flex items-center gap-2 shrink-0">
               {hasMessages && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowSearch(!showSearch)}
-                  className="h-9 w-9"
-                  data-testid="button-search-messages"
-                >
-                  <Search className="w-4 h-4" />
-                </Button>
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowSearch(!showSearch)}
+                    className="h-9 w-9"
+                    data-testid="button-search-messages"
+                  >
+                    <Search className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleExportConversation}
+                    className="h-9 w-9"
+                    data-testid="button-export-conversation"
+                    title="Export conversation"
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </>
               )}
               
               <Button
