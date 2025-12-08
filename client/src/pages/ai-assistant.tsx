@@ -1065,7 +1065,7 @@ export default function AIAssistantPage() {
                 </motion.div>
               </motion.div>
             ) : (
-              <div className="space-y-4 sm:space-y-6 pb-32">
+              <div className="space-y-4 sm:space-y-6 pb-44 sm:pb-36">
                 <AnimatePresence mode="popLayout">
                   {(searchQuery ? filteredMessages : messages).map((message, index) => (
                     <MessageBubble
@@ -1097,32 +1097,36 @@ export default function AIAssistantPage() {
         </div>
 
         {/* Fixed bottom input area */}
-        <div className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-          {/* Quick action chips */}
+        <div className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+          {/* Quick action chips - scrollable horizontally */}
           <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-3">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
               {quickActions.map((action, idx) => (
-                <button
+                <motion.button
                   key={idx}
                   onClick={() => {
                     setCurrentMessage(action.prompt);
                     sendMessageMutation.mutate(action.prompt);
                   }}
-                  className="shrink-0 px-3 py-1.5 text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-950 transition-colors"
+                  className="shrink-0 px-3.5 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-100 dark:border-blue-900/50 min-h-[36px] touch-target"
                   data-testid={`quick-action-${action.label.toLowerCase()}`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {action.label}
-                </button>
+                </motion.button>
               ))}
               {currentMessage.trim() && (
-                <button
+                <motion.button
                   onClick={() => toggleSavePrompt(currentMessage)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-full transition-colors min-h-[36px] touch-target border ${
                     savedPrompts.includes(currentMessage)
-                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
                   }`}
                   data-testid="button-save-current-prompt"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {savedPrompts.includes(currentMessage) ? (
                     <>
@@ -1135,7 +1139,7 @@ export default function AIAssistantPage() {
                       Save
                     </>
                   )}
-                </button>
+                </motion.button>
               )}
             </div>
           </div>

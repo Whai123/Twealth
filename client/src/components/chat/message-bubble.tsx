@@ -84,7 +84,7 @@ const parseAIResponse = (content: string): ParsedContent => {
   }
   
   // Extract calculation sections (can have multiple)
-  const calcMatches = content.matchAll(/---CALCULATION---\s*\n?([\s\S]*?)(?=---CALCULATION---|---SUGGESTIONS---|---PROGRESS---|---INSIGHT---|$)/gi);
+  const calcMatches = Array.from(content.matchAll(/---CALCULATION---\s*\n?([\s\S]*?)(?=---CALCULATION---|---SUGGESTIONS---|---PROGRESS---|---INSIGHT---|$)/gi));
   for (const match of calcMatches) {
     const calcBlock = match[1].trim();
     const titleMatch = calcBlock.match(/title:\s*(.+?)(?:\n|$)/i);
@@ -95,7 +95,7 @@ const parseAIResponse = (content: string): ParsedContent => {
       const items: Array<{ label: string; value: string; highlight?: boolean }> = [];
       if (itemsMatch) {
         const itemLines = itemsMatch[1].trim().split('\n');
-        itemLines.forEach(line => {
+        itemLines.forEach((line: string) => {
           const itemMatch = line.match(/[-*]?\s*(.+?):\s*(.+)/);
           if (itemMatch) {
             items.push({
@@ -116,7 +116,7 @@ const parseAIResponse = (content: string): ParsedContent => {
   }
   
   // Extract progress bar sections
-  const progressMatches = content.matchAll(/---PROGRESS---\s*\n?([\s\S]*?)(?=---PROGRESS---|---SUGGESTIONS---|---CALCULATION---|---INSIGHT---|$)/gi);
+  const progressMatches = Array.from(content.matchAll(/---PROGRESS---\s*\n?([\s\S]*?)(?=---PROGRESS---|---SUGGESTIONS---|---CALCULATION---|---INSIGHT---|$)/gi));
   for (const match of progressMatches) {
     const progBlock = match[1].trim();
     const titleMatch = progBlock.match(/title:\s*(.+?)(?:\n|$)/i);
@@ -340,15 +340,48 @@ function StreamingText({ content, onComplete }: { content: string; onComplete?: 
   return <>{displayedContent || content}</>;
 }
 
+const EXACT_ERROR_MESSAGES = [
+  "i'm having trouble processing your request. please try again in a moment.",
+  "i'm having trouble processing your request.",
+  "something went wrong while processing your request.",
+  "unable to process your request at this time.",
+  "service is temporarily unavailable.",
+  "an error occurred while generating a response."
+];
+
+const isExactErrorMessage = (content: string): boolean => {
+  const trimmedContent = content.trim();
+  const lowerContent = trimmedContent.toLowerCase();
+  
+  // Must be a short message (backend errors are typically concise)
+  if (trimmedContent.length > 100) return false;
+  
+  // Must not contain markdown formatting (real AI responses have this)
+  if (/^#{1,3}\s|^\*\*|^-\s|^\d+\.\s|\n\n/m.test(trimmedContent)) return false;
+  
+  // Must exactly match one of our known error messages
+  return EXACT_ERROR_MESSAGES.some(pattern => lowerContent === pattern);
+};
+
 export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest, isRegenerating, onFollowUp }: MessageBubbleProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
   const [streamComplete, setStreamComplete] = useState(!isLatest);
+  const [isRetrying, setIsRetrying] = useState(false);
+  
+  // Detect if this is an exact error message (very specific backend error responses only)
+  const isError = role === 'assistant' && isExactErrorMessage(content);
   
   // Parse AI response to extract main content, insights, and suggestions
   const parsedContent = role === 'assistant' ? parseAIResponse(content) : null;
+  
+  const handleRetry = () => {
+    setIsRetrying(true);
+    onRegenerate?.();
+    setTimeout(() => setIsRetrying(false), 2000);
+  };
   
   useEffect(() => {
     if (isLatest && role === 'assistant') {
@@ -564,6 +597,45 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
           {/* Insight Card - displayed when AI detects something important */}
           {parsedContent?.insight && (
             <InsightCard insight={parsedContent.insight} />
+          )}
+          
+          {/* Inline Retry Banner - for error messages only, doesn't hide content */}
+          {isError && onRegenerate && (
+            <motion.div 
+              className="mt-3 p-3 rounded-lg bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Having trouble? Try sending your request again.</span>
+                </div>
+                <Button
+                  onClick={handleRetry}
+                  disabled={isRetrying}
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-700 text-white shadow-sm h-8"
+                  data-testid="button-retry-message"
+                >
+                  {isRetrying ? (
+                    <>
+                      <motion.div
+                        className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full mr-1.5"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                      Retrying...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                      Try Again
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
           )}
         </motion.div>
         

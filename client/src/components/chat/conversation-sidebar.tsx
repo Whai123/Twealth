@@ -188,13 +188,15 @@ export function ConversationSidebar({
          key={conversation.id}
          className={`
           group relative flex items-center gap-2 px-3 py-2.5 rounded-lg
-          hover:bg-muted/50 cursor-pointer transition-colors
-          ${currentConversationId === conversation.id ? 'bg-muted' : ''}
+          cursor-pointer transition-all duration-200
+          ${currentConversationId === conversation.id 
+            ? 'bg-blue-100 dark:bg-blue-950/50 border-l-2 border-blue-500 pl-[10px]' 
+            : 'hover:bg-muted/50 border-l-2 border-transparent pl-[10px]'}
          `}
          onClick={() => onSelectConversation(conversation.id)}
          data-testid={`conversation-item-${conversation.id}`}
         >
-         <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+         <MessageSquare className={`w-4 h-4 flex-shrink-0 ${currentConversationId === conversation.id ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`} />
          
          {editingId === conversation.id ? (
           <Input
@@ -211,10 +213,10 @@ export function ConversationSidebar({
           />
          ) : (
           <div className="flex-1 min-w-0">
-           <p className="text-sm font-medium truncate">
+           <p className={`text-sm font-medium truncate ${currentConversationId === conversation.id ? 'text-blue-700 dark:text-blue-300' : ''}`}>
             {conversation.title}
            </p>
-           <p className="text-xs text-muted-foreground">
+           <p className={`text-xs ${currentConversationId === conversation.id ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-muted-foreground'}`}>
             {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
            </p>
           </div>
