@@ -62,6 +62,30 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Coerce tool arguments to proper types
+ * Fixes common LLM issues like returning "true" instead of true
+ */
+function coerceToolArguments(args: Record<string, any>): Record<string, any> {
+  const coerced: Record<string, any> = {};
+  for (const [key, value] of Object.entries(args)) {
+    if (value === "true" || value === "True" || value === "TRUE") {
+      coerced[key] = true;
+    } else if (value === "false" || value === "False" || value === "FALSE") {
+      coerced[key] = false;
+    } else if (typeof value === 'string' && /^-?\d+(\.\d+)?$/.test(value.replace(/[$,]/g, ''))) {
+      // Keep numeric strings as strings (they might be amounts like "5000000")
+      coerced[key] = value;
+    } else if (typeof value === 'object' && value !== null) {
+      // Recursively coerce nested objects
+      coerced[key] = coerceToolArguments(value);
+    } else {
+      coerced[key] = value;
+    }
+  }
+  return coerced;
+}
+
+/**
  * Calculate exponential backoff delay with jitter
  */
 function getBackoffDelay(attempt: number): number {
@@ -248,12 +272,15 @@ export class GPT5Client {
         ?.filter((tc: any) => tc.type === 'function' && tc.function)
         .map((tc: any) => {
           try {
+            const parsedArgs = JSON.parse(tc.function.arguments);
+            // Coerce string booleans to actual booleans
+            const coercedArgs = coerceToolArguments(parsedArgs);
             return {
               id: tc.id,
               type: 'function' as const,
               function: {
                 name: tc.function.name,
-                arguments: JSON.parse(tc.function.arguments),
+                arguments: coercedArgs,
               },
             };
           } catch (error) {
@@ -339,12 +366,15 @@ export class ScoutClient {
         ?.filter((tc: any) => tc.type === 'function' && tc.function)
         .map((tc: any) => {
           try {
+            const parsedArgs = JSON.parse(tc.function.arguments);
+            // Coerce string booleans to actual booleans (Scout/Llama often returns "true" instead of true)
+            const coercedArgs = coerceToolArguments(parsedArgs);
             return {
               id: tc.id,
               type: 'function' as const,
               function: {
                 name: tc.function.name,
-                arguments: JSON.parse(tc.function.arguments),
+                arguments: coercedArgs,
               },
             };
           } catch (error) {
@@ -440,7 +470,8 @@ export class AnthropicClient {
             type: 'function' as const,
             function: {
               name: block.name,
-              arguments: block.input,
+              // Coerce string booleans to actual booleans
+              arguments: coerceToolArguments(block.input || {}),
             },
           }))
         : undefined;

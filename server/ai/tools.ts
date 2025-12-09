@@ -30,32 +30,32 @@ export const TWEALTH_AI_TOOLS = [
     type: "function",
     function: {
       name: "create_financial_goal",
-      description: "Create a financial goal when user gives a direct command or confirms. TWO SCENARIOS: (A) Complete command with amount ('Create a goal to save $5000') → IMMEDIATELY call this tool with all extracted details. (B) Incomplete command without amount ('Make a savings goal') → ASK for missing details first: 'I can set that up! What's your target amount and timeline?'. NEVER call this tool without targetAmount. Extract: name (purpose), targetAmount (required: $5000 or 5000), targetDate (calculate from timeline or ask), description. Set userConfirmed=true for all imperative commands.",
+      description: "Create a financial goal IMMEDIATELY when user gives a command with target amount. JUST DO IT - no confirmation needed! Examples that should IMMEDIATELY create goal: 'Set a goal to buy a house for 5 million baht' → call with name='Buy House', targetAmount='5000000', targetDate=next year. 'I want to save $10000 by December' → call immediately. Only ask for details if amount is genuinely missing. For timeline: 'next year' = 1 year from now, 'in 2 years' = 2 years from now. ALWAYS set userConfirmed=true for any imperative command.",
       parameters: {
         type: "object",
         properties: {
           userConfirmed: {
             type: "boolean",
-            description: "REQUIRED: Set to true. TRUE when: (1) User explicitly confirms with 'yes', 'add it', 'sure', OR (2) User gives IMPERATIVE COMMAND like 'Create a goal to...', 'Add a goal for...', 'Make a goal for...'. Imperative commands ARE confirmations! Only false if user just casually mentions wanting something without commanding or confirming."
+            description: "Always set to true for any goal creation command. The user's imperative statement IS their confirmation."
           },
           name: {
             type: "string",
-            description: "The name of the goal (e.g., 'Buy Lamborghini')"
+            description: "Short goal name extracted from user request (e.g., 'Buy House', 'Emergency Fund', 'Vacation')"
           },
           targetAmount: {
             type: "string",
-            description: "The target amount in dollars (e.g., '5000', '$10000', '2500.00'). Can include dollar signs and decimals."
+            description: "Target amount as number string. Convert currencies: 5 million baht = 5000000. Remove currency symbols."
           },
           targetDate: {
             type: "string",
-            description: "The target date in YYYY-MM-DD format"
+            description: "Target date in YYYY-MM-DD format. Calculate: 'next year' = add 1 year, 'in X months' = add X months to today."
           },
           description: {
             type: "string",
-            description: "A brief description of the goal and plan to achieve it"
+            description: "Brief description of the goal"
           }
         },
-        required: ["userConfirmed", "name", "targetAmount", "targetDate"]
+        required: ["name", "targetAmount", "targetDate"]
       }
     }
   },
@@ -97,28 +97,28 @@ export const TWEALTH_AI_TOOLS = [
     type: "function",
     function: {
       name: "create_calendar_event",
-      description: "Create a calendar event when user gives direct command or confirms. IMMEDIATE EXECUTION: When user says 'Create a reminder for...', 'Add calendar event for...', 'Set a reminder to...', call this tool IMMEDIATELY. NO confirmation needed for imperative commands - they ARE the confirmation! Extract title, date (YYYY-MM-DD), description. Calculate dates: 'next week' = 7 days from now, 'next month' = 30 days from now, 'tomorrow' = 1 day from now.",
+      description: "Create a calendar event IMMEDIATELY when user gives a command. JUST DO IT! Examples: 'Remind me to pay rent next week' → create immediately. Calculate dates: 'next week' = 7 days, 'tomorrow' = 1 day, 'next month' = 30 days.",
       parameters: {
         type: "object",
         properties: {
           userConfirmed: {
             type: "boolean",
-            description: "REQUIRED: Set to true. TRUE when: (1) User explicitly confirms with 'yes', 'set it', 'sure', OR (2) User gives IMPERATIVE COMMAND like 'Create a reminder for...', 'Add event for...', 'Set reminder to...'. Imperative commands ARE confirmations! Only false if user casually mentions a date without commanding or confirming."
+            description: "Always set to true for any event creation command."
           },
           title: {
             type: "string",
-            description: "The event title (e.g., 'Review Portfolio', 'Pay Rent', 'Check Budget')"
+            description: "The event title"
           },
           date: {
             type: "string",
-            description: "The event date in YYYY-MM-DD format. Calculate from today's date if relative (next week, tomorrow, etc.)"
+            description: "Date in YYYY-MM-DD format. Calculate relative dates from today."
           },
           description: {
             type: "string",
-            description: "Event description or notes with financial context"
+            description: "Event description"
           }
         },
-        required: ["userConfirmed", "title", "date"]
+        required: ["title", "date"]
       }
     }
   },

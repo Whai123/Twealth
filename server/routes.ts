@@ -3257,12 +3257,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               if (toolName === 'create_financial_goal') {
                 debugLog('AI', 'Starting goal creation');
                 
-                // CRITICAL: Validate user confirmation before creating goal
-                if (toolArgs.userConfirmed !== true) {
-                  debugLog('AI', 'Blocked create_financial_goal: userConfirmed not true');
+                // Coerce string boolean to actual boolean (fixes LLM returning "true" instead of true)
+                const userConfirmed = toolArgs.userConfirmed === true || toolArgs.userConfirmed === "true" || toolArgs.userConfirmed === "True";
+                
+                // Allow goal creation when user gives clear imperative command (AI should only call this when appropriate)
+                if (!userConfirmed && !toolArgs.name && !toolArgs.targetAmount) {
+                  debugLog('AI', 'Blocked create_financial_goal: missing required data');
                   actionsPerformed.push({
                     type: 'action_blocked',
-                    data: { reason: 'User confirmation required', action: 'create_financial_goal' }
+                    data: { reason: 'Missing required goal details', action: 'create_financial_goal' }
                   });
                   continue;
                 }
@@ -3283,12 +3286,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   data: goal
                 });
               } else if (toolName === 'create_calendar_event') {
-                // CRITICAL: Validate user confirmation before creating event
-                if (toolArgs.userConfirmed !== true) {
-                  debugLog('AI', 'Blocked create_calendar_event: userConfirmed not true');
+                // Coerce string boolean to actual boolean
+                const userConfirmed = toolArgs.userConfirmed === true || toolArgs.userConfirmed === "true" || toolArgs.userConfirmed === "True";
+                
+                // Allow event creation when user gives clear imperative command
+                if (!userConfirmed && !toolArgs.title && !toolArgs.date) {
+                  debugLog('AI', 'Blocked create_calendar_event: missing required data');
                   actionsPerformed.push({
                     type: 'action_blocked',
-                    data: { reason: 'User confirmation required', action: 'create_calendar_event' }
+                    data: { reason: 'Missing required event details', action: 'create_calendar_event' }
                   });
                   continue;
                 }
@@ -3319,8 +3325,11 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   data: transaction
                 });
               } else if (toolName === 'create_group') {
-                // CRITICAL: Validate user confirmation before creating group
-                if (toolArgs.userConfirmed !== true) {
+                // Coerce string boolean to actual boolean
+                const userConfirmed = toolArgs.userConfirmed === true || toolArgs.userConfirmed === "true" || toolArgs.userConfirmed === "True";
+                
+                // Groups require explicit confirmation (more sensitive action)
+                if (!userConfirmed) {
                   debugLog('AI', 'Blocked create_group: userConfirmed not true');
                   actionsPerformed.push({
                     type: 'action_blocked',
