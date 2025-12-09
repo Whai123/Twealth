@@ -103,7 +103,7 @@ import { z } from "zod";
 const updateUserPreferencesSchema = insertUserPreferencesSchema.omit({ userId: true }).partial();
 type UpdateUserPreferencesInput = z.infer<typeof updateUserPreferencesSchema>;
 import { aiService, type UserContext } from "./aiService";
-import { extractAndUpdateMemory, getMemoryContext } from './conversationMemoryService';
+import { extractAndUpdateMemory, getMemoryContext, summarizeConversationHistory } from './conversationMemoryService';
 import { cryptoService } from "./cryptoService";
 import { taxService } from "./taxService";
 import { autoCategorizeTransaction, getCategorySuggestions, getAvailableCategories } from "./categorizationService";
@@ -3081,13 +3081,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }))
       };
 
-      // Get conversation history
-      const messages = await storage.getChatMessages(conversationId, 10);
-      const conversationHistory = messages.reverse().map(m => ({
+      // Get conversation history with smart summarization
+      const messages = await storage.getChatMessages(conversationId, 20); // Fetch more messages
+      const allMessages = messages.reverse().map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content,
         timestamp: m.createdAt || new Date()
       }));
+      
+      // Summarize older messages (beyond the last 6) to maintain context without token bloat
+      const recentMessages = allMessages.slice(-6);
+      const olderMessages = allMessages.slice(0, -6);
+      const conversationSummary = olderMessages.length > 0 
+        ? summarizeConversationHistory(olderMessages)
+        : '';
+      
+      // Inject conversation summary as context at the start of the history
+      // This ensures the AI knows what was discussed earlier in long conversations
+      const conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+      
+      if (conversationSummary && conversationSummary.trim()) {
+        // Add summary as an assistant message that provides full context from older messages
+        conversationHistory.push({
+          role: 'assistant',
+          content: conversationSummary.trim()
+        });
+      }
+      
+      // Add recent messages in full detail
+      conversationHistory.push(...recentMessages.map(m => ({
+        role: m.role,
+        content: m.content
+      })));
 
       // Usage tracking now handled by tier-aware router
 
@@ -3200,14 +3225,17 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         // Get memory context from previous conversations
         const memoryContext = await getMemoryContext(storage, userId);
         
-        // Enhance userContext with impossibility flag if detected
-        const enhancedContext = impossibleGoalFlag 
-          ? { ...userContext, impossibleGoalWarning: impossibleGoalFlag }
-          : userContext;
+        // Enhance userContext with impossibility flag and memory
+        // Note: conversationSummary is now injected into conversationHistory directly
+        const enhancedContext = {
+          ...userContext,
+          ...(impossibleGoalFlag && { impossibleGoalWarning: impossibleGoalFlag }),
+          ...(memoryContext && { memoryContext })
+        };
         
         // Use tier-aware AI router for intelligent model selection and quota enforcement
-        // Pass conversation history for context (last 6 messages for memory)
-        const tierResult = await routeWithTierCheck(userId, userMessage, storage, conversationHistory.slice(-6));
+        // Pass conversation history for context (last 6 messages + older summary)
+        const tierResult = await routeWithTierCheck(userId, userMessage, storage, conversationHistory);
         
         // Handle quota exceeded response
         if ('type' in tierResult && tierResult.type === 'quota_exceeded') {
@@ -3320,9 +3348,59 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   date: toolArgs.date ? new Date(toolArgs.date) : new Date()
                 });
                 debugLog('AI', 'Transaction created', { id: transaction.id, amount: transaction.amount, category: transaction.category });
+                
+                // Calculate budget impact for proactive insights
+                const txnAmount = parseFloat(transaction.amount);
+                let budgetImpact: any = null;
+                
+                if (toolArgs.type === 'expense') {
+                  try {
+                    // Get this month's spending in the same category
+                    const now = new Date();
+                    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const allTransactions = await storage.getTransactionsByUserId(userId, 100);
+                    const categorySpending = allTransactions
+                      .filter(t => t.type === 'expense' && t.category === toolArgs.category && t.date >= monthStart)
+                      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+                    
+                    // Get budget info if available - validate it's a real number > 0
+                    const expenseCategories = await storage.getUserExpenseCategories(userId);
+                    const categoryBudget = expenseCategories.find(c => c.category.toLowerCase() === toolArgs.category.toLowerCase());
+                    const parsedBudget = categoryBudget ? parseFloat(categoryBudget.monthlyAmount) : NaN;
+                    const monthlyBudget = !isNaN(parsedBudget) && parsedBudget > 0 ? parsedBudget : null;
+                    
+                    // Get total monthly income for context - validate it's a real number > 0
+                    const profile = await storage.getUserFinancialProfile(userId);
+                    const parsedIncome = profile ? parseFloat(profile.monthlyIncome || '') : NaN;
+                    const monthlyIncome = !isNaN(parsedIncome) && parsedIncome > 0 ? parsedIncome : null;
+                    
+                    budgetImpact = {
+                      categorySpendingThisMonth: categorySpending,
+                      monthlyBudget,
+                      hasBudgetSet: monthlyBudget !== null,
+                      percentOfBudget: monthlyBudget !== null 
+                        ? Math.round((categorySpending / monthlyBudget) * 100) 
+                        : null,
+                      percentOfIncome: monthlyIncome !== null 
+                        ? Math.round((categorySpending / monthlyIncome) * 100) 
+                        : null,
+                      isOverBudget: monthlyBudget !== null 
+                        ? categorySpending > monthlyBudget 
+                        : null,
+                      remainingBudget: monthlyBudget !== null 
+                        ? Math.max(0, monthlyBudget - categorySpending) 
+                        : null
+                    };
+                  } catch (err) {
+                    debugLog('AI', 'Budget impact calculation failed', err);
+                    // Don't let budget calculation errors break transaction creation
+                  }
+                }
+                
                 actionsPerformed.push({
                   type: 'transaction_added',
-                  data: transaction
+                  data: transaction,
+                  budgetImpact
                 });
               } else if (toolName === 'create_group') {
                 // Coerce string boolean to actual boolean
@@ -4436,7 +4514,33 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               return `Reminder set: "${event.title}" on ${new Date(event.startTime).toLocaleDateString()}. You'll be notified when it's time.`;
             } else if (action.type === 'transaction_added') {
               const txn = action.data;
-              return `Tracked: ${txn.type === 'income' ? 'Received' : 'Spent'} $${parseFloat(txn.amount).toLocaleString()} on ${txn.category}. Your balance has been updated.`;
+              const impact = action.budgetImpact;
+              let response = `Tracked: ${txn.type === 'income' ? 'Received' : 'Spent'} $${parseFloat(txn.amount).toLocaleString()} on ${txn.category}.`;
+              
+              // Add budget impact insights for expenses
+              if (impact && txn.type === 'expense') {
+                response += `\n\n**Budget Impact:**`;
+                response += `\n- ${txn.category} spending this month: $${impact.categorySpendingThisMonth.toLocaleString()}`;
+                
+                if (impact.hasBudgetSet && impact.monthlyBudget !== null) {
+                  response += ` of $${impact.monthlyBudget.toLocaleString()} budget (${impact.percentOfBudget}%)`;
+                  if (impact.isOverBudget) {
+                    response += `\n- ⚠️ **Over budget!** You've exceeded your ${txn.category} budget by $${(impact.categorySpendingThisMonth - impact.monthlyBudget).toLocaleString()}`;
+                  } else if (impact.percentOfBudget >= 80) {
+                    response += `\n- ⚠️ **Warning:** You've used ${impact.percentOfBudget}% of your ${txn.category} budget with $${impact.remainingBudget.toLocaleString()} remaining`;
+                  } else {
+                    response += `\n- ✅ On track! $${impact.remainingBudget.toLocaleString()} remaining in ${txn.category} budget`;
+                  }
+                } else {
+                  response += `\n- 💡 No budget set for ${txn.category} yet. Consider setting a monthly limit to track spending!`;
+                }
+                
+                if (impact.percentOfIncome !== null && impact.percentOfIncome > 15) {
+                  response += `\n- 💡 This category is ${impact.percentOfIncome}% of your monthly income`;
+                }
+              }
+              
+              return response;
             } else if (action.type === 'group_created') {
               const group = action.data;
               return `Created "${group.name}" group. You can now collaborate with others on shared financial planning.`;

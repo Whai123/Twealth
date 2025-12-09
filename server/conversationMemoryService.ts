@@ -313,6 +313,78 @@ export async function extractAndUpdateMemory(
   }
 }
 
+/**
+ * Summarize a long conversation history into a compact context string
+ * This allows maintaining context from older messages without exceeding token limits
+ */
+export function summarizeConversationHistory(
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>
+): string {
+  if (messages.length === 0) return '';
+  
+  // Extract key topics and entities from the conversation
+  const topics: Set<string> = new Set();
+  const amounts: string[] = [];
+  const goals: string[] = [];
+  const actions: string[] = [];
+  
+  for (const msg of messages) {
+    const content = msg.content.toLowerCase();
+    
+    // Extract financial topics
+    if (content.includes('budget')) topics.add('budgeting');
+    if (content.includes('invest')) topics.add('investing');
+    if (content.includes('retire')) topics.add('retirement');
+    if (content.includes('debt') || content.includes('loan')) topics.add('debt management');
+    if (content.includes('save') || content.includes('saving')) topics.add('savings');
+    if (content.includes('tax')) topics.add('tax planning');
+    if (content.includes('crypto') || content.includes('bitcoin')) topics.add('cryptocurrency');
+    if (content.includes('emergency fund')) topics.add('emergency planning');
+    if (content.includes('house') || content.includes('home')) topics.add('home buying');
+    if (content.includes('car')) topics.add('vehicle purchase');
+    
+    // Extract dollar amounts mentioned
+    const amountMatches = content.match(/\$[\d,]+(?:\.\d{2})?/g);
+    if (amountMatches) amounts.push(...amountMatches.slice(0, 3));
+    
+    // Extract goals mentioned
+    if (content.includes('goal') || content.includes('want to')) {
+      const goalMatch = content.match(/(?:goal|want to|saving for|plan to)\s+(.{10,50})/i);
+      if (goalMatch) goals.push(goalMatch[1].trim());
+    }
+    
+    // Extract actions taken by assistant
+    if (msg.role === 'assistant') {
+      if (content.includes('created') || content.includes('added')) {
+        const actionMatch = content.match(/(?:created|added|tracked)\s*:?\s*(.{10,40})/i);
+        if (actionMatch) actions.push(actionMatch[1].trim());
+      }
+    }
+  }
+  
+  const parts: string[] = [];
+  
+  if (topics.size > 0) {
+    parts.push(`Topics discussed: ${Array.from(topics).slice(0, 5).join(', ')}`);
+  }
+  
+  if (amounts.length > 0) {
+    parts.push(`Key amounts mentioned: ${Array.from(new Set(amounts)).slice(0, 4).join(', ')}`);
+  }
+  
+  if (goals.length > 0) {
+    parts.push(`Goals mentioned: ${Array.from(new Set(goals)).slice(0, 3).join('; ')}`);
+  }
+  
+  if (actions.length > 0) {
+    parts.push(`Recent actions: ${Array.from(new Set(actions)).slice(0, 3).join('; ')}`);
+  }
+  
+  if (parts.length === 0) return '';
+  
+  return `\n\n[CONVERSATION SUMMARY FROM EARLIER MESSAGES]\n${parts.join('\n')}`;
+}
+
 export async function getMemoryContext(storage: IStorage, userId: string): Promise<string> {
   try {
     const prefs = await storage.getUserPreferences(userId);
