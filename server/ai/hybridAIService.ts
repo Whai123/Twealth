@@ -27,6 +27,32 @@ import { analyzeRetirement } from './orchestrators/retirement';
 import { analyzeTax } from './orchestrators/tax';
 import { analyzePortfolio } from './orchestrators/portfolio';
 import { getTwealthTools, getTwealthIdentity } from './tools';
+import { marketDataService } from '../marketDataService';
+
+// Per-country cached market context to avoid repeated API calls
+const cachedMarketContextByCountry = new Map<string, { data: string; timestamp: number }>();
+const MARKET_CONTEXT_CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+
+/**
+ * Get cached market context for AI prompts (country-specific caching)
+ */
+async function getMarketContextForPrompt(userCountry: string = 'US'): Promise<string> {
+  const cacheKey = userCountry.toUpperCase();
+  const cached = cachedMarketContextByCountry.get(cacheKey);
+  
+  if (cached && Date.now() - cached.timestamp < MARKET_CONTEXT_CACHE_DURATION) {
+    return cached.data;
+  }
+  
+  try {
+    const context = await marketDataService.getMarketContextForAI(userCountry);
+    cachedMarketContextByCountry.set(cacheKey, { data: context, timestamp: Date.now() });
+    return context;
+  } catch (error) {
+    console.error('[HybridAI] Error fetching market context:', error);
+    return ''; // Return empty string on error - prompts will work without it
+  }
+}
 
 /**
  * Model access levels (matches tier system)
@@ -151,8 +177,11 @@ async function handleGPT5Query(
 ): Promise<HybridAIResponse> {
   const client = getGPT5Client();
   
+  // Fetch market context for smarter financial advice
+  const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
+  
   // Build optimized prompt with financial context
-  const systemPrompt = buildGPT5SystemPrompt(context);
+  const systemPrompt = buildGPT5SystemPrompt(context, marketContext);
   
   // Build messages array with conversation history (last 6 messages for context)
   const conversationHistory = (context.conversationHistory || []).slice(-6);
@@ -190,8 +219,11 @@ async function handleScoutQuery(
 ): Promise<HybridAIResponse> {
   const client = getScoutClient();
   
+  // Fetch market context for smarter financial advice
+  const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
+  
   // Build simple prompt with context
-  const systemPrompt = buildScoutSystemPrompt(context);
+  const systemPrompt = buildScoutSystemPrompt(context, marketContext);
   
   // Build messages array with conversation history (last 6 messages for context)
   const conversationHistory = (context.conversationHistory || []).slice(-6);
@@ -382,8 +414,11 @@ async function handleGenericReasoningQuery(
   // Select the appropriate client based on target model
   const client = targetModel === 'sonnet' ? getSonnetClient() : getOpusClient();
   
+  // Fetch market context for smarter financial advice
+  const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
+  
   // Build comprehensive prompt with context
-  const systemPrompt = buildReasoningSystemPrompt(context);
+  const systemPrompt = buildReasoningSystemPrompt(context, marketContext);
   
   // Build messages array with conversation history (last 6 messages for context)
   const conversationHistory = (context.conversationHistory || []).slice(-6);
@@ -446,7 +481,7 @@ IMPORTANT: Use ${cc.currencySymbol} (${cc.currency}) for all monetary values. Ap
 /**
  * Build system prompt for GPT-5 (optimized for financial reasoning)
  */
-function buildGPT5SystemPrompt(context: any): string {
+function buildGPT5SystemPrompt(context: any, marketContext?: string): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
@@ -499,6 +534,11 @@ You are their personal CFO with complete visibility into their finances. Referen
       prompt += `${i + 1}. ${a.name} (${a.type}): ${currencySymbol}${a.value.toLocaleString()}\n`;
     });
     prompt += `\n`;
+  }
+
+  // Include live market data context (only if available)
+  if (marketContext && marketContext.trim().length > 0) {
+    prompt += `\n**LIVE MARKET DATA (Use for context-aware advice):**\n${marketContext}\n`;
   }
 
   prompt += `**Your Role as GPT-5 (MATH Model):**
@@ -556,7 +596,7 @@ Use available tools to provide detailed calculations. Keep responses focused on 
 /**
  * Build system prompt for Scout (simple queries)
  */
-function buildScoutSystemPrompt(context: any): string {
+function buildScoutSystemPrompt(context: any, marketContext?: string): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
@@ -643,6 +683,11 @@ Reference it directly. Never say "I don't have access" - you DO have access belo
     prompt += `\n`;
   }
 
+  // Include live market data context (only if available)
+  if (marketContext && marketContext.trim().length > 0) {
+    prompt += `\n**LIVE MARKET DATA (Use for context-aware advice):**\n${marketContext}\n`;
+  }
+
   prompt += `**Your Role as Twealth AI (Personal CFO):**
 You're the user's dedicated financial advisor in ${countryName}. You KNOW their financial situation.
 
@@ -695,7 +740,7 @@ Keep responses focused. Always use the user's local currency (${currencySymbol})
 /**
  * Build system prompt for Reasoning (complex queries)
  */
-function buildReasoningSystemPrompt(context: any): string {
+function buildReasoningSystemPrompt(context: any, marketContext?: string): string {
   const monthlyIncome = context.income.sources.reduce((sum: number, s: any) => sum + s.amount, 0);
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
@@ -751,6 +796,11 @@ Never say "I don't have access" - you DO have access to all their financial data
     prompt += `\n`;
   }
   
+  // Include live market data context (only if available)
+  if (marketContext && marketContext.trim().length > 0) {
+    prompt += `\n**LIVE MARKET DATA (Use for context-aware advice):**\n${marketContext}\n`;
+  }
+
   prompt += `**Your Role as Claude Sonnet/Opus (REASONING/CFO Model):**
 You're the strategic advisor for complex financial decisions in ${countryName}. You HAVE ACCESS to all user data above.
 
