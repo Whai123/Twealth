@@ -30,7 +30,10 @@ interface MessageBubbleProps {
   isLatest?: boolean;
   isRegenerating?: boolean;
   onFollowUp?: (prompt: string) => void;
+  isStreaming?: boolean;
 }
+
+export type { MessageBubbleProps };
 
 interface ParsedInsight {
   type: 'warning' | 'opportunity' | 'milestone';
@@ -363,7 +366,7 @@ const isExactErrorMessage = (content: string): boolean => {
   return EXACT_ERROR_MESSAGES.some(pattern => lowerContent === pattern);
 };
 
-export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest, isRegenerating, onFollowUp }: MessageBubbleProps) {
+export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest, isRegenerating, onFollowUp, isStreaming }: MessageBubbleProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [showActions, setShowActions] = useState(false);
@@ -574,6 +577,13 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
             >
               {parsedContent?.mainContent || content}
             </ReactMarkdown>
+            {isStreaming && (
+              <motion.span
+                className="inline-block w-2 h-4 bg-blue-500 ml-0.5 -mb-0.5 rounded-sm"
+                animate={{ opacity: [1, 0] }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
+              />
+            )}
           </div>
           
           {/* Calculation Blocks - displayed for financial calculations */}

@@ -293,8 +293,12 @@ export default function AIAssistantPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rateLimitRetryAfter, setRateLimitRetryAfter] = useState<number>(0);
   const [inputFocused, setInputFocused] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingContent, setStreamingContent] = useState("");
+  const [useStreaming, setUseStreaming] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (rateLimitRetryAfter > 0) {
@@ -474,7 +478,7 @@ export default function AIAssistantPage() {
   });
 
   const handleSendMessage = () => {
-    if (!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0) return;
+    if (!currentMessage.trim() || sendMessageMutation.isPending || isStreaming || rateLimitRetryAfter > 0) return;
     
     const isLimitExceeded = usage && usage.chatUsage.used >= usage.chatUsage.limit;
     
@@ -496,7 +500,94 @@ export default function AIAssistantPage() {
       return;
     }
 
-    sendMessageMutation.mutate(currentMessage);
+    if (useStreaming && analysisMode === 'quick') {
+      sendStreamingMessage(currentMessage);
+    } else {
+      sendMessageMutation.mutate(currentMessage);
+    }
+  };
+  
+  const sendStreamingMessage = async (content: string) => {
+    let conversationId = currentConversationId;
+    
+    try {
+      setIsStreaming(true);
+      setStreamingContent("");
+      setCurrentMessage("");
+      
+      if (!conversationId) {
+        const response = await apiRequest("POST", "/api/chat/conversations", { 
+          title: content.slice(0, 50) + (content.length > 50 ? '...' : '')
+        });
+        const conversation = await response.json();
+        conversationId = conversation.id;
+        setCurrentConversationId(conversationId);
+      }
+      
+      abortControllerRef.current = new AbortController();
+      
+      const response = await fetch(`/api/chat/conversations/${conversationId}/messages/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+        credentials: 'include',
+        signal: abortControllerRef.current.signal
+      });
+      
+      if (!response.ok) {
+        throw new Error('Streaming failed');
+      }
+      
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      if (!reader) {
+        throw new Error('No response body');
+      }
+      
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            continue;
+          }
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.content) {
+                setStreamingContent(prev => prev + data.content);
+              }
+            } catch {
+            }
+          }
+        }
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", conversationId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
+      
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        toast({
+          title: "Error",
+          description: error.message || "Streaming failed",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setIsStreaming(false);
+      setStreamingContent("");
+      abortControllerRef.current = null;
+    }
   };
 
   const handleNewChat = () => {
@@ -1090,6 +1181,16 @@ export default function AIAssistantPage() {
                 
                 {sendMessageMutation.isPending && <TypingIndicator isDeepAnalysis={analysisMode === 'deep'} />}
                 
+                {isStreaming && streamingContent && (
+                  <MessageBubble
+                    role="assistant"
+                    content={streamingContent}
+                    isStreaming={true}
+                  />
+                )}
+                
+                {isStreaming && !streamingContent && <TypingIndicator isDeepAnalysis={false} />}
+                
                 <div ref={messagesEndRef} />
               </div>
             )}
@@ -1192,7 +1293,7 @@ export default function AIAssistantPage() {
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
                     onClick={handleSendMessage}
-                    disabled={!currentMessage.trim() || sendMessageMutation.isPending || rateLimitRetryAfter > 0}
+                    disabled={!currentMessage.trim() || sendMessageMutation.isPending || isStreaming || rateLimitRetryAfter > 0}
                     size="icon"
                     className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${
                       currentMessage.trim() 

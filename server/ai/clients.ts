@@ -215,6 +215,19 @@ export interface ChatOptions {
   temperature?: number;
 }
 
+// Streaming chunk interface
+export interface StreamChunk {
+  type: 'text' | 'tool_call' | 'done' | 'error';
+  content?: string;
+  toolCall?: ToolCall;
+  error?: string;
+  // Final metadata when done
+  tokensIn?: number;
+  tokensOut?: number;
+  cost?: number;
+  model?: string;
+}
+
 /**
  * GPT-5 Client (OpenAI via Replit AI Integrations)
  * MATH MODEL - Advanced math, projections, simulations (Pro: 5/month, Enterprise: 10/month)
@@ -307,6 +320,67 @@ export class GPT5Client {
         toolCalls: toolCalls && toolCalls.length > 0 ? toolCalls : undefined,
       };
     }, 'GPT5Client', 'chat');
+  }
+  
+  async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
+    const {
+      messages,
+      system,
+      maxTokens = 8192,
+      temperature = 0.7,
+    } = options;
+    
+    const openaiMessages = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+    }));
+    
+    if (system) {
+      openaiMessages.unshift({
+        role: 'system' as const,
+        content: system,
+      });
+    }
+    
+    try {
+      const stream = await this.openai.chat.completions.create({
+        model: this.model,
+        messages: openaiMessages,
+        max_tokens: maxTokens,
+        temperature,
+        stream: true,
+      });
+      
+      let fullText = '';
+      let tokensIn = 0;
+      let tokensOut = 0;
+      
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta;
+        if (delta?.content) {
+          fullText += delta.content;
+          yield { type: 'text', content: delta.content };
+        }
+        
+        if (chunk.usage) {
+          tokensIn = chunk.usage.prompt_tokens || 0;
+          tokensOut = chunk.usage.completion_tokens || 0;
+        }
+      }
+      
+      const aiConfig = getAIConfig();
+      const cost = aiConfig.estimateCost('gpt-5' as ModelId, tokensIn, tokensOut);
+      
+      yield {
+        type: 'done',
+        tokensIn,
+        tokensOut,
+        cost,
+        model: this.model,
+      };
+    } catch (error: any) {
+      yield { type: 'error', error: error.message || 'GPT-5 streaming failed' };
+    }
   }
 }
 
@@ -402,6 +476,67 @@ export class ScoutClient {
       };
     }, 'ScoutClient', 'chat');
   }
+  
+  async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
+    const {
+      messages,
+      system,
+      maxTokens = this.config.maxTokens,
+      temperature = this.config.temperature,
+    } = options;
+    
+    const groqMessages = messages.map(msg => ({
+      role: msg.role === 'system' ? 'system' as const : msg.role,
+      content: msg.content,
+    }));
+    
+    if (system) {
+      groqMessages.unshift({
+        role: 'system',
+        content: system,
+      });
+    }
+    
+    try {
+      const stream = await this.groq.chat.completions.create({
+        model: this.config.model,
+        messages: groqMessages,
+        max_tokens: maxTokens,
+        temperature,
+        stream: true,
+      });
+      
+      let fullText = '';
+      let tokensIn = 0;
+      let tokensOut = 0;
+      
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta;
+        if (delta?.content) {
+          fullText += delta.content;
+          yield { type: 'text', content: delta.content };
+        }
+        
+        if (chunk.x_groq?.usage) {
+          tokensIn = chunk.x_groq.usage.prompt_tokens || 0;
+          tokensOut = chunk.x_groq.usage.completion_tokens || 0;
+        }
+      }
+      
+      const aiConfig = getAIConfig();
+      const cost = aiConfig.estimateCost(this.config.model as ModelId, tokensIn, tokensOut);
+      
+      yield {
+        type: 'done',
+        tokensIn,
+        tokensOut,
+        cost,
+        model: this.config.model,
+      };
+    } catch (error: any) {
+      yield { type: 'error', error: error.message || 'Scout streaming failed' };
+    }
+  }
 }
 
 /**
@@ -495,6 +630,73 @@ export class AnthropicClient {
         toolCalls,
       };
     }, clientName, 'chat');
+  }
+  
+  async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
+    const config = getAIConfig();
+    const modelConfig = config.reasoning;
+    
+    const {
+      messages,
+      system,
+      maxTokens = modelConfig.maxTokens,
+      temperature = modelConfig.temperature,
+    } = options;
+    
+    const anthropicMessages = messages
+      .filter(msg => msg.role !== 'system')
+      .map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      }));
+    
+    try {
+      const stream = this.anthropic.messages.stream({
+        model: this.model,
+        max_tokens: maxTokens,
+        temperature,
+        system: system || undefined,
+        messages: anthropicMessages,
+      });
+      
+      let tokensIn = 0;
+      let tokensOut = 0;
+      
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta') {
+          const delta = event.delta as any;
+          if (delta.type === 'text_delta' && delta.text) {
+            yield { type: 'text', content: delta.text };
+          }
+        }
+        
+        if (event.type === 'message_delta') {
+          const usage = (event as any).usage;
+          if (usage) {
+            tokensOut = usage.output_tokens || 0;
+          }
+        }
+        
+        if (event.type === 'message_start') {
+          const message = (event as any).message;
+          if (message?.usage) {
+            tokensIn = message.usage.input_tokens || 0;
+          }
+        }
+      }
+      
+      const cost = config.estimateCost(this.model as ModelId, tokensIn, tokensOut);
+      
+      yield {
+        type: 'done',
+        tokensIn,
+        tokensOut,
+        cost,
+        model: this.model,
+      };
+    } catch (error: any) {
+      yield { type: 'error', error: error.message || 'Anthropic streaming failed' };
+    }
   }
 }
 

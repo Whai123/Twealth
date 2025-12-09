@@ -4788,6 +4788,131 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     }
   });
 
+  // ===== AI Chat Streaming Endpoint (SSE) =====
+  // Provides real-time token-by-token streaming for faster perceived response time
+  app.post("/api/chat/conversations/:id/messages/stream", isAuthenticated, async (req: any, res) => {
+    const userId = getUserIdFromRequest(req);
+    const conversationId = req.params.id;
+    const userMessage = req.body.content;
+    
+    // Set up SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    
+    // Helper to send SSE events
+    const sendEvent = (event: string, data: any) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+    
+    try {
+      // Validate conversation
+      const conversation = await storage.getChatConversation(conversationId);
+      if (!conversation || conversation.userId !== userId) {
+        sendEvent('error', { message: 'Conversation not found' });
+        return res.end();
+      }
+      
+      if (!userMessage || typeof userMessage !== 'string') {
+        sendEvent('error', { message: 'Message content is required' });
+        return res.end();
+      }
+      
+      // Save user message first
+      const userChatMessage = await storage.createChatMessage({
+        conversationId,
+        role: 'user',
+        content: userMessage,
+        userContext: null,
+        tokenCount: Math.ceil(userMessage.length / 4),
+        cost: '0.0000'
+      });
+      
+      sendEvent('user_message', { id: userChatMessage.id });
+      
+      // Get user context and subscription
+      const [subscription, userPreferences, financialProfile] = await Promise.all([
+        storage.getUserSubscription(userId),
+        storage.getUserPreferences(userId),
+        storage.getUserFinancialProfile(userId)
+      ]);
+      
+      // Get conversation history for context
+      const messages = await storage.getChatMessages(conversationId, 10);
+      const conversationHistory = messages.reverse().slice(-6).map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }));
+      
+      // Build system prompt with user context
+      const language = userPreferences?.language || 'en';
+      const monthlyIncome = financialProfile?.monthlyIncome || '0';
+      
+      const systemPrompt = `You are a helpful financial advisor assistant. 
+Respond in ${language === 'th' ? 'Thai' : 'English'}.
+User's monthly income: $${monthlyIncome}.
+Be concise but helpful. Focus on practical, actionable advice.`;
+      
+      // Import and use Scout client for fast streaming
+      const { getScoutClient } = await import('./ai/clients');
+      const scoutClient = getScoutClient();
+      
+      let fullResponse = '';
+      let tokensIn = 0;
+      let tokensOut = 0;
+      let cost = 0;
+      
+      sendEvent('stream_start', { model: 'scout' });
+      
+      // Stream the response
+      for await (const chunk of scoutClient.chatStream({
+        messages: conversationHistory,
+        system: systemPrompt,
+        temperature: 0.7
+      })) {
+        if (chunk.type === 'text' && chunk.content) {
+          fullResponse += chunk.content;
+          sendEvent('text', { content: chunk.content });
+        } else if (chunk.type === 'done') {
+          tokensIn = chunk.tokensIn || 0;
+          tokensOut = chunk.tokensOut || 0;
+          cost = chunk.cost || 0;
+        } else if (chunk.type === 'error') {
+          sendEvent('error', { message: chunk.error });
+          return res.end();
+        }
+      }
+      
+      // Save the complete AI response
+      const aiChatMessage = await storage.createChatMessage({
+        conversationId,
+        role: 'assistant',
+        content: fullResponse,
+        userContext: null,
+        tokenCount: tokensOut,
+        cost: cost.toFixed(6)
+      });
+      
+      // Update conversation memory
+      await extractAndUpdateMemory(storage, userId, userMessage, fullResponse);
+      
+      sendEvent('stream_end', {
+        id: aiChatMessage.id,
+        tokensIn,
+        tokensOut,
+        cost,
+        model: 'scout'
+      });
+      
+      res.end();
+    } catch (error: any) {
+      console.error('[StreamingAI] Error:', error);
+      sendEvent('error', { message: error.message || 'Streaming failed' });
+      res.end();
+    }
+  });
+
   // ===== Tier-Aware Hybrid AI Endpoint (Scout + Sonnet + Opus) =====
   app.post("/api/ai/advise", aiChatLimiter, isAuthenticated, async (req: any, res) => {
     try {
