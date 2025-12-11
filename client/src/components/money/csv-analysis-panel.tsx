@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, FileText, TrendingUp } from "lucide-react";
+import { Upload, FileText, TrendingUp, Save, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,9 @@ import { parseCSV, type Transaction } from "@/lib/finance/parseTransactions";
 import { categorizeAll, type Category } from "@/lib/finance/categorize";
 import { forecastCashflow } from "@/lib/finance/forecast";
 import { generateInsights, type Insight } from "@/lib/finance/insights";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 type AnalysisState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -22,6 +25,38 @@ export default function CSVAnalysisPanel() {
   const [forecast, setForecast] = useState<{ day: number; amount: number }[]>([]);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [saved, setSaved] = useState(false);
+  const { toast } = useToast();
+
+  const importMutation = useMutation({
+    mutationFn: async (transactions: (Transaction & { category: Category })[]) => {
+      const txData = transactions.map(tx => ({
+        date: tx.date,
+        description: tx.description,
+        amount: tx.amount,
+        category: tx.category,
+      }));
+      return apiRequest("POST", "/api/transactions/bulk-import", { transactions: txData });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/financial-profile"] });
+      setSaved(true);
+      toast({
+        title: "Transactions Imported!",
+        description: data.message || `Successfully saved ${categorizedTransactions.length} transactions`,
+        icon: <CheckCircle2 className="h-5 w-5 text-green-600" />,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Import Failed",
+        description: error.message || "Failed to save transactions",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -44,6 +79,7 @@ export default function CSVAnalysisPanel() {
 
     setState('loading');
     setError("");
+    setSaved(false);
 
     try {
       // Parse CSV
@@ -158,6 +194,45 @@ export default function CSVAnalysisPanel() {
       {/* Results Section */}
       {state === 'success' && categorizedTransactions.length > 0 && (
         <>
+          {/* Save to Database Button */}
+          <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold text-green-900 dark:text-green-100">
+                    {saved ? "Transactions Saved!" : "Ready to Import"}
+                  </h3>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    {saved 
+                      ? "Your transactions are now tracked and will be used for AI financial advice."
+                      : `${categorizedTransactions.length} transactions analyzed. Save them to track your finances.`
+                    }
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => importMutation.mutate(categorizedTransactions)}
+                  disabled={saved || importMutation.isPending}
+                  className={saved ? "bg-green-600 hover:bg-green-600" : ""}
+                  data-testid="save-transactions-button"
+                >
+                  {importMutation.isPending ? (
+                    "Saving..."
+                  ) : saved ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Saved
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save to My Finances
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Category Totals */}
           <Card data-testid="category-totals-card">
             <CardHeader>

@@ -3,7 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { DollarSign, Save, TrendingUp, TrendingDown, Wallet, Building2, CreditCard, CheckCircle2, AlertCircle, Plus, Trash2 } from "lucide-react";
+import { DollarSign, Save, TrendingUp, TrendingDown, Wallet, Building2, CreditCard, CheckCircle2, AlertCircle, Plus, Trash2, RefreshCw, FileSpreadsheet } from "lucide-react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -38,6 +39,16 @@ interface ProfileApiResponse {
   assets: any[];
 }
 
+interface FinancialSummary {
+  totalIncome: number;
+  totalExpenses: number;
+  averageMonthlyIncome: number;
+  averageMonthlyExpenses: number;
+  netCashFlow: number;
+  transactionCount: number;
+  categoryBreakdown: Record<string, number>;
+}
+
 export default function FinancialProfile() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +56,11 @@ export default function FinancialProfile() {
 
   const { data: profileData, isLoading } = useQuery<ProfileApiResponse>({
     queryKey: ["/api/user/financial-profile"],
+    enabled: true,
+  });
+
+  const { data: financialSummary, isLoading: summaryLoading } = useQuery<FinancialSummary>({
+    queryKey: ["/api/financial-summary"],
     enabled: true,
   });
 
@@ -138,15 +154,82 @@ export default function FinancialProfile() {
         </div>
       </header>
 
-      <main className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto">
+      <main className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto space-y-6">
+        {/* Calculated from Actual Transactions */}
+        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
+              <RefreshCw className="h-5 w-5" />
+              Calculated from Your Transactions
+            </CardTitle>
+            <CardDescription className="text-blue-700 dark:text-blue-300">
+              {financialSummary?.transactionCount 
+                ? `Based on ${financialSummary.transactionCount} tracked transactions (last 6 months)`
+                : "Import your bank statement to see calculated data"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {summaryLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-20 bg-blue-100 dark:bg-blue-900/50 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            ) : financialSummary && financialSummary.transactionCount > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Avg Monthly Income</p>
+                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                    ${financialSummary.averageMonthlyIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Avg Monthly Expenses</p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                    ${financialSummary.averageMonthlyExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Net Cash Flow</p>
+                  <p className={`text-xl font-bold ${financialSummary.netCashFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    ${financialSummary.netCashFlow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Total Transactions</p>
+                  <p className="text-xl font-bold text-slate-900 dark:text-white">
+                    {financialSummary.transactionCount}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileSpreadsheet className="h-12 w-12 mx-auto text-blue-400 dark:text-blue-600 mb-4" />
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">No Transaction Data Yet</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                  Import your bank statement CSV to automatically calculate your income and expenses
+                </p>
+                <Link href="/money-tracking">
+                  <Button variant="outline" className="border-blue-300 dark:border-blue-700">
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Go to Money Tracking to Import CSV
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Manual Profile Entry */}
         <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wallet className="h-5 w-5" />
-              Financial Overview
+              Manual Financial Overview
             </CardTitle>
             <CardDescription>
-              Your comprehensive financial profile powers AI-driven advice
+              Set estimates if you don't have transaction data, or override calculated values
             </CardDescription>
           </CardHeader>
           <CardContent>

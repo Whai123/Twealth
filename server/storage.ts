@@ -221,8 +221,18 @@ export interface IStorage {
   getTransactionsByUserId(userId: string, limit?: number): Promise<Transaction[]>;
   getTransactionsByGoalId(goalId: string): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  bulkCreateTransactions(transactions: InsertTransaction[]): Promise<Transaction[]>;
   updateTransaction(id: string, updates: Partial<Transaction>): Promise<Transaction>;
   deleteTransaction(id: string): Promise<void>;
+  getFinancialSummary(userId: string, months?: number): Promise<{
+    totalIncome: number;
+    totalExpenses: number;
+    averageMonthlyIncome: number;
+    averageMonthlyExpenses: number;
+    netCashFlow: number;
+    transactionCount: number;
+    categoryBreakdown: Record<string, number>;
+  }>;
 
   // Budget methods
   getBudget(id: string): Promise<Budget | undefined>;
@@ -989,6 +999,66 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTransaction(id: string): Promise<void> {
     await db.delete(transactions).where(eq(transactions.id, id));
+  }
+
+  async bulkCreateTransactions(insertTransactions: InsertTransaction[]): Promise<Transaction[]> {
+    if (insertTransactions.length === 0) return [];
+    
+    const createdTransactions = await db
+      .insert(transactions)
+      .values(insertTransactions as (typeof transactions.$inferInsert)[])
+      .returning();
+    
+    return createdTransactions;
+  }
+
+  async getFinancialSummary(userId: string, months: number = 6): Promise<{
+    totalIncome: number;
+    totalExpenses: number;
+    averageMonthlyIncome: number;
+    averageMonthlyExpenses: number;
+    netCashFlow: number;
+    transactionCount: number;
+    categoryBreakdown: Record<string, number>;
+  }> {
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+    
+    const userTransactions = await db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          gte(transactions.date, startDate)
+        )
+      );
+    
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    const categoryBreakdown: Record<string, number> = {};
+    
+    for (const tx of userTransactions) {
+      const amount = parseFloat(tx.amount.toString());
+      if (tx.type === 'income') {
+        totalIncome += amount;
+      } else if (tx.type === 'expense') {
+        totalExpenses += Math.abs(amount);
+      }
+      
+      const category = tx.category || 'Other';
+      categoryBreakdown[category] = (categoryBreakdown[category] || 0) + Math.abs(amount);
+    }
+    
+    return {
+      totalIncome,
+      totalExpenses,
+      averageMonthlyIncome: totalIncome / months,
+      averageMonthlyExpenses: totalExpenses / months,
+      netCashFlow: totalIncome - totalExpenses,
+      transactionCount: userTransactions.length,
+      categoryBreakdown,
+    };
   }
 
   // Budget methods

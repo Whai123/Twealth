@@ -5,7 +5,7 @@ import rateLimit from "express-rate-limit";
 import { storage } from "./storage";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { subscriptionPlans } from "@shared/schema";
+import { subscriptionPlans, InsertTransaction } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./customAuth";
 import { stripeLogger, aiLogger, createLogger } from "./utils/logger";
 
@@ -1763,6 +1763,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('[POST /api/transactions] Error:', error);
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Bulk import transactions from CSV
+  app.post("/api/transactions/bulk-import", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { transactions: txData } = req.body;
+      
+      if (!Array.isArray(txData) || txData.length === 0) {
+        return res.status(400).json({ message: "No transactions provided" });
+      }
+      
+      if (txData.length > 500) {
+        return res.status(400).json({ message: "Maximum 500 transactions per import" });
+      }
+      
+      const transactionsToCreate: InsertTransaction[] = txData.map((tx: any) => {
+        const amount = parseFloat(tx.amount?.toString() || '0');
+        const type = amount >= 0 ? 'income' : 'expense';
+        const description = tx.description || '';
+        
+        let category = tx.category || autoCategorizeTransaction(description, Math.abs(amount), type);
+        if (!category || category === 'Other') {
+          category = type === 'income' ? 'salary' : 'other';
+        }
+        
+        return {
+          userId,
+          amount: Math.abs(amount).toString(),
+          type,
+          category,
+          description,
+          date: new Date(tx.date),
+        };
+      });
+      
+      const created = await storage.bulkCreateTransactions(transactionsToCreate);
+      
+      // Auto-disable demo mode when user imports real data
+      try {
+        const preferences = await storage.getUserPreferences(userId);
+        if (preferences?.demoMode) {
+          await storage.updateUserPreferences(userId, { demoMode: false });
+        }
+      } catch (e) {
+        // Non-critical
+      }
+      
+      res.status(201).json({ 
+        imported: created.length,
+        message: `Successfully imported ${created.length} transactions`
+      });
+    } catch (error: any) {
+      console.error('[POST /api/transactions/bulk-import] Error:', error);
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get financial summary calculated from actual transactions
+  app.get("/api/financial-summary", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const months = parseInt(req.query.months as string) || 6;
+      
+      const summary = await storage.getFinancialSummary(userId, months);
+      res.json(summary);
+    } catch (error: any) {
+      console.error('[GET /api/financial-summary] Error:', error);
+      res.status(500).json({ message: error.message });
     }
   });
 
