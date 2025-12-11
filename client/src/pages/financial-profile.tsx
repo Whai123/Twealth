@@ -163,38 +163,21 @@ export default function FinancialProfile() {
               Your Financial Overview
             </CardTitle>
             <CardDescription>
-              Enter your monthly income, expenses, and savings to power personalized AI advice
+              {financialSummary && financialSummary.transactionCount > 0 
+                ? "Your AI advisor uses this data for personalized recommendations. You can adjust these values anytime."
+                : "Enter your financial details to get personalized AI advice. These values power all your recommendations."
+              }
             </CardDescription>
           </CardHeader>
 
-        {/* Show calculated insights only if user has transaction data */}
+        {/* Show calculated insights as optional helper only if user has transaction data */}
         {financialSummary && financialSummary.transactionCount > 0 && (
-          <div className="mx-6 mb-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center gap-2 mb-3">
-              <RefreshCw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                Auto-calculated from {financialSummary.transactionCount} transactions
+          <div className="mx-6 mb-4 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>
+                Tip: Based on your {financialSummary.transactionCount} tracked transactions, your average is ~${financialSummary.averageMonthlyIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo income, ~${financialSummary.averageMonthlyExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo expenses
               </span>
-            </div>
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              <div>
-                <span className="text-slate-600 dark:text-slate-400">Avg Income:</span>
-                <span className="ml-2 font-semibold text-green-600 dark:text-green-400">
-                  ${financialSummary.averageMonthlyIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-600 dark:text-slate-400">Avg Expenses:</span>
-                <span className="ml-2 font-semibold text-red-600 dark:text-red-400">
-                  ${financialSummary.averageMonthlyExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-600 dark:text-slate-400">Net Flow:</span>
-                <span className={`ml-2 font-semibold ${financialSummary.netCashFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                  ${financialSummary.netCashFlow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </span>
-              </div>
             </div>
           </div>
         )}
