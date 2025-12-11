@@ -34,7 +34,21 @@ The backend is an Express.js application in TypeScript, providing a RESTful API.
 
 ## Feature Specifications
 
-Twealth offers a three-tier subscription model (Free, Pro, Enterprise) with an intelligent 4-model hybrid AI architecture (Scout, Claude Sonnet, GPT-5, Claude Opus). This system features automatic model selection based on query complexity, cascading fallback, and quota enforcement. The AI Financial Advisor provides tier-based advice with advanced intelligence, smart conversation memory, dynamic temperature tuning, and proactive next-step suggestions, utilizing over 23 specialized financial tools. Core features include conversational data collection, luxury purchase analysis, smart budget recommendations, actionable advice in 11 languages, and a tiered crypto experience. The system provides a real-time comprehensive financial health score, custom budget management, smart transaction auto-categorization, and proactive insights like spending anomaly detection. It also includes a Demo Mode with sample data, a professional subscription management system with visual quota progress, a zero-friction onboarding system, a Predictive Analytics Engine, and a floating AI Copilot Widget.
+Twealth offers a three-tier subscription model (Free, Pro, Enterprise) with an intelligent 4-model hybrid AI architecture (Scout, Claude Sonnet, GPT-5, Claude Opus). This system features automatic model selection based on query complexity, cascading fallback, and quota enforcement. The AI Financial Advisor provides CFO-level advice with 33+ specialized financial tools including:
+
+**Advanced AI Tools (Dec 2025):**
+- **Debt Optimizer**: Avalanche vs Snowball strategies with month-by-month payoff schedules
+- **Investment Projector**: Multi-scenario compound growth with inflation adjustment
+- **What-If Analyzer**: Compare rent vs buy, lease vs own, debt vs invest scenarios
+- **Market Data**: Real-time stock prices, crypto prices, forex rates
+- **Tax Optimizer**: Retirement contribution strategies, deduction maximization
+- **Retirement Calculator**: Monte Carlo simulation, 4% rule analysis
+- **Spending Pattern Analyzer**: Deep trend analysis with anomaly detection
+
+**Enhanced Context Engine:**
+The AI receives rich analytics including savingsRate, netWorth, debtToIncomeRatio, emergencyFundMonths, month-over-month spending trends, category anomaly detection (with severity levels), financial health score (0-100), top spending categories, and goal progress tracking (on-track vs at-risk). Proactive insights are auto-generated for spending spikes, goals at risk, emergency fund gaps, and debt payoff opportunities.
+
+Core features include conversational data collection, luxury purchase analysis, smart budget recommendations, actionable advice in 11 languages, and a tiered crypto experience. The system provides a real-time comprehensive financial health score, custom budget management, smart transaction auto-categorization, and proactive insights like spending anomaly detection. It also includes a Demo Mode with sample data, a professional subscription management system with visual quota progress, a zero-friction onboarding system, a Predictive Analytics Engine, and a floating AI Copilot Widget.
 
 ## System Design Choices
 

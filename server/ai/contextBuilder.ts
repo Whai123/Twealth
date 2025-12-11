@@ -117,6 +117,9 @@ export interface FinancialContext {
     horizonMonths: number;
     target: number;
     current: number;
+    progressPercent: number;
+    monthlyRequired: number;
+    onTrack: boolean;
   }>;
   recentTransactionsSample: Array<{
     date: string;
@@ -124,6 +127,41 @@ export interface FinancialContext {
     amount: number;
     category?: string;
     type: 'income' | 'expense' | 'transfer';
+  }>;
+  // Enhanced analytics for proactive insights
+  analytics: {
+    savingsRate: number; // Percentage of income saved
+    netWorth: number; // Total assets - total debts
+    debtToIncomeRatio: number; // Monthly debt payments / monthly income
+    emergencyFundMonths: number; // Cash / monthly expenses
+    spendingTrends: {
+      currentMonth: number;
+      lastMonth: number;
+      monthOverMonthChange: number; // Percentage change
+      direction: 'up' | 'down' | 'stable';
+    };
+    categoryAnomalies: Array<{
+      category: string;
+      currentAmount: number;
+      averageAmount: number;
+      percentChange: number;
+      severity: 'low' | 'medium' | 'high';
+    }>;
+    financialHealthScore: number; // 0-100 score
+    topSpendingCategories: Array<{ category: string; amount: number; percent: number }>;
+    goalProgress: {
+      totalGoals: number;
+      onTrackGoals: number;
+      atRiskGoals: number;
+      completedGoals: number;
+    };
+  };
+  // Proactive insights generated from data
+  insights: Array<{
+    type: 'warning' | 'tip' | 'achievement' | 'opportunity';
+    title: string;
+    message: string;
+    priority: 'low' | 'medium' | 'high';
   }>;
   // Country-specific financial intelligence
   countryContext?: {
@@ -326,7 +364,7 @@ export async function buildFinancialContext(
     };
   });
   
-  // Normalize goals
+  // Normalize goals with enhanced progress tracking
   const normalizedGoals = goals.map(goal => {
     const targetDate = new Date(goal.targetDate);
     const now = new Date();
@@ -336,11 +374,26 @@ export async function buildFinancialContext(
       (targetDate.getMonth() - now.getMonth())
     );
     
+    const target = parseFloat(goal.targetAmount.toString());
+    const current = goal.currentAmount ? parseFloat(goal.currentAmount.toString()) : 0;
+    const progressPercent = target > 0 ? Math.round((current / target) * 100) : 0;
+    const remaining = Math.max(0, target - current);
+    const monthlyRequired = monthsDiff > 0 ? Math.max(0, Math.round(remaining / monthsDiff)) : Math.max(0, remaining);
+    
+    // Calculate if on track (can they save enough each month?)
+    // Clamp monthly savings to non-negative - negative savings means user can't make progress
+    const monthlySavings = Math.max(0, monthlyIncome - monthlyExpenses);
+    // Goal is on track if: already completed, or user can afford the monthly required amount
+    const onTrack = progressPercent >= 100 || (monthlySavings > 0 && monthlyRequired <= monthlySavings);
+    
     return {
       name: goal.title,
       horizonMonths: monthsDiff,
-      target: parseFloat(goal.targetAmount.toString()),
-      current: goal.currentAmount ? parseFloat(goal.currentAmount.toString()) : 0,
+      target,
+      current,
+      progressPercent,
+      monthlyRequired,
+      onTrack,
     };
   });
   
@@ -381,6 +434,204 @@ export async function buildFinancialContext(
     financialRegulations: countryData.financialRegulations,
   } : undefined;
   
+  // ========== ENHANCED ANALYTICS ==========
+  
+  // Calculate net worth
+  const totalAssets = normalizedAssets.reduce((sum, a) => sum + a.value, 0);
+  const totalDebts = normalizedDebts.reduce((sum, d) => sum + d.balance, 0);
+  const netWorth = totalAssets - totalDebts;
+  
+  // Calculate savings rate
+  const monthlySavings = monthlyIncome > 0 ? monthlyIncome - monthlyExpenses : 0;
+  const savingsRate = monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0;
+  
+  // Calculate debt-to-income ratio
+  const totalMonthlyDebtPayments = normalizedDebts.reduce((sum, d) => sum + d.monthlyPayment, 0);
+  const debtToIncomeRatio = monthlyIncome > 0 ? Math.round((totalMonthlyDebtPayments / monthlyIncome) * 100) : 0;
+  
+  // Calculate emergency fund months
+  const cashAssets = normalizedAssets.filter(a => a.type === 'cash').reduce((sum, a) => sum + a.value, 0);
+  const emergencyFundMonths = monthlyExpenses > 0 ? Math.round((cashAssets / monthlyExpenses) * 10) / 10 : 0;
+  
+  // Calculate spending trends (current month vs last month)
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  
+  const currentMonthSpending = allTransactions
+    .filter(tx => tx.type === 'expense' && new Date(tx.date) >= currentMonthStart)
+    .reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount.toString())), 0);
+  
+  const lastMonthSpending = allTransactions
+    .filter(tx => {
+      const txDate = new Date(tx.date);
+      return tx.type === 'expense' && txDate >= lastMonthStart && txDate <= lastMonthEnd;
+    })
+    .reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount.toString())), 0);
+  
+  const monthOverMonthChange = lastMonthSpending > 0 
+    ? Math.round(((currentMonthSpending - lastMonthSpending) / lastMonthSpending) * 100)
+    : 0;
+  
+  const spendingDirection = monthOverMonthChange > 10 ? 'up' : monthOverMonthChange < -10 ? 'down' : 'stable';
+  
+  // Detect category anomalies (spending significantly above historical average)
+  const categoryAnomalies: FinancialContext['analytics']['categoryAnomalies'] = [];
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  
+  // Build per-category monthly history for accurate anomaly detection
+  const categoryMonthlyHistory: Record<string, Record<string, number>> = {};
+  for (const tx of allTransactions.filter(t => t.type === 'expense' && new Date(t.date) >= threeMonthsAgo)) {
+    const cat = tx.category || 'Other';
+    const monthKey = `${new Date(tx.date).getFullYear()}-${new Date(tx.date).getMonth()}`;
+    if (!categoryMonthlyHistory[cat]) categoryMonthlyHistory[cat] = {};
+    if (!categoryMonthlyHistory[cat][monthKey]) categoryMonthlyHistory[cat][monthKey] = 0;
+    categoryMonthlyHistory[cat][monthKey] += Math.abs(parseFloat(tx.amount.toString()));
+  }
+  
+  // Current month key
+  const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
+  
+  for (const [category, monthlyAmounts] of Object.entries(categoryMonthlyHistory)) {
+    const months = Object.entries(monthlyAmounts);
+    if (months.length < 2) continue; // Need at least 2 months of data
+    
+    // Calculate average excluding current month
+    const pastMonths = months.filter(([key]) => key !== currentMonthKey);
+    if (pastMonths.length === 0) continue;
+    
+    const avgAmount = pastMonths.reduce((sum, [, amt]) => sum + amt, 0) / pastMonths.length;
+    const currentAmount = monthlyAmounts[currentMonthKey] || 0;
+    
+    // Only flag if current month spending is significantly above historical average
+    if (avgAmount > 0 && currentAmount > avgAmount * 1.3 && currentAmount > 50) {
+      const percentChange = Math.round(((currentAmount - avgAmount) / avgAmount) * 100);
+      categoryAnomalies.push({
+        category,
+        currentAmount: Math.round(currentAmount),
+        averageAmount: Math.round(avgAmount),
+        percentChange,
+        severity: percentChange > 100 ? 'high' : percentChange > 50 ? 'medium' : 'low',
+      });
+    }
+  }
+  
+  // Sort by severity and percent change
+  categoryAnomalies.sort((a, b) => {
+    const severityOrder = { high: 0, medium: 1, low: 2 };
+    return severityOrder[a.severity] - severityOrder[b.severity] || b.percentChange - a.percentChange;
+  });
+  
+  // Calculate financial health score (0-100)
+  let healthScore = 50; // Base score
+  
+  // Savings rate impact (+/-20 points)
+  if (savingsRate >= 20) healthScore += 20;
+  else if (savingsRate >= 10) healthScore += 10;
+  else if (savingsRate < 0) healthScore -= 20;
+  else healthScore -= 10;
+  
+  // Emergency fund impact (+/-15 points)
+  if (emergencyFundMonths >= 6) healthScore += 15;
+  else if (emergencyFundMonths >= 3) healthScore += 8;
+  else if (emergencyFundMonths < 1) healthScore -= 15;
+  
+  // Debt-to-income impact (+/-15 points)
+  if (debtToIncomeRatio === 0) healthScore += 15;
+  else if (debtToIncomeRatio <= 20) healthScore += 8;
+  else if (debtToIncomeRatio > 40) healthScore -= 15;
+  
+  healthScore = Math.max(0, Math.min(100, healthScore));
+  
+  // Top spending categories
+  const sortedCategories = Object.entries(expensesByCategory)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([category, amount]) => ({
+      category,
+      amount: Math.round(amount),
+      percent: monthlyExpenses > 0 ? Math.round((amount / monthlyExpenses) * 100) : 0,
+    }));
+  
+  // Goal progress summary
+  const goalProgress = {
+    totalGoals: normalizedGoals.length,
+    onTrackGoals: normalizedGoals.filter(g => g.onTrack).length,
+    atRiskGoals: normalizedGoals.filter(g => !g.onTrack && g.progressPercent < 100).length,
+    completedGoals: normalizedGoals.filter(g => g.progressPercent >= 100).length,
+  };
+  
+  // ========== PROACTIVE INSIGHTS ==========
+  const insights: FinancialContext['insights'] = [];
+  
+  // Spending anomaly warnings
+  if (monthOverMonthChange > 25) {
+    insights.push({
+      type: 'warning',
+      title: 'Spending Spike Detected',
+      message: `Your spending is up ${monthOverMonthChange}% compared to last month. Review your recent transactions to identify the cause.`,
+      priority: 'high',
+    });
+  }
+  
+  // Category overspending
+  for (const anomaly of categoryAnomalies.slice(0, 2)) {
+    if (anomaly.severity === 'high') {
+      insights.push({
+        type: 'warning',
+        title: `High ${anomaly.category} Spending`,
+        message: `You've spent ${anomaly.percentChange}% more on ${anomaly.category} than your average. Consider reviewing these expenses.`,
+        priority: 'medium',
+      });
+    }
+  }
+  
+  // Emergency fund tip
+  if (emergencyFundMonths < 3 && monthlyExpenses > 0) {
+    insights.push({
+      type: 'tip',
+      title: 'Build Your Emergency Fund',
+      message: `You have ${emergencyFundMonths.toFixed(1)} months of expenses saved. Aim for 3-6 months for financial security.`,
+      priority: emergencyFundMonths < 1 ? 'high' : 'medium',
+    });
+  }
+  
+  // High savings rate achievement
+  if (savingsRate >= 30) {
+    insights.push({
+      type: 'achievement',
+      title: 'Excellent Savings Rate!',
+      message: `You're saving ${savingsRate}% of your income. You're on track for strong wealth building.`,
+      priority: 'low',
+    });
+  }
+  
+  // Goals at risk
+  const atRiskGoals = normalizedGoals.filter(g => !g.onTrack && g.horizonMonths > 0 && g.progressPercent < 100);
+  if (atRiskGoals.length > 0) {
+    insights.push({
+      type: 'warning',
+      title: `${atRiskGoals.length} Goal${atRiskGoals.length > 1 ? 's' : ''} At Risk`,
+      message: `${atRiskGoals[0].name} needs $${atRiskGoals[0].monthlyRequired}/month to stay on track. Consider adjusting your budget.`,
+      priority: 'high',
+    });
+  }
+  
+  // Debt payoff opportunity
+  if (normalizedDebts.length > 0 && savingsRate > 15) {
+    const highestAPR = normalizedDebts.reduce((max, d) => d.apr > max.apr ? d : max, normalizedDebts[0]);
+    if (highestAPR.apr > 10) {
+      insights.push({
+        type: 'opportunity',
+        title: 'Accelerate Debt Payoff',
+        message: `Your ${highestAPR.name} has ${highestAPR.apr}% interest. Consider putting extra savings toward this debt to save on interest.`,
+        priority: 'medium',
+      });
+    }
+  }
+
   const context: FinancialContext = {
     user: {
       id: userId,
@@ -401,6 +652,23 @@ export async function buildFinancialContext(
     assets: normalizedAssets,
     goals: normalizedGoals,
     recentTransactionsSample,
+    analytics: {
+      savingsRate,
+      netWorth,
+      debtToIncomeRatio,
+      emergencyFundMonths,
+      spendingTrends: {
+        currentMonth: Math.round(currentMonthSpending),
+        lastMonth: Math.round(lastMonthSpending),
+        monthOverMonthChange,
+        direction: spendingDirection,
+      },
+      categoryAnomalies,
+      financialHealthScore: healthScore,
+      topSpendingCategories: sortedCategories,
+      goalProgress,
+    },
+    insights,
     countryContext,
   };
   

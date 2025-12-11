@@ -285,6 +285,318 @@ export const TWEALTH_AI_TOOLS = [
         required: ["monthlyExpenses", "incomeStability"]
       }
     }
+  },
+
+  // ========== ADVANCED DEBT OPTIMIZER ==========
+  {
+    type: "function",
+    function: {
+      name: "optimize_debt_payoff",
+      description: "Advanced debt optimizer comparing Avalanche (highest interest first) vs Snowball (smallest balance first) strategies. Calculates detailed payoff schedules, total interest savings, payoff dates, and provides month-by-month breakdown. Use when user wants to optimize debt repayment or asks 'what's the best way to pay off my debt?'",
+      parameters: {
+        type: "object",
+        properties: {
+          debts: {
+            type: "array",
+            description: "Array of debts to optimize",
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: "Debt name (e.g., 'Credit Card', 'Car Loan')" },
+                balance: { type: "number", description: "Current balance in dollars" },
+                interestRate: { type: "number", description: "Annual interest rate as percentage (e.g., 18.9 for 18.9%)" },
+                minimumPayment: { type: "number", description: "Minimum monthly payment" }
+              },
+              required: ["name", "balance", "interestRate", "minimumPayment"]
+            }
+          },
+          extraMonthlyBudget: {
+            type: "number",
+            description: "Extra money available per month beyond minimum payments"
+          },
+          includeSchedule: {
+            type: "boolean",
+            description: "Whether to generate detailed month-by-month payoff schedule"
+          }
+        },
+        required: ["debts", "extraMonthlyBudget"]
+      }
+    }
+  },
+
+  // ========== INVESTMENT PROJECTOR ==========
+  {
+    type: "function",
+    function: {
+      name: "project_investment_growth",
+      description: "Project investment growth with compound interest over time. Calculates future value with multiple scenarios (conservative/moderate/aggressive returns), includes inflation adjustment, and shows year-by-year breakdown. Use when user asks 'how much will my investment grow?' or wants retirement projections.",
+      parameters: {
+        type: "object",
+        properties: {
+          initialAmount: {
+            type: "number",
+            description: "Starting investment amount in dollars"
+          },
+          monthlyContribution: {
+            type: "number",
+            description: "Monthly contribution amount"
+          },
+          years: {
+            type: "number",
+            description: "Investment time horizon in years"
+          },
+          expectedReturn: {
+            type: "number",
+            description: "Expected annual return as percentage (e.g., 7 for 7%). If not provided, will show conservative/moderate/aggressive scenarios."
+          },
+          includeInflationAdjusted: {
+            type: "boolean",
+            description: "Whether to include inflation-adjusted (real) values assuming 3% inflation"
+          }
+        },
+        required: ["initialAmount", "monthlyContribution", "years"]
+      }
+    }
+  },
+
+  // ========== WHAT-IF SCENARIO ANALYZER ==========
+  {
+    type: "function",
+    function: {
+      name: "analyze_financial_scenario",
+      description: "Analyze 'what-if' financial scenarios comparing different choices. Examples: 'Should I pay off debt or invest?', 'Should I buy or rent?', 'Should I lease or buy a car?'. Provides detailed comparison with numbers, ROI, and clear recommendation.",
+      parameters: {
+        type: "object",
+        properties: {
+          scenarioType: {
+            type: "string",
+            enum: ["debt_vs_invest", "buy_vs_rent", "lease_vs_buy", "save_vs_spend", "early_retire", "custom"],
+            description: "Type of scenario to analyze"
+          },
+          scenario1: {
+            type: "object",
+            description: "First option details",
+            properties: {
+              name: { type: "string", description: "Option name" },
+              upfrontCost: { type: "number", description: "Initial cost" },
+              monthlyCost: { type: "number", description: "Monthly cost/payment" },
+              duration: { type: "number", description: "Duration in months" },
+              returnRate: { type: "number", description: "Expected return or appreciation rate %" }
+            }
+          },
+          scenario2: {
+            type: "object",
+            description: "Second option details",
+            properties: {
+              name: { type: "string", description: "Option name" },
+              upfrontCost: { type: "number", description: "Initial cost" },
+              monthlyCost: { type: "number", description: "Monthly cost/payment" },
+              duration: { type: "number", description: "Duration in months" },
+              returnRate: { type: "number", description: "Expected return or appreciation rate %" }
+            }
+          },
+          additionalContext: {
+            type: "string",
+            description: "Additional context about user's situation"
+          }
+        },
+        required: ["scenarioType"]
+      }
+    }
+  },
+
+  // ========== REAL-TIME MARKET DATA ==========
+  {
+    type: "function",
+    function: {
+      name: "get_stock_price",
+      description: "Get real-time stock price and key metrics for any publicly traded company. Use when user asks about stock prices, market performance, or wants to analyze a specific stock. Returns current price, daily change, 52-week range, market cap, and P/E ratio.",
+      parameters: {
+        type: "object",
+        properties: {
+          symbol: {
+            type: "string",
+            description: "Stock ticker symbol (e.g., 'AAPL', 'GOOGL', 'TSLA')"
+          },
+          includeAnalysis: {
+            type: "boolean",
+            description: "Whether to include brief analysis and key metrics"
+          }
+        },
+        required: ["symbol"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_crypto_price",
+      description: "Get real-time cryptocurrency price and market data. Use when user asks about Bitcoin, Ethereum, or other crypto prices. Returns current price in USD, 24h change, market cap, and trading volume.",
+      parameters: {
+        type: "object",
+        properties: {
+          symbol: {
+            type: "string",
+            description: "Crypto symbol (e.g., 'BTC', 'ETH', 'BNB', 'SOL', 'XRP')"
+          },
+          includeTrend: {
+            type: "boolean",
+            description: "Whether to include 7-day and 30-day price trends"
+          }
+        },
+        required: ["symbol"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_forex_rate",
+      description: "Get current exchange rate between two currencies. Use when user asks about currency conversion or forex rates. Returns current rate, daily change, and conversion calculator.",
+      parameters: {
+        type: "object",
+        properties: {
+          fromCurrency: {
+            type: "string",
+            description: "Source currency code (e.g., 'USD', 'EUR', 'THB', 'GBP')"
+          },
+          toCurrency: {
+            type: "string",
+            description: "Target currency code"
+          },
+          amount: {
+            type: "number",
+            description: "Optional amount to convert"
+          }
+        },
+        required: ["fromCurrency", "toCurrency"]
+      }
+    }
+  },
+
+  // ========== FINANCIAL HEALTH ASSESSMENT ==========
+  {
+    type: "function",
+    function: {
+      name: "assess_financial_health",
+      description: "Generate comprehensive financial health assessment based on user's data. Calculates health score (0-100), identifies strengths and weaknesses, and provides prioritized action items. Use when user asks 'how am I doing financially?' or wants a financial checkup.",
+      parameters: {
+        type: "object",
+        properties: {
+          includeDetailedBreakdown: {
+            type: "boolean",
+            description: "Whether to include detailed breakdown of each health metric"
+          },
+          focusArea: {
+            type: "string",
+            enum: ["overall", "savings", "debt", "investing", "emergency_fund", "goals"],
+            description: "Specific area to focus assessment on"
+          }
+        }
+      }
+    }
+  },
+
+  // ========== SPENDING PATTERN ANALYZER ==========
+  {
+    type: "function",
+    function: {
+      name: "analyze_spending_patterns",
+      description: "Deep analysis of user's spending patterns over time. Identifies trends, anomalies, recurring expenses, and opportunities to save. Use when user asks 'where is my money going?' or wants spending insights.",
+      parameters: {
+        type: "object",
+        properties: {
+          timeframe: {
+            type: "string",
+            enum: ["last_month", "last_3_months", "last_6_months", "last_year"],
+            description: "Time period to analyze"
+          },
+          focusCategory: {
+            type: "string",
+            description: "Specific category to deep-dive (e.g., 'dining', 'entertainment', 'shopping')"
+          },
+          compareToAverage: {
+            type: "boolean",
+            description: "Whether to compare spending to national/regional averages"
+          }
+        }
+      }
+    }
+  },
+
+  // ========== TAX OPTIMIZATION ==========
+  {
+    type: "function",
+    function: {
+      name: "calculate_tax_optimization",
+      description: "Calculate tax optimization strategies including retirement contributions, deductions, and tax-efficient investment strategies. Estimates potential tax savings and provides actionable recommendations.",
+      parameters: {
+        type: "object",
+        properties: {
+          annualIncome: {
+            type: "number",
+            description: "Annual gross income in dollars"
+          },
+          filingStatus: {
+            type: "string",
+            enum: ["single", "married_filing_jointly", "married_filing_separately", "head_of_household"],
+            description: "Tax filing status"
+          },
+          currentRetirementContribution: {
+            type: "number",
+            description: "Current annual retirement contribution (401k/IRA)"
+          },
+          hasHSA: {
+            type: "boolean",
+            description: "Whether user has access to HSA"
+          },
+          state: {
+            type: "string",
+            description: "State of residence (for state tax considerations)"
+          }
+        },
+        required: ["annualIncome", "filingStatus"]
+      }
+    }
+  },
+
+  // ========== RETIREMENT READINESS ==========
+  {
+    type: "function",
+    function: {
+      name: "calculate_retirement_readiness",
+      description: "Comprehensive retirement readiness calculator. Determines if user is on track for retirement, calculates required savings rate, and projects retirement income. Uses 4% rule and Monte Carlo simulation for accuracy.",
+      parameters: {
+        type: "object",
+        properties: {
+          currentAge: {
+            type: "number",
+            description: "Current age"
+          },
+          targetRetirementAge: {
+            type: "number",
+            description: "Desired retirement age"
+          },
+          currentSavings: {
+            type: "number",
+            description: "Current retirement savings (401k, IRA, etc.)"
+          },
+          monthlyContribution: {
+            type: "number",
+            description: "Current monthly retirement contribution"
+          },
+          desiredMonthlyIncome: {
+            type: "number",
+            description: "Desired monthly income in retirement (in today's dollars)"
+          },
+          expectedSocialSecurity: {
+            type: "number",
+            description: "Expected monthly Social Security benefit (optional)"
+          }
+        },
+        required: ["currentAge", "targetRetirementAge", "currentSavings", "monthlyContribution"]
+      }
+    }
   }
 ];
 
@@ -302,40 +614,47 @@ export function getTwealthTools(): typeof TWEALTH_AI_TOOLS {
  */
 export function getTwealthFeatureList(): string {
   return `
-**TWEALTH APP FEATURES YOU CAN HELP WITH:**
+**TWEALTH AI - YOUR CFO-LEVEL FINANCIAL ADVISOR**
 
-Core Actions:
-- Create & track financial goals with progress monitoring
-- Record transactions (income/expenses) with auto-categorization
-- Set calendar reminders for financial events
-- Create groups for shared budgeting (family, roommates, friends)
-- Track cryptocurrency holdings & portfolio
+🎯 Core Actions:
+- Create & track financial goals with smart progress monitoring
+- Record transactions with intelligent auto-categorization
+- Set reminders for bills, payments, and financial events
+- Create groups for family/roommate shared budgeting
+- Track cryptocurrency holdings with real-time pricing
 
-Financial Planning:
-- Budget creation & optimization (50/30/20 rule)
-- Emergency fund calculation (3-6 months expenses)
-- Debt payoff strategies (avalanche vs snowball)
-- Retirement planning (4% rule, required savings)
-- Portfolio allocation recommendations
+📊 Proactive Insights (AI automatically detects):
+- Spending spikes and category anomalies
+- Goals at risk of missing deadlines
+- Emergency fund gaps
+- Debt payoff opportunities
+- Achievement milestones (savings rate, net worth)
 
-Analysis & Insights:
-- Spending pattern analysis by category
-- Goal progress tracking with timeline projections
-- Net worth projections with compound growth
-- Luxury purchase affordability analysis
-- Tax optimization strategies
+💰 Advanced Financial Planning:
+- Debt optimizer: Avalanche vs Snowball with month-by-month schedules
+- Investment projector: Multi-scenario compound growth calculations
+- Retirement readiness: Monte Carlo simulation, 4% rule analysis
+- Tax optimization: Contribution strategies, deduction maximization
+- What-if scenarios: Rent vs Buy, Lease vs Own, Debt vs Invest
 
-Advanced Tools:
-- Mortgage payment calculator with amortization
-- Rent affordability using 30% rule
-- Credit score improvement plans
-- Investment comparison (rent vs buy, lease vs own)
-- Future value projections with compound interest
+📈 Real-Time Market Intelligence:
+- Stock prices with key metrics (P/E, market cap, 52-week range)
+- Crypto prices with 24h/7d/30d trends
+- Forex rates with live conversion
+- Market context for investment decisions
 
-Social & Collaboration:
-- Share goals with friends & family
-- Group budget management
-- Friend invitation suggestions based on shared goals
+🏦 Financial Health Assessment:
+- Comprehensive health score (0-100)
+- Savings rate analysis
+- Debt-to-income ratio tracking
+- Emergency fund months calculation
+- Net worth tracking and projections
+
+🔍 Spending Pattern Analysis:
+- Month-over-month trend detection
+- Category breakdown with percentages
+- Anomaly detection (unusual spending)
+- Personalized savings recommendations
 `.trim();
 }
 
@@ -345,20 +664,34 @@ Social & Collaboration:
  */
 export function getTwealthIdentity(): string {
   return `
-You are **Twealth AI**, the intelligent financial advisor built into Twealth - a comprehensive wealth management platform that helps users take control of their finances.
+You are **Twealth AI**, the most advanced AI financial advisor - a CFO-level intelligence that helps users master their finances with data-driven insights and proactive guidance.
 
 ${getTwealthFeatureList()}
 
+**Your Intelligence Level:**
+You are powered by a 4-model hybrid AI system that automatically selects the best model for each task:
+- 🚀 Scout (Llama 4): Lightning-fast for quick questions and daily tasks
+- 🧠 Sonnet (Claude): Deep reasoning for investment strategy and debt optimization
+- 📐 GPT-5: Advanced math for projections, simulations, and compound calculations
+- 👔 Opus (Claude): CFO-level analysis for major financial decisions
+
 **When users ask "what can Twealth do?" or "what are you?":**
-- Introduce yourself as "I'm Twealth AI, your personal financial advisor"
-- List 5-7 key capabilities (goals, transactions, budgeting, AI advice, crypto, etc.)
-- Emphasize you can TAKE ACTIONS (create goals, log transactions, analyze finances)
-- Mention the 4-model hybrid AI system (Scout for speed, Sonnet for reasoning, GPT-5 for math, Opus for CFO-level analysis)
+- Introduce yourself: "I'm Twealth AI - your personal CFO powered by 4 AI models"
+- Highlight: "I proactively analyze your finances and alert you to opportunities and risks"
+- Emphasize: "I can take actions - create goals, log transactions, calculate projections, and more"
+- Mention: "I have access to real-time market data for stocks, crypto, and forex"
 
 **Your Tone:**
-- Professional but friendly - like a knowledgeable friend who's also a CFO
-- Proactive - suggest actions the user can take
-- Data-driven - always provide specific numbers and calculations
-- Action-oriented - use the available tools to help users achieve their financial goals
+- Expert but approachable - like having a brilliant CFO friend who genuinely cares
+- Proactive - don't wait to be asked, offer insights based on the user's data
+- Data-obsessed - always provide specific numbers, percentages, and calculations
+- Action-oriented - use tools to help users achieve goals, don't just give advice
+- Contextually aware - reference the user's actual financial situation in responses
+
+**Proactive Behavior:**
+- When you see concerning data (high spending, goals at risk), mention it naturally
+- Suggest next steps after every interaction ("Would you like me to...")
+- Use the user's analytics data to personalize every response
+- Celebrate wins (savings milestones, debt payoffs, goals achieved)
 `.trim();
 }
