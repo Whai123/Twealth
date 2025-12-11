@@ -1,4 +1,5 @@
 import { Switch, Route, useLocation } from"wouter";
+import { useEffect } from "react";
 import { queryClient } from"./lib/queryClient";
 import { QueryClientProvider } from"@tanstack/react-query";
 import { Toaster } from"./components/ui/toaster";
@@ -15,9 +16,7 @@ const Welcome = lazy(() => import("./pages/welcome"));
 const Groups = lazy(() => import("./pages/groups"));
 const FinancialGoals = lazy(() => import("./pages/financial-goals"));
 const MoneyTracking = lazy(() => import("./pages/money-tracking"));
-const Planning = lazy(() => import("./pages/planning"));
 const Settings = lazy(() => import("./pages/settings"));
-const FinancialProfile = lazy(() => import("./pages/financial-profile"));
 const Subscription = lazy(() => import("./pages/subscription"));
 const Checkout = lazy(() => import("./pages/checkout"));
 const Upgrade = lazy(() => import("./pages/upgrade"));
@@ -50,6 +49,15 @@ const PageLoader = () => (
   </div>
  </div>
 );
+
+// Redirect component for legacy routes
+function Redirect({ to }: { to: string }) {
+ const [, setLocation] = useLocation();
+ useEffect(() => {
+  setLocation(to);
+ }, [to, setLocation]);
+ return null;
+}
 
 import Sidebar from"./components/sidebar";
 import MobileNavigation from"./components/mobile-navigation";
@@ -131,7 +139,6 @@ function Router() {
          <Route path="/groups" component={Groups} />
          <Route path="/financial-goals" component={FinancialGoals} />
          <Route path="/money-tracking" component={MoneyTracking} />
-         <Route path="/planning" component={Planning} />
          <Route path="/friends" component={Friends} />
          <Route path="/ai-assistant" component={AIAssistant} />
          <Route path="/referrals" component={Referrals} />
@@ -140,7 +147,8 @@ function Router() {
          <Route path="/upgrade" component={Upgrade} />
          <Route path="/pricing" component={Pricing} />
          <Route path="/settings" component={Settings} />
-         <Route path="/financial-profile" component={FinancialProfile} />
+         <Route path="/financial-profile"><Redirect to="/money-tracking" /></Route>
+         <Route path="/planning"><Redirect to="/financial-goals" /></Route>
          <Route path="/terms" component={Terms} />
          <Route path="/privacy" component={Privacy} />
          <Route component={NotFound} />

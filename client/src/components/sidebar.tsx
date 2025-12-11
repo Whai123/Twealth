@@ -2,7 +2,6 @@ import { Link, useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 import { 
  Home, 
- Users, 
  Target, 
  Settings,
  Crown,
@@ -12,8 +11,7 @@ import {
  User,
  Wallet,
  LogOut,
- Loader2,
- DollarSign
+ Loader2
 } from"lucide-react";
 import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import { cn } from"@/lib/utils";
@@ -64,28 +62,16 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  title: t('navigation.sections.finance'),
  items: [
  { 
+ name:"My Money", 
+ href:"/money-tracking", 
+ icon: Wallet,
+ description:"Track income, expenses, budgets, and your financial profile"
+ },
+ { 
  name: t('navigation.goals'), 
  href:"/financial-goals", 
  icon: Target,
  description: t('navigation.descriptions.goals')
- },
- { 
- name: t('navigation.money'), 
- href:"/money-tracking", 
- icon: Wallet,
- description:"Track income, expenses, and budgets"
- },
- { 
- name: t('navigation.financialProfile'), 
- href:"/financial-profile", 
- icon: DollarSign,
- description: t('navigation.descriptions.financialProfile')
- },
- { 
- name: t('navigation.groups'), 
- href:"/groups", 
- icon: Users,
- description:"Shared goals and cost splitting with others"
  },
  ]
  },

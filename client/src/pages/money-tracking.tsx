@@ -1,22 +1,28 @@
 import { useState, useEffect, lazy, Suspense, useMemo } from "react";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, 
   BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText, 
   Download, ChevronDown, ArrowUpRight, ArrowDownRight, Wallet,
   CreditCard, ShoppingBag, Home, Car, Utensils, Heart, Plane,
-  Zap, Coffee, Smartphone, Gift, Briefcase, PiggyBank
+  Zap, Coffee, Smartphone, Gift, Briefcase, PiggyBank, Save, 
+  Building2, AlertCircle, User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/ui/empty-state";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient as globalQueryClient } from "@/lib/queryClient";
 import TransactionForm from "@/components/forms/transaction-form";
@@ -27,6 +33,17 @@ import { SwipeableTransactionItem } from "@/components/transactions/swipeable-tr
 import { ResponsiveTransactionDialog } from "@/components/dialogs/responsive-transaction-dialog";
 import { CollapsibleList } from "@/components/virtual-list";
 import { useUserCurrency } from "@/lib/userContext";
+
+const financialProfileSchema = z.object({
+  monthlyIncome: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
+  monthlyExpenses: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
+  monthlySavings: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
+  totalSavings: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
+  savingsGoal: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
+  emergencyFund: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
+});
+
+type FinancialProfileData = z.infer<typeof financialProfileSchema>;
 
 const CSVAnalysisPanel = lazy(() => import("@/components/money/csv-analysis-panel"));
 
@@ -250,6 +267,71 @@ export default function MoneyTracking() {
     queryKey: ["/api/dashboard/stats"],
   });
 
+  // Financial Profile data and form
+  const { data: profileData } = useQuery<any>({
+    queryKey: ["/api/user/financial-profile"],
+  });
+
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  
+  const profileForm = useForm<FinancialProfileData>({
+    resolver: zodResolver(financialProfileSchema),
+    defaultValues: {
+      monthlyIncome: "0",
+      monthlyExpenses: "0",
+      monthlySavings: "0",
+      totalSavings: "0",
+      savingsGoal: "0",
+      emergencyFund: "0",
+    },
+    values: profileData?.profile ? {
+      monthlyIncome: profileData.profile.monthlyIncome?.toString() || "0",
+      monthlyExpenses: profileData.profile.monthlyExpenses?.toString() || "0",
+      monthlySavings: profileData.profile.monthlySavings?.toString() || "0",
+      totalSavings: profileData.profile.totalSavings?.toString() || "0",
+      savingsGoal: profileData.profile.savingsGoal?.toString() || "0",
+      emergencyFund: profileData.profile.emergencyFund?.toString() || "0",
+    } : undefined
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: FinancialProfileData) => {
+      const payload = {
+        profile: {
+          monthlyIncome: data.monthlyIncome,
+          monthlyExpenses: data.monthlyExpenses,
+          monthlySavings: data.monthlySavings,
+          totalSavings: data.totalSavings,
+          savingsGoal: data.savingsGoal,
+          emergencyFund: data.emergencyFund,
+        }
+      };
+      return apiRequest("POST", "/api/user/financial-profile", payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/financial-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-health"] });
+      toast({
+        title: "Profile Updated!",
+        description: "Your financial profile has been saved successfully.",
+      });
+      setIsSavingProfile(false);
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to save your profile. Please try again.",
+        variant: "destructive",
+      });
+      setIsSavingProfile(false);
+    },
+  });
+
+  const onProfileSubmit = async (data: FinancialProfileData) => {
+    setIsSavingProfile(true);
+    updateProfileMutation.mutate(data);
+  };
+
   const bulkCategorizeMutation = useMutation({
     mutationFn: async () => {
       const uncategorizedIds = transactions
@@ -398,10 +480,10 @@ export default function MoneyTracking() {
               transition={{ duration: 0.4 }}
             >
               <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground truncate">
-                Money Tracking
+                My Money
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block line-clamp-1">
-                Monitor your income, expenses, and cash flow
+                Track your finances and manage your financial profile
               </p>
             </motion.div>
             
@@ -427,10 +509,14 @@ export default function MoneyTracking() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-5 p-1 gap-1 bg-muted/50">
+            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-6 p-1 gap-1 bg-muted/50">
               <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-overview">
                 <DollarSign size={14} className="flex-shrink-0" />
                 <span>Overview</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-profile">
+                <User size={14} className="flex-shrink-0" />
+                <span>Profile</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-analytics">
                 <BarChart3 size={14} className="flex-shrink-0" />
@@ -771,6 +857,247 @@ export default function MoneyTracking() {
                 </motion.div>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6">
+            <Card className="border-border/40">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wallet className="h-5 w-5" />
+                  Financial Overview
+                </CardTitle>
+                <CardDescription>
+                  Enter your financial details to get personalized AI advice. These values power all your recommendations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...profileForm}>
+                  <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                      <FormField
+                        control={profileForm.control}
+                        name="monthlyIncome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Monthly Income</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-9"
+                                  placeholder="5000"
+                                  data-testid="input-monthly-income"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="monthlyExpenses"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Monthly Expenses</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-9"
+                                  placeholder="3000"
+                                  data-testid="input-monthly-expenses"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="monthlySavings"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Monthly Savings</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-9"
+                                  placeholder="2000"
+                                  data-testid="input-monthly-savings"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="totalSavings"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total Savings</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-9"
+                                  placeholder="50000"
+                                  data-testid="input-total-savings"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="savingsGoal"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Savings Goal</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-9"
+                                  placeholder="100000"
+                                  data-testid="input-savings-goal"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={profileForm.control}
+                        name="emergencyFund"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Emergency Fund</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  {...field}
+                                  type="number"
+                                  step="0.01"
+                                  className="pl-9"
+                                  placeholder="18000"
+                                  data-testid="input-emergency-fund"
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        type="submit"
+                        disabled={isSavingProfile}
+                        data-testid="button-save-profile"
+                      >
+                        {isSavingProfile ? (
+                          <>
+                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save Profile
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+
+                {profileData?.profile && (
+                  <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="border-border/40">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Monthly Net</p>
+                            <p className="text-2xl font-bold">
+                              ${(parseFloat(profileData.profile.monthlyIncome || "0") - parseFloat(profileData.profile.monthlyExpenses || "0")).toLocaleString()}
+                            </p>
+                          </div>
+                          <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border/40">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Savings Rate</p>
+                            <p className="text-2xl font-bold">
+                              {(() => {
+                                const income = parseFloat(profileData.profile.monthlyIncome || "0");
+                                const savings = parseFloat(profileData.profile.monthlySavings || "0");
+                                if (income === 0) return "0.0";
+                                return ((savings / income) * 100).toFixed(1);
+                              })()}%
+                            </p>
+                          </div>
+                          <Wallet className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="border-border/40">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Goal Progress</p>
+                            <p className="text-2xl font-bold">
+                              {(() => {
+                                const savings = parseFloat(profileData.profile.totalSavings || "0");
+                                const goal = parseFloat(profileData.profile.savingsGoal || "0");
+                                if (goal === 0) return "0.0";
+                                return ((savings / goal) * 100).toFixed(1);
+                              })()}%
+                            </p>
+                          </div>
+                          <Building2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">

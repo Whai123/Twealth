@@ -12,6 +12,22 @@ Preferred communication style: Simple, everyday language.
 
 The frontend is a React 18 single-page application built with TypeScript, `shadcn/ui`, Tailwind CSS, and Wouter for routing. It features a mobile-first, responsive, and accessible design with dynamic navigation and PWA support. Design principles include a clean black/white/gray color palette, professional typography, ample whitespace, simple borders, data-focused layouts, enterprise trust signals, and consistent professional iconography (Lucide React icons). The application includes sophisticated loading states, robust UI for rate limiting, retry logic, toast notifications, optimistic updates, comprehensive accessibility (WCAG 2.1 AA compliant), and advanced form validation. Key improvements include a streamlined dashboard, professional empty states, simplified navigation, an AI ROI Calculator, and the integration of AI Playbooks for weekly financial reports.
 
+## Streamlined Navigation (Dec 2025)
+
+**Sidebar (Desktop):** Dashboard → AI Assistant → My Money → Goals → Settings → Premium (6 items)
+
+**Mobile Nav:** Dashboard → AI → My Money → Goals → Premium (5 items)
+
+**My Money Page (/money-tracking):** Unified page with 6 tabs:
+- Overview: Transaction stats, filters, recent transactions
+- Profile: Manual financial overview form (income, expenses, savings, goals) - powers AI recommendations
+- Analytics: Advanced spending charts
+- Budget: Budget management
+- Insights: Spending insights and tips
+- CSV: Bank statement import (optional)
+
+Legacy routes /financial-profile and /planning redirect to their new locations.
+
 ## Technical Implementations
 
 The backend is an Express.js application in TypeScript, providing a RESTful API. It uses Drizzle ORM for type-safe PostgreSQL operations and employs a layered architecture with centralized error handling. Authentication utilizes a custom OAuth implementation supporting Google, Apple, and Facebook logins via Passport.js with PostgreSQL session management and role-based access control. The application supports 11 languages via `i18next` and `react-i18next`. API rate limiting is implemented with tiered protection for different endpoints. Input validation is handled using Zod.

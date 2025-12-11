@@ -5,7 +5,6 @@ import {
  Home, 
  Target, 
  DollarSign,
- Users,
  Plus,
  Brain,
  Crown,
@@ -25,8 +24,8 @@ import TransactionForm from"./forms/transaction-form";
 const getNavigation = (t: (key: string) => string) => [
  { name: t('navigation.dashboard'), href:"/", icon: Home, label: t('navigation.labels.home') },
  { name: t('navigation.aiAssistant'), href:"/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
- { name:"Money", href:"/money-tracking", icon: Wallet, label:"Money" },
- { name: t('navigation.groups'), href:"/groups", icon: Users, label:"Groups" },
+ { name:"My Money", href:"/money-tracking", icon: Wallet, label:"Money" },
+ { name: t('navigation.goals'), href:"/financial-goals", icon: Target, label:"Goals" },
  { name: t('navigation.premium'), href:"/subscription", icon: Crown, label: t('navigation.labels.premium') },
 ];
 
