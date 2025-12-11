@@ -177,6 +177,7 @@ export async function buildFinancialContext(
     assets,
     goals,
     transactions,
+    allTransactions,
     user,
     userPreferences,
   ] = await Promise.all([
@@ -185,31 +186,82 @@ export async function buildFinancialContext(
     storage.getUserDebts(userId).catch(() => []),
     storage.getUserAssets(userId).catch(() => []),
     storage.getFinancialGoalsByUserId(userId).catch(() => []),
-    storage.getTransactionsByUserId(userId, 20).catch(() => []), // Last 20 transactions
+    storage.getTransactionsByUserId(userId, 20).catch(() => []), // Last 20 transactions for sample
+    storage.getTransactionsByUserId(userId, 1000).catch(() => []), // More transactions for calculating averages
     storage.getUser(userId).catch(() => null),
     storage.getUserPreferences(userId).catch(() => null),
   ]);
   
-  // Calculate monthly net income
-  const monthlyIncome = profile?.monthlyIncome 
-    ? parseFloat(profile.monthlyIncome.toString())
-    : 0;
+  // Calculate income/expenses from real transaction data (last 6 months)
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   
-  const monthlyExpenses = profile?.monthlyExpenses
-    ? parseFloat(profile.monthlyExpenses.toString())
-    : 0;
+  const recentTransactionsForCalc = allTransactions.filter(tx => {
+    const txDate = new Date(tx.date);
+    return txDate >= sixMonthsAgo;
+  });
+  
+  // Calculate from actual transactions
+  let calculatedIncome = 0;
+  let calculatedExpenses = 0;
+  for (const tx of recentTransactionsForCalc) {
+    const amount = Math.abs(parseFloat(tx.amount.toString()));
+    if (tx.type === 'income') {
+      calculatedIncome += amount;
+    } else if (tx.type === 'expense') {
+      calculatedExpenses += amount;
+    }
+  }
+  
+  // Calculate monthly averages (accounting for number of months with data)
+  const monthsWithData = recentTransactionsForCalc.length > 0 ? 
+    Math.max(1, Math.min(6, Math.ceil((Date.now() - Math.min(...recentTransactionsForCalc.map(tx => new Date(tx.date).getTime()))) / (30.44 * 24 * 60 * 60 * 1000)))) 
+    : 1;
+  
+  const avgMonthlyIncomeFromTx = Math.round(calculatedIncome / monthsWithData);
+  const avgMonthlyExpensesFromTx = Math.round(calculatedExpenses / monthsWithData);
+  
+  // Use calculated values if we have transaction data, otherwise fall back to manual profile values
+  const hasTransactionData = recentTransactionsForCalc.length >= 5; // Need at least 5 transactions to be meaningful
+  
+  const monthlyIncome = hasTransactionData && avgMonthlyIncomeFromTx > 0
+    ? avgMonthlyIncomeFromTx
+    : (profile?.monthlyIncome ? parseFloat(profile.monthlyIncome.toString()) : 0);
+  
+  const monthlyExpenses = hasTransactionData && avgMonthlyExpensesFromTx > 0
+    ? avgMonthlyExpensesFromTx
+    : (profile?.monthlyExpenses ? parseFloat(profile.monthlyExpenses.toString()) : 0);
   
   const monthlyNet = monthlyIncome - monthlyExpenses;
   
-  // Build income sources (simplified - could be enhanced with transaction analysis)
+  // Build income sources - use transaction data if available
   const incomeSources = monthlyIncome > 0
-    ? [{ name: 'Primary Income', amount: monthlyIncome }]
+    ? [{ 
+        name: hasTransactionData ? 'Calculated from Transactions' : 'Primary Income (Manual)', 
+        amount: monthlyIncome 
+      }]
     : [];
   
-  // Build expense breakdown by category
+  // Build expense breakdown by category - use transaction data if available
   const expensesByCategory: Record<string, number> = {};
-  for (const cat of expenseCategories) {
-    expensesByCategory[cat.category] = parseFloat(cat.monthlyAmount.toString());
+  
+  if (hasTransactionData) {
+    // Calculate from actual transactions
+    const expenseTransactions = recentTransactionsForCalc.filter(tx => tx.type === 'expense');
+    for (const tx of expenseTransactions) {
+      const category = tx.category || 'Other';
+      const amount = Math.abs(parseFloat(tx.amount.toString()));
+      expensesByCategory[category] = (expensesByCategory[category] || 0) + amount;
+    }
+    // Convert to monthly averages
+    for (const category in expensesByCategory) {
+      expensesByCategory[category] = Math.round(expensesByCategory[category] / monthsWithData);
+    }
+  } else {
+    // Fall back to manual expense categories
+    for (const cat of expenseCategories) {
+      expensesByCategory[cat.category] = parseFloat(cat.monthlyAmount.toString());
+    }
   }
   
   // Normalize debts
