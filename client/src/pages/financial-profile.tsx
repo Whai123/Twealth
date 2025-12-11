@@ -155,83 +155,49 @@ export default function FinancialProfile() {
       </header>
 
       <main className="w-full px-4 py-6 sm:px-6 lg:px-8 xl:px-12 max-w-7xl mx-auto space-y-6">
-        {/* Calculated from Actual Transactions */}
-        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-              <RefreshCw className="h-5 w-5" />
-              Calculated from Your Transactions
-            </CardTitle>
-            <CardDescription className="text-blue-700 dark:text-blue-300">
-              {financialSummary?.transactionCount 
-                ? `Based on ${financialSummary.transactionCount} tracked transactions (last 6 months)`
-                : "Import your bank statement to see calculated data"
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {summaryLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="h-20 bg-blue-100 dark:bg-blue-900/50 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : financialSummary && financialSummary.transactionCount > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Avg Monthly Income</p>
-                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                    ${financialSummary.averageMonthlyIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </p>
-                </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Avg Monthly Expenses</p>
-                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                    ${financialSummary.averageMonthlyExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </p>
-                </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Net Cash Flow</p>
-                  <p className={`text-xl font-bold ${financialSummary.netCashFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    ${financialSummary.netCashFlow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </p>
-                </div>
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Total Transactions</p>
-                  <p className="text-xl font-bold text-slate-900 dark:text-white">
-                    {financialSummary.transactionCount}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <FileSpreadsheet className="h-12 w-12 mx-auto text-blue-400 dark:text-blue-600 mb-4" />
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-2">No Transaction Data Yet</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                  Import your bank statement CSV to automatically calculate your income and expenses
-                </p>
-                <Link href="/money-tracking">
-                  <Button variant="outline" className="border-blue-300 dark:border-blue-700">
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    Go to Money Tracking to Import CSV
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Manual Profile Entry */}
+        {/* Primary: Manual Profile Entry - always shown first */}
         <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wallet className="h-5 w-5" />
-              Manual Financial Overview
+              Your Financial Overview
             </CardTitle>
             <CardDescription>
-              Set estimates if you don't have transaction data, or override calculated values
+              Enter your monthly income, expenses, and savings to power personalized AI advice
             </CardDescription>
           </CardHeader>
+
+        {/* Show calculated insights only if user has transaction data */}
+        {financialSummary && financialSummary.transactionCount > 0 && (
+          <div className="mx-6 mb-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-2 mb-3">
+              <RefreshCw className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Auto-calculated from {financialSummary.transactionCount} transactions
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-slate-600 dark:text-slate-400">Avg Income:</span>
+                <span className="ml-2 font-semibold text-green-600 dark:text-green-400">
+                  ${financialSummary.averageMonthlyIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-600 dark:text-slate-400">Avg Expenses:</span>
+                <span className="ml-2 font-semibold text-red-600 dark:text-red-400">
+                  ${financialSummary.averageMonthlyExpenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-600 dark:text-slate-400">Net Flow:</span>
+                <span className={`ml-2 font-semibold ${financialSummary.netCashFlow >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  ${financialSummary.netCashFlow.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
