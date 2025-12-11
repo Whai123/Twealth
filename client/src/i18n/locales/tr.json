@@ -45,6 +45,7 @@
     "referrals": "Referanslar",
     "premium": "Premium",
     "settings": "Ayarlar",
+    "financialProfile": "Finanslarım",
     "sections": {
       "main": "Ana",
       "finance": "Finans",
@@ -63,7 +64,8 @@
       "calendar": "Etkinlikleri ve toplantıları planlayın",
       "planning": "Zaman takibi ve verimlilik",
       "referrals": "Arkadaş davet edin ve ödüller kazanın",
-      "premium": "Gelişmiş özelliklerin kilidini açın"
+      "premium": "Gelişmiş özelliklerin kilidini açın",
+      "financialProfile": "AI analizi için gelir, gider ve tasarruflarınızı ayarlayın"
     }
   },
   "theme": {

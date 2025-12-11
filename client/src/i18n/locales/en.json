@@ -45,6 +45,7 @@
     "referrals": "Referrals",
     "premium": "Premium",
     "settings": "Settings",
+    "financialProfile": "My Finances",
     "labels": {
       "home": "Home",
       "ai": "AI",
@@ -70,7 +71,8 @@
       "calendar": "Schedule events and meetings",
       "planning": "Time tracking and productivity",
       "referrals": "Invite friends and earn rewards",
-      "premium": "Unlock advanced features"
+      "premium": "Unlock advanced features",
+      "financialProfile": "Set your income, expenses, and savings for AI analysis"
     }
   },
   "theme": {

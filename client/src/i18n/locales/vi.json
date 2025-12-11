@@ -45,6 +45,7 @@
     "referrals": "Giới thiệu",
     "premium": "Premium",
     "settings": "Cài đặt",
+    "financialProfile": "Tài chính của tôi",
     "sections": {
       "main": "Chính",
       "finance": "Tài chính",
@@ -63,7 +64,8 @@
       "calendar": "Lên lịch sự kiện và cuộc họp",
       "planning": "Theo dõi thời gian và năng suất",
       "referrals": "Mời bạn bè và nhận phần thưởng",
-      "premium": "Mở khóa tính năng nâng cao"
+      "premium": "Mở khóa tính năng nâng cao",
+      "financialProfile": "Đặt thu nhập, chi tiêu và tiết kiệm của bạn để AI phân tích"
     }
   },
   "theme": {

@@ -45,6 +45,7 @@
     "referrals": "Indicações",
     "premium": "Premium",
     "settings": "Configurações",
+    "financialProfile": "Minhas Finanças",
     "sections": {
       "main": "Principal",
       "finance": "Finanças",
@@ -63,7 +64,8 @@
       "calendar": "Agende eventos e reuniões",
       "planning": "Controle de tempo e produtividade",
       "referrals": "Convide amigos e ganhe recompensas",
-      "premium": "Desbloqueie recursos avançados"
+      "premium": "Desbloqueie recursos avançados",
+      "financialProfile": "Configure sua renda, despesas e poupança para análise de IA"
     }
   },
   "theme": {

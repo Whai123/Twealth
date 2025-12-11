@@ -45,6 +45,7 @@
     "referrals": "Rujukan",
     "premium": "Premium",
     "settings": "Tetapan",
+    "financialProfile": "Kewangan Saya",
     "sections": {
       "main": "Utama",
       "finance": "Kewangan",
@@ -63,7 +64,8 @@
       "calendar": "Jadualkan acara dan mesyuarat",
       "planning": "Penjejakan masa dan produktiviti",
       "referrals": "Jemput rakan dan dapat ganjaran",
-      "premium": "Buka ciri-ciri lanjutan"
+      "premium": "Buka ciri-ciri lanjutan",
+      "financialProfile": "Tetapkan pendapatan, perbelanjaan, dan simpanan anda untuk analisis AI"
     }
   },
   "theme": {

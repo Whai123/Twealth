@@ -12,7 +12,8 @@ import {
  User,
  Wallet,
  LogOut,
- Loader2
+ Loader2,
+ DollarSign
 } from"lucide-react";
 import logoUrl from"@assets/5-removebg-preview_1761578659737.png";
 import { cn } from"@/lib/utils";
@@ -73,6 +74,12 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  href:"/money-tracking", 
  icon: Wallet,
  description:"Track income, expenses, and budgets"
+ },
+ { 
+ name: t('navigation.financialProfile'), 
+ href:"/financial-profile", 
+ icon: DollarSign,
+ description: t('navigation.descriptions.financialProfile')
  },
  { 
  name: t('navigation.groups'), 

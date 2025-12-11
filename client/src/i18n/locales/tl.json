@@ -45,6 +45,7 @@
     "referrals": "Mga Referral",
     "premium": "Premium",
     "settings": "Mga Setting",
+    "financialProfile": "Aking Pananalapi",
     "sections": {
       "main": "Pangunahin",
       "finance": "Pananalapi",
@@ -63,7 +64,8 @@
       "calendar": "Mag-iskedyul ng mga event at meeting",
       "planning": "Pagsubaybay sa oras at produktibidad",
       "referrals": "Mag-imbita ng mga kaibigan at kumita ng rewards",
-      "premium": "I-unlock ang mga advanced na feature"
+      "premium": "I-unlock ang mga advanced na feature",
+      "financialProfile": "Itakda ang iyong kita, gastos, at ipon para sa pagsusuri ng AI"
     }
   },
   "theme": {
