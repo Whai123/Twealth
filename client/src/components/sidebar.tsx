@@ -9,6 +9,7 @@ import {
  Moon,
  Sun,
  User,
+ Users,
  Wallet,
  LogOut,
  Loader2
@@ -72,6 +73,17 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  href:"/financial-goals", 
  icon: Target,
  description: t('navigation.descriptions.goals')
+ },
+ ]
+ },
+ {
+ title:"Collaborate",
+ items: [
+ { 
+ name: t('navigation.groups'), 
+ href:"/groups", 
+ icon: Users,
+ description:"Manage shared finances with family, friends, or teams"
  },
  ]
  },

@@ -14,9 +14,9 @@ The frontend is a React 18 single-page application built with TypeScript, `shadc
 
 ## Streamlined Navigation (Dec 2025)
 
-**Sidebar (Desktop):** Dashboard → AI Assistant → My Money → Goals → Settings → Premium (6 items)
+**Sidebar (Desktop):** Dashboard → AI Assistant → My Money → Goals → Groups → Settings → Premium (7 items, organized by section: Main, Finance, Collaborate, More)
 
-**Mobile Nav:** Dashboard → AI → My Money → Goals → Premium (5 items)
+**Mobile Nav:** Dashboard → AI → My Money → Goals → Premium (5 items - Groups accessible on desktop only for focused mobile experience)
 
 **My Money Page (/money-tracking):** Unified page with 6 tabs:
 - Overview: Transaction stats, filters, recent transactions
