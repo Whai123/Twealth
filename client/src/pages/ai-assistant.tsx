@@ -1156,7 +1156,7 @@ export default function AIAssistantPage() {
                 </motion.div>
               </motion.div>
             ) : (
-              <div className="space-y-4 sm:space-y-6 pb-44 sm:pb-36">
+              <div className="space-y-4 sm:space-y-6 pb-4">
                 <AnimatePresence mode="popLayout">
                   {(searchQuery ? filteredMessages : messages).map((message, index) => (
                     <MessageBubble
@@ -1197,11 +1197,14 @@ export default function AIAssistantPage() {
           </div>
         </div>
 
-        {/* Fixed bottom input area */}
-        <div className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
-          {/* Quick action chips - scrollable horizontally */}
-          <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-3">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+        {/* Fixed bottom input area - positioned above mobile nav on small screens */}
+        <div 
+          className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" 
+          style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+        >
+          {/* Quick action chips - compact on mobile, full on desktop */}
+          <div className="max-w-3xl mx-auto px-3 sm:px-6 pt-2 sm:pt-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-1.5 sm:pb-2 -mx-1 px-1">
               {quickActions.map((action, idx) => (
                 <motion.button
                   key={idx}
@@ -1209,7 +1212,7 @@ export default function AIAssistantPage() {
                     setCurrentMessage(action.prompt);
                     sendMessageMutation.mutate(action.prompt);
                   }}
-                  className="shrink-0 px-3.5 py-2 text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-100 dark:border-blue-900/50 min-h-[36px] touch-target"
+                  className="shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors border border-blue-100 dark:border-blue-900/50 min-h-[32px] sm:min-h-[36px] touch-target"
                   data-testid={`quick-action-${action.label.toLowerCase()}`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -1220,7 +1223,7 @@ export default function AIAssistantPage() {
               {currentMessage.trim() && (
                 <motion.button
                   onClick={() => toggleSavePrompt(currentMessage)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-full transition-colors min-h-[36px] touch-target border ${
+                  className={`shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full transition-colors min-h-[32px] sm:min-h-[36px] touch-target border ${
                     savedPrompts.includes(currentMessage)
                       ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
@@ -1232,12 +1235,12 @@ export default function AIAssistantPage() {
                   {savedPrompts.includes(currentMessage) ? (
                     <>
                       <BookmarkCheck className="w-3 h-3" />
-                      Saved
+                      <span className="hidden sm:inline">Saved</span>
                     </>
                   ) : (
                     <>
                       <Bookmark className="w-3 h-3" />
-                      Save
+                      <span className="hidden sm:inline">Save</span>
                     </>
                   )}
                 </motion.button>
@@ -1246,7 +1249,7 @@ export default function AIAssistantPage() {
           </div>
 
           {/* Input box */}
-          <div className="max-w-3xl mx-auto px-3 sm:px-6 pb-3">
+          <div className="max-w-3xl mx-auto px-3 sm:px-6 pb-1 sm:pb-3">
             <motion.div 
               className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${
                 inputFocused 
@@ -1264,13 +1267,13 @@ export default function AIAssistantPage() {
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
                 placeholder="Ask anything about your finances..."
-                className="min-h-[48px] sm:min-h-[56px] max-h-[120px] sm:max-h-[140px] resize-none pr-24 sm:pr-28 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-3 sm:py-4 px-4 sm:px-5 placeholder:text-muted-foreground/60"
+                className="min-h-[48px] sm:min-h-[56px] max-h-[100px] sm:max-h-[140px] resize-none pr-20 sm:pr-28 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-3 sm:py-4 px-4 sm:px-5 placeholder:text-muted-foreground/60"
                 rows={1}
                 data-testid="input-message"
               />
               
               {/* Voice and Send buttons */}
-              <div className="absolute right-2.5 sm:right-3 bottom-2 sm:bottom-3 flex items-center gap-1.5">
+              <div className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 flex items-center gap-1">
                 {speechSupported && (
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button
