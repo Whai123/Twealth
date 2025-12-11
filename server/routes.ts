@@ -4801,10 +4801,17 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
     
-    // Helper to send SSE events
+    // Helper to send SSE events with immediate flush
     const sendEvent = (event: string, data: any) => {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      // Flush immediately to ensure real-time delivery
+      if (typeof (res as any).flush === 'function') {
+        (res as any).flush();
+      }
     };
+    
+    // Flush headers immediately
+    res.flushHeaders();
     
     try {
       // Validate conversation

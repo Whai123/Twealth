@@ -349,6 +349,7 @@ export class GPT5Client {
         max_tokens: maxTokens,
         temperature,
         stream: true,
+        stream_options: { include_usage: true },
       });
       
       let fullText = '';
