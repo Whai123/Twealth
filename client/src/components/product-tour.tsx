@@ -364,3 +364,5 @@ export function TourTrigger() {
     </Button>
   );
 }
+
+export default ProductTour;

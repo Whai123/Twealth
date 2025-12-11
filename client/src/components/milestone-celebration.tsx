@@ -294,3 +294,5 @@ export function MilestoneCelebration() {
     </AnimatePresence>
   );
 }
+
+export default MilestoneCelebration;

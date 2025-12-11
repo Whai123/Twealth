@@ -30,10 +30,11 @@ const Landing = lazy(() => import("./pages/landing.tsx"));
 const Login = lazy(() => import("./pages/login.tsx"));
 const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
-import FloatingAIWidget from "./components/ai/floating-ai-widget";
-import { MilestoneCelebration } from "./components/milestone-celebration";
-import { CommandPalette } from "./components/command-palette";
-import { ProductTour } from "./components/product-tour";
+// Lazy-load heavy shell components for faster page transitions
+const FloatingAIWidget = lazy(() => import("./components/ai/floating-ai-widget"));
+const MilestoneCelebration = lazy(() => import("./components/milestone-celebration"));
+const CommandPalette = lazy(() => import("./components/command-palette"));
+const ProductTour = lazy(() => import("./components/product-tour"));
 
 // Loading component for lazy-loaded routes - simplified for React 18 compatibility
 const PageLoader = () => (
@@ -160,17 +161,20 @@ function Router() {
      {/* Mobile Navigation - shown only on mobile and not on welcome page */}
      {location !=="/welcome" && <MobileNavigation />}
      
-     {/* Floating AI Widget - accessible from any page except welcome */}
-     {location !=="/welcome" && <FloatingAIWidget />}
-     
-     {/* Milestone Celebration - shows when user reaches goal milestones */}
-     <MilestoneCelebration />
-     
-     {/* Command Palette - Cmd+K for power users */}
-     {location !=="/welcome" && <CommandPalette />}
-     
-     {/* Product Tour - Onboarding for new users */}
-     {location !=="/welcome" && <ProductTour />}
+     {/* Lazy-loaded shell components - wrapped in Suspense for non-blocking navigation */}
+     <Suspense fallback={null}>
+      {/* Floating AI Widget - accessible from any page except welcome */}
+      {location !=="/welcome" && <FloatingAIWidget />}
+      
+      {/* Milestone Celebration - shows when user reaches goal milestones */}
+      <MilestoneCelebration />
+      
+      {/* Command Palette - Cmd+K for power users */}
+      {location !=="/welcome" && <CommandPalette />}
+      
+      {/* Product Tour - Onboarding for new users */}
+      {location !=="/welcome" && <ProductTour />}
+     </Suspense>
     </div>
    </SidebarProvider>
   </OnboardingRedirect>

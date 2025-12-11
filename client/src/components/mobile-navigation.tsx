@@ -1,4 +1,4 @@
-import { useState, useEffect } from"react";
+import { useState, useEffect, memo, useMemo, useCallback } from"react";
 import { Link, useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 import { 
@@ -29,10 +29,12 @@ const getNavigation = (t: (key: string) => string) => [
  { name: t('navigation.premium'), href:"/subscription", icon: Crown, label: t('navigation.labels.premium') },
 ];
 
-export default function MobileNavigation() {
+function MobileNavigationComponent() {
  const [location] = useLocation();
  const { t } = useTranslation();
- const navigation = getNavigation(t);
+ 
+ // Memoize navigation to avoid recalculation on every render
+ const navigation = useMemo(() => getNavigation(t), [t]);
  
  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
  const [activeAction, setActiveAction] = useState<'goal' | 'transaction' | null>(null);
@@ -47,7 +49,8 @@ export default function MobileNavigation() {
  return () => window.removeEventListener('resize', checkMobile);
  }, []);
 
- const quickActions = [
+ // Memoize quick actions to avoid recreation on each render
+ const quickActions = useMemo(() => [
  {
  id:"add-goal",
  title: t('quickActions.newGoal'),
@@ -66,7 +69,7 @@ export default function MobileNavigation() {
  bgColor:"bg-success/10",
  action: () => { setActiveAction('transaction'); setIsQuickActionsOpen(false); }
  }
- ];
+ ], [t]);
 
  // Don't render at all on desktop
  if (!isMobile) {
@@ -213,3 +216,7 @@ export default function MobileNavigation() {
  </>
  );
 }
+
+// Memoize MobileNavigation to prevent unnecessary re-renders during page navigation
+const MobileNavigation = memo(MobileNavigationComponent);
+export default MobileNavigation;

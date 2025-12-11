@@ -1,3 +1,4 @@
+import { memo, useMemo, useCallback } from "react";
 import { Link, useLocation } from"wouter";
 import { useTranslation } from 'react-i18next';
 import { 
@@ -106,13 +107,15 @@ const getNavigationSections = (t: (key: string) => string): NavSection[] => [
  }
 ];
 
-export default function Sidebar() {
+function SidebarComponent() {
  const [location, setLocation] = useLocation();
  const { t } = useTranslation();
  const { theme, setTheme } = useTheme();
  const { user } = useAuth();
  const { toast } = useToast();
- const navigationSections = getNavigationSections(t);
+ 
+ // Memoize navigation sections to avoid recalculation on every render
+ const navigationSections = useMemo(() => getNavigationSections(t), [t]);
 
  const logoutMutation = useMutation({
  mutationFn: async () => {
@@ -144,17 +147,17 @@ export default function Sidebar() {
  },
  });
 
- const handleLogout = () => {
+ const handleLogout = useCallback(() => {
  logoutMutation.mutate();
- };
+ }, [logoutMutation]);
 
- const toggleTheme = () => {
+ const toggleTheme = useCallback(() => {
  if (theme ==="dark") {
  setTheme("light");
  } else {
  setTheme("dark");
  }
- };
+ }, [theme, setTheme]);
 
  return (
  <SidebarWrapper className="bg-card border-r border-border shadow-sm">
@@ -291,3 +294,7 @@ export default function Sidebar() {
  </SidebarWrapper>
  );
 }
+
+// Memoize the entire Sidebar to prevent re-renders when only location changes
+const Sidebar = memo(SidebarComponent);
+export default Sidebar;
