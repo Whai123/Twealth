@@ -19,10 +19,20 @@ window.addEventListener('orientationchange', () => {
 });
 
 // Register service worker for PWA functionality
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Always register in production, check for HTTPS or localhost in development
+const canRegisterSW = 'serviceWorker' in navigator && (
+  import.meta.env.PROD || 
+  window.location.protocol === 'https:' || 
+  window.location.hostname === 'localhost'
+);
+
+if (canRegisterSW) {
  window.addEventListener('load', async () => {
   try {
-   const registration = await navigator.serviceWorker.register('/sw.js');
+   const registration = await navigator.serviceWorker.register('/sw.js', {
+    scope: '/',
+    updateViaCache: 'none'
+   });
    console.log('[PWA] Service Worker registered successfully:', registration.scope);
    
    // Handle updates
@@ -40,6 +50,12 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
      });
     }
    });
+
+   // Check for updates every hour
+   setInterval(() => {
+    registration.update();
+   }, 60 * 60 * 1000);
+
   } catch (error) {
    console.error('[PWA] Service Worker registration failed:', error);
   }

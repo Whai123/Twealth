@@ -1,27 +1,83 @@
 {
   "name": "Twealth - AI Financial Assistant",
   "short_name": "Twealth",
-  "description": "AI-powered financial planning and goal tracking with multi-currency support and group collaboration",
+  "description": "AI-powered financial planning and goal tracking with multi-currency support, CFO-level insights in 11 languages, and group collaboration",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
   "theme_color": "#8b5cf6",
   "background_color": "#ffffff",
   "scope": "/",
   "lang": "en",
-  "categories": ["productivity", "finance", "business"],
+  "dir": "ltr",
+  "categories": ["finance", "productivity", "business", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icon-512.png",
-      "sizes": "512x512", 
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Twealth Dashboard - AI Financial Assistant"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Twealth Mobile - Track Your Finances"
     }
   ],
   "shortcuts": [
@@ -30,34 +86,43 @@
       "short_name": "AI Chat",
       "description": "Chat with your AI financial assistant",
       "url": "/ai-assistant",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Financial Goals",
       "short_name": "Goals",
       "description": "Track your savings goals with AI insights",
       "url": "/financial-goals",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Money Tracking",
       "short_name": "Money",
       "description": "Track expenses and income",
       "url": "/money-tracking",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Groups",
       "short_name": "Groups",
       "description": "Collaborative financial planning",
       "url": "/groups",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
+  "related_applications": [],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "protocol_handlers": [
     {
       "protocol": "web+twealth",
-      "url": "/?utm_source=pwa&action=%s"
+      "url": "/?action=%s"
     }
-  ]
+  ],
+  "file_handlers": []
 }
