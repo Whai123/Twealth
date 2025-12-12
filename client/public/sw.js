@@ -1,11 +1,10 @@
 // Twealth Service Worker for Mobile PWA
-// Version 4 - Enhanced for PWABuilder compliance
-const CACHE_NAME = 'twealth-v4';
-const STATIC_CACHE = 'twealth-static-v4';
+// Version 5 - PWABuilder compliant with explicit fetch handling
+const CACHE_NAME = 'twealth-v5';
+const STATIC_CACHE = 'twealth-static-v5';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache for offline functionality (production-safe paths)
-// Only cache static assets - NO sensitive user data
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -21,7 +20,7 @@ const STATIC_ASSETS = [
 
 // Install event - cache static assets and offline page
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v4...');
+  console.log('[SW] Installing service worker v5...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
@@ -31,229 +30,186 @@ self.addEventListener('install', (event) => {
       .then(() => self.skipWaiting())
       .catch((error) => {
         console.error('[SW] Failed to cache assets:', error);
+        return self.skipWaiting();
       })
   );
 });
 
 // Activate event - clean up old caches and take control
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker v4...');
+  console.log('[SW] Activating service worker v5...');
   event.waitUntil(
     Promise.all([
-      // Enable navigation preload if supported
       (async () => {
         if (self.registration.navigationPreload) {
           await self.registration.navigationPreload.enable();
           console.log('[SW] Navigation preload enabled');
         }
       })(),
-      // Clean up old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
-          cacheNames.map((cacheName) => {
-            // Delete all old caches including API cache for security
-            if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
+          cacheNames
+            .filter((cacheName) => cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE)
+            .map((cacheName) => {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
-            }
-          })
+            })
         );
       }),
-      // Take control of all clients immediately
       self.clients.claim()
     ])
   );
 });
 
-// Fetch event - implement cache strategies with offline fallback
+// Fetch event - PWABuilder compliant with explicit response handling
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
-  
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
+
+  // Only handle same-origin GET requests
+  if (request.method !== 'GET' || url.origin !== self.location.origin) {
     return;
   }
-  
-  // Skip external domains
-  if (!url.origin.includes(self.location.origin)) {
-    return;
-  }
-  
-  // CRITICAL: Never intercept OAuth authentication routes
-  if (url.pathname.startsWith('/api/auth/')) {
-    return;
-  }
-  
-  // SECURITY: Never cache or intercept authenticated API requests
-  // All /api/* requests go directly to network - no caching of sensitive data
+
+  // Critical: Never intercept OAuth or API routes - let browser handle normally
   if (url.pathname.startsWith('/api/')) {
     return;
   }
-  
-  // Handle navigation requests with offline fallback
+
+  // Handle navigation requests (page loads)
   if (request.mode === 'navigate') {
-    event.respondWith(handleNavigationRequest(request));
+    event.respondWith(
+      (async () => {
+        try {
+          // Try preload response first (faster)
+          const preloadResponse = event.preloadResponse;
+          if (preloadResponse) {
+            const response = await preloadResponse;
+            if (response) return response;
+          }
+
+          // Network first for navigation
+          const networkResponse = await fetch(request);
+          if (networkResponse.ok) {
+            const cache = await caches.open(STATIC_CACHE);
+            cache.put(request, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (error) {
+          console.log('[SW] Navigation failed, serving fallback');
+          
+          // Try cached version
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          
+          // Try cached index
+          const indexCached = await caches.match('/');
+          if (indexCached) return indexCached;
+          
+          // Return offline page
+          const offlinePage = await caches.match(OFFLINE_URL);
+          if (offlinePage) return offlinePage;
+          
+          // Ultimate fallback
+          return new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body><h1>You are offline</h1></body></html>',
+            { headers: { 'Content-Type': 'text/html' }, status: 503 }
+          );
+        }
+      })()
+    );
     return;
   }
-  
-  // Handle static assets
-  event.respondWith(handleStaticRequest(request));
+
+  // Handle static assets (cache-first strategy)
+  event.respondWith(
+    (async () => {
+      const cached = await caches.match(request);
+      if (cached) {
+        // Update cache in background
+        fetch(request).then((response) => {
+          if (response.ok) {
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, response));
+          }
+        }).catch(() => {});
+        return cached;
+      }
+
+      try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+          const cache = await caches.open(STATIC_CACHE);
+          cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+      } catch (error) {
+        // Return a proper error response for failed static requests
+        return new Response('Resource unavailable offline', { 
+          status: 503,
+          statusText: 'Service Unavailable'
+        });
+      }
+    })()
+  );
 });
 
-// Navigation request handler - Network first with offline fallback
-async function handleNavigationRequest(request) {
-  try {
-    // Try network first for navigation
-    const networkResponse = await fetch(request);
-    
-    // Cache successful navigation responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[SW] Navigation failed, serving offline page');
-    
-    // Try to return cached version first
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Try to return cached index
-    const indexCache = await caches.match('/');
-    if (indexCache) {
-      return indexCache;
-    }
-    
-    // Return offline page as last resort
-    const offlineCache = await caches.match(OFFLINE_URL);
-    if (offlineCache) {
-      return offlineCache;
-    }
-    
-    // Create a basic offline response if nothing is cached
-    return new Response(
-      '<!DOCTYPE html><html><head><title>Offline</title></head><body><h1>You are offline</h1><p>Please check your connection and try again.</p></body></html>',
-      { headers: { 'Content-Type': 'text/html' } }
-    );
-  }
-}
-
-// Static request handler - Cache first for performance, network fallback
-async function handleStaticRequest(request) {
-  const cachedResponse = await caches.match(request);
-  
-  if (cachedResponse) {
-    // Return cached version and update in background
-    fetchAndCache(request);
-    return cachedResponse;
-  }
-  
-  try {
-    return await fetchAndCache(request);
-  } catch (error) {
-    console.log('[SW] Static fetch failed:', request.url);
-    throw error;
-  }
-}
-
-// Fetch and cache helper
-async function fetchAndCache(request) {
-  const networkResponse = await fetch(request);
-  
-  if (networkResponse.ok) {
-    const cache = await caches.open(STATIC_CACHE);
-    cache.put(request, networkResponse.clone());
-  }
-  
-  return networkResponse;
-}
-
-// Handle messages from the main app
+// Message handler
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+  if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
-  if (event.data && event.data.type === 'GET_VERSION') {
-    event.ports[0].postMessage({ version: CACHE_NAME });
+  if (event.data?.type === 'GET_VERSION') {
+    event.ports[0]?.postMessage({ version: CACHE_NAME });
   }
-  
-  // Allow clearing all caches for security
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => caches.delete(cacheName))
-      );
-    });
+  if (event.data?.type === 'CLEAR_CACHE') {
+    caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n))));
   }
 });
 
-// Periodic background sync for keeping data fresh
+// Background sync support
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'update-cache') {
-    event.waitUntil(updateCache());
+    event.waitUntil(
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        const keys = await cache.keys();
+        for (const req of keys) {
+          try {
+            const res = await fetch(req);
+            if (res.ok) await cache.put(req, res);
+          } catch (e) {}
+        }
+      })
+    );
   }
 });
 
-async function updateCache() {
-  const cache = await caches.open(STATIC_CACHE);
-  const keys = await cache.keys();
-  
-  for (const request of keys) {
-    try {
-      const response = await fetch(request);
-      if (response.ok) {
-        await cache.put(request, response);
-      }
-    } catch (error) {
-      // Ignore failed updates
-    }
-  }
-}
-
-// Push notification support (placeholder for future use)
+// Push notification support
 self.addEventListener('push', (event) => {
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'New notification from Twealth',
+  if (!event.data) return;
+  
+  const data = event.data.json();
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Twealth', {
+      body: data.body || 'New notification',
       icon: '/icon-192.png',
       badge: '/icon-192.png',
       vibrate: [100, 50, 100],
-      data: {
-        url: data.url || '/'
-      }
-    };
-    
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Twealth', options)
-    );
-  }
+      data: { url: data.url || '/' }
+    })
+  );
 });
 
-// Handle notification clicks
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
   const url = event.notification.data?.url || '/';
   
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then((clientList) => {
-      // Focus existing window if available
       for (const client of clientList) {
-        if (client.url === url && 'focus' in client) {
-          return client.focus();
-        }
+        if (client.url === url && 'focus' in client) return client.focus();
       }
-      // Open new window
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
+      return clients.openWindow?.(url);
     })
   );
 });
