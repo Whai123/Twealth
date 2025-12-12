@@ -40,6 +40,14 @@ self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker v4...');
   event.waitUntil(
     Promise.all([
+      // Enable navigation preload if supported
+      (async () => {
+        if (self.registration.navigationPreload) {
+          await self.registration.navigationPreload.enable();
+          console.log('[SW] Navigation preload enabled');
+        }
+      })(),
+      // Clean up old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
@@ -97,11 +105,6 @@ self.addEventListener('fetch', (event) => {
 async function handleNavigationRequest(request) {
   try {
     // Try network first for navigation
-    const preloadResponse = await Promise.resolve(event?.preloadResponse);
-    if (preloadResponse) {
-      return preloadResponse;
-    }
-    
     const networkResponse = await fetch(request);
     
     // Cache successful navigation responses
