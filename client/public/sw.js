@@ -1,43 +1,45 @@
 // Twealth Service Worker for Mobile PWA
-// Version 5 - PWABuilder compliant with explicit fetch handling
-const CACHE_NAME = 'twealth-v5';
-const STATIC_CACHE = 'twealth-static-v5';
+// Version 6 - Aggressive cache clearing to fix stale asset issues
+const CACHE_NAME = 'twealth-v6';
+const STATIC_CACHE = 'twealth-static-v6';
 const OFFLINE_URL = '/offline.html';
 
-// Assets to cache for offline functionality (production-safe paths)
+// Only cache truly static assets - NOT dynamic app routes
 const STATIC_ASSETS = [
-  '/',
   '/offline.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
-  '/favicon.ico',
-  '/welcome',
-  '/login',
-  '/pricing'
+  '/favicon.ico'
 ];
 
-// Install event - cache static assets and offline page
+// Install event - FIRST clear ALL old caches, then cache only essential assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v5...');
+  console.log('[SW] Installing service worker v6...');
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    // Clear ALL existing caches first to prevent stale JS issues
+    caches.keys()
+      .then((cacheNames) => {
+        console.log('[SW] Clearing all old caches:', cacheNames);
+        return Promise.all(cacheNames.map((name) => caches.delete(name)));
+      })
+      .then(() => caches.open(STATIC_CACHE))
       .then((cache) => {
-        console.log('[SW] Caching static assets');
+        console.log('[SW] Caching essential static assets');
         return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })));
       })
       .then(() => self.skipWaiting())
       .catch((error) => {
-        console.error('[SW] Failed to cache assets:', error);
+        console.error('[SW] Install error:', error);
         return self.skipWaiting();
       })
   );
 });
 
-// Activate event - clean up old caches and take control
+// Activate event - take control immediately
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker v5...');
+  console.log('[SW] Activating service worker v6...');
   event.waitUntil(
     Promise.all([
       (async () => {
@@ -46,13 +48,14 @@ self.addEventListener('activate', (event) => {
           console.log('[SW] Navigation preload enabled');
         }
       })(),
+      // Clear any remaining old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames
-            .filter((cacheName) => cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE)
-            .map((cacheName) => {
-              console.log('[SW] Deleting old cache:', cacheName);
-              return caches.delete(cacheName);
+            .filter((name) => name !== CACHE_NAME && name !== STATIC_CACHE)
+            .map((name) => {
+              console.log('[SW] Deleting old cache:', name);
+              return caches.delete(name);
             })
         );
       }),
@@ -74,6 +77,11 @@ self.addEventListener('fetch', (event) => {
   // Critical: Never intercept OAuth or API routes - let browser handle normally
   if (url.pathname.startsWith('/api/')) {
     return;
+  }
+
+  // CRITICAL: Never cache JavaScript bundles - always fetch fresh to prevent stale code
+  if (url.pathname.endsWith('.js') || url.pathname.includes('/assets/')) {
+    return; // Let browser handle JS files directly - no caching
   }
 
   // Handle navigation requests (page loads)
