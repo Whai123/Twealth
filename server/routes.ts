@@ -6923,6 +6923,56 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     }
   });
 
+  // Admin endpoints - only accessible by admin email
+  const ADMIN_EMAILS = ['contact.twealth@gmail.com'];
+  
+  const isAdmin = async (req: any, res: any, next: any) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const user = await storage.getUser(userId);
+      
+      if (!user || !user.email || !ADMIN_EMAILS.includes(user.email)) {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+      
+      next();
+    } catch (error) {
+      return res.status(403).json({ message: 'Admin access required' });
+    }
+  };
+
+  app.get("/api/admin/users", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const usersWithSubs = await storage.getAllUsersWithSubscriptions();
+      res.json({
+        totalUsers: usersWithSubs.length,
+        users: usersWithSubs
+      });
+    } catch (error: any) {
+      console.error('Error fetching admin users:', error);
+      res.status(500).json({ message: 'Failed to fetch users' });
+    }
+  });
+
+  app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const usersWithSubs = await storage.getAllUsersWithSubscriptions();
+      
+      const stats = {
+        totalUsers: usersWithSubs.length,
+        freeUsers: usersWithSubs.filter(u => u.planName === 'free' || !u.planName).length,
+        proUsers: usersWithSubs.filter(u => u.planName === 'pro').length,
+        enterpriseUsers: usersWithSubs.filter(u => u.planName === 'enterprise').length,
+        activeSubscriptions: usersWithSubs.filter(u => u.subscription?.status === 'active').length,
+      };
+      
+      res.json(stats);
+    } catch (error: any) {
+      console.error('Error fetching admin stats:', error);
+      res.status(500).json({ message: 'Failed to fetch stats' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -183,6 +183,13 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<SafeUser>;
   updateUser(id: string, updates: Partial<User>): Promise<SafeUser>;
+  
+  // Admin methods
+  getAllUsersWithSubscriptions(): Promise<Array<{
+    user: SafeUser;
+    subscription: Subscription | null;
+    planName: string | null;
+  }>>;
 
   // Group methods
   getGroup(id: string): Promise<Group | undefined>;
@@ -646,6 +653,46 @@ export class DatabaseStorage implements IStorage {
     
     // Return user (no password field to exclude)
     return user;
+  }
+
+  // Admin methods
+  async getAllUsersWithSubscriptions(): Promise<Array<{
+    user: SafeUser;
+    subscription: Subscription | null;
+    planName: string | null;
+  }>> {
+    const allUsers = await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt));
+    
+    const results = await Promise.all(
+      allUsers.map(async (user) => {
+        const [subscription] = await db
+          .select()
+          .from(subscriptions)
+          .where(eq(subscriptions.userId, user.id))
+          .limit(1);
+        
+        let planName: string | null = null;
+        if (subscription) {
+          const [plan] = await db
+            .select()
+            .from(subscriptionPlans)
+            .where(eq(subscriptionPlans.id, subscription.planId))
+            .limit(1);
+          planName = plan?.name || null;
+        }
+        
+        return {
+          user,
+          subscription: subscription || null,
+          planName,
+        };
+      })
+    );
+    
+    return results;
   }
 
   // Group methods

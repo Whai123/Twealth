@@ -31,6 +31,7 @@ const Login = lazy(() => import("./pages/login.tsx"));
 const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
 const SharePage = lazy(() => import("./pages/share"));
+const AdminPage = lazy(() => import("./pages/admin"));
 // Lazy-load heavy shell components for faster page transitions
 const FloatingAIWidget = lazy(() => import("./components/ai/floating-ai-widget"));
 const MilestoneCelebration = lazy(() => import("./components/milestone-celebration"));
@@ -155,6 +156,7 @@ function Router() {
          <Route path="/terms" component={Terms} />
          <Route path="/privacy" component={Privacy} />
          <Route path="/share" component={SharePage} />
+         <Route path="/admin" component={AdminPage} />
          <Route component={NotFound} />
         </Switch>
        </Suspense>
