@@ -10,7 +10,8 @@ import { getSession, setupAuth } from "./customAuth";
 // ==================== ASSET BACKUP SYSTEM ====================
 // Keeps old hashed assets available so cached HTML from previous deploys
 // can still load their JS chunks - prevents React #300 errors on iOS Safari PWA
-const BACKUP_DIR = path.resolve(import.meta.dirname, "asset-backup");
+// IMPORTANT: Backup must be OUTSIDE dist folder to persist between deploys
+const BACKUP_DIR = path.resolve(process.cwd(), "asset-backup");
 const DIST_ASSETS = path.resolve(import.meta.dirname, "public/assets");
 
 function backupCurrentAssets(): void {
