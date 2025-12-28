@@ -140,13 +140,21 @@ app.use((req, res, next) => {
       res.status(404).send("Asset not found");
     });
     
-    // Prevent caching of HTML pages to reduce stale chunk references
+    // Aggressive cache prevention for HTML pages to eliminate stale bundle issues
+    // This middleware runs BEFORE static file serving to ensure headers are set
     app.use((req, res, next) => {
       const accept = req.headers.accept || "";
-      if (accept.includes("text/html") && !req.path.startsWith("/api") && !req.path.startsWith("/assets")) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      const isNavigationRequest = accept.includes("text/html") || req.path === "/" || !req.path.includes(".");
+      const isAssetRequest = req.path.startsWith("/assets") || req.path.startsWith("/api");
+      
+      if (isNavigationRequest && !isAssetRequest) {
+        // Maximum cache prevention - forces browser to always revalidate
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
+        res.setHeader("Surrogate-Control", "no-store");
+        // Add version header for debugging
+        res.setHeader("X-App-Version", Date.now().toString());
       }
       next();
     });
