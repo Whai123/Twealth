@@ -1,10 +1,10 @@
 // Twealth Service Worker for Mobile PWA
-// Version 6 - Aggressive cache clearing to fix stale asset issues
-const CACHE_NAME = 'twealth-v6';
-const STATIC_CACHE = 'twealth-static-v6';
+// Version 7 - NEVER cache HTML or JS to prevent stale bundle errors
+const CACHE_NAME = 'twealth-v7';
+const STATIC_CACHE = 'twealth-static-v7';
 const OFFLINE_URL = '/offline.html';
 
-// Only cache truly static assets - NOT dynamic app routes
+// Only cache truly static assets - NO HTML, NO JS
 const STATIC_ASSETS = [
   '/offline.html',
   '/manifest.json',
@@ -14,57 +14,70 @@ const STATIC_ASSETS = [
   '/favicon.ico'
 ];
 
-// Install event - FIRST clear ALL old caches, then cache only essential assets
+// Install event - delete only OLD caches, then cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v6...');
+  console.log('[SW v7] Installing...');
   event.waitUntil(
-    // Clear ALL existing caches first to prevent stale JS issues
+    // First delete old caches (anything not v7)
     caches.keys()
       .then((cacheNames) => {
-        console.log('[SW] Clearing all old caches:', cacheNames);
-        return Promise.all(cacheNames.map((name) => caches.delete(name)));
+        const oldCaches = cacheNames.filter(name => !name.includes('-v7'));
+        console.log('[SW v7] Deleting old caches:', oldCaches);
+        return Promise.all(oldCaches.map((name) => caches.delete(name)));
       })
       .then(() => caches.open(STATIC_CACHE))
       .then((cache) => {
-        console.log('[SW] Caching essential static assets');
+        console.log('[SW v7] Caching essential static assets');
         return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })));
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[SW v7] Install complete, skipping waiting');
+        return self.skipWaiting();
+      })
       .catch((error) => {
-        console.error('[SW] Install error:', error);
+        console.error('[SW v7] Install error:', error);
         return self.skipWaiting();
       })
   );
 });
 
-// Activate event - take control immediately
+// Activate event - take control immediately and notify clients
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker v6...');
+  console.log('[SW v7] Activating...');
   event.waitUntil(
     Promise.all([
+      // Enable navigation preload if available
       (async () => {
         if (self.registration.navigationPreload) {
           await self.registration.navigationPreload.enable();
-          console.log('[SW] Navigation preload enabled');
+          console.log('[SW v7] Navigation preload enabled');
         }
       })(),
-      // Clear any remaining old caches
+      // Delete any remaining old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames
             .filter((name) => name !== CACHE_NAME && name !== STATIC_CACHE)
             .map((name) => {
-              console.log('[SW] Deleting old cache:', name);
+              console.log('[SW v7] Deleting old cache:', name);
               return caches.delete(name);
             })
         );
       }),
+      // Claim all clients immediately
       self.clients.claim()
-    ])
+    ]).then(() => {
+      // Notify all clients that SW was updated - they should reload
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED', version: 'v7' });
+        });
+      });
+    })
   );
 });
 
-// Fetch event - PWABuilder compliant with explicit response handling
+// Fetch event - NETWORK ONLY for HTML and JS, cache only static assets
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
@@ -74,53 +87,41 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Critical: Never intercept OAuth or API routes - let browser handle normally
+  // NEVER intercept API routes
   if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // CRITICAL: Never cache JavaScript bundles - always fetch fresh to prevent stale code
+  // CRITICAL: Never cache or intercept JavaScript bundles
   if (url.pathname.endsWith('.js') || url.pathname.includes('/assets/')) {
-    return; // Let browser handle JS files directly - no caching
+    return; // Let browser handle directly
   }
 
-  // Handle navigation requests (page loads)
+  // CRITICAL: Never cache navigation (HTML) - always get fresh from network
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
         try {
-          // Try preload response first (faster)
+          // Try preload response first
           const preloadResponse = event.preloadResponse;
           if (preloadResponse) {
             const response = await preloadResponse;
             if (response) return response;
           }
 
-          // Network first for navigation
-          const networkResponse = await fetch(request);
-          if (networkResponse.ok) {
-            const cache = await caches.open(STATIC_CACHE);
-            cache.put(request, networkResponse.clone());
-          }
+          // Always fetch fresh HTML from network - NO CACHING
+          const networkResponse = await fetch(request, { cache: 'no-store' });
           return networkResponse;
         } catch (error) {
-          console.log('[SW] Navigation failed, serving fallback');
+          console.log('[SW v7] Navigation failed, serving offline page');
           
-          // Try cached version
-          const cached = await caches.match(request);
-          if (cached) return cached;
-          
-          // Try cached index
-          const indexCached = await caches.match('/');
-          if (indexCached) return indexCached;
-          
-          // Return offline page
+          // Return offline page only when truly offline
           const offlinePage = await caches.match(OFFLINE_URL);
           if (offlinePage) return offlinePage;
           
           // Ultimate fallback
           return new Response(
-            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Offline</title></head><body><h1>You are offline</h1></body></html>',
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title><style>body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f5f5f5}h1{color:#333}</style></head><body><h1>You are offline</h1></body></html>',
             { headers: { 'Content-Type': 'text/html' }, status: 503 }
           );
         }
@@ -129,36 +130,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Handle static assets (cache-first strategy)
-  event.respondWith(
-    (async () => {
-      const cached = await caches.match(request);
-      if (cached) {
-        // Update cache in background
-        fetch(request).then((response) => {
+  // Only cache static assets (icons, manifest, etc.)
+  if (STATIC_ASSETS.some(asset => url.pathname === asset || url.pathname.endsWith(asset.split('/').pop()))) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
           if (response.ok) {
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, response));
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
           }
-        }).catch(() => {});
-        return cached;
-      }
-
-      try {
-        const networkResponse = await fetch(request);
-        if (networkResponse.ok) {
-          const cache = await caches.open(STATIC_CACHE);
-          cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-      } catch (error) {
-        // Return a proper error response for failed static requests
-        return new Response('Resource unavailable offline', { 
-          status: 503,
-          statusText: 'Service Unavailable'
+          return response;
         });
-      }
-    })()
-  );
+      })
+    );
+    return;
+  }
+
+  // For everything else, let browser handle normally (no interception)
 });
 
 // Message handler
@@ -171,23 +160,6 @@ self.addEventListener('message', (event) => {
   }
   if (event.data?.type === 'CLEAR_CACHE') {
     caches.keys().then((names) => Promise.all(names.map((n) => caches.delete(n))));
-  }
-});
-
-// Background sync support
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'update-cache') {
-    event.waitUntil(
-      caches.open(STATIC_CACHE).then(async (cache) => {
-        const keys = await cache.keys();
-        for (const req of keys) {
-          try {
-            const res = await fetch(req);
-            if (res.ok) await cache.put(req, res);
-          } catch (e) {}
-        }
-      })
-    );
   }
 });
 
