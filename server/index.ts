@@ -1,10 +1,59 @@
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
+import fs from "fs";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
 import { investmentStrategies } from "@shared/schema";
 import { getSession, setupAuth } from "./customAuth";
+
+// ==================== ASSET BACKUP SYSTEM ====================
+// Keeps old hashed assets available so cached HTML from previous deploys
+// can still load their JS chunks - prevents React #300 errors on iOS Safari PWA
+const BACKUP_DIR = path.resolve(import.meta.dirname, "asset-backup");
+const DIST_ASSETS = path.resolve(import.meta.dirname, "public/assets");
+
+function backupCurrentAssets(): void {
+  try {
+    // Create backup directory if it doesn't exist
+    if (!fs.existsSync(BACKUP_DIR)) {
+      fs.mkdirSync(BACKUP_DIR, { recursive: true });
+      log("[BACKUP] Created asset backup directory");
+    }
+    
+    // Check if dist assets exist
+    if (!fs.existsSync(DIST_ASSETS)) {
+      log("[BACKUP] No dist assets found, skipping backup");
+      return;
+    }
+    
+    // Copy all current assets to backup (preserves old files)
+    const files = fs.readdirSync(DIST_ASSETS);
+    let copiedCount = 0;
+    
+    for (const file of files) {
+      const srcPath = path.join(DIST_ASSETS, file);
+      const destPath = path.join(BACKUP_DIR, file);
+      
+      // Only copy if file doesn't exist in backup (keeps all versions)
+      if (!fs.existsSync(destPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        copiedCount++;
+      }
+    }
+    
+    if (copiedCount > 0) {
+      log(`[BACKUP] Backed up ${copiedCount} new assets`);
+    }
+    
+    // Log backup stats
+    const backupFiles = fs.readdirSync(BACKUP_DIR);
+    log(`[BACKUP] Total backed up assets: ${backupFiles.length}`);
+    
+  } catch (error: any) {
+    log(`[BACKUP] Error backing up assets: ${error?.message || error}`);
+  }
+}
 
 // ==================== GLOBAL ERROR HANDLERS ====================
 // Catch unhandled promise rejections (critical for production stability)
@@ -124,8 +173,9 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     // ==================== PRODUCTION ASSET HANDLING ====================
-    // Serve /assets with dedicated middleware and proper cache headers
-    // This prevents MIME type errors when old cached HTML requests stale JS chunks
+    // Backup current assets on startup to preserve for old cached HTML
+    backupCurrentAssets();
+    
     const distPath = path.resolve(import.meta.dirname, "public");
     
     // Serve hashed assets with long cache headers (immutable)
@@ -134,6 +184,39 @@ app.use((req, res, next) => {
       immutable: true,
       etag: false,
     }));
+    
+    // FALLBACK: Try serving from backup if asset not found in current build
+    // This allows old cached HTML to load old JS chunks after a deploy
+    app.use("/assets", (req, res, next) => {
+      const filename = path.basename(req.path);
+      const backupPath = path.join(BACKUP_DIR, filename);
+      
+      if (fs.existsSync(backupPath)) {
+        log(`[BACKUP] Serving old asset from backup: ${filename}`);
+        
+        // Set proper content type based on extension
+        const ext = path.extname(filename).toLowerCase();
+        const contentTypes: Record<string, string> = {
+          '.js': 'application/javascript',
+          '.css': 'text/css',
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.svg': 'image/svg+xml',
+          '.woff': 'font/woff',
+          '.woff2': 'font/woff2',
+        };
+        
+        if (contentTypes[ext]) {
+          res.setHeader('Content-Type', contentTypes[ext]);
+        }
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        
+        return res.sendFile(backupPath);
+      }
+      
+      next();
+    });
     
     // 404 guard for missing assets - prevents SPA fallback from returning HTML
     app.use("/assets", (_req, res) => {
