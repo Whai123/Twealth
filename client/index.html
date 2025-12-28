@@ -119,6 +119,138 @@
   </head>
   <body>
     <div id="root"></div>
+    
+    <!-- Version Check & Auto-Reload System - Runs BEFORE React -->
+    <script>
+      (function() {
+        var VERSION_KEY = 'twealth_app_version';
+        var RELOAD_KEY = 'twealth_reload_attempt';
+        var CHECK_KEY = 'twealth_last_check';
+        
+        // Clear caches and reload helper
+        function clearAndReload() {
+          var promises = [];
+          
+          // Clear all caches
+          if ('caches' in window) {
+            promises.push(
+              caches.keys().then(function(names) {
+                return Promise.all(names.map(function(name) { 
+                  console.log('[Version] Deleting cache:', name);
+                  return caches.delete(name); 
+                }));
+              })
+            );
+          }
+          
+          // Unregister all service workers
+          if ('serviceWorker' in navigator) {
+            promises.push(
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                return Promise.all(registrations.map(function(reg) {
+                  console.log('[Version] Unregistering SW');
+                  return reg.unregister();
+                }));
+              })
+            );
+          }
+          
+          // Wait for cleanup then reload
+          Promise.all(promises).then(function() {
+            console.log('[Version] Cache cleared, reloading...');
+            window.location.reload(true);
+          }).catch(function() {
+            window.location.reload(true);
+          });
+        }
+        
+        // Prevent infinite reload loops but still check for updates
+        var reloadAttempt = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0');
+        var maxReloadsReached = reloadAttempt > 2;
+        
+        if (maxReloadsReached) {
+          console.warn('[Version] Max reload attempts reached, will prompt for manual reload');
+          sessionStorage.removeItem(RELOAD_KEY);
+        }
+        
+        // Always check version (but only auto-reload if under limit)
+        {
+          // Fetch server version and compare
+          var storedVersion = localStorage.getItem(VERSION_KEY);
+          var lastCheck = parseInt(localStorage.getItem(CHECK_KEY) || '0');
+          var now = Date.now();
+          
+          // Only check if last check was more than 10 seconds ago (prevent rapid checks)
+          if (now - lastCheck > 10000) {
+            localStorage.setItem(CHECK_KEY, now.toString());
+            
+            fetch('/api/version', { cache: 'no-store' })
+              .then(function(res) { return res.json(); })
+              .then(function(data) {
+                var serverVersion = data.version;
+                console.log('[Version] Server:', serverVersion, 'Stored:', storedVersion);
+                
+                // Skip version check in development mode
+                if (serverVersion === 'development') {
+                  console.log('[Version] Development mode, skipping version check');
+                  return;
+                }
+                
+                if (storedVersion && storedVersion !== serverVersion) {
+                  console.log('[Version] Update detected:', storedVersion, '->', serverVersion);
+                  localStorage.setItem(VERSION_KEY, serverVersion);
+                  
+                  if (maxReloadsReached) {
+                    // Prompt user instead of auto-reload
+                    console.warn('[Version] Prompting user for manual reload');
+                    if (confirm('A new version is available. Reload now for the best experience?')) {
+                      clearAndReload();
+                    }
+                  } else {
+                    sessionStorage.setItem(RELOAD_KEY, String(reloadAttempt + 1));
+                    clearAndReload();
+                  }
+                } else {
+                  localStorage.setItem(VERSION_KEY, serverVersion);
+                  sessionStorage.removeItem(RELOAD_KEY);
+                }
+              })
+              .catch(function(err) {
+                console.log('[Version] Check failed, continuing:', err.message);
+              });
+          }
+        }
+        
+        // Global error handler for chunk loading failures (React #300)
+        window.addEventListener('error', function(e) {
+          var msg = e.message || '';
+          if (msg.includes('Loading chunk') || msg.includes('Failed to fetch dynamically imported module') || msg.includes('Minified React error #300')) {
+            console.error('[Version] Critical error detected:', msg);
+            var attempt = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0');
+            if (attempt < 3) {
+              sessionStorage.setItem(RELOAD_KEY, String(attempt + 1));
+              localStorage.removeItem(VERSION_KEY); // Force re-check on reload
+              clearAndReload();
+            }
+          }
+        });
+        
+        // Also catch unhandled rejections (for dynamic import failures)
+        window.addEventListener('unhandledrejection', function(e) {
+          var msg = e.reason ? (e.reason.message || String(e.reason)) : '';
+          if (msg.includes('Failed to fetch dynamically imported module') || msg.includes('Loading chunk')) {
+            console.error('[Version] Dynamic import failed:', msg);
+            var attempt = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0');
+            if (attempt < 3) {
+              sessionStorage.setItem(RELOAD_KEY, String(attempt + 1));
+              localStorage.removeItem(VERSION_KEY);
+              clearAndReload();
+            }
+          }
+        });
+      })();
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -263,6 +263,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // ==================== VERSION ENDPOINT ====================
+  // Returns deterministic build version based on Vite manifest hash
+  // This changes every time the app is rebuilt (vite build)
+  const fs = await import('fs');
+  const pathModule = await import('path');
+  const crypto = await import('crypto');
+  
+  const getBuildVersion = (): string => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (isProduction) {
+      // Read Vite manifest and hash its contents for deterministic version
+      const manifestPath = pathModule.resolve(process.cwd(), 'dist/public/.vite/manifest.json');
+      
+      try {
+        const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+        const hash = crypto.createHash('sha256').update(manifestContent).digest('hex').slice(0, 12);
+        console.log(`[Version] Build version from manifest hash: ${hash}`);
+        return hash;
+      } catch (e: any) {
+        console.error(`[Version] ERROR: Cannot read manifest at ${manifestPath}: ${e.message}`);
+        // Deterministic fallback - all instances agree on 'unknown' rather than diverging
+        return 'unknown';
+      }
+    }
+    // In development, use a constant so reloads don't trigger during dev
+    return 'development';
+  };
+  
+  const BUILD_VERSION = getBuildVersion();
+  
+  app.get("/api/version", (req, res) => {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.json({ version: BUILD_VERSION, timestamp: Date.now() });
+  });
+
   // User routes - Requires authentication
   app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
