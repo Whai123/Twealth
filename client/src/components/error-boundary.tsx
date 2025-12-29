@@ -51,7 +51,7 @@ function incrementRecoveryAttempts(): void {
   }
 }
 
-function clearRecoveryAttempts(): void {
+export function clearRecoveryAttempts(): void {
   try {
     sessionStorage.removeItem(RECOVERY_KEY);
   } catch {
@@ -97,10 +97,6 @@ class ErrorBoundary extends Component<Props, State> {
   isRecovering: false
  };
 
- public componentDidMount() {
-  clearRecoveryAttempts();
- }
-
  public static getDerivedStateFromError(error: Error): Partial<State> {
   return { hasError: true, error };
  }
@@ -131,13 +127,11 @@ class ErrorBoundary extends Component<Props, State> {
  }
 
  private handleRetry = async () => {
-  clearRecoveryAttempts();
   this.setState({ isRecovering: true });
   await clearAllCachesAndReload();
  };
 
  private handleGoHome = async () => {
-  clearRecoveryAttempts();
   this.setState({ isRecovering: true });
   
   try {

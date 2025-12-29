@@ -65,7 +65,7 @@ function Redirect({ to }: { to: string }) {
 import Sidebar from"./components/sidebar";
 import MobileNavigation from"./components/mobile-navigation";
 import MobileHeader from"./components/mobile-header";
-import ErrorBoundary from"./components/error-boundary";
+import ErrorBoundary, { clearRecoveryAttempts } from"./components/error-boundary";
 import { OnboardingRedirect } from"./components/onboarding-redirect";
 import { OfflineIndicator } from"./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from"./components/pwa/install-prompt";
@@ -187,6 +187,11 @@ function Router() {
 }
 
 function App() {
+ useEffect(() => {
+  clearRecoveryAttempts();
+  console.log('[App] Successfully loaded, recovery attempts cleared');
+ }, []);
+
  return (
   <QueryClientProvider client={queryClient}>
    <UserProvider>
