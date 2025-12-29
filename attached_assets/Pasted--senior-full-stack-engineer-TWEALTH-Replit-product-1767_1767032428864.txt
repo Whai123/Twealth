@@ -1,0 +1,30 @@
+คุณเป็น senior full-stack engineer สำหรับโปรเจกต์นี้ (TWEALTH) บน Replit เป้าหมายคือแก้ปัญหา production ที่เว็บ https://twealth.ltd ค้าง “Updating app…” ไม่ยอมเข้าแอพ
+
+บริบทที่รู้:
+- ในโค้ดมีการเสิร์ฟ static จาก distPath ที่ resolve ไปที่ "server/public" (เช่น server/vite.ts มีข้อความ `Could not find the build directory: ${distPath}, make sure to build the client first`)
+- routes.ts มีการอ่าน manifest ที่ `dist/public/.vite/manifest.json`
+- index.ts มี logic backup/dist assets และมีการ serve `/assets` แบบ express.static
+- มี history build ที่ “failed to publish” และ agent ก่อนหน้าเหมือนพยายามแก้เรื่อง 404 /assets / missing scripts
+
+งานที่ต้องทำ (ทำตามลำดับ ห้ามเดา):
+1) เปิด “Deploy logs” ของ build ที่ fail ล่าสุด และ build ที่ published ล่าสุด แล้วสรุป root cause แบบชัดเจน (ไฟล์/พาธ/สคริปต์ไหนหาไม่เจอ หรือ error อะไร) แล้วอิงจาก log เป็นหลัก
+2) ตรวจ `package.json` ว่า build pipeline ใน production รันอะไร (build/start) และแน่ใจว่า production มีขั้นตอน build ฝั่ง client ก่อน start เสมอ
+3) ทำให้ path “ที่ server ใช้เสิร์ฟ” กับ “ที่ Vite build ออกมา” ตรงกันแบบเดียวจบ:
+   - เลือก 1 แนวทางที่ถูกต้องแล้วทำให้ consistent ทั้งระบบ
+   A) ให้ Vite build ออกไปที่ `server/public` (และทำให้ manifest อยู่ใน `server/public/.vite/manifest.json`)
+   หรือ
+   B) ให้ server ไปเสิร์ฟจาก client dist จริง (เช่น `dist/` หรือ `dist/public/`) แล้วแก้ทุกที่ที่อ้าง `server/public` ให้ตรงกัน รวมถึง manifestPath ใน routes.ts และ static path ใน vite.ts/index.ts
+4) เพิ่ม guard เพื่อไม่ให้ production crash หรือวนลูป:
+   - ถ้า manifest/build dir ไม่เจอ ให้ log error ชัดเจน + fallback serve หน้า index แบบ safe หรือแสดง error page ที่อ่านง่าย (ไม่ค้าง updating)
+   - ตรวจ `/assets` 404 handler: ต้องไม่ทำให้ client หรือ service worker วน retry ไม่จบ
+5) หลังแก้ ให้รันทดสอบใน Shell:
+   - `npm i`
+   - `npm run build`
+   - `npm run start`
+   แล้วแนบผลลัพธ์ (สำเร็จ/ไม่สำเร็จ + log)
+6) จากนั้น “Republish” และยืนยันว่า twealth.ltd โหลดเข้าได้จริง (ไม่ค้าง Updating app)
+
+ข้อกำหนด:
+- อย่าทำ hotfix แบบสุ่ม
+- ทุกการแก้ต้องมีเหตุผลอ้างอิงจาก Deploy logs หรือจากการตรวจไฟล์จริง
+- สรุปเป็น checklist ว่าแก้อะไรไปบ้าง + ไฟล์ไหนเปลี่ยน + ทำไมมันแก้อาการค้าง Updating ได้
