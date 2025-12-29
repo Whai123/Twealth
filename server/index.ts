@@ -186,19 +186,65 @@ app.use((req, res, next) => {
       etag: false,
     }));
     
-    // FALLBACK: Try serving from backup if asset not found in current build
-    // This allows old cached HTML to load old JS chunks after a deploy
+    // FALLBACK: Serve hotfix script for old JS requests to auto-upgrade stale PWA shells
+    // Instead of serving old buggy JS, we serve a hotfix that clears cache and reloads
     app.use("/assets", (req, res, next) => {
       const filename = path.basename(req.path);
+      const ext = path.extname(filename).toLowerCase();
       const backupPath = path.join(BACKUP_DIR, filename);
       
+      // Check if this is a request for an old asset that exists in backup
       if (fs.existsSync(backupPath)) {
+        // For JS files: serve hotfix script that auto-upgrades the app
+        if (ext === '.js') {
+          log(`[HOTFIX] Serving auto-upgrade script instead of stale bundle: ${filename}`);
+          
+          res.setHeader('Content-Type', 'application/javascript');
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          
+          // Hotfix script: clears all caches, unregisters SW, and reloads with fresh HTML
+          const hotfixScript = `
+(async function hotfix() {
+  console.log('[Hotfix] Stale bundle detected, auto-upgrading...');
+  
+  try {
+    // Clear all caches
+    if ('caches' in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map(n => caches.delete(n)));
+      console.log('[Hotfix] Cleared', names.length, 'caches');
+    }
+    
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+      console.log('[Hotfix] Unregistered', regs.length, 'service workers');
+    }
+    
+    // Clear storage
+    sessionStorage.clear();
+    localStorage.removeItem('app_version');
+    
+    // Force reload with cache bust
+    const url = new URL(window.location.href);
+    url.searchParams.set('_hotfix', Date.now().toString());
+    window.location.replace(url.href);
+    
+  } catch (e) {
+    console.error('[Hotfix] Error:', e);
+    // Fallback: hard reload
+    window.location.reload();
+  }
+})();
+`;
+          return res.send(hotfixScript);
+        }
+        
+        // For non-JS files (CSS, images, fonts): serve from backup normally
         log(`[BACKUP] Serving old asset from backup: ${filename}`);
         
-        // Set proper content type based on extension
-        const ext = path.extname(filename).toLowerCase();
         const contentTypes: Record<string, string> = {
-          '.js': 'application/javascript',
           '.css': 'text/css',
           '.png': 'image/png',
           '.jpg': 'image/jpeg',
