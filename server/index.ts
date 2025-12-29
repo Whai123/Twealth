@@ -265,8 +265,56 @@ app.use((req, res, next) => {
       next();
     });
     
-    // 404 guard for missing assets - prevents SPA fallback from returning HTML
-    app.use("/assets", (_req, res) => {
+    // 404 guard for missing assets - serve hotfix for stale JS, 404 for others
+    app.use("/assets", (req, res) => {
+      const filename = path.basename(req.path);
+      const ext = path.extname(filename).toLowerCase();
+      
+      // For missing JS files: serve hotfix script that auto-upgrades the app
+      // This catches stale PWA shells requesting old bundle hashes
+      if (ext === '.js') {
+        log(`[HOTFIX] Missing JS asset, serving auto-upgrade script: ${filename}`);
+        
+        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        
+        const hotfixScript = `
+(async function hotfix() {
+  console.log('[Hotfix] Missing bundle detected, auto-upgrading...');
+  
+  try {
+    // Clear all caches
+    if ('caches' in window) {
+      const names = await caches.keys();
+      await Promise.all(names.map(n => caches.delete(n)));
+      console.log('[Hotfix] Cleared', names.length, 'caches');
+    }
+    
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+      console.log('[Hotfix] Unregistered', regs.length, 'service workers');
+    }
+    
+    // Clear recovery counters to prevent loops
+    sessionStorage.clear();
+    localStorage.removeItem('app_version');
+    localStorage.removeItem('twealth_app_version');
+    
+    // Force reload with cache bust - go to homepage
+    window.location.replace('/?_hotfix=' + Date.now());
+    
+  } catch (e) {
+    console.error('[Hotfix] Error:', e);
+    window.location.replace('/');
+  }
+})();
+`;
+        return res.send(hotfixScript);
+      }
+      
+      // For non-JS assets: return 404
       res.status(404).send("Asset not found");
     });
     
