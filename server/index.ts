@@ -90,6 +90,91 @@ app.use(getSession());
 // Setup OAuth authentication routes
 setupAuth(app);
 
+// ==================== PWA RECOVERY ENDPOINT ====================
+// Serves fresh HTML to break iOS Safari PWA's frozen shell
+// When old cached HTML requests missing JS bundles, the 404 handler
+// redirects here to serve a new HTML page that loads current assets
+app.get('/_recover', (req, res) => {
+  log('[RECOVER] PWA recovery endpoint hit - serving fresh app shell');
+  
+  // Maximum cache prevention
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('X-Recovery', 'true');
+  
+  // Serve a minimal HTML page that redirects to the app
+  // This creates a clean break from the frozen PWA context
+  const recoveryHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Updating...</title>
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+    }
+    .container { text-align: center; padding: 20px; }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <h2>Updating App...</h2>
+    <p>Please wait a moment</p>
+  </div>
+  <script>
+    // Final cleanup and redirect to fresh app
+    (async function() {
+      try {
+        // Clear any remaining caches
+        if ('caches' in window) {
+          var names = await caches.keys();
+          await Promise.all(names.map(function(n) { return caches.delete(n); }));
+        }
+        // Unregister service workers
+        if ('serviceWorker' in navigator) {
+          var regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(function(r) { return r.unregister(); }));
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+      } catch (e) {
+        console.error('[Recovery] Cleanup error:', e);
+      }
+      // Redirect to homepage with cache bust
+      setTimeout(function() {
+        window.location.replace('/?v=' + Date.now());
+      }, 500);
+    })();
+  </script>
+</body>
+</html>`;
+  
+  res.type('html').send(recoveryHtml);
+});
+
 // Production-grade request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
@@ -195,47 +280,30 @@ app.use((req, res, next) => {
       
       // Check if this is a request for an old asset that exists in backup
       if (fs.existsSync(backupPath)) {
-        // For JS files: serve hotfix script that auto-upgrades the app
+        // For JS files: redirect to recovery endpoint to break frozen PWA shell
         if (ext === '.js') {
-          log(`[HOTFIX] Serving auto-upgrade script instead of stale bundle: ${filename}`);
+          log(`[HOTFIX] Serving recovery redirect for stale bundle: ${filename}`);
           
           res.setHeader('Content-Type', 'application/javascript');
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
           
-          // Hotfix script: clears all caches, unregisters SW, and reloads with fresh HTML
+          // Hotfix script: clears caches and redirects to recovery endpoint
           const hotfixScript = `
 (async function hotfix() {
-  console.log('[Hotfix] Stale bundle detected, auto-upgrading...');
-  
+  console.log('[Hotfix] Stale bundle detected, initiating recovery...');
   try {
-    // Clear all caches
     if ('caches' in window) {
-      const names = await caches.keys();
-      await Promise.all(names.map(n => caches.delete(n)));
-      console.log('[Hotfix] Cleared', names.length, 'caches');
+      var names = await caches.keys();
+      await Promise.all(names.map(function(n) { return caches.delete(n); }));
     }
-    
-    // Unregister all service workers
     if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-      console.log('[Hotfix] Unregistered', regs.length, 'service workers');
+      var regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(function(r) { return r.unregister(); }));
     }
-    
-    // Clear storage
+    localStorage.clear();
     sessionStorage.clear();
-    localStorage.removeItem('app_version');
-    
-    // Force reload with cache bust
-    const url = new URL(window.location.href);
-    url.searchParams.set('_hotfix', Date.now().toString());
-    window.location.replace(url.href);
-    
-  } catch (e) {
-    console.error('[Hotfix] Error:', e);
-    // Fallback: hard reload
-    window.location.reload();
-  }
+  } catch (e) { console.error('[Hotfix] Cleanup error:', e); }
+  window.location.href = '/_recover?t=' + Date.now();
 })();
 `;
           return res.send(hotfixScript);
@@ -278,37 +346,38 @@ app.use((req, res, next) => {
         res.setHeader('Content-Type', 'application/javascript');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         
+        // Hotfix script that redirects to recovery endpoint
+        // Uses hard navigation to dedicated recovery route to break iOS PWA frozen shell
         const hotfixScript = `
 (async function hotfix() {
-  console.log('[Hotfix] Missing bundle detected, auto-upgrading...');
+  console.log('[Hotfix] Missing bundle detected, initiating recovery...');
   
   try {
-    // Clear all caches
+    // Clear all caches first
     if ('caches' in window) {
-      const names = await caches.keys();
-      await Promise.all(names.map(n => caches.delete(n)));
+      var names = await caches.keys();
+      await Promise.all(names.map(function(n) { return caches.delete(n); }));
       console.log('[Hotfix] Cleared', names.length, 'caches');
     }
     
     // Unregister all service workers
     if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
+      var regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(function(r) { return r.unregister(); }));
       console.log('[Hotfix] Unregistered', regs.length, 'service workers');
     }
     
-    // Clear recovery counters to prevent loops
+    // Clear all storage
+    localStorage.clear();
     sessionStorage.clear();
-    localStorage.removeItem('app_version');
-    localStorage.removeItem('twealth_app_version');
-    
-    // Force reload with cache bust - go to homepage
-    window.location.replace('/?_hotfix=' + Date.now());
     
   } catch (e) {
-    console.error('[Hotfix] Error:', e);
-    window.location.replace('/');
+    console.error('[Hotfix] Cache clear error (continuing):', e);
   }
+  
+  // Hard navigation to recovery endpoint - this serves fresh HTML and redirects
+  // The recovery endpoint tears down the webview by serving a new HTML document
+  window.location.href = '/_recover?t=' + Date.now();
 })();
 `;
         return res.send(hotfixScript);
