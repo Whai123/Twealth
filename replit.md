@@ -76,3 +76,40 @@ All pages use mobile-first responsive breakpoints: `grid-cols-1 sm:grid-cols-2 l
 -   **Alpha Vantage API**: Real-time stock market data.
 -   **Exchange Rate API**: Live forex and currency conversion.
 -   **Public Economic APIs**: Inflation and economic indicator data.
+
+# PWA Configuration (Jan 2026)
+
+## Current Status: DISABLED
+
+PWA/Service Worker is temporarily disabled for pre-launch stability. The app runs as a normal website without offline caching or install-to-home-screen functionality.
+
+## Why Disabled
+
+iOS Safari PWA has aggressive caching that can cause "stale bundle" issues where users get stuck in infinite loading loops after deployment. Until a proper SW update strategy is implemented, PWA is disabled to ensure reliability.
+
+## Files Modified for PWA Disable
+
+1. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true`
+2. **client/index.html**: 
+   - Manifest link commented out
+   - Hard SW killer script added at top of `<head>`
+3. **server/index.ts**: `/_recover` endpoint for emergency recovery
+
+## How to Re-Enable PWA Safely
+
+1. **Set environment variable**: `VITE_ENABLE_PWA=true`
+2. **Uncomment manifest link** in `client/index.html`
+3. **Remove or modify the SW killer script** in `client/index.html`
+4. **Version the SW filename**: Change `/sw.js` to `/sw-v2.js` to force update
+5. **Implement proper SW update flow**: 
+   - skipWaiting + clients.claim on install
+   - Version check on activate
+   - Clear old caches on activate
+6. **Test thoroughly** on iOS Safari before production deploy
+
+## Emergency Recovery
+
+If users get stuck on iOS Safari:
+- Server automatically handles missing JS bundles by redirecting to `/_recover`
+- `/_recover` clears all caches/SW and redirects to homepage
+- The inline SW killer script in index.html handles stale SW on first load

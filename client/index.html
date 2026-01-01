@@ -9,6 +9,67 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
+    <!-- 
+      ==================== HARD SW KILLER ====================
+      This script runs BEFORE anything else to kill stale Service Workers
+      that may be controlling this page from a previous deployment.
+      Uses sessionStorage flag to run only once per session.
+      
+      TO RE-ENABLE PWA: Set VITE_ENABLE_PWA=true and remove this script.
+    -->
+    <script>
+      (function() {
+        // Run cleanup only ONCE per session to avoid repeated redirects
+        var CLEANUP_KEY = 'sw_cleanup_done';
+        if (sessionStorage.getItem(CLEANUP_KEY)) {
+          return; // Already cleaned up this session
+        }
+        
+        // Check if there are any service workers to kill
+        if (!('serviceWorker' in navigator)) {
+          sessionStorage.setItem(CLEANUP_KEY, '1');
+          return;
+        }
+        
+        // Run cleanup check (non-blocking for normal users)
+        (async function cleanup() {
+          var hadSW = false;
+          
+          try {
+            // Check for service workers
+            var registrations = await navigator.serviceWorker.getRegistrations();
+            if (registrations.length > 0) {
+              hadSW = true;
+              console.log('[SW-Killer] Found', registrations.length, 'service worker(s), unregistering...');
+              await Promise.all(registrations.map(function(reg) { return reg.unregister(); }));
+            }
+            
+            // Check for caches
+            if ('caches' in window) {
+              var cacheNames = await caches.keys();
+              if (cacheNames.length > 0) {
+                hadSW = true;
+                console.log('[SW-Killer] Clearing', cacheNames.length, 'cache(s)...');
+                await Promise.all(cacheNames.map(function(name) { return caches.delete(name); }));
+              }
+            }
+            
+          } catch (e) {
+            console.error('[SW-Killer] Cleanup error:', e);
+          }
+          
+          // Mark cleanup as done
+          sessionStorage.setItem(CLEANUP_KEY, '1');
+          
+          // If we found and killed SW/caches, reload to get fresh assets
+          if (hadSW) {
+            console.log('[SW-Killer] Cleanup complete, reloading...');
+            window.location.reload();
+          }
+        })();
+      })();
+    </script>
+    
     <!-- Primary Meta Tags -->
     <title>Twealth - Transform Time Into Wealth | AI Financial Assistant</title>
     <meta name="title" content="Twealth - Transform Time Into Wealth | AI Financial Assistant" />
@@ -36,8 +97,9 @@
     <meta name="twitter:description" content="Smart financial management with AI-powered insights. Track money, set goals, and get CFO-level advice in 11 languages." />
     <meta name="twitter:image" content="https://twealth.ltd/og-image.png" />
     
-    <!-- PWA Configuration -->
-    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+    <!-- PWA Configuration - TEMPORARILY DISABLED for pre-launch stability -->
+    <!-- To re-enable: uncomment this and set VITE_ENABLE_PWA=true -->
+    <!-- <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" /> -->
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#8b5cf6" media="(prefers-color-scheme: light)" />

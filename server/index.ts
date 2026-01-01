@@ -146,6 +146,7 @@ app.get('/_recover', (req, res) => {
   </div>
   <script>
     // Final cleanup and redirect to fresh app
+    // IMPORTANT: Does NOT clear localStorage to preserve user authentication
     (async function() {
       try {
         // Clear any remaining caches
@@ -158,14 +159,15 @@ app.get('/_recover', (req, res) => {
           var regs = await navigator.serviceWorker.getRegistrations();
           await Promise.all(regs.map(function(r) { return r.unregister(); }));
         }
-        localStorage.clear();
-        sessionStorage.clear();
+        // Only clear version-related storage, preserve user data
+        localStorage.removeItem('twealth_app_version');
+        sessionStorage.setItem('sw_cleanup_done', '1'); // Mark cleanup done for index.html script
       } catch (e) {
         console.error('[Recovery] Cleanup error:', e);
       }
-      // Redirect to homepage with cache bust
+      // Redirect to homepage
       setTimeout(function() {
-        window.location.replace('/?v=' + Date.now());
+        window.location.replace('/');
       }, 500);
     })();
   </script>
@@ -287,7 +289,8 @@ app.use((req, res, next) => {
           res.setHeader('Content-Type', 'application/javascript');
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
           
-          // Hotfix script: clears caches and redirects to recovery endpoint
+          // Hotfix script: clears SW caches and redirects to recovery endpoint
+          // IMPORTANT: Does NOT clear localStorage to preserve user authentication
           const hotfixScript = `
 (async function hotfix() {
   console.log('[Hotfix] Stale bundle detected, initiating recovery...');
@@ -300,8 +303,9 @@ app.use((req, res, next) => {
       var regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map(function(r) { return r.unregister(); }));
     }
-    localStorage.clear();
-    sessionStorage.clear();
+    // Only clear version-related storage, preserve user data
+    localStorage.removeItem('twealth_app_version');
+    sessionStorage.removeItem('sw_cleanup_done');
   } catch (e) { console.error('[Hotfix] Cleanup error:', e); }
   window.location.href = '/_recover?t=' + Date.now();
 })();
@@ -348,12 +352,13 @@ app.use((req, res, next) => {
         
         // Hotfix script that redirects to recovery endpoint
         // Uses hard navigation to dedicated recovery route to break iOS PWA frozen shell
+        // IMPORTANT: Does NOT clear localStorage to preserve user authentication
         const hotfixScript = `
 (async function hotfix() {
   console.log('[Hotfix] Missing bundle detected, initiating recovery...');
   
   try {
-    // Clear all caches first
+    // Clear SW caches (but NOT localStorage - preserve user auth)
     if ('caches' in window) {
       var names = await caches.keys();
       await Promise.all(names.map(function(n) { return caches.delete(n); }));
@@ -367,16 +372,19 @@ app.use((req, res, next) => {
       console.log('[Hotfix] Unregistered', regs.length, 'service workers');
     }
     
-    // Clear all storage
-    localStorage.clear();
-    sessionStorage.clear();
+    // Only clear version-related storage, preserve user data
+    try {
+      localStorage.removeItem('twealth_app_version');
+      localStorage.removeItem('app_version');
+      sessionStorage.removeItem('twealth_reload_attempt');
+      sessionStorage.removeItem('sw_cleanup_done');
+    } catch(e) {}
     
   } catch (e) {
     console.error('[Hotfix] Cache clear error (continuing):', e);
   }
   
-  // Hard navigation to recovery endpoint - this serves fresh HTML and redirects
-  // The recovery endpoint tears down the webview by serving a new HTML document
+  // Hard navigation to recovery endpoint
   window.location.href = '/_recover?t=' + Date.now();
 })();
 `;
