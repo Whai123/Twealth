@@ -1,0 +1,84 @@
+You are Replit Agent 3 acting as a **principal production engineer**.  
+Goal: **Fix iPhone Safari infinite loading (“Updating App…/Loading…”) caused by stale PWA/Service Worker/caches** so that **users never need to clear cache or restart**.
+
+## Context
+- App is deployed on Replit (Autoscale) with a production database.
+- iPhone Safari currently shows a stuck loading/updating page.
+- There is already an attempted “/recover” flow, but Safari can still get stuck because the stale SW controls the very first HTML shell.
+- This is pre-launch; prioritize reliability and cost-safety.
+
+## HARD REQUIREMENTS
+1) **No user instructions** (no “clear cache”, no “add ?v=”, no “restart iPhone”).  
+2) Fix must work on **Safari iOS** specifically.  
+3) Must avoid redirect loops and avoid breaking normal browsers.  
+4) Output must include **exact files changed** + **why** + **how to re-enable PWA later safely**.
+
+---
+
+# TASKS (do these in order)
+
+## 1) Find & disable PWA registration temporarily (pre-launch safe mode)
+- Search the codebase for:
+  - `navigator.serviceWorker.register`
+  - `serviceWorker`
+  - `registerSW`
+  - `workbox`
+  - `vite-plugin-pwa`
+  - `manifest.webmanifest`, `manifest.json`
+  - `<link rel="manifest"`
+- Temporarily disable SW registration in production builds:
+  - Either remove it entirely OR gate it behind an env flag like `ENABLE_PWA=false`.
+- Also remove/disable the manifest link from the HTML that is served.
+
+**Acceptance:** After deploy, the app behaves like a normal website (no SW installed).
+
+## 2) Add a “hard SW + cache killer” that runs BEFORE the app bootstraps
+Safari can be controlled by an old SW before your framework JS loads.  
+Therefore inject a small inline script into the **first HTML response** served at `/` (and `/recover` if it exists) that:
+- Unregisters all SWs
+- Deletes all Cache Storage
+- Clears localStorage + sessionStorage (best effort)
+- Then forces a single navigation to a “clean” URL once
+
+Implement as early as possible:
+- If you have `server/index.ts` serving HTML, inject there.
+- If you have an `index.html` template, place it at the top of `<head>`.
+
+Use this logic (exact behavior):
+- If URL does NOT contain `__fix_sw=1`:
+  - run cleanup
+  - `location.replace('/?__fix_sw=1')`
+- If URL already contains `__fix_sw=1`:
+  - DO NOT redirect again (prevents loops)
+
+## 3) Make `/recover` optional and invisible
+If `/recover` exists, keep it as a fallback, but the main fix should work from `/` without user action.
+- Ensure `/recover` also includes the same early kill script
+- Ensure it redirects back to `/` once clean
+
+## 4) Verify server caching headers for HTML
+For the main HTML responses (`/`, `/recover`):
+- Set headers to reduce stale shells:
+  - `Cache-Control: no-store, max-age=0`
+Do NOT apply no-store to static assets unnecessarily.
+
+## 5) Add a “PWA re-enable plan” comment
+Add clear comments and an env flag:
+- `ENABLE_PWA` default false for now
+- When re-enabling later, require SW filename versioning (e.g. `sw-v2.js`) and a proper update flow.
+
+---
+
+# DELIVERABLES
+When done, reply with:
+1) **Files modified** (exact paths)
+2) **What was changed** (bullet points)
+3) **How it prevents iOS Safari stuck loading**
+4) **How to re-enable PWA safely later** (with steps)
+5) Confirm: **No user action required**
+
+# DEFINITION OF DONE
+- On iPhone Safari, opening `https://twealth.ltd/` loads normally.
+- No infinite “Updating App/Loading” screen.
+- No redirect loops.
+- Works on Chrome/desktop as well.
