@@ -177,6 +177,47 @@ app.get('/_recover', (req, res) => {
   res.type('html').send(recoveryHtml);
 });
 
+// ==================== SERVICE WORKER KILL-SWITCH ROUTE ====================
+// Serve the kill-switch SW with aggressive no-cache headers
+// This ensures iOS Safari PWA users get the updated SW that self-destructs
+app.get('/sw.js', (req, res) => {
+  log('[SW] Kill-switch service worker requested');
+  
+  // Aggressive no-cache headers - SW MUST be refetched every time
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('X-SW-Version', 'kill-v1');
+  
+  // Serve from client/public in dev, dist/public in prod
+  const swPath = process.env.NODE_ENV === 'production'
+    ? path.resolve(import.meta.dirname, 'public/sw.js')
+    : path.resolve(process.cwd(), 'client/public/sw.js');
+  
+  if (fs.existsSync(swPath)) {
+    res.sendFile(swPath);
+  } else {
+    // Fallback inline kill-switch SW if file not found
+    log('[SW] sw.js file not found, serving inline kill-switch');
+    res.send(`
+// Fallback Kill-Switch SW
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    await self.clients.claim();
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll({type:'window'});
+    clients.forEach(c => c.navigate(c.url));
+  })());
+});
+self.addEventListener('fetch', () => {});
+`);
+  }
+});
+
 // Production-grade request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();

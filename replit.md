@@ -79,37 +79,47 @@ All pages use mobile-first responsive breakpoints: `grid-cols-1 sm:grid-cols-2 l
 
 # PWA Configuration (Jan 2026)
 
-## Current Status: DISABLED
+## Current Status: KILL-SWITCH DEPLOYED
 
-PWA/Service Worker is temporarily disabled for pre-launch stability. The app runs as a normal website without offline caching or install-to-home-screen functionality.
+PWA/Service Worker is disabled for new users. A **kill-switch SW** is deployed at `/sw.js` to automatically rescue users stuck on old cached PWA shells.
 
-## Why Disabled
+## Kill-Switch Service Worker Strategy
 
-iOS Safari PWA has aggressive caching that can cause "stale bundle" issues where users get stuck in infinite loading loops after deployment. Until a proper SW update strategy is implemented, PWA is disabled to ensure reliability.
+The kill-switch SW (`client/public/sw.js`) solves the iOS Safari PWA infinite loop by:
+1. **Browser's SW update mechanism** periodically checks `/sw.js` for updates (max 24 hours)
+2. When old PWA users open the app, their browser fetches the new kill-switch SW
+3. Kill-switch SW activates with `skipWaiting()` and takes control immediately
+4. On activation, it:
+   - Deletes ALL caches
+   - Unregisters itself
+   - Forces all open tabs to hard-reload via `client.navigate()`
+5. After reload, user gets fresh HTML with no SW controlling the page
 
-## Files Modified for PWA Disable
+## Files Modified
 
-1. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true`
-2. **client/index.html**: 
+1. **client/public/sw.js**: Kill-switch SW that self-destructs on activation
+2. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true` (default: disabled)
+3. **client/index.html**: 
    - Manifest link commented out
-   - Hard SW killer script added at top of `<head>`
-3. **server/index.ts**: `/_recover` endpoint for emergency recovery
+   - Inline SW killer script as backup for immediate cleanup
+4. **server/index.ts**: 
+   - `/sw.js` route serves kill-switch with no-cache headers
+   - `/_recover` endpoint for emergency recovery
+   - 404 hotfix for missing JS bundles
 
 ## How to Re-Enable PWA Safely
 
 1. **Set environment variable**: `VITE_ENABLE_PWA=true`
-2. **Uncomment manifest link** in `client/index.html`
-3. **Remove or modify the SW killer script** in `client/index.html`
-4. **Version the SW filename**: Change `/sw.js` to `/sw-v2.js` to force update
-5. **Implement proper SW update flow**: 
-   - skipWaiting + clients.claim on install
-   - Version check on activate
-   - Clear old caches on activate
+2. **Replace kill-switch SW** with proper PWA SW
+3. **Uncomment manifest link** in `client/index.html`
+4. **Remove the inline SW killer script** in `client/index.html`
+5. **Implement proper SW update flow** with version tracking
 6. **Test thoroughly** on iOS Safari before production deploy
 
-## Emergency Recovery
+## Emergency Recovery Paths
 
-If users get stuck on iOS Safari:
-- Server automatically handles missing JS bundles by redirecting to `/_recover`
-- `/_recover` clears all caches/SW and redirects to homepage
-- The inline SW killer script in index.html handles stale SW on first load
+Multiple fallback paths ensure users can recover:
+1. **Kill-switch SW**: Auto-updates and self-destructs for old PWA users
+2. **Missing JS 404 handler**: Serves hotfix script that redirects to `/_recover`
+3. **/_recover endpoint**: Clears caches/SW and reloads fresh app
+4. **Inline SW killer script**: Runs on page load as final backup
