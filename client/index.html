@@ -52,14 +52,16 @@
           return;
         }
         
-        // Run aggressive cleanup
+        // Run cleanup - but ONLY if this was a prior PWA install (lastVersion exists)
+        // This prevents false positives on fresh Android/iOS loads
         (async function cleanup() {
+          var hadPriorInstall = !!lastVersion; // Only true if user had PWA before
           var hadSW = false;
           var reloadCount = parseInt(getStorage('sw_reload_count', true) || '0');
           
           // Safety: max 3 reload attempts to prevent infinite loop
           if (reloadCount >= 3) {
-            console.log('[SW-Killer] Max reload attempts reached, stopping cleanup loop');
+            console.log('[SW-Killer] Max reload attempts reached, stopping');
             setStorage(VERSION_KEY, KILL_VERSION, false);
             setStorage(CLEANUP_KEY, '1', true);
             removeStorage('sw_reload_count', true);
@@ -71,7 +73,7 @@
             var registrations = await navigator.serviceWorker.getRegistrations();
             if (registrations.length > 0) {
               hadSW = true;
-              console.log('[SW-Killer] Unregistering', registrations.length, 'service worker(s)');
+              console.log('[SW-Killer] Found', registrations.length, 'SW(s), unregistering...');
               await Promise.all(registrations.map(function(reg) { return reg.unregister(); }));
             }
             
@@ -86,20 +88,25 @@
             }
             
           } catch (e) {
-            console.error('[SW-Killer] Cleanup error:', e);
+            console.error('[SW-Killer] Error:', e);
           }
           
           // Update version and session flags
           setStorage(VERSION_KEY, KILL_VERSION, false);
           setStorage(CLEANUP_KEY, '1', true);
           
-          // Reload if we cleaned something
-          if (hadSW) {
+          // ONLY reload if:
+          // 1. We cleaned something AND
+          // 2. There was a prior install (prevents reload loop on fresh devices)
+          if (hadSW && hadPriorInstall) {
             setStorage('sw_reload_count', String(reloadCount + 1), true);
-            console.log('[SW-Killer] Cleanup complete, reloading (attempt ' + (reloadCount + 1) + ')');
+            console.log('[SW-Killer] Prior install detected, reloading (attempt ' + (reloadCount + 1) + ')');
             window.location.reload();
           } else {
             removeStorage('sw_reload_count', true);
+            if (hadSW) {
+              console.log('[SW-Killer] Cleaned SW but no prior install - not reloading');
+            }
           }
         })();
       })();
