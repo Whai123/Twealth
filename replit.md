@@ -109,8 +109,17 @@ The refresh loop was caused by:
 
 1. **client/index.html**: All inline reload scripts removed
 2. **client/src/pages/dashboard.tsx**: Added `enabled: isAuthenticated` to all queries
-3. **client/src/components/error-boundary.tsx**: Auth errors redirect to login
+3. **client/src/components/error-boundary.tsx**: Auth errors redirect to login; chunk errors get smart one-time recovery (clear caches, reload with cache-buster)
 4. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true`
+5. **client/src/App.tsx**: 9 critical routes converted from React.lazy() to direct imports (Dashboard, Welcome, Groups, FinancialGoals, MoneyTracking, Settings, AIAssistant, Landing, Login) to prevent chunk loading failures
+6. **server/index.ts**: Added explicit Cache-Control no-store headers on SPA fallback
+
+## Chunk Loading Fix (Jan 2026)
+
+Critical routes are now eagerly imported to eliminate chunk hash mismatch after deployments:
+- Dashboard, Welcome, Groups, FinancialGoals, MoneyTracking, Settings, AIAssistant, Landing, Login ship in main bundle
+- Optional routes (Subscription, Checkout, Terms, etc.) remain lazy-loaded
+- ErrorBoundary attempts one-time auto-recovery for chunk errors: clears caches, unregisters SW, reloads with ?v=timestamp
 
 ## How to Re-Enable PWA Safely
 
