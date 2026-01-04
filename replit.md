@@ -79,9 +79,9 @@ All pages use mobile-first responsive breakpoints: `grid-cols-1 sm:grid-cols-2 l
 
 # PWA Configuration (Jan 2026)
 
-## Current Status: KILL-SWITCH DEPLOYED
+## Current Status: KILL-SWITCH v2.1 DEPLOYED
 
-PWA/Service Worker is disabled for new users. A **kill-switch SW** is deployed at `/sw.js` to automatically rescue users stuck on old cached PWA shells.
+PWA/Service Worker and iOS standalone mode are fully disabled. A **kill-switch SW** is deployed at `/sw.js` and `/service-worker.js` to automatically rescue users stuck on old cached PWA shells.
 
 ## Kill-Switch Service Worker Strategy
 
@@ -94,6 +94,14 @@ The kill-switch SW (`client/public/sw.js`) solves the iOS Safari PWA infinite lo
    - Unregisters itself
    - Forces all open tabs to hard-reload via `client.navigate()`
 5. After reload, user gets fresh HTML with no SW controlling the page
+
+## Inline SW Killer v2.1
+
+The HTML also contains an inline script that runs BEFORE anything else:
+- **Versioned cleanup**: Stores kill version in localStorage, forces cleanup on version bump
+- **Max 3 reload attempts**: Prevents infinite reload loops
+- **Safe storage helpers**: Handles private browsing mode gracefully
+- **iOS standalone disabled**: `apple-mobile-web-app-capable` meta tag commented out
 
 ## Files Modified
 

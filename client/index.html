@@ -10,46 +10,77 @@
     <meta http-equiv="Expires" content="0" />
     
     <!-- 
-      ==================== HARD SW KILLER ====================
-      This script runs BEFORE anything else to kill stale Service Workers
-      that may be controlling this page from a previous deployment.
-      Uses sessionStorage flag to run only once per session.
+      ==================== HARD SW KILLER v2 ====================
+      This script runs BEFORE anything else to kill stale Service Workers.
+      v2: More aggressive - always checks on first load after version bump.
       
       TO RE-ENABLE PWA: Set VITE_ENABLE_PWA=true and remove this script.
     -->
     <script>
       (function() {
-        // Run cleanup only ONCE per session to avoid repeated redirects
+        var KILL_VERSION = 'v2.1'; // Bump this to force cleanup on all users
         var CLEANUP_KEY = 'sw_cleanup_done';
-        if (sessionStorage.getItem(CLEANUP_KEY)) {
-          return; // Already cleaned up this session
+        var VERSION_KEY = 'sw_kill_version';
+        
+        // Safe storage helpers (private mode may throw)
+        function getStorage(key, isSession) {
+          try { return (isSession ? sessionStorage : localStorage).getItem(key); } 
+          catch(e) { return null; }
+        }
+        function setStorage(key, val, isSession) {
+          try { (isSession ? sessionStorage : localStorage).setItem(key, val); } 
+          catch(e) {}
+        }
+        function removeStorage(key, isSession) {
+          try { (isSession ? sessionStorage : localStorage).removeItem(key); } 
+          catch(e) {}
         }
         
-        // Check if there are any service workers to kill
-        if (!('serviceWorker' in navigator)) {
-          sessionStorage.setItem(CLEANUP_KEY, '1');
+        // Check if we need to run cleanup
+        var lastVersion = getStorage(VERSION_KEY, false);
+        var sessionDone = getStorage(CLEANUP_KEY, true);
+        
+        // Skip if same version AND already cleaned this session
+        if (lastVersion === KILL_VERSION && sessionDone) {
           return;
         }
         
-        // Run cleanup check (non-blocking for normal users)
+        // Check if service workers are supported
+        if (!('serviceWorker' in navigator)) {
+          setStorage(VERSION_KEY, KILL_VERSION, false);
+          setStorage(CLEANUP_KEY, '1', true);
+          return;
+        }
+        
+        // Run aggressive cleanup
         (async function cleanup() {
           var hadSW = false;
+          var reloadCount = parseInt(getStorage('sw_reload_count', true) || '0');
+          
+          // Safety: max 3 reload attempts to prevent infinite loop
+          if (reloadCount >= 3) {
+            console.log('[SW-Killer] Max reload attempts reached, stopping cleanup loop');
+            setStorage(VERSION_KEY, KILL_VERSION, false);
+            setStorage(CLEANUP_KEY, '1', true);
+            removeStorage('sw_reload_count', true);
+            return;
+          }
           
           try {
-            // Check for service workers
+            // Unregister ALL service workers
             var registrations = await navigator.serviceWorker.getRegistrations();
             if (registrations.length > 0) {
               hadSW = true;
-              console.log('[SW-Killer] Found', registrations.length, 'service worker(s), unregistering...');
+              console.log('[SW-Killer] Unregistering', registrations.length, 'service worker(s)');
               await Promise.all(registrations.map(function(reg) { return reg.unregister(); }));
             }
             
-            // Check for caches
+            // Clear ALL caches
             if ('caches' in window) {
               var cacheNames = await caches.keys();
               if (cacheNames.length > 0) {
                 hadSW = true;
-                console.log('[SW-Killer] Clearing', cacheNames.length, 'cache(s)...');
+                console.log('[SW-Killer] Clearing', cacheNames.length, 'cache(s)');
                 await Promise.all(cacheNames.map(function(name) { return caches.delete(name); }));
               }
             }
@@ -58,13 +89,17 @@
             console.error('[SW-Killer] Cleanup error:', e);
           }
           
-          // Mark cleanup as done
-          sessionStorage.setItem(CLEANUP_KEY, '1');
+          // Update version and session flags
+          setStorage(VERSION_KEY, KILL_VERSION, false);
+          setStorage(CLEANUP_KEY, '1', true);
           
-          // If we found and killed SW/caches, reload to get fresh assets
+          // Reload if we cleaned something
           if (hadSW) {
-            console.log('[SW-Killer] Cleanup complete, reloading...');
+            setStorage('sw_reload_count', String(reloadCount + 1), true);
+            console.log('[SW-Killer] Cleanup complete, reloading (attempt ' + (reloadCount + 1) + ')');
             window.location.reload();
+          } else {
+            removeStorage('sw_reload_count', true);
           }
         })();
       })();
@@ -101,15 +136,16 @@
     <!-- To re-enable: uncomment this and set VITE_ENABLE_PWA=true -->
     <!-- <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" /> -->
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Meta Tags - DISABLED to prevent iOS standalone mode issues -->
     <meta name="theme-color" content="#8b5cf6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <!-- DISABLED: These cause iOS to run in standalone/PWA mode which causes caching issues -->
+    <!-- <meta name="mobile-web-app-capable" content="yes" /> -->
     <meta name="application-name" content="Twealth" />
     
-    <!-- iOS PWA Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- iOS PWA Meta Tags - DISABLED to fix refresh loop -->
+    <!-- <meta name="apple-mobile-web-app-capable" content="yes" /> -->
+    <!-- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /> -->
     <meta name="apple-mobile-web-app-title" content="Twealth" />
     
     <!-- Microsoft/Windows Tiles -->
