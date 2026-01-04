@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Target, Sparkles, TrendingUp, TrendingDown, Brain, ChevronRight, Award, Star, Zap, DollarSign, PiggyBank, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -58,10 +58,31 @@ interface SubscriptionResponse {
 }
 
 function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
-  const [displayValue, setDisplayValue] = useState(0);
+  const [displayValue, setDisplayValue] = useState(value);
+  const hasMounted = useRef(false);
+  const prevValue = useRef(value);
+  const rafId = useRef<number | null>(null);
   
   useEffect(() => {
-    const duration = 1000;
+    // Skip animation on first mount to prevent hydration issues on mobile Safari
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      setDisplayValue(value);
+      prevValue.current = value;
+      return;
+    }
+    
+    // Cancel any ongoing animation
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+    }
+    
+    // Only animate if value actually changed
+    if (prevValue.current === value) {
+      return;
+    }
+    
+    const duration = 800;
     const startTime = Date.now();
     const startValue = displayValue;
     
@@ -74,11 +95,23 @@ function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { val
       setDisplayValue(current);
       
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId.current = requestAnimationFrame(animate);
+      } else {
+        prevValue.current = value;
       }
     };
     
-    requestAnimationFrame(animate);
+    // Small delay before starting animation to ensure hydration is complete
+    const timeoutId = setTimeout(() => {
+      rafId.current = requestAnimationFrame(animate);
+    }, 50);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      if (rafId.current) {
+        cancelAnimationFrame(rafId.current);
+      }
+    };
   }, [value]);
   
   return (
