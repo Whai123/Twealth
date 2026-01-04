@@ -39,9 +39,16 @@
         // Check if we need to run cleanup
         var lastVersion = getStorage(VERSION_KEY, false);
         var sessionDone = getStorage(CLEANUP_KEY, true);
+        var CLEANUP_DONE_EVER = 'sw_cleanup_complete';
+        
+        // Skip if cleanup already completed permanently
+        if (getStorage(CLEANUP_DONE_EVER, false) === '1') {
+          return;
+        }
         
         // Skip if same version AND already cleaned this session
         if (lastVersion === KILL_VERSION && sessionDone) {
+          setStorage(CLEANUP_DONE_EVER, '1', false); // Mark as permanently done
           return;
         }
         
@@ -49,6 +56,21 @@
         if (!('serviceWorker' in navigator)) {
           setStorage(VERSION_KEY, KILL_VERSION, false);
           setStorage(CLEANUP_KEY, '1', true);
+          return;
+        }
+        
+        // If we were just redirected by the kill-switch SW, skip cleanup
+        // The SW already did the cleanup and reload
+        var url = new URL(window.location.href);
+        if (url.searchParams.has('_sw_killed')) {
+          console.log('[SW-Killer] Already handled by kill-switch SW, cleaning URL');
+          setStorage(VERSION_KEY, KILL_VERSION, false);
+          setStorage(CLEANUP_KEY, '1', true);
+          setStorage(CLEANUP_DONE_EVER, '1', false); // Mark as permanently done
+          removeStorage('sw_kill_reload_count', false);
+          // Clean up the URL param
+          url.searchParams.delete('_sw_killed');
+          window.history.replaceState({}, '', url.pathname + url.search);
           return;
         }
         
@@ -100,6 +122,11 @@
             setStorage(RELOAD_COUNT_KEY, String(reloadCount + 1), false);
             console.log('[SW-Killer] Cleaned stale data, reloading (attempt ' + (reloadCount + 1) + ')');
             window.location.reload();
+          } else {
+            // No SWs found - we're clean, mark as permanently done
+            setStorage(CLEANUP_DONE_EVER, '1', false);
+            removeStorage(RELOAD_COUNT_KEY, false);
+            console.log('[SW-Killer] Cleanup complete, no SWs found');
           }
         })();
       })();
