@@ -1,0 +1,51 @@
+คุณเป็น principal engineer แก้ปัญหา production “Loading issue / Refresh แล้วไม่ช่วย” ของ [https://twealth.ltd](https://twealth.ltd) (ตอนนี้ไม่มี loop แล้ว)
+
+อาการ:
+
+* UI ขึ้น “Loading issue: The app didn't load correctly. Please refresh the page manually.”
+* กด Refresh แล้วไม่หาย (iOS Safari)
+* สาเหตุที่คาดแบบมีหลัก: chunk/asset hash mismatch + cache/SW เก่ายังเสิร์ฟไฟล์ชุดเก่า
+
+เป้าหมาย:
+
+* ให้ผู้ใช้เดิมที่ติด cache/SW เข้าเว็บได้ทันที
+* ป้องกันไม่ให้เกิดซ้ำในทุก deploy
+
+งานที่ต้องทำ:
+A) ปรับ Cache-Control ให้ถูกต้อง
+
+1. สำหรับ "/" และ "index.html" ให้ส่ง header: Cache-Control: no-store (หรือ no-cache + must-revalidate)
+2. สำหรับ "/assets/*" ให้ส่ง: Cache-Control: public, max-age=31536000, immutable
+3. ยืนยันว่า /assets ไม่ 404 และเสิร์ฟจาก build output path ที่ถูกต้อง (dist/public หรือ server/public ต้องสอดคล้องกัน)
+
+B) Service Worker kill-switch (ถ้ามี/เคยมี)
+4) ค้นหา path ที่เคย register SW จริงใน repo (navigator.serviceWorker.register / registerSW / vite-plugin-pwa)
+5) สร้างไฟล์ kill-switch “ที่ path เดิม” (และเพื่อกันพลาด เสิร์ฟทั้ง /sw.js และ /service-worker.js ได้ถ้าทำได้)
+
+* install: self.skipWaiting()
+* activate: ลบ caches ทั้งหมด + self.registration.unregister() + สั่ง clients navigate/reload
+
+6. ปิดการ register SW ใน production ชั่วคราว (กันสร้าง SW ใหม่)
+
+C) ปรับ Error UI ให้ช่วยผู้ใช้จริง (ไม่ใช่รีโหลดเฉยๆ)
+7) ใน error-boundary / loading-issue component:
+
+* ถ้าเจอ ChunkLoadError / failed to fetch dynamically imported module:
+
+  * พยายาม “recover 1 ครั้ง” โดย:
+    a) ลบ caches (ถ้าได้)
+    b) unregister SW (ถ้ามี)
+    c) reload พร้อม cache-buster: location.replace(location.pathname + "?v=" + Date.now())
+* ถ้ายัง fail ให้แสดงคำแนะนำ: “ไปลบ Website Data ของ twealth.ltd” + ปุ่มเปิดคู่มือ (ข้อความสั้นๆ)
+
+D) ทดสอบและ deploy
+8) ทดสอบบน iOS Safari (หรือจำลอง) ว่าหลัง deploy:
+
+* ผู้ใช้เดิมไม่ติด loading issue
+* Refresh ช่วยได้จริง (อย่างน้อย 1 ครั้งแบบ clear cache-buster)
+
+9. Republish แล้วตรวจ logs ว่าไม่มี chunk/manifest not found
+
+ส่งผลลัพธ์:
+
+* รายการไฟล์ที่แก้ + เหตุผล + วิธีทดสอบ
