@@ -88,7 +88,7 @@ function setRecoveryInProgress(value: boolean): void {
 }
 
 async function clearCachesAndReload(): Promise<void> {
-  console.log('[ErrorBoundary] Clearing caches and reloading...');
+  console.log('[ErrorBoundary] Clearing caches and forcing fresh reload...');
   
   setRecoveryInProgress(true);
   
@@ -109,8 +109,26 @@ async function clearCachesAndReload(): Promise<void> {
   localStorage.removeItem('app_version');
   incrementRecoveryAttempts();
   
-  setTimeout(() => {
-    window.location.replace(window.location.href.split('?')[0] + '?v=' + Date.now());
+  // Use fetch to get fresh HTML and replace page content completely
+  // This bypasses browser cache more reliably than location.replace
+  setTimeout(async () => {
+    try {
+      const response = await fetch('/?nocache=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (response.ok) {
+        const html = await response.text();
+        document.open();
+        document.write(html);
+        document.close();
+        return;
+      }
+    } catch (e) {
+      console.log('[ErrorBoundary] Fetch failed, falling back to reload');
+    }
+    // Fallback to regular reload
+    window.location.href = '/?v=' + Date.now();
   }, 100);
 }
 
