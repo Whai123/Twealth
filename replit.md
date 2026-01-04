@@ -77,44 +77,40 @@ All pages use mobile-first responsive breakpoints: `grid-cols-1 sm:grid-cols-2 l
 -   **Exchange Rate API**: Live forex and currency conversion.
 -   **Public Economic APIs**: Inflation and economic indicator data.
 
-# PWA Configuration (Jan 2026)
+# Mobile Safari Refresh Loop Fix (Jan 2026)
 
-## Current Status: KILL-SWITCH v2.1 DEPLOYED
+## Current Status: ALL AUTO-RELOAD SCRIPTS REMOVED
 
-PWA/Service Worker and iOS standalone mode are fully disabled. A **kill-switch SW** is deployed at `/sw.js` and `/service-worker.js` to automatically rescue users stuck on old cached PWA shells.
+The infinite refresh loop on mobile Safari has been fixed by:
 
-## Kill-Switch Service Worker Strategy
+1. **Removed ALL automatic reload scripts from index.html:**
+   - SW Killer v2.1 script (was causing reloads when detecting service worker artifacts)
+   - Version Check & Auto-Reload System (was reloading on version mismatches/chunk errors)
 
-The kill-switch SW (`client/public/sw.js`) solves the iOS Safari PWA infinite loop by:
-1. **Browser's SW update mechanism** periodically checks `/sw.js` for updates (max 24 hours)
-2. When old PWA users open the app, their browser fetches the new kill-switch SW
-3. Kill-switch SW activates with `skipWaiting()` and takes control immediately
-4. On activation, it:
-   - Deletes ALL caches
-   - Unregisters itself
-   - Forces all open tabs to hard-reload via `client.navigate()`
-5. After reload, user gets fresh HTML with no SW controlling the page
+2. **Added auth guards to Dashboard queries:**
+   - All 5 useQuery calls now have `enabled: isAuthenticated`
+   - Queries only fire after authentication is confirmed
+   - Prevents 401 errors from throwing to ErrorBoundary
 
-## Inline SW Killer v2.1
+3. **Improved ErrorBoundary error handling:**
+   - Auth errors (401) redirect to `/login` instead of triggering page reload
+   - Chunk loading errors have max 3 retry limit
+   - Other errors show simple message without auto-reload
 
-The HTML also contains an inline script that runs BEFORE anything else:
-- **Versioned cleanup**: Stores kill version in localStorage, forces cleanup on version bump
-- **Max 3 reload attempts**: Prevents infinite reload loops
-- **Safe storage helpers**: Handles private browsing mode gracefully
-- **iOS standalone disabled**: `apple-mobile-web-app-capable` meta tag commented out
+## Root Causes Identified
+
+The refresh loop was caused by:
+1. Dashboard queries firing before auth cookies were ready on mobile Safari
+2. 401 errors bubbling to ErrorBoundary → triggering silentRecover() → reload
+3. SW killer script detecting artifacts and forcing reloads
+4. Version check script reloading on chunk errors
 
 ## Files Modified
 
-1. **client/public/sw.js**: Kill-switch SW that self-destructs on activation
-2. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true` (default: disabled)
-3. **client/index.html**: 
-   - Manifest link commented out
-   - Inline SW killer script as backup for immediate cleanup
-4. **server/index.ts**: 
-   - `/sw.js` AND `/service-worker.js` routes serve kill-switch with no-cache headers (covers all legacy paths)
-   - Production static file serving from `dist/public` (matches vite.config.ts build.outDir)
-   - `/_recover` endpoint for emergency recovery
-   - 404 hotfix for missing JS bundles
+1. **client/index.html**: All inline reload scripts removed
+2. **client/src/pages/dashboard.tsx**: Added `enabled: isAuthenticated` to all queries
+3. **client/src/components/error-boundary.tsx**: Auth errors redirect to login
+4. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true`
 
 ## How to Re-Enable PWA Safely
 

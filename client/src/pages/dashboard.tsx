@@ -16,6 +16,7 @@ import { UserPreferences, FinancialGoal } from "@shared/schema";
 import { SmartNudgeBanner } from "@/components/smart-nudges";
 import { StreakWidget, AchievementBadges } from "@/components/streak-system";
 import { useUserCurrency, useUserPreferences } from "@/lib/userContext";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DashboardStats {
   totalTransactions: number;
@@ -140,25 +141,31 @@ export default function Dashboard() {
   const { showOnboarding, completeOnboarding } = useOnboarding();
   const { formatAmount, currencySymbol } = useUserCurrency();
   const { getUserName } = useUserPreferences();
+  const { user, isAuthenticated } = useAuth();
   
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
+    enabled: isAuthenticated,
   });
   
   const { data: financialHealth, isLoading: healthLoading } = useQuery<FinancialHealthResponse>({
     queryKey: ["/api/financial-health"],
+    enabled: isAuthenticated,
   });
   
   const { data: goals, isLoading: goalsLoading } = useQuery<FinancialGoal[]>({
     queryKey: ["/api/financial-goals"],
+    enabled: isAuthenticated,
   });
 
   const { data: preferences } = useQuery<UserPreferences>({
     queryKey: ['/api/user-preferences'],
+    enabled: isAuthenticated,
   });
 
   const { data: subscription } = useQuery<SubscriptionResponse>({
     queryKey: ["/api/subscription"],
+    enabled: isAuthenticated,
   });
   
   const healthScore = financialHealth?.overall ?? 0;

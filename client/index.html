@@ -10,127 +10,17 @@
     <meta http-equiv="Expires" content="0" />
     
     <!-- 
-      ==================== HARD SW KILLER v2 ====================
-      This script runs BEFORE anything else to kill stale Service Workers.
-      v2: More aggressive - always checks on first load after version bump.
+      ==================== SW/RELOAD SCRIPTS REMOVED ====================
+      All automatic reload scripts have been removed to prevent infinite 
+      refresh loops on mobile Safari. Service workers are disabled via
+      main.tsx (VITE_ENABLE_PWA != true).
       
-      TO RE-ENABLE PWA: Set VITE_ENABLE_PWA=true and remove this script.
+      Previous scripts removed:
+      - HARD SW KILLER v2 (caused reload loops on Safari)
+      - Version Check & Auto-Reload System (caused reload on chunk errors)
+      
+      TO RE-ENABLE PWA: Set VITE_ENABLE_PWA=true and add proper SW management.
     -->
-    <script>
-      (function() {
-        var KILL_VERSION = 'v2.1'; // Bump this to force cleanup on all users
-        var CLEANUP_KEY = 'sw_cleanup_done';
-        var VERSION_KEY = 'sw_kill_version';
-        
-        // Safe storage helpers (private mode may throw)
-        function getStorage(key, isSession) {
-          try { return (isSession ? sessionStorage : localStorage).getItem(key); } 
-          catch(e) { return null; }
-        }
-        function setStorage(key, val, isSession) {
-          try { (isSession ? sessionStorage : localStorage).setItem(key, val); } 
-          catch(e) {}
-        }
-        function removeStorage(key, isSession) {
-          try { (isSession ? sessionStorage : localStorage).removeItem(key); } 
-          catch(e) {}
-        }
-        
-        // Check if we need to run cleanup
-        var lastVersion = getStorage(VERSION_KEY, false);
-        var sessionDone = getStorage(CLEANUP_KEY, true);
-        var CLEANUP_DONE_EVER = 'sw_cleanup_complete';
-        
-        // Skip if cleanup already completed permanently
-        if (getStorage(CLEANUP_DONE_EVER, false) === '1') {
-          return;
-        }
-        
-        // Skip if same version AND already cleaned this session
-        if (lastVersion === KILL_VERSION && sessionDone) {
-          setStorage(CLEANUP_DONE_EVER, '1', false); // Mark as permanently done
-          return;
-        }
-        
-        // Check if service workers are supported
-        if (!('serviceWorker' in navigator)) {
-          setStorage(VERSION_KEY, KILL_VERSION, false);
-          setStorage(CLEANUP_KEY, '1', true);
-          return;
-        }
-        
-        // If we were just redirected by the kill-switch SW, skip cleanup
-        // The SW already did the cleanup and reload
-        var url = new URL(window.location.href);
-        if (url.searchParams.has('_sw_killed')) {
-          console.log('[SW-Killer] Already handled by kill-switch SW, cleaning URL');
-          setStorage(VERSION_KEY, KILL_VERSION, false);
-          setStorage(CLEANUP_KEY, '1', true);
-          setStorage(CLEANUP_DONE_EVER, '1', false); // Mark as permanently done
-          removeStorage('sw_kill_reload_count', false);
-          // Clean up the URL param
-          url.searchParams.delete('_sw_killed');
-          window.history.replaceState({}, '', url.pathname + url.search);
-          return;
-        }
-        
-        // Run cleanup for any stale service workers or caches
-        (async function cleanup() {
-          var hadSW = false;
-          // Use localStorage for reload count (persists across navigation)
-          var RELOAD_COUNT_KEY = 'sw_kill_reload_count';
-          var reloadCount = parseInt(getStorage(RELOAD_COUNT_KEY, false) || '0');
-          
-          // Safety: max 3 reload attempts to prevent infinite loop
-          if (reloadCount >= 3) {
-            console.log('[SW-Killer] Max reload attempts reached, stopping');
-            setStorage(VERSION_KEY, KILL_VERSION, false);
-            setStorage(CLEANUP_KEY, '1', true);
-            return;
-          }
-          
-          try {
-            // Unregister ALL service workers
-            var registrations = await navigator.serviceWorker.getRegistrations();
-            if (registrations.length > 0) {
-              hadSW = true;
-              console.log('[SW-Killer] Found', registrations.length, 'SW(s), unregistering...');
-              await Promise.all(registrations.map(function(reg) { return reg.unregister(); }));
-            }
-            
-            // Clear ALL caches
-            if ('caches' in window) {
-              var cacheNames = await caches.keys();
-              if (cacheNames.length > 0) {
-                hadSW = true;
-                console.log('[SW-Killer] Clearing', cacheNames.length, 'cache(s)');
-                await Promise.all(cacheNames.map(function(name) { return caches.delete(name); }));
-              }
-            }
-            
-          } catch (e) {
-            console.error('[SW-Killer] Error:', e);
-          }
-          
-          // Update version and session flags
-          setStorage(VERSION_KEY, KILL_VERSION, false);
-          setStorage(CLEANUP_KEY, '1', true);
-          
-          // If we cleaned any SWs/caches, reload to get fresh content
-          // The reload count (in localStorage) prevents infinite loops
-          if (hadSW) {
-            setStorage(RELOAD_COUNT_KEY, String(reloadCount + 1), false);
-            console.log('[SW-Killer] Cleaned stale data, reloading (attempt ' + (reloadCount + 1) + ')');
-            window.location.reload();
-          } else {
-            // No SWs found - we're clean, mark as permanently done
-            setStorage(CLEANUP_DONE_EVER, '1', false);
-            removeStorage(RELOAD_COUNT_KEY, false);
-            console.log('[SW-Killer] Cleanup complete, no SWs found');
-          }
-        })();
-      })();
-    </script>
     
     <!-- Primary Meta Tags -->
     <title>Twealth - Transform Time Into Wealth | AI Financial Assistant</title>
@@ -159,20 +49,15 @@
     <meta name="twitter:description" content="Smart financial management with AI-powered insights. Track money, set goals, and get CFO-level advice in 11 languages." />
     <meta name="twitter:image" content="https://twealth.ltd/og-image.png" />
     
-    <!-- PWA Configuration - TEMPORARILY DISABLED for pre-launch stability -->
-    <!-- To re-enable: uncomment this and set VITE_ENABLE_PWA=true -->
+    <!-- PWA Configuration - DISABLED for stability -->
     <!-- <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" /> -->
     
     <!-- PWA Meta Tags - DISABLED to prevent iOS standalone mode issues -->
     <meta name="theme-color" content="#8b5cf6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)" />
-    <!-- DISABLED: These cause iOS to run in standalone/PWA mode which causes caching issues -->
-    <!-- <meta name="mobile-web-app-capable" content="yes" /> -->
     <meta name="application-name" content="Twealth" />
     
-    <!-- iOS PWA Meta Tags - DISABLED to fix refresh loop -->
-    <!-- <meta name="apple-mobile-web-app-capable" content="yes" /> -->
-    <!-- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /> -->
+    <!-- iOS PWA Meta Tags - DISABLED -->
     <meta name="apple-mobile-web-app-title" content="Twealth" />
     
     <!-- Microsoft/Windows Tiles -->
@@ -244,140 +129,6 @@
   </head>
   <body>
     <div id="root"></div>
-    
-    <!-- Version Check & Auto-Reload System - Runs BEFORE React -->
-    <script>
-      (function() {
-        var VERSION_KEY = 'twealth_app_version';
-        var RELOAD_KEY = 'twealth_reload_attempt';
-        var CHECK_KEY = 'twealth_last_check';
-        
-        // Clear caches and reload helper
-        function clearAndReload() {
-          var promises = [];
-          
-          // Clear all caches
-          if ('caches' in window) {
-            promises.push(
-              caches.keys().then(function(names) {
-                return Promise.all(names.map(function(name) { 
-                  console.log('[Version] Deleting cache:', name);
-                  return caches.delete(name); 
-                }));
-              })
-            );
-          }
-          
-          // Unregister all service workers
-          if ('serviceWorker' in navigator) {
-            promises.push(
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                return Promise.all(registrations.map(function(reg) {
-                  console.log('[Version] Unregistering SW');
-                  return reg.unregister();
-                }));
-              })
-            );
-          }
-          
-          // Wait for cleanup then reload
-          Promise.all(promises).then(function() {
-            console.log('[Version] Cache cleared, reloading...');
-            window.location.reload(true);
-          }).catch(function() {
-            window.location.reload(true);
-          });
-        }
-        
-        // Prevent infinite reload loops but still check for updates
-        var reloadAttempt = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0');
-        var maxReloadsReached = reloadAttempt > 2;
-        
-        if (maxReloadsReached) {
-          console.log('[Version] Max reload attempts reached, will retry in background');
-          sessionStorage.removeItem(RELOAD_KEY);
-        }
-        
-        // Always check version (but only auto-reload if under limit)
-        {
-          // Fetch server version and compare
-          var storedVersion = localStorage.getItem(VERSION_KEY);
-          var lastCheck = parseInt(localStorage.getItem(CHECK_KEY) || '0');
-          var now = Date.now();
-          
-          // Only check if last check was more than 10 seconds ago (prevent rapid checks)
-          if (now - lastCheck > 10000) {
-            localStorage.setItem(CHECK_KEY, now.toString());
-            
-            fetch('/api/version', { cache: 'no-store' })
-              .then(function(res) { return res.json(); })
-              .then(function(data) {
-                var serverVersion = data.version;
-                console.log('[Version] Server:', serverVersion, 'Stored:', storedVersion);
-                
-                // Skip version check in development mode
-                if (serverVersion === 'development') {
-                  console.log('[Version] Development mode, skipping version check');
-                  return;
-                }
-                
-                if (storedVersion && storedVersion !== serverVersion) {
-                  console.log('[Version] Update detected:', storedVersion, '->', serverVersion);
-                  localStorage.setItem(VERSION_KEY, serverVersion);
-                  
-                  // Only auto-reload if under limit - stop completely after max
-                  if (!maxReloadsReached) {
-                    sessionStorage.setItem(RELOAD_KEY, String(reloadAttempt + 1));
-                    clearAndReload();
-                  } else {
-                    // Max attempts reached - stop trying, user can manually refresh
-                    console.log('[Version] Max reload attempts, stopping auto-refresh');
-                  }
-                } else {
-                  localStorage.setItem(VERSION_KEY, serverVersion);
-                  sessionStorage.removeItem(RELOAD_KEY);
-                }
-              })
-              .catch(function(err) {
-                console.log('[Version] Check failed, continuing:', err.message);
-              });
-          }
-        }
-        
-        // Global error handler for chunk loading failures (React #300)
-        window.addEventListener('error', function(e) {
-          var msg = e.message || '';
-          if (msg.includes('Loading chunk') || msg.includes('Failed to fetch dynamically imported module') || msg.includes('Minified React error #300')) {
-            console.error('[Version] Critical error detected:', msg);
-            var attempt = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0');
-            if (attempt < 3) {
-              sessionStorage.setItem(RELOAD_KEY, String(attempt + 1));
-              localStorage.removeItem(VERSION_KEY); // Force re-check on reload
-              clearAndReload();
-            } else {
-              console.log('[Version] Max error recovery attempts, stopping');
-            }
-          }
-        });
-        
-        // Also catch unhandled rejections (for dynamic import failures)
-        window.addEventListener('unhandledrejection', function(e) {
-          var msg = e.reason ? (e.reason.message || String(e.reason)) : '';
-          if (msg.includes('Failed to fetch dynamically imported module') || msg.includes('Loading chunk')) {
-            console.error('[Version] Dynamic import failed:', msg);
-            var attempt = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0');
-            if (attempt < 3) {
-              sessionStorage.setItem(RELOAD_KEY, String(attempt + 1));
-              localStorage.removeItem(VERSION_KEY);
-              clearAndReload();
-            } else {
-              console.log('[Version] Max import error recovery, stopping');
-            }
-          }
-        });
-      })();
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
