@@ -6,25 +6,42 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  gaveUp: boolean;
 }
 
-const MAX_RETRIES = 5;
+const MAX_RETRIES = 3;
 const RETRY_KEY = 'eb_retries';
 const LAST_RETRY_KEY = 'eb_last_retry';
+const GAVE_UP_KEY = 'eb_gave_up';
 
 function getRetryCount(): number {
   try {
     const lastRetry = parseInt(sessionStorage.getItem(LAST_RETRY_KEY) || '0', 10);
     const now = Date.now();
-    // Reset retry count if last retry was more than 30 seconds ago
-    if (now - lastRetry > 30000) {
+    // Reset retry count if last retry was more than 60 seconds ago
+    if (now - lastRetry > 60000) {
       sessionStorage.removeItem(RETRY_KEY);
+      sessionStorage.removeItem(GAVE_UP_KEY);
       return 0;
     }
     return parseInt(sessionStorage.getItem(RETRY_KEY) || '0', 10);
   } catch {
     return 0;
   }
+}
+
+function hasGivenUp(): boolean {
+  try {
+    return sessionStorage.getItem(GAVE_UP_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function markGaveUp(): void {
+  try {
+    sessionStorage.setItem(GAVE_UP_KEY, '1');
+  } catch {}
 }
 
 function incrementRetryCount(): number {
@@ -42,6 +59,7 @@ export function clearRecoveryAttempts(): void {
   try {
     sessionStorage.removeItem(RETRY_KEY);
     sessionStorage.removeItem(LAST_RETRY_KEY);
+    sessionStorage.removeItem(GAVE_UP_KEY);
   } catch {}
 }
 
@@ -62,38 +80,50 @@ async function silentRecover(): Promise<void> {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false };
+  public state: State = { hasError: false, gaveUp: false };
 
   public componentDidMount() {
+    // Only clear if we successfully mounted (app is working)
     clearRecoveryAttempts();
+    console.log('[App] Successfully loaded, recovery attempts cleared');
   }
 
   public static getDerivedStateFromError(): Partial<State> {
-    return { hasError: true };
+    // Check if we've already given up before deciding to recover
+    if (hasGivenUp()) {
+      return { hasError: true, gaveUp: true };
+    }
+    return { hasError: true, gaveUp: false };
   }
 
   public componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
     console.error('[App] Error:', error.message);
     
+    // If we already gave up, don't try again
+    if (hasGivenUp()) {
+      this.setState({ gaveUp: true });
+      return;
+    }
+    
     const retries = incrementRetryCount();
     
     if (retries <= MAX_RETRIES) {
-      // Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms
-      const delay = Math.min(100 * Math.pow(2, retries - 1), 2000);
+      // Exponential backoff: 500ms, 1000ms, 2000ms
+      const delay = Math.min(500 * Math.pow(2, retries - 1), 3000);
+      console.log(`[App] Recovery attempt ${retries}/${MAX_RETRIES} in ${delay}ms`);
       setTimeout(() => silentRecover(), delay);
     } else {
-      // After max retries, still auto-recover but with longer delay
-      // This gives the server time to stabilize
-      setTimeout(() => {
-        clearRecoveryAttempts();
-        silentRecover();
-      }, 5000);
+      // Stop trying - mark as given up and just show loading forever
+      // User can manually refresh if they want
+      console.log('[App] Max recovery attempts reached, stopping');
+      markGaveUp();
+      this.setState({ gaveUp: true });
     }
   }
 
   public render() {
     if (this.state.hasError) {
-      // Always show loading - never show error UI or reload buttons
+      // Always show loading spinner - never show error UI or reload buttons
       return (
         <div className="fixed inset-0 flex items-center justify-center bg-background">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />

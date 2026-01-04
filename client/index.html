@@ -325,14 +325,13 @@
                   console.log('[Version] Update detected:', storedVersion, '->', serverVersion);
                   localStorage.setItem(VERSION_KEY, serverVersion);
                   
-                  // Always auto-reload silently - never prompt user
+                  // Only auto-reload if under limit - stop completely after max
                   if (!maxReloadsReached) {
                     sessionStorage.setItem(RELOAD_KEY, String(reloadAttempt + 1));
                     clearAndReload();
                   } else {
-                    // After max attempts, wait 5 seconds then try once more
-                    sessionStorage.removeItem(RELOAD_KEY);
-                    setTimeout(clearAndReload, 5000);
+                    // Max attempts reached - stop trying, user can manually refresh
+                    console.log('[Version] Max reload attempts, stopping auto-refresh');
                   }
                 } else {
                   localStorage.setItem(VERSION_KEY, serverVersion);
@@ -355,6 +354,8 @@
               sessionStorage.setItem(RELOAD_KEY, String(attempt + 1));
               localStorage.removeItem(VERSION_KEY); // Force re-check on reload
               clearAndReload();
+            } else {
+              console.log('[Version] Max error recovery attempts, stopping');
             }
           }
         });
@@ -369,6 +370,8 @@
               sessionStorage.setItem(RELOAD_KEY, String(attempt + 1));
               localStorage.removeItem(VERSION_KEY);
               clearAndReload();
+            } else {
+              console.log('[Version] Max import error recovery, stopping');
             }
           }
         });
