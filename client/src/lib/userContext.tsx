@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserPreferences } from "@shared/schema";
 import { formatCurrency, convertCurrency, getCurrencySymbol, CURRENCIES } from "./currency";
+import { getQueryFn } from "./queryClient";
 
 interface User {
   id: string;
@@ -32,12 +33,16 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
     queryKey: ["/api/users/me"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
   const { data: preferences, isLoading: preferencesLoading } = useQuery<UserPreferences>({
     queryKey: ["/api/user-preferences"],
+    queryFn: getQueryFn({ on401: "returnNull" }),
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
   const currency = preferences?.currency || "USD";

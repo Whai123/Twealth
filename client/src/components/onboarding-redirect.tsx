@@ -3,6 +3,7 @@ import { useLocation } from"wouter";
 import { useEffect } from"react";
 import { UserPreferences } from"@shared/schema";
 import { SkeletonPage } from"@/components/ui/skeleton";
+import { getQueryFn } from"@/lib/queryClient";
 
 interface OnboardingRedirectProps {
  children: React.ReactNode;
@@ -13,6 +14,8 @@ export function OnboardingRedirect({ children }: OnboardingRedirectProps) {
  
  const { data: userPreferences, isLoading } = useQuery<UserPreferences>({
   queryKey: ["/api/user-preferences"],
+  queryFn: getQueryFn({ on401: "returnNull" }),
+  retry: false,
  });
  
  useEffect(() => {
