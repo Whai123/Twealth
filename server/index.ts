@@ -357,8 +357,8 @@ app.use((req, res, next) => {
       etag: false,
     }));
     
-    // FALLBACK: Serve hotfix script for old JS requests to auto-upgrade stale PWA shells
-    // Instead of serving old buggy JS, we serve a hotfix that clears cache and reloads
+    // FALLBACK: Serve old assets from backup directory
+    // This allows old cached HTML to continue working with old JS bundles
     app.use("/assets", (req, res, next) => {
       const filename = path.basename(req.path);
       const ext = path.extname(filename).toLowerCase();
@@ -366,41 +366,10 @@ app.use((req, res, next) => {
       
       // Check if this is a request for an old asset that exists in backup
       if (fs.existsSync(backupPath)) {
-        // For JS files: redirect to recovery endpoint to break frozen PWA shell
-        if (ext === '.js') {
-          log(`[HOTFIX] Serving recovery redirect for stale bundle: ${filename}`);
-          
-          res.setHeader('Content-Type', 'application/javascript');
-          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-          
-          // Hotfix script: clears SW caches and redirects to recovery endpoint
-          // IMPORTANT: Does NOT clear localStorage to preserve user authentication
-          const hotfixScript = `
-(async function hotfix() {
-  console.log('[Hotfix] Stale bundle detected, initiating recovery...');
-  try {
-    if ('caches' in window) {
-      var names = await caches.keys();
-      await Promise.all(names.map(function(n) { return caches.delete(n); }));
-    }
-    if ('serviceWorker' in navigator) {
-      var regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(function(r) { return r.unregister(); }));
-    }
-    // Only clear version-related storage, preserve user data
-    localStorage.removeItem('twealth_app_version');
-    sessionStorage.removeItem('sw_cleanup_done');
-  } catch (e) { console.error('[Hotfix] Cleanup error:', e); }
-  window.location.href = '/_recover?t=' + Date.now();
-})();
-`;
-          return res.send(hotfixScript);
-        }
-        
-        // For non-JS files (CSS, images, fonts): serve from backup normally
         log(`[BACKUP] Serving old asset from backup: ${filename}`);
         
         const contentTypes: Record<string, string> = {
+          '.js': 'application/javascript',
           '.css': 'text/css',
           '.png': 'image/png',
           '.jpg': 'image/jpeg',
@@ -413,7 +382,8 @@ app.use((req, res, next) => {
         if (contentTypes[ext]) {
           res.setHeader('Content-Type', contentTypes[ext]);
         }
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        // Short cache for backup assets - they'll be replaced when user gets new HTML
+        res.setHeader('Cache-Control', 'public, max-age=60');
         
         return res.sendFile(backupPath);
       }
@@ -421,61 +391,11 @@ app.use((req, res, next) => {
       next();
     });
     
-    // 404 guard for missing assets - serve hotfix for stale JS, 404 for others
+    // 404 guard for missing assets - return proper 404 response
+    // Let the ErrorBoundary handle errors gracefully without auto-redirect loops
     app.use("/assets", (req, res) => {
       const filename = path.basename(req.path);
-      const ext = path.extname(filename).toLowerCase();
-      
-      // For missing JS files: serve hotfix script that auto-upgrades the app
-      // This catches stale PWA shells requesting old bundle hashes
-      if (ext === '.js') {
-        log(`[HOTFIX] Missing JS asset, serving auto-upgrade script: ${filename}`);
-        
-        res.setHeader('Content-Type', 'application/javascript');
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        
-        // Hotfix script that redirects to recovery endpoint
-        // Uses hard navigation to dedicated recovery route to break iOS PWA frozen shell
-        // IMPORTANT: Does NOT clear localStorage to preserve user authentication
-        const hotfixScript = `
-(async function hotfix() {
-  console.log('[Hotfix] Missing bundle detected, initiating recovery...');
-  
-  try {
-    // Clear SW caches (but NOT localStorage - preserve user auth)
-    if ('caches' in window) {
-      var names = await caches.keys();
-      await Promise.all(names.map(function(n) { return caches.delete(n); }));
-      console.log('[Hotfix] Cleared', names.length, 'caches');
-    }
-    
-    // Unregister all service workers
-    if ('serviceWorker' in navigator) {
-      var regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(function(r) { return r.unregister(); }));
-      console.log('[Hotfix] Unregistered', regs.length, 'service workers');
-    }
-    
-    // Only clear version-related storage, preserve user data
-    try {
-      localStorage.removeItem('twealth_app_version');
-      localStorage.removeItem('app_version');
-      sessionStorage.removeItem('twealth_reload_attempt');
-      sessionStorage.removeItem('sw_cleanup_done');
-    } catch(e) {}
-    
-  } catch (e) {
-    console.error('[Hotfix] Cache clear error (continuing):', e);
-  }
-  
-  // Hard navigation to recovery endpoint
-  window.location.href = '/_recover?t=' + Date.now();
-})();
-`;
-        return res.send(hotfixScript);
-      }
-      
-      // For non-JS assets: return 404
+      log(`[404] Missing asset: ${filename}`);
       res.status(404).send("Asset not found");
     });
     
