@@ -294,7 +294,7 @@
         var maxReloadsReached = reloadAttempt > 2;
         
         if (maxReloadsReached) {
-          console.warn('[Version] Max reload attempts reached, will prompt for manual reload');
+          console.log('[Version] Max reload attempts reached, will retry in background');
           sessionStorage.removeItem(RELOAD_KEY);
         }
         
@@ -325,15 +325,14 @@
                   console.log('[Version] Update detected:', storedVersion, '->', serverVersion);
                   localStorage.setItem(VERSION_KEY, serverVersion);
                   
-                  if (maxReloadsReached) {
-                    // Prompt user instead of auto-reload
-                    console.warn('[Version] Prompting user for manual reload');
-                    if (confirm('A new version is available. Reload now for the best experience?')) {
-                      clearAndReload();
-                    }
-                  } else {
+                  // Always auto-reload silently - never prompt user
+                  if (!maxReloadsReached) {
                     sessionStorage.setItem(RELOAD_KEY, String(reloadAttempt + 1));
                     clearAndReload();
+                  } else {
+                    // After max attempts, wait 5 seconds then try once more
+                    sessionStorage.removeItem(RELOAD_KEY);
+                    setTimeout(clearAndReload, 5000);
                   }
                 } else {
                   localStorage.setItem(VERSION_KEY, serverVersion);
