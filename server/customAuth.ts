@@ -319,21 +319,31 @@ export function setupAuth(app: Express) {
             return res.redirect("/login");
           }
           
-          req.login(user, (loginErr) => {
-            if (loginErr) {
-              authLogger.error('Login error', loginErr);
+          // Regenerate session to prevent session fixation when switching accounts
+          req.session.regenerate((regenErr) => {
+            if (regenErr) {
+              authLogger.error('Session regeneration error', regenErr);
               return res.redirect("/login");
             }
             
-            if (isDevelopment) authLogger.debug('User logged in successfully');
+            if (isDevelopment) authLogger.debug('Session regenerated for new login');
             
-            req.session.save((saveErr) => {
-              if (saveErr) {
-                authLogger.error('Session save error', saveErr);
+            req.login(user, (loginErr) => {
+              if (loginErr) {
+                authLogger.error('Login error', loginErr);
                 return res.redirect("/login");
               }
-              if (isDevelopment) authLogger.debug('Session saved, redirecting');
-              res.redirect("/");
+              
+              if (isDevelopment) authLogger.debug('User logged in successfully');
+              
+              req.session.save((saveErr) => {
+                if (saveErr) {
+                  authLogger.error('Session save error', saveErr);
+                  return res.redirect("/login");
+                }
+                if (isDevelopment) authLogger.debug('Session saved, redirecting');
+                res.redirect("/");
+              });
             });
           });
         })(req, res, next);
@@ -350,16 +360,36 @@ export function setupAuth(app: Express) {
 
     app.get(
       "/api/auth/facebook/callback",
-      passport.authenticate("facebook", { failureRedirect: "/login" }),
-      (req, res) => {
-        // Explicitly save session before redirecting
-        req.session.save((err) => {
-          if (err) {
-            authLogger.error('Facebook session save error', err);
+      (req, res, next) => {
+        passport.authenticate("facebook", (err: any, user: any, info: any) => {
+          if (err || !user) {
+            authLogger.error('Facebook auth error', err);
             return res.redirect("/login");
           }
-          res.redirect("/");
-        });
+          
+          // Regenerate session to prevent session fixation
+          req.session.regenerate((regenErr) => {
+            if (regenErr) {
+              authLogger.error('Facebook session regeneration error', regenErr);
+              return res.redirect("/login");
+            }
+            
+            req.login(user, (loginErr) => {
+              if (loginErr) {
+                authLogger.error('Facebook login error', loginErr);
+                return res.redirect("/login");
+              }
+              
+              req.session.save((saveErr) => {
+                if (saveErr) {
+                  authLogger.error('Facebook session save error', saveErr);
+                  return res.redirect("/login");
+                }
+                res.redirect("/");
+              });
+            });
+          });
+        })(req, res, next);
       }
     );
   }
@@ -373,16 +403,36 @@ export function setupAuth(app: Express) {
 
     app.post(
       "/api/auth/apple/callback",
-      passport.authenticate("apple", { failureRedirect: "/login" }),
-      (req, res) => {
-        // Explicitly save session before redirecting
-        req.session.save((err) => {
-          if (err) {
-            authLogger.error('Apple session save error', err);
+      (req, res, next) => {
+        passport.authenticate("apple", (err: any, user: any, info: any) => {
+          if (err || !user) {
+            authLogger.error('Apple auth error', err);
             return res.redirect("/login");
           }
-          res.redirect("/");
-        });
+          
+          // Regenerate session to prevent session fixation
+          req.session.regenerate((regenErr) => {
+            if (regenErr) {
+              authLogger.error('Apple session regeneration error', regenErr);
+              return res.redirect("/login");
+            }
+            
+            req.login(user, (loginErr) => {
+              if (loginErr) {
+                authLogger.error('Apple login error', loginErr);
+                return res.redirect("/login");
+              }
+              
+              req.session.save((saveErr) => {
+                if (saveErr) {
+                  authLogger.error('Apple session save error', saveErr);
+                  return res.redirect("/login");
+                }
+                res.redirect("/");
+              });
+            });
+          });
+        })(req, res, next);
       }
     );
   }
@@ -394,16 +444,26 @@ export function setupAuth(app: Express) {
     res.json(user);
   });
 
-  // Logout endpoint
+  // Logout endpoint - properly destroy session and clear cookie
   app.post("/api/auth/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
+        authLogger.error('Logout error', err);
         return res.status(500).json({ error: "Logout failed" });
       }
-      req.session.destroy((err) => {
-        if (err) {
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          authLogger.error('Session destroy error', destroyErr);
           return res.status(500).json({ error: "Session destruction failed" });
         }
+        // Clear the session cookie
+        res.clearCookie('connect.sid', {
+          path: '/',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1',
+          sameSite: (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1') ? 'none' : 'lax',
+        });
+        if (isDevelopment) authLogger.debug('Session destroyed and cookie cleared');
         res.json({ success: true });
       });
     });
