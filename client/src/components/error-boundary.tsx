@@ -6,7 +6,7 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  gaveUp: boolean;
+  errorType: 'auth' | 'chunk' | 'other' | null;
 }
 
 const MAX_RETRIES = 3;
@@ -18,7 +18,6 @@ function getRetryCount(): number {
   try {
     const lastRetry = parseInt(sessionStorage.getItem(LAST_RETRY_KEY) || '0', 10);
     const now = Date.now();
-    // Reset retry count if last retry was more than 60 seconds ago
     if (now - lastRetry > 60000) {
       sessionStorage.removeItem(RETRY_KEY);
       sessionStorage.removeItem(GAVE_UP_KEY);
@@ -63,7 +62,23 @@ export function clearRecoveryAttempts(): void {
   } catch {}
 }
 
-async function silentRecover(): Promise<void> {
+function isAuthError(error: Error): boolean {
+  const msg = error.message.toLowerCase();
+  return msg.includes('401') || 
+         msg.includes('sign in') || 
+         msg.includes('unauthorized') ||
+         msg.includes('please sign in') ||
+         msg.includes('authentication');
+}
+
+function isChunkError(error: Error): boolean {
+  const msg = error.message.toLowerCase();
+  return msg.includes('loading chunk') || 
+         msg.includes('failed to fetch dynamically imported module') ||
+         msg.includes('minified react error');
+}
+
+async function clearCachesOnly(): Promise<void> {
   try {
     if ('caches' in window) {
       const names = await caches.keys();
@@ -74,59 +89,103 @@ async function silentRecover(): Promise<void> {
       await Promise.all(regs.map(r => r.unregister()));
     }
   } catch {}
-  
-  // Navigate to fresh URL
+}
+
+async function silentRecover(): Promise<void> {
+  await clearCachesOnly();
   window.location.href = '/?r=' + Date.now();
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false, gaveUp: false };
+  public state: State = { hasError: false, errorType: null };
 
   public componentDidMount() {
-    // Only clear if we successfully mounted (app is working)
     clearRecoveryAttempts();
     console.log('[App] Successfully loaded, recovery attempts cleared');
   }
 
-  public static getDerivedStateFromError(): Partial<State> {
-    // Check if we've already given up before deciding to recover
+  public static getDerivedStateFromError(error: Error): Partial<State> {
     if (hasGivenUp()) {
-      return { hasError: true, gaveUp: true };
+      return { hasError: true, errorType: 'other' };
     }
-    return { hasError: true, gaveUp: false };
+    
+    if (isAuthError(error)) {
+      return { hasError: true, errorType: 'auth' };
+    }
+    
+    if (isChunkError(error)) {
+      return { hasError: true, errorType: 'chunk' };
+    }
+    
+    return { hasError: true, errorType: 'other' };
   }
 
   public componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
-    console.error('[App] Error:', error.message);
+    console.error('[App] Error caught:', error.message);
     
-    // If we already gave up, don't try again
-    if (hasGivenUp()) {
-      this.setState({ gaveUp: true });
+    // Auth errors: redirect to login, don't reload
+    if (isAuthError(error)) {
+      console.log('[App] Auth error detected, redirecting to login');
+      window.location.href = '/login';
       return;
     }
     
-    const retries = incrementRetryCount();
-    
-    if (retries <= MAX_RETRIES) {
-      // Exponential backoff: 500ms, 1000ms, 2000ms
-      const delay = Math.min(500 * Math.pow(2, retries - 1), 3000);
-      console.log(`[App] Recovery attempt ${retries}/${MAX_RETRIES} in ${delay}ms`);
-      setTimeout(() => silentRecover(), delay);
-    } else {
-      // Stop trying - mark as given up and just show loading forever
-      // User can manually refresh if they want
-      console.log('[App] Max recovery attempts reached, stopping');
-      markGaveUp();
-      this.setState({ gaveUp: true });
+    // Chunk loading errors: try to recover
+    if (isChunkError(error)) {
+      console.log('[App] Chunk error detected, attempting recovery');
+      const retries = incrementRetryCount();
+      
+      if (retries <= MAX_RETRIES) {
+        const delay = Math.min(500 * Math.pow(2, retries - 1), 3000);
+        console.log(`[App] Recovery attempt ${retries}/${MAX_RETRIES} in ${delay}ms`);
+        setTimeout(() => silentRecover(), delay);
+      } else {
+        console.log('[App] Max recovery attempts reached, stopping');
+        markGaveUp();
+      }
+      return;
     }
+    
+    // Other errors: just log, don't reload (prevents loops)
+    console.log('[App] Non-critical error, not reloading');
   }
 
   public render() {
     if (this.state.hasError) {
-      // Always show loading spinner - never show error UI or reload buttons
+      // For auth errors, show brief loading while redirecting
+      if (this.state.errorType === 'auth') {
+        return (
+          <div className="fixed inset-0 flex items-center justify-center bg-background">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+            </div>
+          </div>
+        );
+      }
+      
+      // For chunk errors during recovery, show loading
+      if (this.state.errorType === 'chunk' && !hasGivenUp()) {
+        return (
+          <div className="fixed inset-0 flex items-center justify-center bg-background">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        );
+      }
+      
+      // For other errors or after giving up, show simple error with retry
       return (
-        <div className="fixed inset-0 flex items-center justify-center bg-background">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="fixed inset-0 flex items-center justify-center bg-background p-4">
+          <div className="text-center max-w-md">
+            <p className="text-lg font-medium text-foreground mb-2">Something went wrong</p>
+            <p className="text-sm text-muted-foreground mb-4">Please refresh the page to try again.</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+            >
+              Refresh Page
+            </button>
+          </div>
         </div>
       );
     }
