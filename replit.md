@@ -103,7 +103,8 @@ The kill-switch SW (`client/public/sw.js`) solves the iOS Safari PWA infinite lo
    - Manifest link commented out
    - Inline SW killer script as backup for immediate cleanup
 4. **server/index.ts**: 
-   - `/sw.js` route serves kill-switch with no-cache headers
+   - `/sw.js` AND `/service-worker.js` routes serve kill-switch with no-cache headers (covers all legacy paths)
+   - Production static file serving from `dist/public` (matches vite.config.ts build.outDir)
    - `/_recover` endpoint for emergency recovery
    - 404 hotfix for missing JS bundles
 

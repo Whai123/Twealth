@@ -12,7 +12,8 @@ import { getSession, setupAuth } from "./customAuth";
 // can still load their JS chunks - prevents React #300 errors on iOS Safari PWA
 // IMPORTANT: Backup must be OUTSIDE dist folder to persist between deploys
 const BACKUP_DIR = path.resolve(process.cwd(), "asset-backup");
-const DIST_ASSETS = path.resolve(import.meta.dirname, "public/assets");
+// CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
+const DIST_ASSETS = path.resolve(process.cwd(), "dist/public/assets");
 
 function backupCurrentAssets(): void {
   try {
@@ -191,8 +192,9 @@ app.get('/sw.js', (req, res) => {
   res.setHeader('X-SW-Version', 'kill-v1');
   
   // Serve from client/public in dev, dist/public in prod
+  // CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
   const swPath = process.env.NODE_ENV === 'production'
-    ? path.resolve(import.meta.dirname, 'public/sw.js')
+    ? path.resolve(process.cwd(), 'dist/public/sw.js')
     : path.resolve(process.cwd(), 'client/public/sw.js');
   
   if (fs.existsSync(swPath)) {
@@ -218,16 +220,56 @@ self.addEventListener('fetch', () => {});
   }
 });
 
+// Also serve kill-switch at /service-worker.js to cover legacy vite-plugin-pwa registrations
+// This ensures ALL legacy PWA clients get the kill-switch regardless of which path they used
+app.get('/service-worker.js', (req, res) => {
+  log('[SW] Kill-switch service worker requested at /service-worker.js');
+  
+  // Same aggressive no-cache headers
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('X-SW-Version', 'kill-v1');
+  
+  // Serve the same kill-switch SW
+  // CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
+  const swPath = process.env.NODE_ENV === 'production'
+    ? path.resolve(process.cwd(), 'dist/public/sw.js')
+    : path.resolve(process.cwd(), 'client/public/sw.js');
+  
+  if (fs.existsSync(swPath)) {
+    res.sendFile(swPath);
+  } else {
+    log('[SW] sw.js file not found, serving inline kill-switch');
+    res.send(`
+// Fallback Kill-Switch SW
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    await self.clients.claim();
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll({type:'window'});
+    clients.forEach(c => c.navigate(c.url));
+  })());
+});
+self.addEventListener('fetch', () => {});
+`);
+  }
+});
+
 // Production-grade request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
-  const path = req.path;
+  const reqPath = req.path;
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    if (reqPath.startsWith("/api")) {
       // Safe logging: method, path, status, duration only (no response body)
-      const logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+      const logLine = `${req.method} ${reqPath} ${res.statusCode} in ${duration}ms`;
       log(logLine);
     }
   });
@@ -305,7 +347,8 @@ app.use((req, res, next) => {
     // Backup current assets on startup to preserve for old cached HTML
     backupCurrentAssets();
     
-    const distPath = path.resolve(import.meta.dirname, "public");
+    // CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
+    const distPath = path.resolve(process.cwd(), "dist/public");
     
     // Serve hashed assets with long cache headers (immutable)
     app.use("/assets", express.static(path.resolve(distPath, "assets"), {
@@ -455,7 +498,35 @@ app.use((req, res, next) => {
       next();
     });
     
-    serveStatic(app);
+    // ==================== PRODUCTION STATIC FILE SERVING ====================
+    // OVERRIDE: Serve from dist/public instead of server/public (which serveStatic uses)
+    // This ensures we serve the correct Vite build output
+    const prodStaticMiddleware = express.static(distPath);
+    app.use(prodStaticMiddleware);
+    
+    // Catch-all: Serve index.html for SPA routing (from correct dist/public)
+    // This handles all navigation requests that don't match a static file
+    // IMPORTANT: Only for GET requests and exclude /api/* to preserve API error semantics
+    app.use("*", (req, res, next) => {
+      // Skip API routes - let them return proper 404/JSON errors
+      if (req.path.startsWith('/api')) {
+        return res.status(404).json({ message: 'API endpoint not found' });
+      }
+      
+      // Skip non-GET requests
+      if (req.method !== 'GET') {
+        return next();
+      }
+      
+      const indexPath = path.resolve(distPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send("Application not found. Please run npm run build.");
+      }
+    });
+    
+    // NOTE: serveStatic is NOT called - we handle everything above with correct paths
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
