@@ -16,6 +16,7 @@ interface State {
 }
 
 const RECOVERY_KEY = 'twealth_error_recovery_attempts';
+const RECOVERY_IN_PROGRESS_KEY = 'twealth_recovery_in_progress';
 const MAX_RECOVERY_ATTEMPTS = 2;
 
 function classifyError(error: Error): 'stale_module' | 'auth' | 'generic' {
@@ -68,8 +69,28 @@ export function clearRecoveryAttempts(): void {
   } catch {}
 }
 
+function isRecoveryInProgress(): boolean {
+  try {
+    return sessionStorage.getItem(RECOVERY_IN_PROGRESS_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function setRecoveryInProgress(value: boolean): void {
+  try {
+    if (value) {
+      sessionStorage.setItem(RECOVERY_IN_PROGRESS_KEY, 'true');
+    } else {
+      sessionStorage.removeItem(RECOVERY_IN_PROGRESS_KEY);
+    }
+  } catch {}
+}
+
 async function clearCachesAndReload(): Promise<void> {
   console.log('[ErrorBoundary] Clearing caches and reloading...');
+  
+  setRecoveryInProgress(true);
   
   try {
     if ('caches' in window) {
@@ -94,11 +115,41 @@ async function clearCachesAndReload(): Promise<void> {
 }
 
 class ErrorBoundary extends Component<Props, State> {
+  private recoveryTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  
   public state: State = {
     hasError: false,
     errorType: 'generic',
     isRecovering: false
   };
+
+  public componentDidMount() {
+    // If we just recovered from a reload, clear the flag - app loaded successfully
+    if (isRecoveryInProgress()) {
+      console.log('[ErrorBoundary] Recovery successful, clearing recovery state');
+      setRecoveryInProgress(false);
+      clearRecoveryAttempts();
+    }
+  }
+  
+  public componentWillUnmount() {
+    if (this.recoveryTimeoutId) {
+      clearTimeout(this.recoveryTimeoutId);
+    }
+  }
+  
+  private startRecoveryTimeout() {
+    if (this.recoveryTimeoutId) return; // Already started
+    
+    this.recoveryTimeoutId = setTimeout(() => {
+      if (this.state.isRecovering) {
+        console.log('[ErrorBoundary] Recovery timeout, forcing redirect');
+        setRecoveryInProgress(false);
+        clearRecoveryAttempts();
+        window.location.href = '/?recovered=' + Date.now();
+      }
+    }, 3000);
+  }
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error, errorType: classifyError(error) };
@@ -146,9 +197,11 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.isRecovering) {
+      this.startRecoveryTimeout();
+      
       return (
         <div 
-          className="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-black"
+          className="fixed inset-0 flex flex-col items-center justify-center bg-background dark:bg-black z-[9999]"
           style={{ 
             paddingTop: 'max(1rem, env(safe-area-inset-top))',
             paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
