@@ -158,18 +158,9 @@ class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error boundary caught:', error);
     
-    const errorType = classifyError(error);
-    
-    if (errorType === 'stale_module') {
-      const attempts = getRecoveryAttempts();
-      if (attempts < MAX_RECOVERY_ATTEMPTS) {
-        console.log('[ErrorBoundary] Stale module detected, recovering (attempt', attempts + 1, ')');
-        this.setState({ isRecovering: true, errorType });
-        clearCachesAndReload();
-        return;
-      }
-      clearRecoveryAttempts();
-    }
+    // DO NOT auto-reload - let the user manually reload to prevent infinite loops
+    // The index.html inline scripts already handle cache clearing
+    // ErrorBoundary just shows error UI and lets user decide when to reload
     
     if (import.meta.env.DEV) {
       console.group('Error Details');
