@@ -7,32 +7,36 @@ import { TooltipProvider } from"./components/ui/tooltip";
 import { UserProvider } from"./lib/userContext";
 import { ThemeProvider } from"./components/theme-provider";
 import { useAuth } from"./hooks/useAuth";
-// Lazy load pages for better mobile performance
-import { lazy, Suspense, startTransition } from 'react';
+import { lazy, Suspense } from 'react';
 import { Card } from"./components/ui/card";
 
-const Dashboard = lazy(() => import("./pages/dashboard"));
-const Welcome = lazy(() => import("./pages/welcome"));
-const Groups = lazy(() => import("./pages/groups"));
-const FinancialGoals = lazy(() => import("./pages/financial-goals"));
-const MoneyTracking = lazy(() => import("./pages/money-tracking"));
-const Settings = lazy(() => import("./pages/settings"));
+// CRITICAL ROUTES - Import directly to prevent chunk loading errors on deploy
+// These ship in the main bundle, eliminating cache mismatch issues
+import Dashboard from"./pages/dashboard";
+import Welcome from"./pages/welcome";
+import Groups from"./pages/groups";
+import FinancialGoals from"./pages/financial-goals";
+import MoneyTracking from"./pages/money-tracking";
+import Settings from"./pages/settings";
+import AIAssistant from"./pages/ai-assistant";
+import Landing from"./pages/landing";
+import Login from"./pages/login";
+
+// OPTIONAL ROUTES - Keep lazy for less common paths
 const Subscription = lazy(() => import("./pages/subscription"));
 const Checkout = lazy(() => import("./pages/checkout"));
 const Upgrade = lazy(() => import("./pages/upgrade"));
 const Pricing = lazy(() => import("./pages/pricing"));
-const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const Friends = lazy(() => import("./pages/friends"));
 const InvitePage = lazy(() => import("./pages/invite"));
 const NotFound = lazy(() => import("./pages/not-found"));
-const Landing = lazy(() => import("./pages/landing.tsx"));
-const Login = lazy(() => import("./pages/login.tsx"));
 const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
 const SharePage = lazy(() => import("./pages/share"));
 const AdminPage = lazy(() => import("./pages/admin"));
-// Lazy-load heavy shell components for faster page transitions
+
+// HEAVY SHELL COMPONENTS - Lazy load for faster initial paint
 const FloatingAIWidget = lazy(() => import("./components/ai/floating-ai-widget"));
 const MilestoneCelebration = lazy(() => import("./components/milestone-celebration"));
 const CommandPalette = lazy(() => import("./components/command-palette"));

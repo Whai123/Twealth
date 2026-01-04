@@ -8,7 +8,10 @@ interface State {
   hasError: boolean;
   errorType: 'auth' | 'chunk' | 'other' | null;
   errorMessage: string;
+  recoveryAttempted: boolean;
 }
+
+const CHUNK_RECOVERY_KEY = 'twealth_chunk_recovery_v2';
 
 function isAuthError(error: Error): boolean {
   const msg = error.message.toLowerCase();
@@ -23,11 +26,32 @@ function isChunkError(error: Error): boolean {
   const msg = error.message.toLowerCase();
   return msg.includes('loading chunk') || 
          msg.includes('failed to fetch dynamically imported module') ||
-         msg.includes('minified react error');
+         msg.includes('minified react error') ||
+         msg.includes('dynamically imported module');
+}
+
+async function clearAllCachesAndSW(): Promise<void> {
+  try {
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+      console.log('[ErrorBoundary] Cleared all caches:', cacheNames);
+    }
+    
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(r => r.unregister()));
+      console.log('[ErrorBoundary] Unregistered all service workers:', registrations.length);
+    }
+  } catch (e) {
+    console.warn('[ErrorBoundary] Cache/SW cleanup failed:', e);
+  }
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false, errorType: null, errorMessage: '' };
+  public state: State = { hasError: false, errorType: null, errorMessage: '', recoveryAttempted: false };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
     if (isAuthError(error)) {
@@ -48,15 +72,43 @@ class ErrorBoundary extends Component<Props, State> {
     // Auth errors: redirect to login (single redirect, no loop)
     if (isAuthError(error)) {
       console.log('[ErrorBoundary] Auth error, redirecting to login');
-      // Use replace to prevent back-button loops
       window.location.replace('/login');
       return;
     }
     
-    // For ALL other errors (including chunk): just log, NO RELOAD
-    // This prevents Safari refresh loops
-    console.log('[ErrorBoundary] Non-auth error, showing fallback UI (NO RELOAD)');
+    // Chunk errors: attempt ONE auto-recovery with cache clearing
+    if (isChunkError(error)) {
+      const lastRecoveryTime = sessionStorage.getItem(CHUNK_RECOVERY_KEY);
+      const now = Date.now();
+      
+      // Only attempt recovery if we haven't tried in the last 30 seconds
+      if (!lastRecoveryTime || (now - parseInt(lastRecoveryTime, 10)) > 30000) {
+        console.log('[ErrorBoundary] Chunk error, attempting one-time recovery...');
+        sessionStorage.setItem(CHUNK_RECOVERY_KEY, now.toString());
+        
+        // Clear caches and reload with cache-buster
+        clearAllCachesAndSW().then(() => {
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', now.toString());
+          window.location.replace(url.toString());
+        });
+        return;
+      }
+      
+      console.log('[ErrorBoundary] Chunk recovery already attempted, showing manual instructions');
+      this.setState({ recoveryAttempted: true });
+      return;
+    }
+    
+    console.log('[ErrorBoundary] Non-recoverable error, showing fallback UI');
   }
+
+  private handleHardRefresh = async () => {
+    await clearAllCachesAndSW();
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', Date.now().toString());
+    window.location.replace(url.toString());
+  };
 
   public render() {
     if (this.state.hasError) {
@@ -72,21 +124,34 @@ class ErrorBoundary extends Component<Props, State> {
         );
       }
       
-      // For chunk errors - show clear instructions (NO AUTO RELOAD)
+      // For chunk errors - show recovery UI
       if (this.state.errorType === 'chunk') {
         return (
           <div className="fixed inset-0 flex items-center justify-center bg-background p-4">
             <div className="text-center max-w-md">
               <p className="text-lg font-medium text-foreground mb-2">Loading issue</p>
               <p className="text-sm text-muted-foreground mb-4">
-                The app didn't load correctly. Please refresh the page manually.
+                {this.state.recoveryAttempted 
+                  ? "Auto-recovery didn't work. Please clear your browser data for this site."
+                  : "Refreshing with updated files..."}
               </p>
-              <button 
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
-              >
-                Refresh Page
-              </button>
+              {this.state.recoveryAttempted && (
+                <div className="space-y-3">
+                  <button 
+                    onClick={this.handleHardRefresh}
+                    className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+                    data-testid="button-hard-refresh"
+                  >
+                    Try Hard Refresh
+                  </button>
+                  <p className="text-xs text-muted-foreground">
+                    iOS Safari: Settings → Safari → Clear History and Website Data
+                  </p>
+                </div>
+              )}
+              {!this.state.recoveryAttempted && (
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              )}
             </div>
           </div>
         );
@@ -101,6 +166,7 @@ class ErrorBoundary extends Component<Props, State> {
             <button 
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+              data-testid="button-refresh"
             >
               Refresh Page
             </button>
@@ -113,7 +179,11 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export function clearRecoveryAttempts(): void {
-  // No-op - keeping for backwards compatibility
+  try {
+    sessionStorage.removeItem(CHUNK_RECOVERY_KEY);
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export default ErrorBoundary;

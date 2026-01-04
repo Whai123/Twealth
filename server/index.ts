@@ -440,6 +440,10 @@ app.use((req, res, next) => {
       
       const indexPath = path.resolve(distPath, "index.html");
       if (fs.existsSync(indexPath)) {
+        // Ensure no-cache headers for SPA fallback (prevent stale HTML serving old chunk URLs)
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         res.sendFile(indexPath);
       } else {
         res.status(404).send("Application not found. Please run npm run build.");
