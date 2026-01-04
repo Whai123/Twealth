@@ -319,30 +319,42 @@ export function setupAuth(app: Express) {
             return res.redirect("/login");
           }
           
-          // Regenerate session to prevent session fixation when switching accounts
-          req.session.regenerate((regenErr) => {
-            if (regenErr) {
-              authLogger.error('Session regeneration error', regenErr);
+          // First login to establish the user, then regenerate session to prevent fixation
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              authLogger.error('Login error', loginErr);
               return res.redirect("/login");
             }
             
-            if (isDevelopment) authLogger.debug('Session regenerated for new login');
+            if (isDevelopment) authLogger.debug('User logged in successfully');
             
-            req.login(user, (loginErr) => {
-              if (loginErr) {
-                authLogger.error('Login error', loginErr);
+            // Store user data before regenerating session
+            const userData = req.user;
+            
+            // Regenerate session to prevent session fixation when switching accounts
+            req.session.regenerate((regenErr) => {
+              if (regenErr) {
+                authLogger.error('Session regeneration error', regenErr);
                 return res.redirect("/login");
               }
               
-              if (isDevelopment) authLogger.debug('User logged in successfully');
+              if (isDevelopment) authLogger.debug('Session regenerated for security');
               
-              req.session.save((saveErr) => {
-                if (saveErr) {
-                  authLogger.error('Session save error', saveErr);
+              // Re-attach user to the new session
+              req.login(userData as any, (reloginErr) => {
+                if (reloginErr) {
+                  authLogger.error('Re-login after regeneration error', reloginErr);
                   return res.redirect("/login");
                 }
-                if (isDevelopment) authLogger.debug('Session saved, redirecting');
-                res.redirect("/");
+                
+                req.session.save((saveErr) => {
+                  if (saveErr) {
+                    authLogger.error('Session save error', saveErr);
+                    return res.redirect("/login");
+                  }
+                  if (isDevelopment) authLogger.debug('Session saved, redirecting');
+                  res.redirect("/");
+                });
               });
             });
           });
@@ -367,25 +379,34 @@ export function setupAuth(app: Express) {
             return res.redirect("/login");
           }
           
-          // Regenerate session to prevent session fixation
-          req.session.regenerate((regenErr) => {
-            if (regenErr) {
-              authLogger.error('Facebook session regeneration error', regenErr);
+          // First login, then regenerate session to prevent fixation while preserving auth
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              authLogger.error('Facebook login error', loginErr);
               return res.redirect("/login");
             }
             
-            req.login(user, (loginErr) => {
-              if (loginErr) {
-                authLogger.error('Facebook login error', loginErr);
+            const userData = req.user;
+            
+            req.session.regenerate((regenErr) => {
+              if (regenErr) {
+                authLogger.error('Facebook session regeneration error', regenErr);
                 return res.redirect("/login");
               }
               
-              req.session.save((saveErr) => {
-                if (saveErr) {
-                  authLogger.error('Facebook session save error', saveErr);
+              req.login(userData as any, (reloginErr) => {
+                if (reloginErr) {
+                  authLogger.error('Facebook re-login error', reloginErr);
                   return res.redirect("/login");
                 }
-                res.redirect("/");
+                
+                req.session.save((saveErr) => {
+                  if (saveErr) {
+                    authLogger.error('Facebook session save error', saveErr);
+                    return res.redirect("/login");
+                  }
+                  res.redirect("/");
+                });
               });
             });
           });
@@ -410,25 +431,34 @@ export function setupAuth(app: Express) {
             return res.redirect("/login");
           }
           
-          // Regenerate session to prevent session fixation
-          req.session.regenerate((regenErr) => {
-            if (regenErr) {
-              authLogger.error('Apple session regeneration error', regenErr);
+          // First login, then regenerate session to prevent fixation while preserving auth
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              authLogger.error('Apple login error', loginErr);
               return res.redirect("/login");
             }
             
-            req.login(user, (loginErr) => {
-              if (loginErr) {
-                authLogger.error('Apple login error', loginErr);
+            const userData = req.user;
+            
+            req.session.regenerate((regenErr) => {
+              if (regenErr) {
+                authLogger.error('Apple session regeneration error', regenErr);
                 return res.redirect("/login");
               }
               
-              req.session.save((saveErr) => {
-                if (saveErr) {
-                  authLogger.error('Apple session save error', saveErr);
+              req.login(userData as any, (reloginErr) => {
+                if (reloginErr) {
+                  authLogger.error('Apple re-login error', reloginErr);
                   return res.redirect("/login");
                 }
-                res.redirect("/");
+                
+                req.session.save((saveErr) => {
+                  if (saveErr) {
+                    authLogger.error('Apple session save error', saveErr);
+                    return res.redirect("/login");
+                  }
+                  res.redirect("/");
+                });
               });
             });
           });
