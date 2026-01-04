@@ -1,0 +1,26 @@
+import{c as o,ar as C,K as u,W as y,j as e,H as f,o as n,ac as B}from"./index-NNgTI0RQ.js";import{C as M}from"./credit-card-BRwojsv2.js";import{C as j}from"./chart-column-CHgS_Ivl.js";import{B as w}from"./bell-B71JwlkR.js";import{C as N}from"./calendar-CwD0FHKB.js";import{M as v}from"./message-square-T3TIwvoE.js";import{P as W}from"./piggy-bank-Bku1OXn_.js";import{t as z,c as m}from"./startOfWeek-D6dzzDOw.js";/**
+ * @license lucide-react v0.453.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const D=o("Briefcase",[["path",{d:"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16",key:"jecpp"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2",key:"i6l2r4"}]]);/**
+ * @license lucide-react v0.453.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const P=o("ChartLine",[["path",{d:"M3 3v16a2 2 0 0 0 2 2h16",key:"c24i48"}],["path",{d:"m19 9-5 5-4-4-3 3",key:"2osh9i"}]]);/**
+ * @license lucide-react v0.453.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const K=o("ChartPie",[["path",{d:"M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z",key:"pzmjnu"}],["path",{d:"M21.21 15.89A10 10 0 1 1 8 2.83",key:"k2fpak"}]]);/**
+ * @license lucide-react v0.453.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const E=o("Coins",[["circle",{cx:"8",cy:"8",r:"6",key:"3yglwk"}],["path",{d:"M18.09 10.37A6 6 0 1 1 10.34 18",key:"t5s6rm"}],["path",{d:"M7 6h1v4",key:"1obek4"}],["path",{d:"m16.71 13.88.7.71-2.82 2.82",key:"1rbuyh"}]]);/**
+ * @license lucide-react v0.453.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const F=o("Receipt",[["path",{d:"M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z",key:"q3az6g"}],["path",{d:"M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8",key:"1h4pet"}],["path",{d:"M12 17.5v-11",key:"1jc1ny"}]]),I={transactions:{icon:F,iconBgClass:"bg-blue-50 dark:bg-blue-950/30",iconClass:"text-blue-600 dark:text-blue-400"},goals:{icon:u,iconBgClass:"bg-green-50 dark:bg-green-950/30",iconClass:"text-green-600 dark:text-green-400"},budgets:{icon:W,iconBgClass:"bg-purple-50 dark:bg-purple-950/30",iconClass:"text-purple-600 dark:text-purple-400"},conversations:{icon:v,iconBgClass:"bg-blue-50 dark:bg-blue-950/30",iconClass:"text-blue-600 dark:text-blue-400"},crypto:{icon:E,iconBgClass:"bg-orange-50 dark:bg-orange-950/30",iconClass:"text-orange-600 dark:text-orange-400"},calendar:{icon:N,iconBgClass:"bg-teal-50 dark:bg-teal-950/30",iconClass:"text-teal-600 dark:text-teal-400"},notifications:{icon:w,iconBgClass:"bg-gray-50 dark:bg-gray-900/30",iconClass:"text-gray-600 dark:text-gray-400"},friends:{icon:C,iconBgClass:"bg-pink-50 dark:bg-pink-950/30",iconClass:"text-pink-600 dark:text-pink-400"},insights:{icon:P,iconBgClass:"bg-blue-50 dark:bg-blue-950/30",iconClass:"text-blue-600 dark:text-blue-400"},investments:{icon:j,iconBgClass:"bg-emerald-50 dark:bg-emerald-950/30",iconClass:"text-emerald-600 dark:text-emerald-400"},debts:{icon:M,iconBgClass:"bg-red-50 dark:bg-red-950/30",iconClass:"text-red-600 dark:text-red-400"},assets:{icon:D,iconBgClass:"bg-amber-50 dark:bg-amber-950/30",iconClass:"text-amber-600 dark:text-amber-400"}},L={sm:{container:"py-8 px-4",iconWrapper:"w-12 h-12",icon:"w-5 h-5",title:"text-sm",description:"text-xs max-w-xs",button:"h-8 text-xs"},md:{container:"py-12 px-4",iconWrapper:"w-16 h-16",icon:"w-7 h-7",title:"text-lg",description:"text-sm max-w-sm",button:"h-9 text-sm"},lg:{container:"py-16 px-6",iconWrapper:"w-20 h-20",icon:"w-9 h-9",title:"text-xl",description:"text-base max-w-md",button:"h-10"}};function U({illustration:r,icon:c,title:i,description:l,actionLabel:s,onAction:d,actionHref:p,actionTestId:h,size:b="md",className:k}){const t=r?I[r]:null,g=c||(t==null?void 0:t.icon)||y,a=L[b],x=e.jsx(f,{onClick:d,"data-testid":h||"empty-state-action",className:n("min-h-[44px]",a.button),children:s});return e.jsxs("div",{className:n("flex flex-col items-center justify-center text-center",a.container,k),"data-testid":"empty-state",children:[r?e.jsx("div",{className:n("rounded-2xl flex items-center justify-center mb-5",a.iconWrapper,t==null?void 0:t.iconBgClass),children:e.jsx(g,{className:n(a.icon,t==null?void 0:t.iconClass)})}):e.jsx("div",{className:"mb-5",children:e.jsx(g,{className:n("text-muted-foreground/40",a.icon==="w-5 h-5"?"w-12 h-12":a.icon==="w-7 h-7"?"w-14 h-14":"w-16 h-16")})}),e.jsxs("div",{className:n("space-y-2 mb-6",a.description.split(" ").pop()),children:[e.jsx("h3",{className:n("font-semibold text-foreground tracking-tight",a.title),children:i}),e.jsx("p",{className:n("text-muted-foreground leading-relaxed",a.description),children:l})]}),s&&(d||p)&&(p?e.jsx(B,{href:p,children:x}):x)]})}function Z(r,c){const i=z(r);if(isNaN(c))return m(r,NaN);const l=i.getDate(),s=m(r,i.getTime());s.setMonth(i.getMonth()+c+1,0);const d=s.getDate();return l>=d?s:(i.setFullYear(s.getFullYear(),s.getMonth(),l),i)}export{D as B,K as C,U as E,Z as a};
