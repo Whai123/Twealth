@@ -118,6 +118,25 @@ Updated sw.js to version 'kill-v2':
 
 This prevented objects from being rendered directly as React children in production builds on mobile Safari.
 
+## Defensive Type Safety (Jan 5, 2026)
+
+Added type-safe helper functions in `dashboard.tsx` to wrap all API data access:
+- **safeNumber()**: Ensures numeric values are valid (handles NaN, Infinity), defaults to 0 for invalid values
+- **safeString()**: Ensures string values are valid strings, logs warnings for unexpected objects instead of silent coercion
+- **safeDate()**: Validates date strings and returns Date objects or null, with logging for invalid dates
+- **formatDate()**: Safe date formatting that handles invalid date strings gracefully
+
+Applied to:
+- `financialHealth.overall`, `financialHealth.grade`, `financialHealth.breakdown.*` fields
+- `subscription.plan.name`, `subscription.usage.*`, `subscription.plan.*Limit` fields
+- `stats.monthlyIncome`, `stats.monthlyExpenses`
+- `preferences.monthlyExpensesEstimate`
+- `goals[].title`, `goals[].currentAmount`, `goals[].targetAmount`, `goals[].targetDate`
+
+Also added `safeRender()` helper in `client/src/components/ui/toaster.tsx` using React's `isValidElement()` to properly detect React nodes and prevent objects from being rendered as children.
+
+Invalid data is logged to console with `[Dashboard]` or `[Toaster]` prefixes for debugging while UI remains stable.
+
 ## Design Principles (Preventing Future Loops)
 
 1. **NEVER call `client.navigate()` or `location.reload()` automatically**

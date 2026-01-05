@@ -18,6 +18,53 @@ import { StreakWidget, AchievementBadges } from "@/components/streak-system";
 import { useUserCurrency, useUserPreferences } from "@/lib/userContext";
 import { useAuth } from "@/hooks/useAuth";
 
+function safeNumber(value: unknown): number {
+  if (typeof value === 'number' && !isNaN(value) && isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
+  }
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  return 0;
+}
+
+function safeString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'object') {
+    console.warn('[Dashboard] Unexpected object in safeString:', value);
+    return '';
+  }
+  return String(value);
+}
+
+function safeDate(dateStr: unknown): Date | null {
+  if (!dateStr) return null;
+  try {
+    const date = new Date(String(dateStr));
+    if (isNaN(date.getTime())) {
+      console.warn('[Dashboard] Invalid date:', dateStr);
+      return null;
+    }
+    return date;
+  } catch (e) {
+    console.warn('[Dashboard] Date parsing error:', e);
+    return null;
+  }
+}
+
+function formatDate(dateStr: unknown, options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }): string {
+  const date = safeDate(dateStr);
+  if (!date) return '';
+  try {
+    return date.toLocaleDateString('en-US', options);
+  } catch {
+    return '';
+  }
+}
+
 interface DashboardStats {
   totalTransactions: number;
   monthlyIncome: number;
@@ -168,26 +215,26 @@ export default function Dashboard() {
     enabled: isAuthenticated,
   });
   
-  const healthScore = financialHealth?.overall ?? 0;
-  const healthGrade = financialHealth?.grade ?? 'Building';
-  const savingsRate = financialHealth?.breakdown?.savingsRate?.value ?? 0;
-  const emergencyFundMonths = financialHealth?.breakdown?.emergencyFund?.months ?? 0;
+  const healthScore = safeNumber(financialHealth?.overall);
+  const healthGrade = safeString(financialHealth?.grade) || 'Building';
+  const savingsRate = safeNumber(financialHealth?.breakdown?.savingsRate?.value);
+  const emergencyFundMonths = safeNumber(financialHealth?.breakdown?.emergencyFund?.months);
   
   const activeGoals = Array.isArray(goals) ? goals.filter((g) => g.status === "active") : [];
   const nextGoal = activeGoals.length > 0 ? activeGoals[0] : null;
   const nextGoalProgress = nextGoal 
-    ? Math.min(100, (parseFloat(nextGoal.currentAmount || '0') / parseFloat(String(nextGoal.targetAmount))) * 100)
+    ? Math.min(100, (safeNumber(nextGoal.currentAmount) / Math.max(1, safeNumber(nextGoal.targetAmount))) * 100)
     : 0;
   
-  const tierName = subscription?.plan?.name ?? 'Free';
-  const scoutUsed = subscription?.usage?.scoutQueriesUsed ?? 0;
-  const scoutLimit = subscription?.plan?.scoutLimit ?? 50;
-  const queriesRemaining = scoutLimit - scoutUsed;
+  const tierName = safeString(subscription?.plan?.name) || 'Free';
+  const scoutUsed = safeNumber(subscription?.usage?.scoutQueriesUsed);
+  const scoutLimit = safeNumber(subscription?.plan?.scoutLimit) || 50;
+  const queriesRemaining = Math.max(0, scoutLimit - scoutUsed);
   
-  const monthlyIncome = stats?.monthlyIncome ?? 0;
-  const monthlyExpenses = stats?.monthlyExpenses ?? 0;
+  const monthlyIncome = safeNumber(stats?.monthlyIncome);
+  const monthlyExpenses = safeNumber(stats?.monthlyExpenses);
   const netCashFlow = monthlyIncome - monthlyExpenses;
-  const monthlySavingsCapacity = monthlyIncome - parseFloat(String(preferences?.monthlyExpensesEstimate ?? '0'));
+  const monthlySavingsCapacity = monthlyIncome - safeNumber(preferences?.monthlyExpensesEstimate);
   
   const isPositiveCashFlow = netCashFlow >= 0;
   
@@ -221,16 +268,19 @@ export default function Dashboard() {
     }
     
     if (nextGoal && nextGoalProgress < 50 && nextGoal.targetDate) {
-      const daysToTarget = Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      if (daysToTarget > 0) {
-        steps.push({
-          icon: Target,
-          title: `Accelerate "${nextGoal.title}"`,
-          description: `${daysToTarget} days left. ${nextGoalProgress.toFixed(0)}% complete.`,
-          action: "Review",
-          href: "/financial-goals",
-          priority: "medium"
-        });
+      const targetDate = safeDate(nextGoal.targetDate);
+      if (targetDate) {
+        const daysToTarget = Math.ceil((targetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (daysToTarget > 0) {
+          steps.push({
+            icon: Target,
+            title: `Accelerate "${safeString(nextGoal.title) || 'Goal'}"`,
+            description: `${daysToTarget} days left. ${nextGoalProgress.toFixed(0)}% complete.`,
+            action: "Review",
+            href: "/financial-goals",
+            priority: "medium"
+          });
+        }
       }
     }
     
@@ -532,13 +582,13 @@ export default function Dashboard() {
                 {nextGoal ? (
                   <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{nextGoal.title}</h4>
+                      <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{safeString(nextGoal.title) || 'Untitled Goal'}</h4>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xl sm:text-2xl font-bold text-foreground">
-                          {formatAmount(parseFloat(nextGoal.currentAmount || '0'))}
+                          {formatAmount(safeNumber(nextGoal.currentAmount))}
                         </span>
                         <span className="text-xs sm:text-sm text-muted-foreground">
-                          / {formatAmount(parseFloat(String(nextGoal.targetAmount)))}
+                          / {formatAmount(safeNumber(nextGoal.targetAmount))}
                         </span>
                       </div>
                     </div>
@@ -547,7 +597,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
                         <span className="font-medium">{nextGoalProgress.toFixed(0)}% complete</span>
                         {nextGoal.targetDate && (
-                          <span>{new Date(nextGoal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <span>{formatDate(nextGoal.targetDate)}</span>
                         )}
                       </div>
                       <div className="h-2.5 sm:h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -560,12 +610,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                     
-                    {nextGoal.targetDate && (
+                    {nextGoal.targetDate && safeDate(nextGoal.targetDate) && (
                       <div className="p-3 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
                         <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Monthly contribution needed</p>
                         <p className="text-lg sm:text-xl font-bold text-foreground">
-                          {formatAmount(Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
-                            Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))))}
+                          {(() => {
+                            const remaining = safeNumber(nextGoal.targetAmount) - safeNumber(nextGoal.currentAmount);
+                            const targetDate = safeDate(nextGoal.targetDate);
+                            if (!targetDate) return formatAmount(0);
+                            const monthsLeft = Math.max(1, Math.ceil((targetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)));
+                            return formatAmount(Math.max(0, remaining / monthsLeft));
+                          })()}
                           <span className="text-xs sm:text-sm font-normal text-muted-foreground">/month</span>
                         </p>
                       </div>
