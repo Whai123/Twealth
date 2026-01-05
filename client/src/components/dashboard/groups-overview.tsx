@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from"@/components/ui/avatar";
 import { Badge } from"@/components/ui/badge";
 import { Plus, Briefcase, TrendingUp, GraduationCap } from"lucide-react";
 import { Link } from"wouter";
+import { safeString } from "@/lib/safe-render";
 
 // Helper function to get user initials
 const getUserInitials = (user: any): string => {
@@ -171,15 +172,15 @@ export default function GroupsOverview() {
             <h3 
              className="font-medium text-foreground truncate" 
              data-testid={`text-group-${group.id}`}
-             title={group.name}
+             title={safeString(group.name)}
             >
-             {group.name}
+             {safeString(group.name)}
             </h3>
             <MemberCountDisplay groupId={group.id} />
            </div>
           </div>
           <Badge variant="secondary" className={`${statusColors.bg} ${statusColors.text}`}>
-           {group.status}
+           {safeString(group.status)}
           </Badge>
          </div>
          

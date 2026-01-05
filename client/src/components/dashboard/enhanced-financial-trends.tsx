@@ -15,6 +15,7 @@ import {
  Activity,
  Zap
 } from"lucide-react";
+import { safeString } from "@/lib/safe-render";
 
 interface TrendData {
  label: string;
@@ -238,7 +239,7 @@ export default function EnhancedFinancialTrends() {
      {trends.map((trend, index) => (
       <Card key={trend.label} className="p-4 border-l-4 border-l-blue-500 bg-white dark:bg-gray-900">
        <div className="flex items-center justify-between mb-3">
-        <h4 className="font-medium text-sm">{trend.label}</h4>
+        <h4 className="font-medium text-sm">{safeString(trend.label)}</h4>
         <Badge 
          variant={trend.status === 'up' ? 'default' : trend.status === 'down' ? 'destructive' : 'secondary'}
          className="text-xs"
@@ -314,7 +315,7 @@ export default function EnhancedFinancialTrends() {
         {spendingInsights.topCategories.length > 0 ? (
          <>
           <p className="text-lg font-bold text-orange-600 capitalize">
-           {spendingInsights.topCategories[0][0]}
+           {safeString(spendingInsights.topCategories[0][0])}
           </p>
           <p className="text-xs text-muted-foreground">
            ${(spendingInsights.topCategories[0][1] as number).toLocaleString()} spent
@@ -340,7 +341,7 @@ export default function EnhancedFinancialTrends() {
            <div key={category} className="flex items-center justify-between p-2 bg-muted/50 rounded">
             <div className="flex items-center gap-2">
              <div className={`w-2 h-2 rounded-full ${index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-blue-500' : 'bg-blue-500'}`} />
-             <span className="text-sm capitalize">{category}</span>
+             <span className="text-sm capitalize">{safeString(category)}</span>
             </div>
             <div className="text-right">
              <p className="text-sm font-medium">${(amount as number).toLocaleString()}</p>

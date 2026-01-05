@@ -11,6 +11,7 @@ import TransactionForm from"@/components/forms/transaction-form";
 import GoalForm from"@/components/forms/goal-form";
 import AddFundsForm from"@/components/forms/add-funds-form";
 import { useToast } from"@/hooks/use-toast";
+import { safeString } from "@/lib/safe-render";
 
 interface NotificationActionHandler {
  openTransactionForm: (data?: any) => void;
@@ -64,7 +65,7 @@ export default function NotificationActions({ children }: NotificationActionsPro
    }
    toast({
     title:"Navigating to Transactions",
-    description: category ? `Showing ${category} transactions` :"Viewing all transactions",
+    description: category ? `Showing ${safeString(category)} transactions` :"Viewing all transactions",
    });
   },
 
@@ -137,7 +138,7 @@ export default function NotificationActions({ children }: NotificationActionsPro
       <DialogHeader>
        <DialogTitle>Add Funds to Goal</DialogTitle>
        <DialogDescription>
-        Add money to your"{addFundsData.goalTitle}" goal.
+        Add money to your "{safeString(addFundsData.goalTitle)}" goal.
        </DialogDescription>
       </DialogHeader>
       <AddFundsForm

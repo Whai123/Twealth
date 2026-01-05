@@ -24,6 +24,7 @@ import TransactionForm from"@/components/forms/transaction-form";
 import EventForm from"@/components/forms/event-form";
 import { TimeTracker } from"@/components/time-tracker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
+import { safeString } from "@/lib/safe-render";
 
 export default function QuickActions() {
  const [isGoalDrawerOpen, setIsGoalDrawerOpen] = useState(false);
@@ -227,7 +228,7 @@ export default function QuickActions() {
  <SelectContent>
  {Array.isArray(upcomingEvents) && upcomingEvents.map((event: any) => (
  <SelectItem key={event.id} value={event.id}>
- {event.title} - {new Date(event.startTime).toLocaleDateString()}
+ {safeString(event.title)} - {new Date(event.startTime).toLocaleDateString()}
  </SelectItem>
  ))}
  </SelectContent>
@@ -238,7 +239,7 @@ export default function QuickActions() {
  <div className="border rounded-lg p-4 bg-muted/20">
  <TimeTracker
  eventId={selectedEventForTimer}
- eventTitle={Array.isArray(upcomingEvents) ? upcomingEvents.find((e: any) => e.id === selectedEventForTimer)?.title ||"" :""}
+ eventTitle={safeString(Array.isArray(upcomingEvents) ? upcomingEvents.find((e: any) => e.id === selectedEventForTimer)?.title ||"" :"")}
  />
  </div>
  )}
