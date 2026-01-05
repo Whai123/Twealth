@@ -18,6 +18,45 @@ const debugLog = (context: string, message: string, data?: any) => {
   }
 };
 
+/**
+ * Deep sanitize an API response to prevent React Error #300 on mobile Safari.
+ * Ensures all values are primitives (strings, numbers, booleans, null) or arrays/objects of primitives.
+ * Converts Date objects to ISO strings.
+ */
+function sanitizeApiResponse(data: unknown): unknown {
+  if (data === null || data === undefined) return data;
+  
+  // Handle Date objects - convert to ISO string
+  if (data instanceof Date) {
+    return isNaN(data.getTime()) ? null : data.toISOString();
+  }
+  
+  // Handle arrays
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeApiResponse(item));
+  }
+  
+  // Handle primitive types
+  if (typeof data === 'string' || typeof data === 'boolean') return data;
+  if (typeof data === 'number') {
+    // Handle NaN/Infinity
+    if (isNaN(data) || !isFinite(data)) return 0;
+    return data;
+  }
+  
+  // Handle objects
+  if (typeof data === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      result[key] = sanitizeApiResponse(value);
+    }
+    return result;
+  }
+  
+  // Fallback - convert to string
+  return String(data);
+}
+
 // Webhook event idempotency is now database-backed for persistence across restarts
 // Old events are cleaned up periodically (see cleanupOldWebhookEvents)
 
@@ -365,7 +404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const stats = await storage.getUserStats(userId);
-      res.json(stats);
+      res.json(sanitizeApiResponse(stats));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -809,7 +848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const goals = await storage.getFinancialGoalsByUserId(userId);
-      res.json(goals);
+      res.json(sanitizeApiResponse(goals));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2482,9 +2521,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           theme: "system" as const
         };
         const newPrefs = await storage.createUserPreferences(defaultPrefs);
-        return res.json(newPrefs);
+        return res.json(sanitizeApiResponse(newPrefs));
       }
-      res.json(preferences);
+      res.json(sanitizeApiResponse(preferences));
     } catch (error: any) {
       console.error('[/api/user-preferences] Error:', error);
       res.status(500).json({ message: error.message });
@@ -5175,7 +5214,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const healthScore = await calculateFinancialHealth(storage, userId);
-      res.json(healthScore);
+      res.json(sanitizeApiResponse(healthScore));
     } catch (error: any) {
       console.error('Financial health calculation error:', error);
       res.status(500).json({ message: error.message });
@@ -5369,11 +5408,11 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       const usage = await storage.getUserUsage(userId);
       const addOns = await storage.getUserAddOns(userId);
       
-      res.json({
+      res.json(sanitizeApiResponse({
         subscription,
         usage,
         addOns
-      });
+      }));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -6808,7 +6847,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       const userId = getUserIdFromRequest(req);
       const limit = parseInt(req.query.limit as string) || 10;
       const playbooks = await storage.getPlaybooksByUserId(userId, limit);
-      res.json(playbooks);
+      res.json(sanitizeApiResponse(playbooks));
     } catch (error: any) {
       console.error('Error fetching playbooks:', error);
       res.status(500).json({ message: 'Failed to fetch playbooks' });

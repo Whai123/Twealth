@@ -148,6 +148,11 @@ Invalid data is logged to console with `[Dashboard]` or `[Toaster]` prefixes for
 
 A comprehensive multi-layered defense system prevents React Error #300 ("Objects are not valid as React child") on mobile Safari:
 
+### Layer 0: Server-Side Sanitization (routes.ts)
+- `sanitizeApiResponse()` - Deep sanitizes all API responses before sending to client
+- Converts Date objects to ISO strings, handles NaN/Infinity values
+- Applied to critical dashboard endpoints: `/api/dashboard/stats`, `/api/financial-goals`, `/api/financial-health`, `/api/playbooks`, `/api/user-preferences`, `/api/subscription/current`
+
 ### Layer 1: API Response Sanitization (queryClient.ts)
 - `sanitizeResponseData()` - Conservative sanitizer that preserves data structure while converting Date objects to ISO strings
 - Applied to ALL React Query responses via custom `getQueryFn()`

@@ -90,6 +90,23 @@ class ErrorBoundary extends Component<Props, State> {
       console.error('[React300] Component stack (look for the deepest component):');
       console.error(errorInfo.componentStack);
       console.error('[React300] The deepest component in the stack likely has a JSX expression like {someObject} that should be {safeString(someObject)}');
+      
+      // Try to extract the problematic value from the error message
+      const match = error.message.match(/object with keys \{([^}]+)\}/);
+      if (match) {
+        console.error('[React300] PROBLEMATIC OBJECT KEYS:', match[1]);
+      }
+      
+      // Log all cached query data to help identify the source
+      try {
+        const queryCache = (window as any).__REACT_QUERY_STATE__;
+        if (queryCache) {
+          console.error('[React300] Query cache state available for debugging');
+        }
+      } catch (e) {
+        // Ignore
+      }
+      
       console.error('=================================');
     }
     
