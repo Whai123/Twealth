@@ -57,26 +57,61 @@ interface SmartInsight {
  };
 }
 
+// Parse insights and actions safely - they may be stringified JSON from server
+const parseJsonField = (field: any) => {
+  if (!field) return [];
+  if (typeof field === 'string') {
+    try {
+      return JSON.parse(field);
+    } catch (e) {
+      console.error("Failed to parse JSON field:", e);
+      return [];
+    }
+  }
+  return Array.isArray(field) ? field : [];
+};
+
 export default function SmartInsights() {
- const { formatAmount } = useUserCurrency();
- 
- // Fetch user data
- const { data: transactions = [] } = useQuery<Transaction[]>({
-  queryKey: ["/api/transactions"],
- });
+  const { formatAmount } = useUserCurrency();
+  
+  // Fetch user data
+  const { data: transactions = [] } = useQuery<Transaction[]>({
+    queryKey: ["/api/transactions"],
+  });
 
- const { data: goals = [] } = useQuery<FinancialGoal[]>({
-  queryKey: ["/api/financial-goals"],
- });
+  const { data: goals = [] } = useQuery<FinancialGoal[]>({
+    queryKey: ["/api/financial-goals"],
+  });
 
- const { data: stats } = useQuery({
-  queryKey: ["/api/dashboard/stats"],
- });
+  const { data: stats } = useQuery({
+    queryKey: ["/api/dashboard/stats"],
+  });
 
- // Calculate insights
- const generateInsights = (): SmartInsight[] => {
-  const insights: SmartInsight[] = [];
-  const now = new Date();
+  const { data: playbooks = [] } = useQuery<any[]>({
+    queryKey: ["/api/playbooks"],
+  });
+
+  // Calculate insights
+  const generateInsights = (): SmartInsight[] => {
+    const insights: SmartInsight[] = [];
+    
+    // Add insights from playbooks if available
+    if (playbooks && playbooks.length > 0) {
+      const latestPlaybook = playbooks[0];
+      const playbookInsights = parseJsonField(latestPlaybook.insights);
+      
+      playbookInsights.forEach((pi: any) => {
+        insights.push({
+          type: pi.tag === 'saving' ? 'trend' : 'suggestion',
+          title: pi.tag.charAt(0).toUpperCase() + pi.tag.slice(1) + ' Insight',
+          description: pi.text,
+          priority: pi.severity || 'medium',
+          actionable: false
+        });
+      });
+    }
+
+    const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 

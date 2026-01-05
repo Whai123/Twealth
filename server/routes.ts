@@ -30,6 +30,8 @@ const JSON_BLOB_FIELDS = new Set([
   'onboardingData',        // Contains nested object with user profile data
   'conversationMemory',    // Contains nested objects with life events, preferences
   'userContext',           // Contains nested financial data object
+  'insights',              // Playbook insights (array of objects)
+  'actions',               // Playbook actions (array of objects)
 ]);
 
 function sanitizeApiResponse(data: unknown): unknown {
