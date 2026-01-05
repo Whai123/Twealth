@@ -19,6 +19,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUserCurrency } from "@/lib/userContext";
 
+function safeString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (value === null || value === undefined) return '';
+  return '';
+}
+
+function safeNumber(value: unknown): number {
+  if (typeof value === 'number' && !isNaN(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+}
+
 interface Nudge {
   id: string;
   type: "warning" | "opportunity" | "celebration" | "upgrade";
@@ -145,7 +161,7 @@ export function SmartNudgeBanner() {
             id: `goal-almost-${goal.id}`,
             type: "celebration",
             title: "Almost There!",
-            message: `"${goal.title}" is ${progress.toFixed(0)}% complete. One final push!`,
+            message: `"${safeString(goal.title) || 'Goal'}" is ${progress.toFixed(0)}% complete. One final push!`,
             action: { label: "View Goal", href: "/financial-goals" },
             icon: Target,
             priority: 3,
@@ -154,18 +170,22 @@ export function SmartNudgeBanner() {
         }
 
         if (goal.targetDate) {
-          const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-          if (daysLeft <= 7 && daysLeft > 0 && progress < 80) {
-            nudges.push({
-              id: `goal-deadline-${goal.id}`,
-              type: "warning",
-              title: "Deadline Approaching",
-              message: `"${goal.title}" is due in ${daysLeft} days with ${progress.toFixed(0)}% progress.`,
-              action: { label: "Add Funds", href: "/financial-goals" },
-              icon: Bell,
-              priority: 2,
-              dismissable: true,
-            });
+          try {
+            const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+            if (daysLeft <= 7 && daysLeft > 0 && progress < 80) {
+              nudges.push({
+                id: `goal-deadline-${goal.id}`,
+                type: "warning",
+                title: "Deadline Approaching",
+                message: `"${safeString(goal.title) || 'Goal'}" is due in ${daysLeft} days with ${progress.toFixed(0)}% progress.`,
+                action: { label: "Add Funds", href: "/financial-goals" },
+                icon: Bell,
+                priority: 2,
+                dismissable: true,
+              });
+            }
+          } catch {
+            // Skip if date parsing fails
           }
         }
       });

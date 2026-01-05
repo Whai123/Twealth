@@ -25,6 +25,13 @@ import NotificationActions from"./notification-actions";
 import { cn } from"@/lib/utils";
 import { motion, AnimatePresence } from"framer-motion";
 
+function safeString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (value === null || value === undefined) return '';
+  return '';
+}
+
 interface Notification {
  id: string;
  type: string;
@@ -341,7 +348,7 @@ export default function NotificationsBell() {
                  "text-sm leading-snug line-clamp-1",
                  !notification.isRead ? "font-semibold" : "font-medium"
                 )}>
-                 {notification.title}
+                 {safeString(notification.title) || 'Notification'}
                 </h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
                  {formatTimeAgo(notification.createdAt)}
@@ -349,7 +356,7 @@ export default function NotificationsBell() {
                </div>
                
                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
-                {notification.message}
+                {safeString(notification.message)}
                </p>
 
                {notification.actionType && (

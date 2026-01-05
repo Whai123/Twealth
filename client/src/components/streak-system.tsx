@@ -10,6 +10,22 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 
+function safeString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (value === null || value === undefined) return '';
+  return '';
+}
+
+function safeNumber(value: unknown): number {
+  if (typeof value === 'number' && !isNaN(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+}
+
 interface StreakData {
   currentStreak: number;
   longestStreak: number;
@@ -286,7 +302,7 @@ export function AchievementBadges() {
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="absolute inset-0 bg-black/60 rounded-xl" />
                   <p className="relative text-[10px] text-white text-center px-1 font-medium">
-                    {achievement.title}
+                    {safeString(achievement.title) || 'Achievement'}
                   </p>
                 </div>
               </motion.div>
@@ -306,14 +322,14 @@ export function AchievementBadges() {
                 })()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{inProgressAchievements[0].title}</p>
+                <p className="text-sm font-medium truncate">{safeString(inProgressAchievements[0].title) || 'Achievement'}</p>
                 <Progress 
-                  value={(inProgressAchievements[0].progress / inProgressAchievements[0].target) * 100} 
+                  value={(safeNumber(inProgressAchievements[0].progress) / Math.max(1, safeNumber(inProgressAchievements[0].target))) * 100} 
                   className="h-1.5 mt-1"
                 />
               </div>
               <span className="text-xs text-muted-foreground">
-                {inProgressAchievements[0].progress}/{inProgressAchievements[0].target}
+                {safeNumber(inProgressAchievements[0].progress)}/{safeNumber(inProgressAchievements[0].target)}
               </span>
             </div>
           </div>
