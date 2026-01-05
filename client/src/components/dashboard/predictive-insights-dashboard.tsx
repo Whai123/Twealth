@@ -18,6 +18,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useUserCurrency } from "@/lib/userContext";
+import { safeString } from "@/lib/safe-render";
 
 interface SpendingForecast {
   category: string;
@@ -162,17 +163,17 @@ export default function PredictiveInsightsDashboard() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <h4 className={`font-semibold ${getSeverityColor(anomaly.severity)}`}>
-                      {anomaly.title}
+                      {safeString(anomaly.title)}
                     </h4>
                     <Badge variant={anomaly.severity === 'critical' ? 'destructive' : 'outline'}>
-                      {anomaly.severity}
+                      {safeString(anomaly.severity)}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">{anomaly.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{safeString(anomaly.description)}</p>
                   <div className="flex items-center gap-2 text-sm">
                     <ArrowRight className="h-4 w-4 text-primary" />
                     <span className="font-medium">Action:</span>
-                    <span className="text-muted-foreground">{anomaly.suggestedAction}</span>
+                    <span className="text-muted-foreground">{safeString(anomaly.suggestedAction)}</span>
                   </div>
                 </div>
               ))}
@@ -207,7 +208,7 @@ export default function PredictiveInsightsDashboard() {
                     <div key={idx} className="p-4 border rounded-lg" data-testid={`forecast-${idx}`}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="font-semibold text-lg capitalize">{forecast.category}</div>
+                          <div className="font-semibold text-lg capitalize">{safeString(forecast.category)}</div>
                           {getTrendIcon(forecast.trend)}
                         </div>
                         {getConfidenceBadge(forecast.confidence)}
@@ -254,7 +255,7 @@ export default function PredictiveInsightsDashboard() {
                     <div key={idx} className="p-4 border rounded-lg" data-testid={`goal-prediction-${idx}`}>
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h4 className="font-semibold text-lg">{prediction.goalTitle}</h4>
+                          <h4 className="font-semibold text-lg">{safeString(prediction.goalTitle)}</h4>
                           <div className="text-sm text-muted-foreground mt-1">
                             Predicted completion: {new Date(prediction.predictedCompletionDate).toLocaleDateString()}
                           </div>
@@ -291,7 +292,7 @@ export default function PredictiveInsightsDashboard() {
                         </div>
                         <div className="p-3 bg-muted rounded-lg text-sm">
                           <div className="font-medium mb-1">Recommendation:</div>
-                          <div className="text-muted-foreground">{prediction.recommendedAction}</div>
+                          <div className="text-muted-foreground">{safeString(prediction.recommendedAction)}</div>
                         </div>
                       </div>
                     </div>
@@ -361,7 +362,7 @@ export default function PredictiveInsightsDashboard() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <Lightbulb className="h-5 w-5 text-green-600" />
-                          <h4 className="font-semibold capitalize">{opportunity.category}</h4>
+                          <h4 className="font-semibold capitalize">{safeString(opportunity.category)}</h4>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-bold text-green-600">
@@ -370,10 +371,10 @@ export default function PredictiveInsightsDashboard() {
                           <div className="text-xs text-muted-foreground">per {opportunity.timeframe}</div>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{opportunity.suggestion}</p>
+                      <p className="text-sm text-muted-foreground mb-3">{safeString(opportunity.suggestion)}</p>
                       <div className="flex items-center gap-4 text-xs">
                         <Badge variant="outline">
-                          {opportunity.difficulty} to implement
+                          {safeString(opportunity.difficulty)} to implement
                         </Badge>
                         <Badge variant="outline">
                           {((opportunity.confidence ?? 0) * 100).toFixed(0)}% confidence

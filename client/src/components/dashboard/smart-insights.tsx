@@ -20,6 +20,7 @@ import {
 import { Progress } from"@/components/ui/progress";
 import NotificationActions from"./notification-actions";
 import { useUserCurrency } from"@/lib/userContext";
+import { safeString } from "@/lib/safe-render";
 
 interface Transaction {
  id: string;
@@ -328,23 +329,23 @@ export default function SmartInsights() {
           <div className="flex-1">
            <div className="flex items-center gap-2 mb-2">
             {getInsightIcon(insight.type)}
-            <h4 className="font-medium text-sm">{insight.title}</h4>
+            <h4 className="font-medium text-sm">{safeString(insight.title)}</h4>
             <Badge 
              variant={insight.priority === 'high' ? 'destructive' : 'secondary'}
              className="text-xs"
             >
-             {insight.priority}
+             {safeString(insight.priority)}
             </Badge>
            </div>
            
            <p className="text-sm text-muted-foreground mb-3">
-            {insight.description}
+            {safeString(insight.description)}
            </p>
 
            {insight.value && (
             <div className="flex items-center gap-2 mb-3">
              <Badge variant="outline" className="font-mono">
-              {insight.value}
+              {safeString(insight.value)}
              </Badge>
             </div>
            )}
@@ -389,7 +390,7 @@ export default function SmartInsights() {
              data-testid={`button-action-${index}`}
             >
              <Zap size={12} className="mr-1" />
-             {insight.action.label}
+             {safeString(insight.action.label)}
             </Button>
            )}
           </div>
@@ -409,11 +410,11 @@ export default function SmartInsights() {
         <div className="flex items-center gap-2 mb-2">
          <AlertTriangle className="text-red-500" size={16} />
          <h4 className="font-medium text-sm text-red-700 dark:text-red-300">
-          {insight.title}
+          {safeString(insight.title)}
          </h4>
         </div>
         <p className="text-sm text-red-600 dark:text-red-400 mb-3">
-         {insight.description}
+         {safeString(insight.description)}
         </p>
         {insight.actionable && insight.action && (
          <Button
@@ -452,7 +453,7 @@ export default function SmartInsights() {
            }
           }}
          >
-          {insight.action.label}
+          {safeString(insight.action.label)}
          </Button>
         )}
        </Card>
@@ -469,11 +470,11 @@ export default function SmartInsights() {
         <div className="flex items-center gap-2 mb-2">
          <Lightbulb className="text-yellow-500" size={16} />
          <h4 className="font-medium text-sm text-yellow-700 dark:text-yellow-300">
-          {insight.title}
+          {safeString(insight.title)}
          </h4>
         </div>
         <p className="text-sm text-yellow-600 dark:text-yellow-400 mb-3">
-         {insight.description}
+         {safeString(insight.description)}
         </p>
         {insight.actionable && insight.action && (
          <Button
@@ -512,7 +513,7 @@ export default function SmartInsights() {
            }
           }}
          >
-          {insight.action.label}
+          {safeString(insight.action.label)}
          </Button>
         )}
        </Card>
@@ -529,11 +530,11 @@ export default function SmartInsights() {
         <div className="flex items-center gap-2 mb-2">
          <CheckCircle className="text-green-500" size={16} />
          <h4 className="font-medium text-sm text-green-700 dark:text-green-300">
-          {insight.title}
+          {safeString(insight.title)}
          </h4>
         </div>
         <p className="text-sm text-green-600 dark:text-green-400 mb-3">
-         {insight.description}
+         {safeString(insight.description)}
         </p>
         {insight.actionable && insight.action && (
          <Button
@@ -572,7 +573,7 @@ export default function SmartInsights() {
            }
           }}
          >
-          {insight.action.label}
+          {safeString(insight.action.label)}
          </Button>
         )}
        </Card>
