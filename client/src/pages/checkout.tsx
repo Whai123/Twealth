@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useStripe, useElements, PaymentElement, Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, parseJsonSafely } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -152,10 +152,10 @@ export default function CheckoutPage() {
  });
 
  if (response.ok) {
- const data = await response.json();
+ const data = await parseJsonSafely(response);
  setClientSecret(data.clientSecret);
  } else {
- const error = await response.json();
+ const error = await parseJsonSafely(response);
  toast({
  title:"Setup Failed",
  description: error.message ||"Failed to setup payment",

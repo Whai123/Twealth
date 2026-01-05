@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, parseJsonSafely } from "@/lib/queryClient";
 
 const step1Schema = z.object({
   fullName: z.string().min(1, "Name is required"),
@@ -144,7 +144,7 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
         onboardingStep: data.step,
         onboardingData: data.data,
       });
-      return response.json();
+      return parseJsonSafely(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });
@@ -159,7 +159,7 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
         onboardingData: data,
         language: data.preferredLanguage || "en",
       });
-      return response.json();
+      return parseJsonSafely(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });

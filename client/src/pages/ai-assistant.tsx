@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { apiRequest, queryClient, RateLimitError } from "@/lib/queryClient";
+import { apiRequest, parseJsonSafely, queryClient, RateLimitError } from "@/lib/queryClient";
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar";
 import { MessageBubble, TypingIndicator } from "@/components/chat/message-bubble";
 import { ProactiveInsightsPanel } from "@/components/chat/proactive-insights-panel";
@@ -414,7 +414,7 @@ export default function AIAssistantPage() {
         const response = await apiRequest("POST", "/api/chat/conversations", { 
           title: content.slice(0, 50) + (content.length > 50 ? '...' : '')
         });
-        const conversation = await response.json();
+        const conversation = await parseJsonSafely(response);
         conversationId = conversation.id;
         setCurrentConversationId(conversationId);
       }
@@ -425,12 +425,12 @@ export default function AIAssistantPage() {
       });
       
       if (messageResponse.status === 429) {
-        const errorData = await messageResponse.json();
+        const errorData = await parseJsonSafely(messageResponse);
         const exceededModel = errorData.exceededModel;
         throw { isQuotaError: true, exceededModel, message: errorData.message };
       }
       
-      return await messageResponse.json();
+      return await parseJsonSafely(messageResponse);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
@@ -519,7 +519,7 @@ export default function AIAssistantPage() {
         const response = await apiRequest("POST", "/api/chat/conversations", { 
           title: content.slice(0, 50) + (content.length > 50 ? '...' : '')
         });
-        const conversation = await response.json();
+        const conversation = await parseJsonSafely(response);
         conversationId = conversation.id;
         setCurrentConversationId(conversationId);
       }

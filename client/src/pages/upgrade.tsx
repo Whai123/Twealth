@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Zap, Crown, ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, parseJsonSafely, queryClient } from "@/lib/queryClient";
 import PaymentForm from "@/components/payment-form";
 import { useUserCurrency } from "@/lib/userContext";
 
@@ -35,7 +35,7 @@ export default function UpgradePage() {
   const upgradeMutation = useMutation({
     mutationFn: async (planId: string) => {
       const response = await apiRequest("POST", "/api/subscription/upgrade", { planId });
-      return response.json();
+      return parseJsonSafely(response);
     },
     onSuccess: (data) => {
       if (data.requiresPayment) {
@@ -74,7 +74,7 @@ export default function UpgradePage() {
   const paymentMutation = useMutation({
     mutationFn: async (planId: string) => {
       const response = await apiRequest("POST", "/api/subscription/create-payment-intent", { planId });
-      return response.json();
+      return parseJsonSafely(response);
     },
     onSuccess: (data) => {
       if (data.requiresSetup) {

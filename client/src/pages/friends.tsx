@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from"@/components/ui/dialog";
 import { Textarea } from"@/components/ui/textarea";
 import { Label } from"@/components/ui/label";
-import { apiRequest } from"@/lib/queryClient";
+import { apiRequest, parseJsonSafely } from"@/lib/queryClient";
 import { useToast } from"@/hooks/use-toast";
 import type { User } from"@shared/schema";
 
@@ -61,7 +61,7 @@ export default function Friends() {
  const sendRequestMutation = useMutation({
   mutationFn: async ({ toUserId, message }: { toUserId: string; message?: string }) => {
    const response = await apiRequest("POST","/api/friend-requests", { toUserId, message });
-   return response.json();
+   return parseJsonSafely(response);
   },
   onSuccess: () => {
    queryClient.invalidateQueries({ queryKey: ["/api/friend-requests/sent"] });
@@ -86,7 +86,7 @@ export default function Friends() {
  const respondToRequestMutation = useMutation({
   mutationFn: async ({ requestId, status }: { requestId: string; status: 'accepted' | 'declined' }) => {
    const response = await apiRequest("PUT", `/api/friend-requests/${requestId}/respond`, { status });
-   return response.json();
+   return parseJsonSafely(response);
   },
   onSuccess: (data, variables) => {
    queryClient.invalidateQueries({ queryKey: ["/api/friend-requests/pending"] });

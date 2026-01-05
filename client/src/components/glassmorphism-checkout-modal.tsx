@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardNumberElement, CardExpiryElement, CardCvcElement, useStripe, useElements, PaymentRequestButtonElement } from "@stripe/react-stripe-js";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, parseJsonSafely, queryClient } from "@/lib/queryClient";
 
 const stripePromise = import.meta.env.VITE_STRIPE_PUBLIC_KEY 
   ? loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
@@ -148,7 +148,7 @@ function QuickPayButtons({
         const response = await apiRequest("POST", "/api/subscription/create-payment-intent", { 
           planId: plan.id 
         });
-        const data = await response.json();
+        const data = await parseJsonSafely(response);
 
         if (!data.clientSecret) {
           ev.complete('fail');
@@ -289,7 +289,7 @@ function EmbeddedPaymentForm({
       const response = await apiRequest("POST", "/api/subscription/create-payment-intent", { 
         planId: plan.id 
       });
-      const data = await response.json();
+      const data = await parseJsonSafely(response);
 
       if (data.requiresSetup) {
         setError("Payment processing is being configured. Please try again later.");

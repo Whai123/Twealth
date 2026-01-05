@@ -10,7 +10,7 @@ import { Label } from"@/components/ui/label";
 import { DialogHeader, DialogTitle, DialogDescription } from"@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
 import { Checkbox } from"@/components/ui/checkbox";
-import { apiRequest } from"@/lib/queryClient";
+import { apiRequest, parseJsonSafely } from"@/lib/queryClient";
 import { useToast } from"@/hooks/use-toast";
 import { useUser } from"@/lib/userContext";
 import { Users, Loader2, Target, AlertCircle } from"lucide-react";
@@ -80,7 +80,7 @@ export default function GoalForm({ onSuccess }: GoalFormProps) {
     currentAmount: data.currentAmount ||"0", // Keep as string for decimal field
     targetDate: new Date(data.targetDate), // Send as Date object for timestamp field
    });
-   return await response.json();
+   return await parseJsonSafely(response);
   },
   onMutate: async (newGoal: GoalFormData) => {
    // Cancel outgoing refetches

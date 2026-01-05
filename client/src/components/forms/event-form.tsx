@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, parseJsonSafely } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
 import { Calendar, Loader2, AlertCircle, MapPin, Clock, Target } from "lucide-react";
@@ -83,7 +83,7 @@ export default function EventForm({ onSuccess }: EventFormProps) {
         linkedGoalId: data.linkedGoalId || null,
         groupId: data.groupId || null,
       });
-      return await response.json();
+      return await parseJsonSafely(response);
     },
     onSuccess: () => {
       toast({

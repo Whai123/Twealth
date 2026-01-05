@@ -6,7 +6,7 @@ import { Input } from"@/components/ui/input";
 import { ScrollArea } from"@/components/ui/scroll-area";
 import { Badge } from"@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
-import { apiRequest } from"@/lib/queryClient";
+import { apiRequest, parseJsonSafely } from"@/lib/queryClient";
 
 interface ChatMessage {
  id: string;
@@ -57,7 +57,7 @@ export default function AIChatButton() {
    const response = await apiRequest("POST","/api/chat/conversations", { 
     title:"New Conversation" 
    });
-   return await response.json();
+   return await parseJsonSafely(response);
   },
   onSuccess: (conversation: ChatConversation) => {
    setCurrentConversationId(conversation.id);
@@ -71,7 +71,7 @@ export default function AIChatButton() {
    const response = await apiRequest("POST", `/api/chat/conversations/${conversationId}/messages`, { 
     content 
    });
-   return await response.json();
+   return await parseJsonSafely(response);
   },
   onSuccess: (data: APIResponse) => {
    queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", currentConversationId] });
@@ -107,7 +107,7 @@ export default function AIChatButton() {
    const response = await apiRequest("POST","/api/chat/conversations", { 
     title:"New Conversation" 
    });
-   const conversation: ChatConversation = await response.json();
+   const conversation: ChatConversation = await parseJsonSafely(response);
    setCurrentConversationId(conversation.id);
    
    // Send message to new conversation

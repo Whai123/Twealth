@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, parseJsonSafely, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
@@ -166,7 +166,7 @@ export function WeeklySummaryCard() {
   const generateMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/playbooks/generate");
-      return response.json();
+      return parseJsonSafely(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/playbooks'] });
@@ -190,7 +190,7 @@ export function WeeklySummaryCard() {
         actionIndex,
         estimatedSavings: 0,
       });
-      return response.json();
+      return parseJsonSafely(response);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/playbooks'] });

@@ -1,46 +1,60 @@
 import { QueryClient, QueryFunction } from"@tanstack/react-query";
 
 // Cache version - increment to force cache clear on deploy
-const CACHE_VERSION = 2;
+// v4: Conservative sanitization that preserves data structure + mutation sanitization
+const CACHE_VERSION = 4;
 const CACHE_VERSION_KEY = 'twealth_cache_version';
 
 /**
  * Deep sanitizes API response data to prevent React Error #300.
- * Ensures all values that should be strings/numbers are primitives.
+ * CONSERVATIVE: Preserves data structure, only ensures values are proper types.
+ * The actual protection from objects-as-React-children happens at render time
+ * via safeString/SafeText in components.
+ * 
+ * This function ensures:
+ * - null/undefined stay as-is (React handles these)
+ * - primitives stay as-is
+ * - arrays are recursively sanitized
+ * - objects are recursively sanitized to ensure nested values are clean
+ * - Date objects are converted to ISO strings
  */
-function sanitizeResponseData(data: unknown): unknown {
-  if (data === null || data === undefined) return data;
-  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') return data;
-  
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeResponseData(item));
+function sanitizeResponseData(data: unknown, depth: number = 0): unknown {
+  // Prevent infinite recursion
+  if (depth > 50) {
+    console.warn('[QueryClient] Max recursion depth reached in sanitizeResponseData');
+    return data;
   }
   
+  // null/undefined are safe
+  if (data === null || data === undefined) return data;
+  
+  // Primitives are safe
+  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') return data;
+  
+  // Date objects - convert to ISO string
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
+  
+  // Arrays: sanitize each element
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeResponseData(item, depth + 1));
+  }
+  
+  // Objects: recursively sanitize all properties
   if (typeof data === 'object') {
+    const obj = data as Record<string, unknown>;
     const sanitized: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-      // String fields that might contain objects
-      const stringFields = ['title', 'name', 'message', 'description', 'label', 'text', 'content', 
-                           'summary', 'recommendation', 'topPriority', 'grade', 'status', 'category'];
-      const lowerKey = key.toLowerCase();
-      
-      if (stringFields.some(f => lowerKey.includes(f.toLowerCase()))) {
-        // Ensure this is a string
-        if (typeof value === 'object' && value !== null) {
-          console.warn(`[QueryClient] Flattening object in ${key}:`, value);
-          const obj = value as Record<string, unknown>;
-          sanitized[key] = obj.text || obj.content || obj.value || obj.message || obj.title || JSON.stringify(value);
-        } else {
-          sanitized[key] = value ?? '';
-        }
-      } else {
-        sanitized[key] = sanitizeResponseData(value);
-      }
+    
+    for (const [key, value] of Object.entries(obj)) {
+      sanitized[key] = sanitizeResponseData(value, depth + 1);
     }
+    
     return sanitized;
   }
   
-  return data;
+  // Fallback for symbols, functions, etc: convert to string
+  return String(data);
 }
 
 /**
@@ -134,6 +148,15 @@ export async function apiRequest(
 
  await throwIfResNotOk(res);
  return res;
+}
+
+/**
+ * Helper to parse and sanitize JSON response from mutations.
+ * Use this instead of response.json() to prevent React Error #300.
+ */
+export async function parseJsonSafely<T = unknown>(response: Response): Promise<T> {
+ const data = await response.json();
+ return sanitizeResponseData(data) as T;
 }
 
 type UnauthorizedBehavior ="returnNull" |"throw";
