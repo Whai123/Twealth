@@ -32,14 +32,14 @@ interface FinancialHealthResponse {
   overall: number;
   grade: string;
   breakdown: {
-    savingsRate?: { value: number; score: number; weight: number };
-    emergencyFund?: { months: number; score: number; weight: number };
-    goalProgress?: { value: number; score: number; weight: number };
-    budgetAdherence?: { value: number; score: number; weight: number };
-    debtRatio?: { value: number; score: number; weight: number };
+    savingsRate?: { score: number; value: number; label: string; recommendation: string };
+    emergencyFund?: { score: number; months: number; label: string; recommendation: string };
+    debtRatio?: { score: number; ratio: number; label: string; recommendation: string };
+    netWorthGrowth?: { score: number; growth: number; label: string; recommendation: string };
+    budgetAdherence?: { score: number; adherence: number; label: string; recommendation: string };
   };
-  insights: string[];
-  recommendations: string[];
+  summary: string;
+  topPriority: string;
 }
 
 interface SubscriptionResponse {

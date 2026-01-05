@@ -103,10 +103,20 @@ Updated sw.js to version 'kill-v2':
 
 1. **client/public/sw.js**: Kill-switch v2 - NO navigation/reload on activation
 2. **server/index.ts**: Updated inline fallback SW to v2, no navigate() calls
-3. **client/src/components/error-boundary.tsx**: Removed ALL automatic reload logic - only shows static UI
+3. **client/src/components/error-boundary.tsx**: Removed ALL automatic reload logic - only shows static UI with error details
 4. **client/src/App.tsx**: 9 critical routes eagerly imported (Dashboard, Welcome, Groups, etc.)
 5. **client/index.html**: All inline reload scripts removed
-6. **client/src/pages/dashboard.tsx**: Auth guards on queries (`enabled: isAuthenticated`)
+6. **client/src/pages/dashboard.tsx**: Auth guards on queries (`enabled: isAuthenticated`), fixed FinancialHealthResponse interface
+
+## React Error #300 Fix (Jan 5, 2026)
+
+**Root Cause**: The `FinancialHealthResponse` interface in `dashboard.tsx` was stale - it expected `insights: string[]` and `recommendations: string[]` but the API returned a different structure with nested `breakdown` objects containing `recommendation` strings.
+
+**The Fix**: Updated `FinancialHealthResponse` interface to match actual API response:
+- `breakdown.savingsRate/emergencyFund/debtRatio/netWorthGrowth/budgetAdherence` each contain `{ score, value/months/ratio/growth/adherence, label, recommendation }`
+- Replaced `insights: string[]` and `recommendations: string[]` with `summary: string` and `topPriority: string`
+
+This prevented objects from being rendered directly as React children in production builds on mobile Safari.
 
 ## Design Principles (Preventing Future Loops)
 

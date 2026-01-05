@@ -62,9 +62,11 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, errorType: 'other', errorMessage: error.message };
   }
 
-  public componentDidCatch(error: Error, _errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Error caught:', error.message);
     console.error('[ErrorBoundary] Error type:', this.state.errorType);
+    console.error('[ErrorBoundary] Error stack:', error.stack);
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
     
     // Auth errors: redirect to login (single redirect, no loop)
     if (isAuthError(error)) {
@@ -131,16 +133,25 @@ class ErrorBoundary extends Component<Props, State> {
           <div className="text-center max-w-md">
             <p className="text-lg font-medium text-foreground mb-2">Something went wrong</p>
             <p className="text-sm text-muted-foreground mb-2">Please refresh the page to try again.</p>
-            <p className="text-xs text-muted-foreground/60 mb-4 font-mono break-all">
+            <div className="text-xs text-muted-foreground/60 mb-4 font-mono break-all max-h-32 overflow-auto text-left bg-muted/20 p-2 rounded">
               {this.state.errorMessage || 'Unknown error'}
-            </p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
-              data-testid="button-refresh"
-            >
-              Refresh Page
-            </button>
+            </div>
+            <div className="space-y-2">
+              <button 
+                onClick={() => window.location.reload()}
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+                data-testid="button-refresh"
+              >
+                Refresh Page
+              </button>
+              <button 
+                onClick={this.handleHardRefresh}
+                className="w-full px-4 py-2 bg-muted text-foreground rounded-md text-sm font-medium hover:bg-muted/80"
+                data-testid="button-clear-cache"
+              >
+                Clear Cache & Refresh
+              </button>
+            </div>
           </div>
         </div>
       );
