@@ -23,6 +23,15 @@ const debugLog = (context: string, message: string, data?: any) => {
  * Ensures all values are primitives (strings, numbers, booleans, null) or arrays/objects of primitives.
  * Converts Date objects to ISO strings.
  */
+// CRITICAL: Only JSONB fields containing NESTED OBJECTS must be stringified
+// to prevent React Error #300 on mobile Safari.
+// DO NOT include arrays of primitives (strings, numbers, booleans) - they are safe.
+const JSON_BLOB_FIELDS = new Set([
+  'onboardingData',        // Contains nested object with user profile data
+  'conversationMemory',    // Contains nested objects with life events, preferences
+  'userContext',           // Contains nested financial data object
+]);
+
 function sanitizeApiResponse(data: unknown): unknown {
   if (data === null || data === undefined) return data;
   
@@ -31,7 +40,7 @@ function sanitizeApiResponse(data: unknown): unknown {
     return isNaN(data.getTime()) ? null : data.toISOString();
   }
   
-  // Handle arrays
+  // Handle arrays - recursively sanitize each item
   if (Array.isArray(data)) {
     return data.map(item => sanitizeApiResponse(item));
   }
@@ -48,9 +57,8 @@ function sanitizeApiResponse(data: unknown): unknown {
   if (typeof data === 'object') {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
-      // CRITICAL: Stringify onboardingData to prevent React Error #300
-      // This field contains nested JSON that mobile Safari tries to render as React children
-      if (key === 'onboardingData' && value !== null && typeof value === 'object') {
+      // CRITICAL: Stringify known JSON blob fields to prevent React Error #300
+      if (JSON_BLOB_FIELDS.has(key) && value !== null && typeof value === 'object') {
         result[key] = JSON.stringify(value);
       } else {
         result[key] = sanitizeApiResponse(value);
@@ -965,7 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const streak = await storage.getUserStreak(userId);
       const achievements = await storage.getUserAchievements(userId);
       
-      res.json({
+      res.json(sanitizeApiResponse({
         currentStreak: streak?.currentStreak ?? 0,
         longestStreak: streak?.longestStreak ?? 0,
         lastCheckIn: streak?.lastCheckIn ?? null,
@@ -980,7 +988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           progress: a.progress ?? 0,
           target: a.target,
         })),
-      });
+      }));
     } catch (error: any) {
       console.error('Error fetching streak:', error);
       res.status(500).json({ message: error.message });
@@ -2588,9 +2596,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           defaultGoalPriority: "medium" as const
         };
         const newPrefs = await storage.createFinancialPreferences(defaultPrefs);
-        return res.json(newPrefs);
+        return res.json(sanitizeApiResponse(newPrefs));
       }
-      res.json(preferences);
+      res.json(sanitizeApiResponse(preferences));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
