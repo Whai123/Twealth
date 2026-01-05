@@ -32,6 +32,13 @@ import { useMutation } from"@tanstack/react-query";
 import { apiRequest, queryClient } from"@/lib/queryClient";
 import { useToast } from"@/hooks/use-toast";
 
+function safeString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (value === null || value === undefined) return '';
+  return '';
+}
+
 interface NavSection {
  title: string;
  items: Array<{
@@ -233,10 +240,10 @@ function SidebarComponent() {
  </div>
  <div>
  <p className="font-semibold text-sm" data-testid="text-username">
- {user ? `${user.firstName} ${user.lastName}` : 'Loading...'}
+ {user ? `${safeString(user.firstName)} ${safeString(user.lastName)}` : 'Loading...'}
  </p>
  <p className="text-xs text-muted-foreground" data-testid="text-useremail">
- {user?.email || 'Loading...'}
+ {safeString(user?.email) || 'Loading...'}
  </p>
  </div>
  </div>

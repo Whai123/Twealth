@@ -250,7 +250,7 @@ export function SmartNudgeBanner() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h4 className="font-semibold text-sm">{currentNudge.title}</h4>
+                  <h4 className="font-semibold text-sm">{safeString(currentNudge.title)}</h4>
                   {nudges.length > 1 && (
                     <Badge variant="outline" className="text-[10px] px-1.5">
                       {currentIndex + 1}/{nudges.length}
@@ -258,7 +258,7 @@ export function SmartNudgeBanner() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-1">
-                  {currentNudge.message}
+                  {safeString(currentNudge.message)}
                 </p>
               </div>
 
@@ -270,7 +270,7 @@ export function SmartNudgeBanner() {
                     className="hidden sm:flex h-8 text-xs"
                     data-testid={`nudge-action-${currentNudge.id}`}
                   >
-                    {currentNudge.action.label}
+                    {safeString(currentNudge.action.label)}
                     <ArrowRight className="w-3 h-3 ml-1" />
                   </Button>
                 )}
