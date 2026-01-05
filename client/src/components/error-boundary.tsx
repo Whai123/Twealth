@@ -117,6 +117,32 @@ class ErrorBoundary extends Component<Props, State> {
       return;
     }
     
+    // CHUNK ERRORS: Auto-recover ONCE (fixes iOS Safari loading issues)
+    if (isChunkError(error)) {
+      const recoveryKey = 'chunk_recovery_attempted';
+      const alreadyAttempted = sessionStorage.getItem(recoveryKey) === '1';
+      
+      if (!alreadyAttempted) {
+        console.log('[ErrorBoundary] Chunk error detected - AUTO-RECOVERING (one-shot)');
+        sessionStorage.setItem(recoveryKey, '1');
+        
+        // Clear caches and SW, then reload with cache-buster
+        clearAllCachesAndSW().then(() => {
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', Date.now().toString());
+          window.location.replace(url.toString());
+        }).catch(() => {
+          // If cleanup fails, still try the reload
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', Date.now().toString());
+          window.location.replace(url.toString());
+        });
+        return;
+      }
+      
+      console.log('[ErrorBoundary] Chunk error - auto-recovery already attempted, showing manual instructions');
+    }
+    
     // For ALL other errors: NO automatic reload to prevent loops
     // Just log and show fallback UI - user can manually refresh
     console.log('[ErrorBoundary] Showing fallback UI (NO automatic reload)');
@@ -143,26 +169,35 @@ class ErrorBoundary extends Component<Props, State> {
         );
       }
       
-      // For chunk errors - show clear instructions with manual refresh button
+      // For chunk errors - show clear instructions with manual fix steps
+      // This only shows if auto-recovery already failed once
       if (this.state.errorType === 'chunk') {
         return (
           <div className="fixed inset-0 flex items-center justify-center bg-background p-4">
             <div className="text-center max-w-md">
               <p className="text-lg font-medium text-foreground mb-2">Loading issue</p>
               <p className="text-sm text-muted-foreground mb-4">
-                Some files couldn't load. Please try refreshing the page.
+                The app couldn't load correctly. Please clear your browser cache.
               </p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <button 
                   onClick={this.handleHardRefresh}
                   className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
                   data-testid="button-hard-refresh"
                 >
-                  Refresh Page
+                  Try Again
                 </button>
-                <p className="text-xs text-muted-foreground">
-                  If this keeps happening: Settings → Safari → Clear Website Data
-                </p>
+                
+                <div className="text-left bg-muted/30 p-3 rounded-md">
+                  <p className="text-sm font-medium text-foreground mb-2">If the problem persists:</p>
+                  <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                    <li>Open <strong>Settings</strong> on your device</li>
+                    <li>Go to <strong>Safari</strong> (or your browser)</li>
+                    <li>Tap <strong>Clear History and Website Data</strong></li>
+                    <li>Or: Advanced → Website Data → find twealth.ltd → Delete</li>
+                    <li>Return here and refresh the page</li>
+                  </ol>
+                </div>
               </div>
             </div>
           </div>

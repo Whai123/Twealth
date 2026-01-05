@@ -195,7 +195,7 @@ app.get('/sw.js', (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('X-SW-Version', 'kill-v2');
+  res.setHeader('X-SW-Version', 'kill-v3');
   
   // Serve from client/public in dev, dist/public in prod
   // CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
@@ -206,10 +206,10 @@ app.get('/sw.js', (req, res) => {
   if (fs.existsSync(swPath)) {
     res.sendFile(swPath);
   } else {
-    // Fallback inline kill-switch SW if file not found - NO NAVIGATION
-    log('[SW] sw.js file not found, serving inline kill-switch v2');
+    // Fallback inline kill-switch SW - FORCES RELOAD with cache-buster
+    log('[SW] sw.js file not found, serving inline kill-switch v3');
     res.send(`
-// Kill-Switch SW v2 - NO PAGE RELOAD
+// Kill-Switch SW v3 - FORCES PAGE RELOAD
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
@@ -217,9 +217,15 @@ self.addEventListener('activate', (e) => {
     const keys = await caches.keys();
     await Promise.all(keys.map(k => caches.delete(k)));
     await self.registration.unregister();
-    // NO navigate() - just notify clients silently
+    // FORCE RELOAD with cache-buster to get fresh HTML
     const clients = await self.clients.matchAll({type:'window'});
-    clients.forEach(c => c.postMessage({type:'SW_KILLED',version:'kill-v2'}));
+    for (const c of clients) {
+      try {
+        const url = new URL(c.url);
+        url.searchParams.set('v', Date.now().toString());
+        c.navigate(url.toString());
+      } catch(e) {}
+    }
   })());
 });
 self.addEventListener('fetch', () => {});
@@ -235,7 +241,7 @@ app.get('/service-worker.js', (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('X-SW-Version', 'kill-v2');
+  res.setHeader('X-SW-Version', 'kill-v3');
   
   const swPath = process.env.NODE_ENV === 'production'
     ? path.resolve(process.cwd(), 'dist/public/sw.js')
@@ -244,9 +250,9 @@ app.get('/service-worker.js', (req, res) => {
   if (fs.existsSync(swPath)) {
     res.sendFile(swPath);
   } else {
-    log('[SW] sw.js file not found, serving inline kill-switch v2');
+    log('[SW] sw.js file not found, serving inline kill-switch v3');
     res.send(`
-// Kill-Switch SW v2 - NO PAGE RELOAD
+// Kill-Switch SW v3 - FORCES PAGE RELOAD
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
@@ -254,9 +260,15 @@ self.addEventListener('activate', (e) => {
     const keys = await caches.keys();
     await Promise.all(keys.map(k => caches.delete(k)));
     await self.registration.unregister();
-    // NO navigate() - just notify clients silently
+    // FORCE RELOAD with cache-buster to get fresh HTML
     const clients = await self.clients.matchAll({type:'window'});
-    clients.forEach(c => c.postMessage({type:'SW_KILLED',version:'kill-v2'}));
+    for (const c of clients) {
+      try {
+        const url = new URL(c.url);
+        url.searchParams.set('v', Date.now().toString());
+        c.navigate(url.toString());
+      } catch(e) {}
+    }
   })());
 });
 self.addEventListener('fetch', () => {});
