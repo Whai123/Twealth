@@ -79,61 +79,45 @@ All pages use mobile-first responsive breakpoints: `grid-cols-1 sm:grid-cols-2 l
 
 # Mobile Safari Refresh Loop Fix (Jan 2026)
 
-## Current Status: ALL AUTO-RELOAD SCRIPTS REMOVED
+## Current Status: ROOT CAUSE FIXED - NO AUTO-RELOADS
 
-The infinite refresh loop on mobile Safari has been fixed by:
+The infinite refresh loop on mobile Safari has been **permanently fixed** by identifying and removing the root cause.
 
-1. **Removed ALL automatic reload scripts from index.html:**
-   - SW Killer v2.1 script (was causing reloads when detecting service worker artifacts)
-   - Version Check & Auto-Reload System (was reloading on version mismatches/chunk errors)
+## ROOT CAUSE (Jan 5, 2026)
 
-2. **Added auth guards to Dashboard queries:**
-   - All 5 useQuery calls now have `enabled: isAuthenticated`
-   - Queries only fire after authentication is confirmed
-   - Prevents 401 errors from throwing to ErrorBoundary
+The Service Worker kill-switch (`client/public/sw.js`) contained this line that caused infinite reloads:
+```javascript
+clients.forEach(c => c.navigate(c.url));  // THIS WAS THE BUG!
+```
 
-3. **Improved ErrorBoundary error handling:**
-   - Auth errors (401) redirect to `/login` instead of triggering page reload
-   - Chunk loading errors have max 3 retry limit
-   - Other errors show simple message without auto-reload
+Every time the SW activated, it would reload ALL browser tabs, creating an infinite loop.
 
-## Root Causes Identified
+## THE FIX
 
-The refresh loop was caused by:
-1. Dashboard queries firing before auth cookies were ready on mobile Safari
-2. 401 errors bubbling to ErrorBoundary → triggering silentRecover() → reload
-3. SW killer script detecting artifacts and forcing reloads
-4. Version check script reloading on chunk errors
+Updated sw.js to version 'kill-v2':
+- **Removed ALL `client.navigate()` calls** - SW no longer triggers page reloads
+- Uses `client.postMessage()` instead to notify pages silently
+- SW still clears caches and unregisters itself, but WITHOUT causing navigation
 
 ## Files Modified
 
-1. **client/index.html**: All inline reload scripts removed
-2. **client/src/pages/dashboard.tsx**: Added `enabled: isAuthenticated` to all queries
-3. **client/src/components/error-boundary.tsx**: Auth errors redirect to login; chunk errors get smart one-time recovery (clear caches, reload with cache-buster)
-4. **client/src/main.tsx**: SW registration gated behind `VITE_ENABLE_PWA=true`
-5. **client/src/App.tsx**: 9 critical routes converted from React.lazy() to direct imports (Dashboard, Welcome, Groups, FinancialGoals, MoneyTracking, Settings, AIAssistant, Landing, Login) to prevent chunk loading failures
-6. **server/index.ts**: Added explicit Cache-Control no-store headers on SPA fallback
+1. **client/public/sw.js**: Kill-switch v2 - NO navigation/reload on activation
+2. **server/index.ts**: Updated inline fallback SW to v2, no navigate() calls
+3. **client/src/components/error-boundary.tsx**: Removed ALL automatic reload logic - only shows static UI
+4. **client/src/App.tsx**: 9 critical routes eagerly imported (Dashboard, Welcome, Groups, etc.)
+5. **client/index.html**: All inline reload scripts removed
+6. **client/src/pages/dashboard.tsx**: Auth guards on queries (`enabled: isAuthenticated`)
 
-## Chunk Loading Fix (Jan 2026)
+## Design Principles (Preventing Future Loops)
 
-Critical routes are now eagerly imported to eliminate chunk hash mismatch after deployments:
-- Dashboard, Welcome, Groups, FinancialGoals, MoneyTracking, Settings, AIAssistant, Landing, Login ship in main bundle
-- Optional routes (Subscription, Checkout, Terms, etc.) remain lazy-loaded
-- ErrorBoundary attempts one-time auto-recovery for chunk errors: clears caches, unregisters SW, reloads with ?v=timestamp
+1. **NEVER call `client.navigate()` or `location.reload()` automatically**
+2. **All reloads must be user-initiated** (button clicks only)
+3. **Service Workers should clean up silently** without triggering navigation
+4. **ErrorBoundary shows static messages** - user must manually refresh
 
 ## How to Re-Enable PWA Safely
 
-1. **Set environment variable**: `VITE_ENABLE_PWA=true`
-2. **Replace kill-switch SW** with proper PWA SW
-3. **Uncomment manifest link** in `client/index.html`
-4. **Remove the inline SW killer script** in `client/index.html`
-5. **Implement proper SW update flow** with version tracking
-6. **Test thoroughly** on iOS Safari before production deploy
-
-## Emergency Recovery Paths
-
-Multiple fallback paths ensure users can recover:
-1. **Kill-switch SW**: Auto-updates and self-destructs for old PWA users
-2. **Missing JS 404 handler**: Serves hotfix script that redirects to `/_recover`
-3. **/_recover endpoint**: Clears caches/SW and reloads fresh app
-4. **Inline SW killer script**: Runs on page load as final backup
+1. Set `VITE_ENABLE_PWA=true` in environment
+2. Replace kill-switch SW with proper PWA SW (no navigate() calls!)
+3. Uncomment manifest link in `client/index.html`
+4. Test thoroughly on iOS Safari before production deploy

@@ -189,7 +189,7 @@ app.get('/sw.js', (req, res) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('X-SW-Version', 'kill-v1');
+  res.setHeader('X-SW-Version', 'kill-v2');
   
   // Serve from client/public in dev, dist/public in prod
   // CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
@@ -200,10 +200,10 @@ app.get('/sw.js', (req, res) => {
   if (fs.existsSync(swPath)) {
     res.sendFile(swPath);
   } else {
-    // Fallback inline kill-switch SW if file not found
-    log('[SW] sw.js file not found, serving inline kill-switch');
+    // Fallback inline kill-switch SW if file not found - NO NAVIGATION
+    log('[SW] sw.js file not found, serving inline kill-switch v2');
     res.send(`
-// Fallback Kill-Switch SW
+// Kill-Switch SW v2 - NO PAGE RELOAD
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
@@ -211,8 +211,9 @@ self.addEventListener('activate', (e) => {
     const keys = await caches.keys();
     await Promise.all(keys.map(k => caches.delete(k)));
     await self.registration.unregister();
+    // NO navigate() - just notify clients silently
     const clients = await self.clients.matchAll({type:'window'});
-    clients.forEach(c => c.navigate(c.url));
+    clients.forEach(c => c.postMessage({type:'SW_KILLED',version:'kill-v2'}));
   })());
 });
 self.addEventListener('fetch', () => {});
@@ -220,20 +221,16 @@ self.addEventListener('fetch', () => {});
   }
 });
 
-// Also serve kill-switch at /service-worker.js to cover legacy vite-plugin-pwa registrations
-// This ensures ALL legacy PWA clients get the kill-switch regardless of which path they used
+// Also serve kill-switch at /service-worker.js for legacy paths
 app.get('/service-worker.js', (req, res) => {
-  log('[SW] Kill-switch service worker requested at /service-worker.js');
+  log('[SW] Kill-switch requested at /service-worker.js');
   
-  // Same aggressive no-cache headers
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  res.setHeader('X-SW-Version', 'kill-v1');
+  res.setHeader('X-SW-Version', 'kill-v2');
   
-  // Serve the same kill-switch SW
-  // CRITICAL: Must match vite.config.ts build.outDir setting (dist/public)
   const swPath = process.env.NODE_ENV === 'production'
     ? path.resolve(process.cwd(), 'dist/public/sw.js')
     : path.resolve(process.cwd(), 'client/public/sw.js');
@@ -241,9 +238,9 @@ app.get('/service-worker.js', (req, res) => {
   if (fs.existsSync(swPath)) {
     res.sendFile(swPath);
   } else {
-    log('[SW] sw.js file not found, serving inline kill-switch');
+    log('[SW] sw.js file not found, serving inline kill-switch v2');
     res.send(`
-// Fallback Kill-Switch SW
+// Kill-Switch SW v2 - NO PAGE RELOAD
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
@@ -251,8 +248,9 @@ self.addEventListener('activate', (e) => {
     const keys = await caches.keys();
     await Promise.all(keys.map(k => caches.delete(k)));
     await self.registration.unregister();
+    // NO navigate() - just notify clients silently
     const clients = await self.clients.matchAll({type:'window'});
-    clients.forEach(c => c.navigate(c.url));
+    clients.forEach(c => c.postMessage({type:'SW_KILLED',version:'kill-v2'}));
   })());
 });
 self.addEventListener('fetch', () => {});

@@ -69,7 +69,7 @@ function Redirect({ to }: { to: string }) {
 import Sidebar from"./components/sidebar";
 import MobileNavigation from"./components/mobile-navigation";
 import MobileHeader from"./components/mobile-header";
-import ErrorBoundary, { clearRecoveryAttempts } from"./components/error-boundary";
+import ErrorBoundary from"./components/error-boundary";
 import { OnboardingRedirect } from"./components/onboarding-redirect";
 import { OfflineIndicator } from"./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from"./components/pwa/install-prompt";
@@ -192,14 +192,8 @@ function Router() {
 
 function App() {
  useEffect(() => {
-  // Only clear recovery attempts after a stable load (5 seconds without errors)
-  // This prevents wiping the flag during the recovery process
-  const timer = setTimeout(() => {
-   clearRecoveryAttempts();
-   console.log('[App] Successfully loaded, recovery attempts cleared');
-  }, 5000);
-  
-  return () => clearTimeout(timer);
+  // App successfully loaded
+  console.log('[App] Successfully loaded');
  }, []);
 
  return (

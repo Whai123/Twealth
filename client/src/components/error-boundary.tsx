@@ -8,10 +8,7 @@ interface State {
   hasError: boolean;
   errorType: 'auth' | 'chunk' | 'other' | null;
   errorMessage: string;
-  recoveryAttempted: boolean;
 }
-
-const CHUNK_RECOVERY_KEY = 'twealth_chunk_recovery_v2';
 
 function isAuthError(error: Error): boolean {
   const msg = error.message.toLowerCase();
@@ -51,7 +48,7 @@ async function clearAllCachesAndSW(): Promise<void> {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false, errorType: null, errorMessage: '', recoveryAttempted: false };
+  public state: State = { hasError: false, errorType: null, errorMessage: '' };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
     if (isAuthError(error)) {
@@ -76,31 +73,9 @@ class ErrorBoundary extends Component<Props, State> {
       return;
     }
     
-    // Chunk errors: attempt ONE auto-recovery with cache clearing
-    if (isChunkError(error)) {
-      const lastRecoveryTime = sessionStorage.getItem(CHUNK_RECOVERY_KEY);
-      const now = Date.now();
-      
-      // Only attempt recovery if we haven't tried in the last 30 seconds
-      if (!lastRecoveryTime || (now - parseInt(lastRecoveryTime, 10)) > 30000) {
-        console.log('[ErrorBoundary] Chunk error, attempting one-time recovery...');
-        sessionStorage.setItem(CHUNK_RECOVERY_KEY, now.toString());
-        
-        // Clear caches and reload with cache-buster
-        clearAllCachesAndSW().then(() => {
-          const url = new URL(window.location.href);
-          url.searchParams.set('v', now.toString());
-          window.location.replace(url.toString());
-        });
-        return;
-      }
-      
-      console.log('[ErrorBoundary] Chunk recovery already attempted, showing manual instructions');
-      this.setState({ recoveryAttempted: true });
-      return;
-    }
-    
-    console.log('[ErrorBoundary] Non-recoverable error, showing fallback UI');
+    // For ALL other errors: NO automatic reload to prevent loops
+    // Just log and show fallback UI - user can manually refresh
+    console.log('[ErrorBoundary] Showing fallback UI (NO automatic reload)');
   }
 
   private handleHardRefresh = async () => {
@@ -124,34 +99,27 @@ class ErrorBoundary extends Component<Props, State> {
         );
       }
       
-      // For chunk errors - show recovery UI
+      // For chunk errors - show clear instructions with manual refresh button
       if (this.state.errorType === 'chunk') {
         return (
           <div className="fixed inset-0 flex items-center justify-center bg-background p-4">
             <div className="text-center max-w-md">
               <p className="text-lg font-medium text-foreground mb-2">Loading issue</p>
               <p className="text-sm text-muted-foreground mb-4">
-                {this.state.recoveryAttempted 
-                  ? "Auto-recovery didn't work. Please clear your browser data for this site."
-                  : "Refreshing with updated files..."}
+                Some files couldn't load. Please try refreshing the page.
               </p>
-              {this.state.recoveryAttempted && (
-                <div className="space-y-3">
-                  <button 
-                    onClick={this.handleHardRefresh}
-                    className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
-                    data-testid="button-hard-refresh"
-                  >
-                    Try Hard Refresh
-                  </button>
-                  <p className="text-xs text-muted-foreground">
-                    iOS Safari: Settings → Safari → Clear History and Website Data
-                  </p>
-                </div>
-              )}
-              {!this.state.recoveryAttempted && (
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              )}
+              <div className="space-y-3">
+                <button 
+                  onClick={this.handleHardRefresh}
+                  className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+                  data-testid="button-hard-refresh"
+                >
+                  Refresh Page
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  If this keeps happening: Settings → Safari → Clear Website Data
+                </p>
+              </div>
             </div>
           </div>
         );
@@ -179,11 +147,8 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export function clearRecoveryAttempts(): void {
-  try {
-    sessionStorage.removeItem(CHUNK_RECOVERY_KEY);
-  } catch {
-    // Ignore storage errors
-  }
+  // No-op - keeping for backwards compatibility
+  // No automatic recovery attempts are made anymore
 }
 
 export default ErrorBoundary;
