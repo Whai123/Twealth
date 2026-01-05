@@ -6,6 +6,7 @@ import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
 import { investmentStrategies } from "@shared/schema";
 import { getSession, setupAuth } from "./customAuth";
+import { sanitizeResponseMiddleware } from "./lib/sanitize-response";
 
 // ==================== ASSET BACKUP SYSTEM ====================
 // Keeps old hashed assets available so cached HTML from previous deploys
@@ -84,6 +85,11 @@ app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Response sanitizer middleware - prevents React Error #300 by ensuring
+// all API responses contain only primitive values (string, number, boolean, null)
+// Must be BEFORE routes so it intercepts all res.json() calls
+app.use(sanitizeResponseMiddleware());
 
 // Session middleware (must be before routes)
 app.use(getSession());
