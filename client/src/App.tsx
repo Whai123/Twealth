@@ -1,6 +1,6 @@
 import { Switch, Route, useLocation } from"wouter";
 import { useEffect } from "react";
-import { queryClient } from"./lib/queryClient";
+import { queryClient, checkAndClearStaleCache } from"./lib/queryClient";
 import { QueryClientProvider } from"@tanstack/react-query";
 import { Toaster } from"./components/ui/toaster";
 import { TooltipProvider } from"./components/ui/tooltip";
@@ -9,6 +9,9 @@ import { ThemeProvider } from"./components/theme-provider";
 import { useAuth } from"./hooks/useAuth";
 import { lazy, Suspense } from 'react';
 import { Card } from"./components/ui/card";
+
+// Clear stale cache on app load to prevent React Error #300 from cached objects
+checkAndClearStaleCache(queryClient);
 
 // CRITICAL ROUTES - Import directly to prevent chunk loading errors on deploy
 // These ship in the main bundle, eliminating cache mismatch issues

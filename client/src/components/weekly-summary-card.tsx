@@ -272,19 +272,24 @@ export function WeeklySummaryCard() {
               {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
             </p>
           </div>
+          {(() => {
+            const band = safeString(currentPlaybook.confidenceBand) || 'stable';
+            return (
           <Badge 
             variant="outline" 
             className={`text-xs ${
-              currentPlaybook.confidenceBand === 'improving' ? 'border-emerald-500 text-emerald-600' :
-              currentPlaybook.confidenceBand === 'declining' ? 'border-red-500 text-red-600' :
+              band === 'improving' ? 'border-emerald-500 text-emerald-600' :
+              band === 'declining' ? 'border-red-500 text-red-600' :
               'border-gray-500 text-gray-600'
             }`}
           >
-            {currentPlaybook.confidenceBand === 'improving' && <TrendingUp className="w-3 h-3 mr-1" />}
-            {currentPlaybook.confidenceBand === 'declining' && <TrendingDown className="w-3 h-3 mr-1" />}
-            {currentPlaybook.confidenceBand === 'stable' && <Minus className="w-3 h-3 mr-1" />}
-            {currentPlaybook.confidenceBand}
+            {band === 'improving' && <TrendingUp className="w-3 h-3 mr-1" />}
+            {band === 'declining' && <TrendingDown className="w-3 h-3 mr-1" />}
+            {band === 'stable' && <Minus className="w-3 h-3 mr-1" />}
+            {band}
           </Badge>
+            );
+          })()}
         </div>
 
         <div className="flex items-center gap-6">
@@ -322,25 +327,29 @@ export function WeeklySummaryCard() {
           AI Insights ({currentPlaybook.insights?.length || 0})
         </h4>
         <div className="space-y-2">
-          {currentPlaybook.insights?.slice(0, 3).map((insight, idx) => (
+          {currentPlaybook.insights?.slice(0, 3).map((insight, idx) => {
+            const insightText = safeString(insight.text);
+            const insightTag = safeString(insight.tag);
+            const insightSeverity = safeString(insight.severity) || 'medium';
+            return (
             <motion.div
               key={idx}
-              className={`p-3 rounded-lg bg-muted/30 ${severityStyles[insight.severity]}`}
+              className={`p-3 rounded-lg bg-muted/30 ${severityStyles[insightSeverity] || ''}`}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm text-foreground/90">{insight.text}</p>
+                <p className="text-sm text-foreground/90">{insightText}</p>
                 <Badge 
                   variant="secondary" 
-                  className={`text-[10px] shrink-0 ${tagColors[insight.tag]?.bg || ''} ${tagColors[insight.tag]?.text || ''}`}
+                  className={`text-[10px] shrink-0 ${tagColors[insightTag]?.bg || ''} ${tagColors[insightTag]?.text || ''}`}
                 >
-                  {insight.tag}
+                  {insightTag}
                 </Badge>
               </div>
             </motion.div>
-          ))}
+          );})}
         </div>
       </div>
 
