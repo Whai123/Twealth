@@ -144,6 +144,25 @@ Invalid data is logged to console with `[Dashboard]` or `[Toaster]` prefixes for
 3. **Service Workers should clean up silently** without triggering navigation
 4. **ErrorBoundary shows static messages** - user must manually refresh
 
+## Centralized Safe Rendering Utilities (Jan 2026)
+
+**Location**: `client/src/lib/safe-render.ts`
+
+All components MUST use these utilities when rendering API data to prevent React Error #300:
+- `safeString(value)` - Converts any value to string, logs warning for objects
+- `safeNumber(value)` - Converts any value to number, returns 0 for invalid
+- `safeDate(value)` - Parses date strings safely, returns Date or null
+- `formatDate(value, options)` - Safe date formatting
+- `formatRelativeTime(value)` - Safe relative time formatting
+- `safeArray<T>(value)` - Ensures value is an array
+
+**Components updated to use centralized utilities**:
+- dashboard.tsx, smart-nudges.tsx, streak-system.tsx
+- notifications-bell.tsx, mobile-header.tsx, sidebar.tsx
+- weekly-summary-card.tsx, message-bubble.tsx
+- proactive-insights-panel.tsx, conversation-sidebar.tsx
+- csv-analysis-panel.tsx, spending-insights.tsx
+
 ## How to Re-Enable PWA Safely
 
 1. Set `VITE_ENABLE_PWA=true` in environment
