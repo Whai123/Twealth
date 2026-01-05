@@ -144,11 +144,25 @@ Invalid data is logged to console with `[Dashboard]` or `[Toaster]` prefixes for
 3. **Service Workers should clean up silently** without triggering navigation
 4. **ErrorBoundary shows static messages** - user must manually refresh
 
-## Centralized Safe Rendering Utilities (Jan 2026)
+## Multi-Layered React Error #300 Prevention (Jan 2026)
+
+A comprehensive multi-layered defense system prevents React Error #300 ("Objects are not valid as React child") on mobile Safari:
+
+### Layer 1: API Response Sanitization (queryClient.ts)
+- `sanitizeResponseData()` - Conservative sanitizer that preserves data structure while converting Date objects to ISO strings
+- Applied to ALL React Query responses via custom `getQueryFn()`
+- `parseJsonSafely()` - Applied to ALL mutation responses (14+ files updated)
+
+### Layer 2: Cache Management
+- Cache version v4 (`CACHE_VERSION` in queryClient.ts)
+- `checkAndClearStaleCache()` called on app load in App.tsx
+- Forces stale cache clear on deploy to prevent old malformed data from causing issues
+
+### Layer 3: Centralized Safe Rendering Utilities
 
 **Location**: `client/src/lib/safe-render.ts`
 
-All components MUST use these utilities when rendering API data to prevent React Error #300:
+All components MUST use these utilities when rendering API data:
 - `safeString(value)` - Converts any value to string, logs warning for objects
 - `safeNumber(value)` - Converts any value to number, returns 0 for invalid
 - `safeDate(value)` - Parses date strings safely, returns Date or null
@@ -156,12 +170,31 @@ All components MUST use these utilities when rendering API data to prevent React
 - `formatRelativeTime(value)` - Safe relative time formatting
 - `safeArray<T>(value)` - Ensures value is an array
 
-**Components updated to use centralized utilities**:
+**SafeText Component**: `client/src/components/ui/safe-text.tsx` - React wrapper component for safe text rendering
+
+### Components with safeString Guards (26 files total)
+
+**Dashboard Data Components:**
+- financial-goals-progress.tsx (goal.title)
+- recent-transactions.tsx (transaction.description, category)
+- enhanced-financial-trends.tsx (trend.label, categories)
+- groups-overview.tsx (group.name, status)
+- quick-actions.tsx (event.title)
+- upcoming-events.tsx (event.title)
+- notification-actions.tsx (goalTitle, category)
+- notifications-bell.tsx
+
+**Dashboard Insight Components:**
+- ai-insights-card.tsx, smart-insights.tsx (13 wraps)
+- predictive-insights-dashboard.tsx (9 wraps)
+- insights-feed-widget.tsx, time-value-insights.tsx
+- smart-goal-insights.tsx
+
+**Core UI Components:**
 - dashboard.tsx, smart-nudges.tsx, streak-system.tsx
-- notifications-bell.tsx, mobile-header.tsx, sidebar.tsx
-- weekly-summary-card.tsx, message-bubble.tsx
-- proactive-insights-panel.tsx, conversation-sidebar.tsx
-- csv-analysis-panel.tsx, spending-insights.tsx
+- mobile-header.tsx, sidebar.tsx, weekly-summary-card.tsx
+- message-bubble.tsx, conversation-sidebar.tsx
+- proactive-insights-panel.tsx, csv-analysis-panel.tsx, spending-insights.tsx
 
 ## How to Re-Enable PWA Safely
 
