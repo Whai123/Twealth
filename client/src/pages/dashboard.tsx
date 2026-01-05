@@ -165,7 +165,7 @@ export default function Dashboard() {
   });
 
   const { data: subscription } = useQuery<SubscriptionResponse>({
-    queryKey: ["/api/subscription"],
+    queryKey: ["/api/subscription/current"],
     enabled: isAuthenticated,
   });
   
