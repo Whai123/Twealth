@@ -120,3 +120,44 @@ export function safeArray<T>(value: unknown): T[] {
   }
   return [];
 }
+
+/**
+ * Checks if a value is safe to render as a React child.
+ * React can render: string, number, boolean (ignored), null, undefined, React elements.
+ */
+export function isSafeForReact(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return true;
+  // Check if it's a React element
+  if (typeof value === 'object' && value !== null && '$$typeof' in value) return true;
+  return false;
+}
+
+/**
+ * Renders any value safely for React, converting objects to strings.
+ * Use this for any dynamic content that might be an object.
+ */
+export function safeRender(value: unknown): string | number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'boolean') return value ? 'Yes' : null;
+  
+  // For objects/arrays, log warning and return safe representation
+  if (typeof value === 'object') {
+    console.warn('[SafeRender] Caught object in render:', JSON.stringify(value).slice(0, 200));
+    // Try to extract a text value
+    const obj = value as Record<string, unknown>;
+    if ('text' in obj && typeof obj.text === 'string') return obj.text;
+    if ('message' in obj && typeof obj.message === 'string') return obj.message;
+    if ('title' in obj && typeof obj.title === 'string') return obj.title;
+    if ('content' in obj && typeof obj.content === 'string') return obj.content;
+    if ('value' in obj && (typeof obj.value === 'string' || typeof obj.value === 'number')) {
+      return typeof obj.value === 'string' ? obj.value : obj.value;
+    }
+    // Last resort: return empty or stringified
+    return '';
+  }
+  
+  return String(value);
+}
