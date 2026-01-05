@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { safeString } from "@/lib/safe-render";
 import { Upload, FileText, TrendingUp, Save, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -326,10 +327,10 @@ export default function CSVAnalysisPanel() {
                 {insights.map((insight, index) => (
                   <Card key={index} data-testid={`insight-card-${index}`}>
                     <CardHeader>
-                      <CardTitle className="text-base">{insight.title}</CardTitle>
+                      <CardTitle className="text-base">{safeString(insight.title)}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground">{insight.message}</p>
+                      <p className="text-sm text-muted-foreground">{safeString(insight.message)}</p>
                     </CardContent>
                   </Card>
                 ))}

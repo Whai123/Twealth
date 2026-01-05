@@ -24,13 +24,7 @@ import { useToast } from"@/hooks/use-toast";
 import NotificationActions from"./notification-actions";
 import { cn } from"@/lib/utils";
 import { motion, AnimatePresence } from"framer-motion";
-
-function safeString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (value === null || value === undefined) return '';
-  return '';
-}
+import { safeString } from '@/lib/safe-render';
 
 interface Notification {
  id: string;

@@ -9,22 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
-
-function safeString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (value === null || value === undefined) return '';
-  return '';
-}
-
-function safeNumber(value: unknown): number {
-  if (typeof value === 'number' && !isNaN(value)) return value;
-  if (typeof value === 'string') {
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-}
+import { safeString, safeNumber } from '@/lib/safe-render';
 
 interface StreakData {
   currentStreak: number;

@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { safeString } from "@/lib/safe-render";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Activity, 
@@ -403,9 +404,9 @@ export function WeeklySummaryCard() {
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className={`text-sm font-medium ${isCompleted ? 'text-emerald-700 dark:text-emerald-300 line-through' : 'text-foreground'}`}>
-                      {action.title}
+                      {safeString(action.title)}
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{action.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{safeString(action.description)}</p>
                     <div className="flex items-center gap-2 mt-2 text-[10px]">
                       <span className={effortLabels[action.effort].color}>
                         {effortLabels[action.effort].text} effort

@@ -18,22 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUserCurrency } from "@/lib/userContext";
-
-function safeString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (value === null || value === undefined) return '';
-  return '';
-}
-
-function safeNumber(value: unknown): number {
-  if (typeof value === 'number' && !isNaN(value)) return value;
-  if (typeof value === 'string') {
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-}
+import { safeString, safeNumber } from '@/lib/safe-render';
 
 interface Nudge {
   id: string;

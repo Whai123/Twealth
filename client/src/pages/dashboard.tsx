@@ -17,53 +17,7 @@ import { SmartNudgeBanner } from "@/components/smart-nudges";
 import { StreakWidget, AchievementBadges } from "@/components/streak-system";
 import { useUserCurrency, useUserPreferences } from "@/lib/userContext";
 import { useAuth } from "@/hooks/useAuth";
-
-function safeNumber(value: unknown): number {
-  if (typeof value === 'number' && !isNaN(value) && isFinite(value)) return value;
-  if (typeof value === 'string') {
-    const parsed = parseFloat(value);
-    return isNaN(parsed) || !isFinite(parsed) ? 0 : parsed;
-  }
-  if (typeof value === 'boolean') return value ? 1 : 0;
-  return 0;
-}
-
-function safeString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'object') {
-    console.warn('[Dashboard] Unexpected object in safeString:', value);
-    return '';
-  }
-  return String(value);
-}
-
-function safeDate(dateStr: unknown): Date | null {
-  if (!dateStr) return null;
-  try {
-    const date = new Date(String(dateStr));
-    if (isNaN(date.getTime())) {
-      console.warn('[Dashboard] Invalid date:', dateStr);
-      return null;
-    }
-    return date;
-  } catch (e) {
-    console.warn('[Dashboard] Date parsing error:', e);
-    return null;
-  }
-}
-
-function formatDate(dateStr: unknown, options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }): string {
-  const date = safeDate(dateStr);
-  if (!date) return '';
-  try {
-    return date.toLocaleDateString('en-US', options);
-  } catch {
-    return '';
-  }
-}
+import { safeString, safeNumber, safeDate, formatDate } from '@/lib/safe-render';
 
 interface DashboardStats {
   totalTransactions: number;

@@ -19,13 +19,7 @@ import { useMutation } from"@tanstack/react-query";
 import { apiRequest, queryClient } from"@/lib/queryClient";
 import { useToast } from"@/hooks/use-toast";
 import { useState } from"react";
-
-function safeString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (value === null || value === undefined) return '';
-  return '';
-}
+import { safeString } from '@/lib/safe-render';
 
 export default function MobileHeader() {
  const { user } = useAuth();

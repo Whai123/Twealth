@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { safeString } from "@/lib/safe-render";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -192,7 +193,7 @@ const CalculationBlock = ({ calculation }: { calculation: ParsedCalculation }) =
         <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/50">
           <Calculator className="w-4 h-4 text-blue-600 dark:text-blue-400" />
         </div>
-        <h4 className="text-sm font-semibold text-foreground">{calculation.title}</h4>
+        <h4 className="text-sm font-semibold text-foreground">{safeString(calculation.title)}</h4>
       </div>
       
       <div className="space-y-2 mb-3">
@@ -201,7 +202,7 @@ const CalculationBlock = ({ calculation }: { calculation: ParsedCalculation }) =
             key={idx} 
             className={`flex justify-between items-center text-sm ${item.highlight ? 'font-medium text-foreground' : 'text-muted-foreground'}`}
           >
-            <span>{item.label}</span>
+            <span>{safeString(item.label)}</span>
             <span className={item.highlight ? 'text-blue-600 dark:text-blue-400' : ''}>{item.value}</span>
           </div>
         ))}
@@ -235,7 +236,7 @@ const ProgressBarBlock = ({ progress }: { progress: ParsedProgress }) => {
           <div className={`p-1.5 rounded-lg ${isComplete ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-blue-100 dark:bg-blue-900/50'}`}>
             <Target className={`w-4 h-4 ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`} />
           </div>
-          <h4 className="text-sm font-semibold text-foreground">{progress.title}</h4>
+          <h4 className="text-sm font-semibold text-foreground">{safeString(progress.title)}</h4>
         </div>
         <span className={`text-sm font-bold ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>
           {percentage.toFixed(0)}%
@@ -299,8 +300,8 @@ const InsightCard = ({ insight }: { insight: ParsedInsight }) => {
           <Icon className={`w-4 h-4 ${colors.icon}`} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-semibold ${colors.title}`}>{insight.title}</p>
-          <p className="text-sm text-muted-foreground mt-1">{insight.message}</p>
+          <p className={`text-sm font-semibold ${colors.title}`}>{safeString(insight.title)}</p>
+          <p className="text-sm text-muted-foreground mt-1">{safeString(insight.message)}</p>
         </div>
       </div>
     </motion.div>

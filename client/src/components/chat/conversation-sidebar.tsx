@@ -1,4 +1,5 @@
-import { useState } from"react";
+import { useState } from "react";
+import { safeString } from "@/lib/safe-render";
 import { useQuery, useMutation } from"@tanstack/react-query";
 import { useTranslation } from 'react-i18next';
 import { Button } from"@/components/ui/button";
@@ -214,7 +215,7 @@ export function ConversationSidebar({
          ) : (
           <div className="flex-1 min-w-0">
            <p className={`text-sm font-medium truncate ${currentConversationId === conversation.id ? 'text-blue-700 dark:text-blue-300' : ''}`}>
-            {conversation.title}
+            {safeString(conversation.title)}
            </p>
            <p className={`text-xs ${currentConversationId === conversation.id ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-muted-foreground'}`}>
             {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
