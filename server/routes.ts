@@ -32,6 +32,9 @@ const JSON_BLOB_FIELDS = new Set([
   'userContext',           // Contains nested financial data object
   'insights',              // Playbook insights (array of objects)
   'actions',               // Playbook actions (array of objects)
+  'data',                  // Notification data (nested object)
+  'actionData',            // Notification action data (nested object)
+  'breakdown',             // Financial health breakdown (nested objects)
 ]);
 
 function sanitizeApiResponse(data: unknown): unknown {
@@ -2911,7 +2914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const includeRead = req.query.includeRead === 'true';
       
       const notifications = await storage.getNotificationsByUserId(userId, limit, offset, includeRead);
-      res.json(notifications);
+      res.json(sanitizeApiResponse(notifications));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
