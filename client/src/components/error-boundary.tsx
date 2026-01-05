@@ -6,8 +6,16 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  errorType: 'auth' | 'chunk' | 'other' | null;
+  errorType: 'auth' | 'chunk' | 'react300' | 'other' | null;
   errorMessage: string;
+  componentStack: string;
+}
+
+function isReact300Error(error: Error): boolean {
+  const msg = error.message.toLowerCase();
+  return msg.includes('objects are not valid as a react child') || 
+         msg.includes('minified react error #300') ||
+         msg.includes('invariant=300');
 }
 
 function isAuthError(error: Error): boolean {
@@ -48,7 +56,7 @@ async function clearAllCachesAndSW(): Promise<void> {
 }
 
 class ErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false, errorType: null, errorMessage: '' };
+  public state: State = { hasError: false, errorType: null, errorMessage: '', componentStack: '' };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
     if (isAuthError(error)) {
@@ -59,6 +67,10 @@ class ErrorBoundary extends Component<Props, State> {
       return { hasError: true, errorType: 'chunk', errorMessage: error.message };
     }
     
+    if (isReact300Error(error)) {
+      return { hasError: true, errorType: 'react300', errorMessage: error.message };
+    }
+    
     return { hasError: true, errorType: 'other', errorMessage: error.message };
   }
 
@@ -67,6 +79,19 @@ class ErrorBoundary extends Component<Props, State> {
     console.error('[ErrorBoundary] Error type:', this.state.errorType);
     console.error('[ErrorBoundary] Error stack:', error.stack);
     console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
+    
+    // Store component stack for display
+    this.setState({ componentStack: errorInfo.componentStack || '' });
+    
+    // Special logging for React #300 errors to help identify the culprit
+    if (isReact300Error(error)) {
+      console.error('=== REACT ERROR #300 DETECTED ===');
+      console.error('[React300] This error occurs when an object is rendered as a React child');
+      console.error('[React300] Component stack (look for the deepest component):');
+      console.error(errorInfo.componentStack);
+      console.error('[React300] The deepest component in the stack likely has a JSX expression like {someObject} that should be {safeString(someObject)}');
+      console.error('=================================');
+    }
     
     // Auth errors: redirect to login (single redirect, no loop)
     if (isAuthError(error)) {
@@ -121,6 +146,39 @@ class ErrorBoundary extends Component<Props, State> {
                 <p className="text-xs text-muted-foreground">
                   If this keeps happening: Settings → Safari → Clear Website Data
                 </p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+      
+      // For React #300 errors - show detailed component stack
+      if (this.state.errorType === 'react300') {
+        return (
+          <div className="fixed inset-0 flex items-center justify-center bg-background p-4 overflow-auto">
+            <div className="text-center max-w-lg w-full">
+              <p className="text-lg font-medium text-foreground mb-2">Display Error</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                A data display issue occurred. Please try refreshing.
+              </p>
+              {this.state.componentStack && (
+                <details className="text-left mb-4">
+                  <summary className="text-xs text-muted-foreground cursor-pointer mb-2">
+                    Technical Details (tap to expand)
+                  </summary>
+                  <div className="text-xs font-mono bg-muted/30 p-3 rounded overflow-auto max-h-48 whitespace-pre-wrap">
+                    {this.state.componentStack}
+                  </div>
+                </details>
+              )}
+              <div className="space-y-2">
+                <button 
+                  onClick={this.handleHardRefresh}
+                  className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
+                  data-testid="button-refresh-300"
+                >
+                  Refresh Page
+                </button>
               </div>
             </div>
           </div>
