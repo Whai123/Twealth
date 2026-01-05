@@ -48,7 +48,13 @@ function sanitizeApiResponse(data: unknown): unknown {
   if (typeof data === 'object') {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
-      result[key] = sanitizeApiResponse(value);
+      // CRITICAL: Stringify onboardingData to prevent React Error #300
+      // This field contains nested JSON that mobile Safari tries to render as React children
+      if (key === 'onboardingData' && value !== null && typeof value === 'object') {
+        result[key] = JSON.stringify(value);
+      } else {
+        result[key] = sanitizeApiResponse(value);
+      }
     }
     return result;
   }

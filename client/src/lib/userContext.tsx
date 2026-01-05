@@ -75,7 +75,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     },
     
     getUserName: () => {
-      const onboardingData = preferences?.onboardingData as { fullName?: string } | null;
+      // Parse onboardingData safely - it may be stringified JSON from server
+      let onboardingData: { fullName?: string } | null = null;
+      try {
+        if (typeof preferences?.onboardingData === 'string') {
+          onboardingData = JSON.parse(preferences.onboardingData);
+        } else if (preferences?.onboardingData && typeof preferences.onboardingData === 'object') {
+          onboardingData = preferences.onboardingData as { fullName?: string };
+        }
+      } catch {
+        onboardingData = null;
+      }
       if (onboardingData?.fullName) return onboardingData.fullName;
       if (user?.firstName) return user.firstName;
       if (user?.username) return user.username;

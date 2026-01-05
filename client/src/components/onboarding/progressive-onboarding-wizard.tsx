@@ -93,7 +93,17 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
 
   useEffect(() => {
     if (!prefsLoading && !isHydrated) {
-      const savedData = userPreferences?.onboardingData || {};
+      // Parse onboardingData safely - it may be stringified JSON from server
+      let savedData: Record<string, any> = {};
+      try {
+        if (typeof userPreferences?.onboardingData === 'string') {
+          savedData = JSON.parse(userPreferences.onboardingData) || {};
+        } else if (userPreferences?.onboardingData && typeof userPreferences.onboardingData === 'object') {
+          savedData = userPreferences.onboardingData as Record<string, any>;
+        }
+      } catch {
+        savedData = {};
+      }
       const savedStep = userPreferences?.onboardingStep || 1;
 
       if (savedData && Object.keys(savedData).length > 0) {
