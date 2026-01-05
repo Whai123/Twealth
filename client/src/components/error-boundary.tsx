@@ -21,9 +21,9 @@ function isAuthError(error: Error): boolean {
 
 function isChunkError(error: Error): boolean {
   const msg = error.message.toLowerCase();
+  // Only catch actual chunk/module loading errors, NOT generic React errors
   return msg.includes('loading chunk') || 
          msg.includes('failed to fetch dynamically imported module') ||
-         msg.includes('minified react error') ||
          msg.includes('dynamically imported module');
 }
 
@@ -125,12 +125,15 @@ class ErrorBoundary extends Component<Props, State> {
         );
       }
       
-      // For other errors - simple fallback
+      // For other errors - show more details to help debug
       return (
         <div className="fixed inset-0 flex items-center justify-center bg-background p-4">
           <div className="text-center max-w-md">
             <p className="text-lg font-medium text-foreground mb-2">Something went wrong</p>
-            <p className="text-sm text-muted-foreground mb-4">Please refresh the page to try again.</p>
+            <p className="text-sm text-muted-foreground mb-2">Please refresh the page to try again.</p>
+            <p className="text-xs text-muted-foreground/60 mb-4 font-mono break-all">
+              {this.state.errorMessage || 'Unknown error'}
+            </p>
             <button 
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
