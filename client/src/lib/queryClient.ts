@@ -1,5 +1,70 @@
 import { QueryClient, QueryFunction } from"@tanstack/react-query";
 
+// Cache version - increment to force cache clear on deploy
+const CACHE_VERSION = 2;
+const CACHE_VERSION_KEY = 'twealth_cache_version';
+
+/**
+ * Deep sanitizes API response data to prevent React Error #300.
+ * Ensures all values that should be strings/numbers are primitives.
+ */
+function sanitizeResponseData(data: unknown): unknown {
+  if (data === null || data === undefined) return data;
+  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') return data;
+  
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeResponseData(item));
+  }
+  
+  if (typeof data === 'object') {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      // String fields that might contain objects
+      const stringFields = ['title', 'name', 'message', 'description', 'label', 'text', 'content', 
+                           'summary', 'recommendation', 'topPriority', 'grade', 'status', 'category'];
+      const lowerKey = key.toLowerCase();
+      
+      if (stringFields.some(f => lowerKey.includes(f.toLowerCase()))) {
+        // Ensure this is a string
+        if (typeof value === 'object' && value !== null) {
+          console.warn(`[QueryClient] Flattening object in ${key}:`, value);
+          const obj = value as Record<string, unknown>;
+          sanitized[key] = obj.text || obj.content || obj.value || obj.message || obj.title || JSON.stringify(value);
+        } else {
+          sanitized[key] = value ?? '';
+        }
+      } else {
+        sanitized[key] = sanitizeResponseData(value);
+      }
+    }
+    return sanitized;
+  }
+  
+  return data;
+}
+
+/**
+ * Check cache version and clear if outdated.
+ * Called on app initialization to prevent stale cache issues.
+ * Must be called after queryClient is initialized.
+ */
+export function checkAndClearStaleCache(client: QueryClient): void {
+  try {
+    const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
+    const currentVersion = String(CACHE_VERSION);
+    
+    if (storedVersion !== currentVersion) {
+      console.log('[QueryClient] Cache version mismatch, clearing stale cache');
+      // Clear React Query cache
+      client.clear();
+      // Update version
+      localStorage.setItem(CACHE_VERSION_KEY, currentVersion);
+    }
+  } catch (e) {
+    console.warn('[QueryClient] Error checking cache version:', e);
+  }
+}
+
 export class RateLimitError extends Error {
  retryAfter: number;
  constructor(message: string, retryAfter: number = 60) {
@@ -72,22 +137,25 @@ export async function apiRequest(
 }
 
 type UnauthorizedBehavior ="returnNull" |"throw";
-export const getQueryFn: <T>(options: {
- on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
- ({ on401: unauthorizedBehavior }) =>
- async ({ queryKey }) => {
+export function getQueryFn<T>(options: { on401: UnauthorizedBehavior }): QueryFunction<T> {
+ const { on401: unauthorizedBehavior } = options;
+ return async ({ queryKey }) => {
   const res = await fetch(queryKey.join("/") as string, {
    credentials:"include",
   });
 
   if (unauthorizedBehavior ==="returnNull" && res.status === 401) {
-   return null;
+   return null as T;
   }
 
   await throwIfResNotOk(res);
-  return await res.json();
+  const data = await res.json();
+  // Sanitize response data to prevent React Error #300
+  // The sanitizeResponseData function ensures all string fields are actually strings
+  // to prevent React Error #300 ("Objects are not valid as React child")
+  return sanitizeResponseData(data) as T;
  };
+}
 
 export const queryClient = new QueryClient({
  defaultOptions: {
