@@ -192,8 +192,14 @@ function Router() {
 
 function App() {
  useEffect(() => {
-  clearRecoveryAttempts();
-  console.log('[App] Successfully loaded, recovery attempts cleared');
+  // Only clear recovery attempts after a stable load (5 seconds without errors)
+  // This prevents wiping the flag during the recovery process
+  const timer = setTimeout(() => {
+   clearRecoveryAttempts();
+   console.log('[App] Successfully loaded, recovery attempts cleared');
+  }, 5000);
+  
+  return () => clearTimeout(timer);
  }, []);
 
  return (
