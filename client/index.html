@@ -111,6 +111,44 @@
       "sameAs": []
     }
     </script>
+    <!-- Critical: Inline error recovery for stale cache issues -->
+    <script>
+      window.addEventListener('error', function(e) {
+        // Catch module load failures (React error #300)
+        if (e.message && (e.message.includes('dynamically imported module') || e.message.includes('Failed to fetch'))) {
+          console.error('[Recovery] Module load failed, clearing caches...');
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              return Promise.all(names.map(function(n) { return caches.delete(n); }));
+            }).then(function() {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  return Promise.all(regs.map(function(r) { return r.unregister(); }));
+                }).then(function() {
+                  window.location.reload();
+                });
+              } else {
+                window.location.reload();
+              }
+            });
+          } else {
+            window.location.reload();
+          }
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e.reason && e.reason.message && e.reason.message.includes('dynamically imported module')) {
+          console.error('[Recovery] Dynamic import failed, clearing caches...');
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              return Promise.all(names.map(function(n) { return caches.delete(n); }));
+            }).then(function() { window.location.reload(); });
+          } else {
+            window.location.reload();
+          }
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
