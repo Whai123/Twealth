@@ -42,21 +42,6 @@ if (ENABLE_PWA && 'serviceWorker' in navigator) {
   console.log('[PWA] PWA disabled (VITE_ENABLE_PWA != true). App running as normal website.');
 }
 
-// Signal to cache buster that app loaded successfully
-// This clears the failsafe timeout in index.html
-declare global {
-  interface Window {
-    __TWEALTH_LOADED__?: boolean;
-    __TWEALTH_LOAD_TIMEOUT__?: number;
-  }
-}
-
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
-
-// Mark app as loaded - clears the 8-second failsafe timer
-window.__TWEALTH_LOADED__ = true;
-if (window.__TWEALTH_LOAD_TIMEOUT__) {
-  clearTimeout(window.__TWEALTH_LOAD_TIMEOUT__);
-}
 console.log('[App] Successfully loaded');

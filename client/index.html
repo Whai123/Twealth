@@ -126,53 +126,6 @@
       "sameAs": []
     }
     </script>
-    <!-- iOS Safari Cache Buster v4 - Runs BEFORE bundle loads -->
-    <script>
-      (function() {
-        var BUILD_VERSION = 'v4-20260106';
-        var STORED_KEY = 'twealth_build_v';
-        var RECOVERY_KEY = 'twealth_recovering';
-        
-        try {
-          var stored = localStorage.getItem(STORED_KEY);
-          var isRecovering = sessionStorage.getItem(RECOVERY_KEY);
-          
-          // If version changed and not already recovering, force recovery
-          if (stored && stored !== BUILD_VERSION && !isRecovering) {
-            console.log('[CacheBuster] Version mismatch: ' + stored + ' -> ' + BUILD_VERSION);
-            sessionStorage.setItem(RECOVERY_KEY, '1');
-            // Clear caches synchronously if possible
-            if ('caches' in window) {
-              caches.keys().then(function(names) {
-                names.forEach(function(n) { caches.delete(n); });
-              });
-            }
-            // Redirect to recovery with cache-buster
-            window.location.replace('/_recover?t=' + Date.now());
-            return;
-          }
-          
-          // Store current version
-          localStorage.setItem(STORED_KEY, BUILD_VERSION);
-          sessionStorage.removeItem(RECOVERY_KEY);
-          
-          // Failsafe: If app doesn't load in 8 seconds, try recovery
-          var loadTimeout = setTimeout(function() {
-            if (!window.__TWEALTH_LOADED__) {
-              console.log('[CacheBuster] App failed to load, attempting recovery');
-              sessionStorage.setItem(RECOVERY_KEY, '1');
-              window.location.replace('/_recover?t=' + Date.now());
-            }
-          }, 8000);
-          
-          // Mark as loaded when React mounts (set in main.tsx)
-          window.__TWEALTH_LOAD_TIMEOUT__ = loadTimeout;
-          
-        } catch (e) {
-          console.error('[CacheBuster] Error:', e);
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>
