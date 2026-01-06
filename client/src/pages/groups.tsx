@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GroupForm from "@/components/forms/group-form";
-import { apiRequest, parseJsonSafely } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUserId, useUserCurrency } from "@/lib/userContext";
 
@@ -451,7 +451,7 @@ export default function Groups() {
         role,
         expiresAt: expiresAt.toISOString(),
       });
-      return await parseJsonSafely(response);
+      return await response.json();
     },
     onSuccess: (data) => {
       setGeneratedInvite(data);

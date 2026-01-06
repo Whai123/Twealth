@@ -18,30 +18,48 @@ window.addEventListener('orientationchange', () => {
   setTimeout(setViewportHeight, 100);
 });
 
-// ==================== PWA REGISTRATION ====================
-// TEMPORARILY DISABLED for pre-launch stability
-// Re-enable by setting VITE_ENABLE_PWA=true in environment
-// See replit.md for full re-enable instructions
-const ENABLE_PWA = import.meta.env.VITE_ENABLE_PWA === 'true';
+// Register service worker for PWA functionality
+// Always register in production, check for HTTPS or localhost in development
+const canRegisterSW = 'serviceWorker' in navigator && (
+  import.meta.env.PROD || 
+  window.location.protocol === 'https:' || 
+  window.location.hostname === 'localhost'
+);
 
-if (ENABLE_PWA && 'serviceWorker' in navigator) {
-  console.log('[PWA] PWA is enabled, registering service worker...');
-  
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none'
-      });
-      console.log('[PWA] Service Worker registered successfully:', registration.scope);
-    } catch (error) {
-      console.error('[PWA] Service Worker registration failed:', error);
+if (canRegisterSW) {
+ window.addEventListener('load', async () => {
+  try {
+   const registration = await navigator.serviceWorker.register('/sw.js', {
+    scope: '/',
+    updateViaCache: 'none'
+   });
+   console.log('[PWA] Service Worker registered successfully:', registration.scope);
+   
+   // Handle updates
+   registration.addEventListener('updatefound', () => {
+    const newWorker = registration.installing;
+    if (newWorker) {
+     newWorker.addEventListener('statechange', () => {
+      if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+       // New version available
+       console.log('[PWA] New version available. Refresh to update.');
+       if (confirm('A new version of Twealth is available. Refresh to update?')) {
+        window.location.reload();
+       }
+      }
+     });
     }
-  });
-} else {
-  console.log('[PWA] PWA disabled (VITE_ENABLE_PWA != true). App running as normal website.');
+   });
+
+   // Check for updates every hour
+   setInterval(() => {
+    registration.update();
+   }, 60 * 60 * 1000);
+
+  } catch (error) {
+   console.error('[PWA] Service Worker registration failed:', error);
+  }
+ });
 }
 
-const root = createRoot(document.getElementById("root")!);
-root.render(<App />);
-console.log('[App] Successfully loaded');
+createRoot(document.getElementById("root")!).render(<App />);

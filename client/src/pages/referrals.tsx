@@ -8,7 +8,7 @@ import { Badge } from"@/components/ui/badge";
 import { Label } from"@/components/ui/label";
 import { Separator } from"@/components/ui/separator";
 import { useToast } from"@/hooks/use-toast";
-import { apiRequest, parseJsonSafely, queryClient } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Copy, Share2, Gift, Users, ChevronRight, AlertCircle, Trophy, Star, Zap, Crown, Target, Award, TrendingUp, Sparkles, Rocket } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -69,7 +69,7 @@ export default function ReferralsPage() {
  const useCodeMutation = useMutation({
  mutationFn: async (referralCode: string) => {
  const response = await apiRequest('POST', '/api/referrals/use-code', { referralCode });
- return await parseJsonSafely(response);
+ return await response.json();
  },
  onSuccess: (data: any) => {
  toast({

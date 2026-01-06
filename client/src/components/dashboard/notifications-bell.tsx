@@ -24,7 +24,6 @@ import { useToast } from"@/hooks/use-toast";
 import NotificationActions from"./notification-actions";
 import { cn } from"@/lib/utils";
 import { motion, AnimatePresence } from"framer-motion";
-import { safeString } from '@/lib/safe-render';
 
 interface Notification {
  id: string;
@@ -342,7 +341,7 @@ export default function NotificationsBell() {
                  "text-sm leading-snug line-clamp-1",
                  !notification.isRead ? "font-semibold" : "font-medium"
                 )}>
-                 {safeString(notification.title) || 'Notification'}
+                 {notification.title}
                 </h4>
                 <span className="text-[10px] text-muted-foreground flex-shrink-0 mt-0.5">
                  {formatTimeAgo(notification.createdAt)}
@@ -350,7 +349,7 @@ export default function NotificationsBell() {
                </div>
                
                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
-                {safeString(notification.message)}
+                {notification.message}
                </p>
 
                {notification.actionType && (

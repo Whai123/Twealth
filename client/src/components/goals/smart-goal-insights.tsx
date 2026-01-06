@@ -18,7 +18,6 @@ import {
 import { differenceInDays, differenceInMonths, addMonths } from"date-fns";
 import { useQuery } from"@tanstack/react-query";
 import { useUserCurrency } from"@/lib/userContext";
-import { safeString } from "@/lib/safe-render";
 
 interface Goal {
  id: string;
@@ -276,8 +275,8 @@ export default function SmartGoalInsights({ goals, onActionClick }: SmartGoalIns
         <div className="flex items-start space-x-3 flex-1">
          <insight.icon className={`h-5 w-5 mt-0.5 ${getIconColor(insight.type)}`} />
          <div className="flex-1">
-          <h4 className="font-medium mb-1">{safeString(insight.title)}</h4>
-          <p className="text-sm text-muted-foreground">{safeString(insight.description)}</p>
+          <h4 className="font-medium mb-1">{insight.title}</h4>
+          <p className="text-sm text-muted-foreground">{insight.description}</p>
          </div>
         </div>
         {insight.action && (

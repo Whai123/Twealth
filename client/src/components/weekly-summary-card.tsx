@@ -1,5 +1,4 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { safeString } from "@/lib/safe-render";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Activity, 
@@ -22,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { apiRequest, parseJsonSafely, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
@@ -166,7 +165,7 @@ export function WeeklySummaryCard() {
   const generateMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/playbooks/generate");
-      return parseJsonSafely(response);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/playbooks'] });
@@ -190,7 +189,7 @@ export function WeeklySummaryCard() {
         actionIndex,
         estimatedSavings: 0,
       });
-      return parseJsonSafely(response);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/playbooks'] });
@@ -272,24 +271,19 @@ export function WeeklySummaryCard() {
               {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
             </p>
           </div>
-          {(() => {
-            const band = safeString(currentPlaybook.confidenceBand) || 'stable';
-            return (
           <Badge 
             variant="outline" 
             className={`text-xs ${
-              band === 'improving' ? 'border-emerald-500 text-emerald-600' :
-              band === 'declining' ? 'border-red-500 text-red-600' :
+              currentPlaybook.confidenceBand === 'improving' ? 'border-emerald-500 text-emerald-600' :
+              currentPlaybook.confidenceBand === 'declining' ? 'border-red-500 text-red-600' :
               'border-gray-500 text-gray-600'
             }`}
           >
-            {band === 'improving' && <TrendingUp className="w-3 h-3 mr-1" />}
-            {band === 'declining' && <TrendingDown className="w-3 h-3 mr-1" />}
-            {band === 'stable' && <Minus className="w-3 h-3 mr-1" />}
-            {band}
+            {currentPlaybook.confidenceBand === 'improving' && <TrendingUp className="w-3 h-3 mr-1" />}
+            {currentPlaybook.confidenceBand === 'declining' && <TrendingDown className="w-3 h-3 mr-1" />}
+            {currentPlaybook.confidenceBand === 'stable' && <Minus className="w-3 h-3 mr-1" />}
+            {currentPlaybook.confidenceBand}
           </Badge>
-            );
-          })()}
         </div>
 
         <div className="flex items-center gap-6">
@@ -327,29 +321,25 @@ export function WeeklySummaryCard() {
           AI Insights ({currentPlaybook.insights?.length || 0})
         </h4>
         <div className="space-y-2">
-          {currentPlaybook.insights?.slice(0, 3).map((insight, idx) => {
-            const insightText = safeString(insight.text);
-            const insightTag = safeString(insight.tag);
-            const insightSeverity = safeString(insight.severity) || 'medium';
-            return (
+          {currentPlaybook.insights?.slice(0, 3).map((insight, idx) => (
             <motion.div
               key={idx}
-              className={`p-3 rounded-lg bg-muted/30 ${severityStyles[insightSeverity] || ''}`}
+              className={`p-3 rounded-lg bg-muted/30 ${severityStyles[insight.severity]}`}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.1 }}
             >
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm text-foreground/90">{insightText}</p>
+                <p className="text-sm text-foreground/90">{insight.text}</p>
                 <Badge 
                   variant="secondary" 
-                  className={`text-[10px] shrink-0 ${tagColors[insightTag]?.bg || ''} ${tagColors[insightTag]?.text || ''}`}
+                  className={`text-[10px] shrink-0 ${tagColors[insight.tag]?.bg || ''} ${tagColors[insight.tag]?.text || ''}`}
                 >
-                  {insightTag}
+                  {insight.tag}
                 </Badge>
               </div>
             </motion.div>
-          );})}
+          ))}
         </div>
       </div>
 
@@ -413,9 +403,9 @@ export function WeeklySummaryCard() {
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className={`text-sm font-medium ${isCompleted ? 'text-emerald-700 dark:text-emerald-300 line-through' : 'text-foreground'}`}>
-                      {safeString(action.title)}
+                      {action.title}
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{safeString(action.description)}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{action.description}</p>
                     <div className="flex items-center gap-2 mt-2 text-[10px]">
                       <span className={effortLabels[action.effort].color}>
                         {effortLabels[action.effort].text} effort

@@ -1,45 +1,37 @@
 import { Switch, Route, useLocation } from"wouter";
 import { useEffect } from "react";
-import { queryClient, checkAndClearStaleCache } from"./lib/queryClient";
+import { queryClient } from"./lib/queryClient";
 import { QueryClientProvider } from"@tanstack/react-query";
 import { Toaster } from"./components/ui/toaster";
 import { TooltipProvider } from"./components/ui/tooltip";
 import { UserProvider } from"./lib/userContext";
 import { ThemeProvider } from"./components/theme-provider";
 import { useAuth } from"./hooks/useAuth";
-import { lazy, Suspense } from 'react';
+// Lazy load pages for better mobile performance
+import { lazy, Suspense, startTransition } from 'react';
 import { Card } from"./components/ui/card";
 
-// Clear stale cache on app load to prevent React Error #300 from cached objects
-checkAndClearStaleCache(queryClient);
-
-// CRITICAL ROUTES - Import directly to prevent chunk loading errors on deploy
-// These ship in the main bundle, eliminating cache mismatch issues
-import Dashboard from"./pages/dashboard";
-import Welcome from"./pages/welcome";
-import Groups from"./pages/groups";
-import FinancialGoals from"./pages/financial-goals";
-import MoneyTracking from"./pages/money-tracking";
-import Settings from"./pages/settings";
-import AIAssistant from"./pages/ai-assistant";
-import Landing from"./pages/landing";
-import Login from"./pages/login";
-
-// OPTIONAL ROUTES - Keep lazy for less common paths
+const Dashboard = lazy(() => import("./pages/dashboard"));
+const Welcome = lazy(() => import("./pages/welcome"));
+const Groups = lazy(() => import("./pages/groups"));
+const FinancialGoals = lazy(() => import("./pages/financial-goals"));
+const MoneyTracking = lazy(() => import("./pages/money-tracking"));
+const Settings = lazy(() => import("./pages/settings"));
 const Subscription = lazy(() => import("./pages/subscription"));
 const Checkout = lazy(() => import("./pages/checkout"));
 const Upgrade = lazy(() => import("./pages/upgrade"));
 const Pricing = lazy(() => import("./pages/pricing"));
+const AIAssistant = lazy(() => import("./pages/ai-assistant"));
 const Referrals = lazy(() => import("./pages/referrals"));
 const Friends = lazy(() => import("./pages/friends"));
 const InvitePage = lazy(() => import("./pages/invite"));
 const NotFound = lazy(() => import("./pages/not-found"));
+const Landing = lazy(() => import("./pages/landing.tsx"));
+const Login = lazy(() => import("./pages/login.tsx"));
 const Terms = lazy(() => import("./pages/terms"));
 const Privacy = lazy(() => import("./pages/privacy"));
 const SharePage = lazy(() => import("./pages/share"));
-const AdminPage = lazy(() => import("./pages/admin"));
-
-// HEAVY SHELL COMPONENTS - Lazy load for faster initial paint
+// Lazy-load heavy shell components for faster page transitions
 const FloatingAIWidget = lazy(() => import("./components/ai/floating-ai-widget"));
 const MilestoneCelebration = lazy(() => import("./components/milestone-celebration"));
 const CommandPalette = lazy(() => import("./components/command-palette"));
@@ -163,7 +155,6 @@ function Router() {
          <Route path="/terms" component={Terms} />
          <Route path="/privacy" component={Privacy} />
          <Route path="/share" component={SharePage} />
-         <Route path="/admin" component={AdminPage} />
          <Route component={NotFound} />
         </Switch>
        </Suspense>
@@ -194,11 +185,6 @@ function Router() {
 }
 
 function App() {
- useEffect(() => {
-  // App successfully loaded
-  console.log('[App] Successfully loaded');
- }, []);
-
  return (
   <QueryClientProvider client={queryClient}>
    <UserProvider>

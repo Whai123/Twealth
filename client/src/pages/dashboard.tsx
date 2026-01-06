@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Target, Sparkles, TrendingUp, TrendingDown, Brain, ChevronRight, Award, Star, Zap, DollarSign, PiggyBank, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -16,8 +16,6 @@ import { UserPreferences, FinancialGoal } from "@shared/schema";
 import { SmartNudgeBanner } from "@/components/smart-nudges";
 import { StreakWidget, AchievementBadges } from "@/components/streak-system";
 import { useUserCurrency, useUserPreferences } from "@/lib/userContext";
-import { useAuth } from "@/hooks/useAuth";
-import { safeString, safeNumber, safeDate, formatDate } from '@/lib/safe-render';
 
 interface DashboardStats {
   totalTransactions: number;
@@ -33,14 +31,14 @@ interface FinancialHealthResponse {
   overall: number;
   grade: string;
   breakdown: {
-    savingsRate?: { score: number; value: number; label: string; recommendation: string };
-    emergencyFund?: { score: number; months: number; label: string; recommendation: string };
-    debtRatio?: { score: number; ratio: number; label: string; recommendation: string };
-    netWorthGrowth?: { score: number; growth: number; label: string; recommendation: string };
-    budgetAdherence?: { score: number; adherence: number; label: string; recommendation: string };
+    savingsRate?: { value: number; score: number; weight: number };
+    emergencyFund?: { months: number; score: number; weight: number };
+    goalProgress?: { value: number; score: number; weight: number };
+    budgetAdherence?: { value: number; score: number; weight: number };
+    debtRatio?: { value: number; score: number; weight: number };
   };
-  summary: string;
-  topPriority: string;
+  insights: string[];
+  recommendations: string[];
 }
 
 interface SubscriptionResponse {
@@ -60,31 +58,10 @@ interface SubscriptionResponse {
 }
 
 function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
-  const [displayValue, setDisplayValue] = useState(value);
-  const hasMounted = useRef(false);
-  const prevValue = useRef(value);
-  const rafId = useRef<number | null>(null);
+  const [displayValue, setDisplayValue] = useState(0);
   
   useEffect(() => {
-    // Skip animation on first mount to prevent hydration issues on mobile Safari
-    if (!hasMounted.current) {
-      hasMounted.current = true;
-      setDisplayValue(value);
-      prevValue.current = value;
-      return;
-    }
-    
-    // Cancel any ongoing animation
-    if (rafId.current) {
-      cancelAnimationFrame(rafId.current);
-    }
-    
-    // Only animate if value actually changed
-    if (prevValue.current === value) {
-      return;
-    }
-    
-    const duration = 800;
+    const duration = 1000;
     const startTime = Date.now();
     const startValue = displayValue;
     
@@ -97,23 +74,11 @@ function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { val
       setDisplayValue(current);
       
       if (progress < 1) {
-        rafId.current = requestAnimationFrame(animate);
-      } else {
-        prevValue.current = value;
+        requestAnimationFrame(animate);
       }
     };
     
-    // Small delay before starting animation to ensure hydration is complete
-    const timeoutId = setTimeout(() => {
-      rafId.current = requestAnimationFrame(animate);
-    }, 50);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      if (rafId.current) {
-        cancelAnimationFrame(rafId.current);
-      }
-    };
+    requestAnimationFrame(animate);
   }, [value]);
   
   return (
@@ -142,53 +107,47 @@ export default function Dashboard() {
   const { showOnboarding, completeOnboarding } = useOnboarding();
   const { formatAmount, currencySymbol } = useUserCurrency();
   const { getUserName } = useUserPreferences();
-  const { user, isAuthenticated } = useAuth();
   
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
-    enabled: isAuthenticated,
   });
   
   const { data: financialHealth, isLoading: healthLoading } = useQuery<FinancialHealthResponse>({
     queryKey: ["/api/financial-health"],
-    enabled: isAuthenticated,
   });
   
   const { data: goals, isLoading: goalsLoading } = useQuery<FinancialGoal[]>({
     queryKey: ["/api/financial-goals"],
-    enabled: isAuthenticated,
   });
 
   const { data: preferences } = useQuery<UserPreferences>({
     queryKey: ['/api/user-preferences'],
-    enabled: isAuthenticated,
   });
 
   const { data: subscription } = useQuery<SubscriptionResponse>({
-    queryKey: ["/api/subscription/current"],
-    enabled: isAuthenticated,
+    queryKey: ["/api/subscription"],
   });
   
-  const healthScore = safeNumber(financialHealth?.overall);
-  const healthGrade = safeString(financialHealth?.grade) || 'Building';
-  const savingsRate = safeNumber(financialHealth?.breakdown?.savingsRate?.value);
-  const emergencyFundMonths = safeNumber(financialHealth?.breakdown?.emergencyFund?.months);
+  const healthScore = financialHealth?.overall ?? 0;
+  const healthGrade = financialHealth?.grade ?? 'Building';
+  const savingsRate = financialHealth?.breakdown?.savingsRate?.value ?? 0;
+  const emergencyFundMonths = financialHealth?.breakdown?.emergencyFund?.months ?? 0;
   
   const activeGoals = Array.isArray(goals) ? goals.filter((g) => g.status === "active") : [];
   const nextGoal = activeGoals.length > 0 ? activeGoals[0] : null;
   const nextGoalProgress = nextGoal 
-    ? Math.min(100, (safeNumber(nextGoal.currentAmount) / Math.max(1, safeNumber(nextGoal.targetAmount))) * 100)
+    ? Math.min(100, (parseFloat(nextGoal.currentAmount || '0') / parseFloat(String(nextGoal.targetAmount))) * 100)
     : 0;
   
-  const tierName = safeString(subscription?.plan?.name) || 'Free';
-  const scoutUsed = safeNumber(subscription?.usage?.scoutQueriesUsed);
-  const scoutLimit = safeNumber(subscription?.plan?.scoutLimit) || 50;
-  const queriesRemaining = Math.max(0, scoutLimit - scoutUsed);
+  const tierName = subscription?.plan?.name ?? 'Free';
+  const scoutUsed = subscription?.usage?.scoutQueriesUsed ?? 0;
+  const scoutLimit = subscription?.plan?.scoutLimit ?? 50;
+  const queriesRemaining = scoutLimit - scoutUsed;
   
-  const monthlyIncome = safeNumber(stats?.monthlyIncome);
-  const monthlyExpenses = safeNumber(stats?.monthlyExpenses);
+  const monthlyIncome = stats?.monthlyIncome ?? 0;
+  const monthlyExpenses = stats?.monthlyExpenses ?? 0;
   const netCashFlow = monthlyIncome - monthlyExpenses;
-  const monthlySavingsCapacity = monthlyIncome - safeNumber(preferences?.monthlyExpensesEstimate);
+  const monthlySavingsCapacity = monthlyIncome - parseFloat(String(preferences?.monthlyExpensesEstimate ?? '0'));
   
   const isPositiveCashFlow = netCashFlow >= 0;
   
@@ -222,19 +181,16 @@ export default function Dashboard() {
     }
     
     if (nextGoal && nextGoalProgress < 50 && nextGoal.targetDate) {
-      const targetDate = safeDate(nextGoal.targetDate);
-      if (targetDate) {
-        const daysToTarget = Math.ceil((targetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-        if (daysToTarget > 0) {
-          steps.push({
-            icon: Target,
-            title: `Accelerate "${safeString(nextGoal.title) || 'Goal'}"`,
-            description: `${daysToTarget} days left. ${nextGoalProgress.toFixed(0)}% complete.`,
-            action: "Review",
-            href: "/financial-goals",
-            priority: "medium"
-          });
-        }
+      const daysToTarget = Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      if (daysToTarget > 0) {
+        steps.push({
+          icon: Target,
+          title: `Accelerate "${nextGoal.title}"`,
+          description: `${daysToTarget} days left. ${nextGoalProgress.toFixed(0)}% complete.`,
+          action: "Review",
+          href: "/financial-goals",
+          priority: "medium"
+        });
       }
     }
     
@@ -536,13 +492,13 @@ export default function Dashboard() {
                 {nextGoal ? (
                   <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{safeString(nextGoal.title) || 'Untitled Goal'}</h4>
+                      <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{nextGoal.title}</h4>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xl sm:text-2xl font-bold text-foreground">
-                          {formatAmount(safeNumber(nextGoal.currentAmount))}
+                          {formatAmount(parseFloat(nextGoal.currentAmount || '0'))}
                         </span>
                         <span className="text-xs sm:text-sm text-muted-foreground">
-                          / {formatAmount(safeNumber(nextGoal.targetAmount))}
+                          / {formatAmount(parseFloat(String(nextGoal.targetAmount)))}
                         </span>
                       </div>
                     </div>
@@ -551,7 +507,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
                         <span className="font-medium">{nextGoalProgress.toFixed(0)}% complete</span>
                         {nextGoal.targetDate && (
-                          <span>{formatDate(nextGoal.targetDate)}</span>
+                          <span>{new Date(nextGoal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                         )}
                       </div>
                       <div className="h-2.5 sm:h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -564,17 +520,12 @@ export default function Dashboard() {
                       </div>
                     </div>
                     
-                    {nextGoal.targetDate && safeDate(nextGoal.targetDate) && (
+                    {nextGoal.targetDate && (
                       <div className="p-3 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
                         <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Monthly contribution needed</p>
                         <p className="text-lg sm:text-xl font-bold text-foreground">
-                          {(() => {
-                            const remaining = safeNumber(nextGoal.targetAmount) - safeNumber(nextGoal.currentAmount);
-                            const targetDate = safeDate(nextGoal.targetDate);
-                            if (!targetDate) return formatAmount(0);
-                            const monthsLeft = Math.max(1, Math.ceil((targetDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)));
-                            return formatAmount(Math.max(0, remaining / monthsLeft));
-                          })()}
+                          {formatAmount(Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
+                            Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))))}
                           <span className="text-xs sm:text-sm font-normal text-muted-foreground">/month</span>
                         </p>
                       </div>

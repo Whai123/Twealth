@@ -7,7 +7,6 @@ import { Link } from"wouter";
 import { ErrorState } from"@/components/ui/error-state";
 import { queryClient } from"@/lib/queryClient";
 import { useUserCurrency } from"@/lib/userContext";
-import { safeString } from "@/lib/safe-render";
 
 export default function FinancialGoalsProgress() {
  const { formatAmount } = useUserCurrency();
@@ -97,7 +96,7 @@ export default function FinancialGoalsProgress() {
          <div className="flex items-center justify-between mb-2">
           <div>
            <h3 className="font-medium text-foreground" data-testid={`text-goal-${goal.id}`}>
-            {safeString(goal.title)}
+            {goal.title}
            </h3>
            <p className="text-sm text-muted-foreground">
             Target: {formatAmount(parseFloat(goal.targetAmount))} by {new Date(goal.targetDate).toLocaleDateString()}

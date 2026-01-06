@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { safeString } from "@/lib/safe-render";
 
 interface InsightItem {
   id: string;
@@ -318,19 +317,19 @@ export default function InsightsFeedWidget() {
                 </Badge>
                 {currentInsight.metric && (
                   <span className="text-sm font-semibold text-foreground">
-                    {safeString(currentInsight.metric)}
+                    {currentInsight.metric}
                   </span>
                 )}
               </div>
               <h3 className="font-semibold text-base mb-1 text-foreground">
-                {safeString(currentInsight.title)}
+                {currentInsight.title}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {safeString(currentInsight.description)}
+                {currentInsight.description}
               </p>
               {currentInsight.comparison && (
                 <p className="text-xs text-muted-foreground/80 mt-2">
-                  {safeString(currentInsight.comparison)}
+                  {currentInsight.comparison}
                 </p>
               )}
             </div>

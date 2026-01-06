@@ -5,7 +5,6 @@ import { Badge } from"@/components/ui/badge";
 import { Brain, RefreshCw, MessageCircle, Crown, AlertTriangle } from"lucide-react";
 import { useQuery } from"@tanstack/react-query";
 import { Skeleton } from"@/components/ui/skeleton";
-import { safeString } from "@/lib/safe-render";
 
 interface AIInsightsCardProps {
  onOpenChat?: () => void;
@@ -96,7 +95,7 @@ export default function AIInsightsCard({ onOpenChat }: AIInsightsCardProps) {
      <>
       <div className="text-sm text-foreground leading-relaxed">
        <p data-testid="text-ai-insight">
-        {safeString(insights?.insight) ||"Focus on tracking your spending patterns this week."}
+        {insights?.insight ||"Focus on tracking your spending patterns this week."}
        </p>
        {insights?.error && (
         <p className="text-xs text-muted-foreground mt-2">

@@ -19,7 +19,6 @@ import { useMutation } from"@tanstack/react-query";
 import { apiRequest, queryClient } from"@/lib/queryClient";
 import { useToast } from"@/hooks/use-toast";
 import { useState } from"react";
-import { safeString } from '@/lib/safe-render';
 
 export default function MobileHeader() {
  const { user } = useAuth();
@@ -65,10 +64,8 @@ export default function MobileHeader() {
 
  const getUserInitials = () => {
   if (!user) return"U";
-  const firstName = safeString(user.firstName);
-  const lastName = safeString(user.lastName);
-  const firstInitial = firstName?.[0] ||"";
-  const lastInitial = lastName?.[0] ||"";
+  const firstInitial = user.firstName?.[0] ||"";
+  const lastInitial = user.lastName?.[0] ||"";
   return (firstInitial + lastInitial).toUpperCase() ||"U";
  };
 
@@ -121,10 +118,10 @@ export default function MobileHeader() {
       <DropdownMenuLabel>
        <div className="flex flex-col space-y-1">
         <p className="text-sm font-medium leading-none" data-testid="text-user-name">
-         {user ? `${safeString(user.firstName)} ${safeString(user.lastName)}` : 'Loading...'}
+         {user ? `${user.firstName} ${user.lastName}` : 'Loading...'}
         </p>
         <p className="text-xs leading-none text-muted-foreground" data-testid="text-user-email">
-         {safeString(user?.email) || 'Loading...'}
+         {user?.email || 'Loading...'}
         </p>
        </div>
       </DropdownMenuLabel>

@@ -3,114 +3,35 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import { Strategy as AppleStrategy } from "passport-apple";
 import session from "express-session";
-import type { Express, Request, Response, RequestHandler } from "express";
+import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 import { authLogger } from "./utils/logger";
 
+// Safe default for REPLIT_DOMAINS in development
 const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost:5000';
+
+// Use production domain for OAuth in production, dev domain in development
 const PRODUCTION_DOMAIN = 'twealth.ltd';
 const domains = REPLIT_DOMAINS.split(',');
 const isDevelopment = process.env.NODE_ENV === 'development';
 const customDomain = isDevelopment ? domains[0] : PRODUCTION_DOMAIN;
 
+// Development-only debug logging for OAuth setup
 if (isDevelopment) {
   authLogger.debug('OAuth Environment', { data: { NODE_ENV: process.env.NODE_ENV } });
   authLogger.debug('Using domain for callbacks', { data: { domain: customDomain } });
 }
 
 const FRONTEND_URL = `https://${customDomain}`;
-const BACKEND_URL = FRONTEND_URL;
+const BACKEND_URL = FRONTEND_URL; // Same domain setup
 
 if (isDevelopment) {
   authLogger.debug('Google callback URL', { data: { url: `${BACKEND_URL}/api/auth/google/callback` } });
 }
 
-interface UserSession {
-  userId?: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  profileImageUrl?: string;
-}
-
-// Promisified session helpers for clean async/await usage
-function loginUser(req: Request, user: any): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.login(user, (err) => err ? reject(err) : resolve());
-  });
-}
-
-function regenerateSession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.session.regenerate((err) => err ? reject(err) : resolve());
-  });
-}
-
-function saveSession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.session.save((err) => err ? reject(err) : resolve());
-  });
-}
-
-function destroySession(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.session.destroy((err) => err ? reject(err) : resolve());
-  });
-}
-
-function logoutUser(req: Request): Promise<void> {
-  return new Promise((resolve, reject) => {
-    req.logout((err) => err ? reject(err) : resolve());
-  });
-}
-
-/**
- * Secure OAuth login flow:
- * 1. Capture all existing session data
- * 2. Login user to establish authentication
- * 3. Regenerate session ID (prevents session fixation attacks)
- * 4. Restore all session data + re-attach user
- * 5. Save and redirect
- */
-async function secureOAuthLogin(req: Request, res: Response, user: any, provider: string): Promise<void> {
-  try {
-    // Preserve ALL session data (except internal cookie property)
-    const sessionData: Record<string, any> = {};
-    for (const key of Object.keys(req.session)) {
-      if (key !== 'cookie' && key !== 'passport') {
-        sessionData[key] = (req.session as any)[key];
-      }
-    }
-    
-    await loginUser(req, user);
-    if (isDevelopment) authLogger.debug(`${provider} user logged in`);
-    
-    const userData = req.user;
-    
-    await regenerateSession(req);
-    if (isDevelopment) authLogger.debug(`${provider} session regenerated`);
-    
-    // Restore all preserved session data
-    for (const [key, value] of Object.entries(sessionData)) {
-      (req.session as any)[key] = value;
-    }
-    
-    await loginUser(req, userData);
-    await saveSession(req);
-    
-    // Redirect to returnTo if set, otherwise home
-    const redirectTo = sessionData.returnTo || "/";
-    if (isDevelopment) authLogger.debug(`${provider} login complete, redirecting to ${redirectTo}`);
-    res.redirect(redirectTo);
-  } catch (error) {
-    authLogger.error(`${provider} OAuth error`, error as Error);
-    res.redirect("/login");
-  }
-}
-
 export function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000;
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
@@ -119,15 +40,24 @@ export function getSession() {
     tableName: "sessions",
   });
   
+  // Detect production: NODE_ENV=production OR deployment flag
   const isProduction = process.env.NODE_ENV === 'production' || 
                        process.env.REPLIT_DEPLOYMENT === '1';
   
+  // Development-only session config logging
   if (isDevelopment) {
     authLogger.debug('Session configuration', { 
-      data: { NODE_ENV: process.env.NODE_ENV, isProduction, secure: isProduction }
+      data: {
+        NODE_ENV: process.env.NODE_ENV,
+        REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
+        isProduction,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax'
+      }
     });
   }
   
+  // Use a safe default for SESSION_SECRET in development
   const sessionSecret = process.env.SESSION_SECRET || (isDevelopment ? 'dev-session-secret-change-in-production' : undefined);
   if (!sessionSecret) {
     throw new Error('SESSION_SECRET must be set in production');
@@ -140,12 +70,20 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      domain: isProduction ? '.twealth.ltd' : undefined,
+      secure: isProduction, // Secure cookies only in production
+      sameSite: isProduction ? 'none' : 'lax', // 'none' for production OAuth, 'lax' for dev
+      domain: isProduction ? '.twealth.ltd' : undefined, // Domain only in production
       maxAge: sessionTtl,
     },
   });
+}
+
+interface UserSession {
+  userId?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
 }
 
 // Google OAuth Strategy
@@ -160,21 +98,32 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
+          // Extract user info from Google profile
           const email = profile.emails?.[0]?.value;
-          if (!email) return done(new Error('No email found in Google profile'));
+          const firstName = profile.name?.givenName || '';
+          const lastName = profile.name?.familyName || '';
+          const profileImageUrl = profile.photos?.[0]?.value;
 
+          if (!email) {
+            return done(new Error('No email found in Google profile'));
+          }
+
+          // Upsert user in database
           const user = await storage.upsertUser({
             id: `google_${profile.id}`,
             email,
-            firstName: profile.name?.givenName || '',
-            lastName: profile.name?.familyName || '',
-            profileImageUrl: profile.photos?.[0]?.value,
+            firstName,
+            lastName,
+            profileImageUrl,
           });
 
+          // Initialize subscription if new user
           const subscription = await storage.getUserSubscription(user.id);
-          if (!subscription) await storage.initializeDefaultSubscription(user.id);
+          if (!subscription) {
+            await storage.initializeDefaultSubscription(user.id);
+          }
 
-          done(null, {
+          return done(null, {
             userId: user.id,
             email: user.email,
             firstName: user.firstName,
@@ -182,7 +131,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             profileImageUrl: user.profileImageUrl,
           });
         } catch (error) {
-          done(error as Error);
+          return done(error as Error);
         }
       }
     )
@@ -201,21 +150,32 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
+          // Extract user info from Facebook profile
           const email = profile.emails?.[0]?.value;
-          if (!email) return done(new Error('No email found in Facebook profile'));
+          const firstName = profile.name?.givenName || '';
+          const lastName = profile.name?.familyName || '';
+          const profileImageUrl = profile.photos?.[0]?.value;
 
+          if (!email) {
+            return done(new Error('No email found in Facebook profile'));
+          }
+
+          // Upsert user in database
           const user = await storage.upsertUser({
             id: `facebook_${profile.id}`,
             email,
-            firstName: profile.name?.givenName || '',
-            lastName: profile.name?.familyName || '',
-            profileImageUrl: profile.photos?.[0]?.value,
+            firstName,
+            lastName,
+            profileImageUrl,
           });
 
+          // Initialize subscription if new user
           const subscription = await storage.getUserSubscription(user.id);
-          if (!subscription) await storage.initializeDefaultSubscription(user.id);
+          if (!subscription) {
+            await storage.initializeDefaultSubscription(user.id);
+          }
 
-          done(null, {
+          return done(null, {
             userId: user.id,
             email: user.email,
             firstName: user.firstName,
@@ -223,7 +183,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
             profileImageUrl: user.profileImageUrl,
           });
         } catch (error) {
-          done(error as Error);
+          return done(error as Error);
         }
       }
     )
@@ -245,21 +205,31 @@ if (process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APP
       },
       async (accessToken: string, refreshToken: string, idToken: any, profile: any, done: any) => {
         try {
+          // Apple provides email only on first sign in
           const email = idToken.email || profile.email;
-          if (!email) return done(new Error('No email found in Apple profile'));
+          const firstName = profile.name?.firstName || '';
+          const lastName = profile.name?.lastName || '';
 
+          if (!email) {
+            return done(new Error('No email found in Apple profile'));
+          }
+
+          // Upsert user in database
           const user = await storage.upsertUser({
             id: `apple_${profile.id || idToken.sub}`,
             email,
-            firstName: profile.name?.firstName || '',
-            lastName: profile.name?.lastName || '',
+            firstName,
+            lastName,
             profileImageUrl: null,
           });
 
+          // Initialize subscription if new user
           const subscription = await storage.getUserSubscription(user.id);
-          if (!subscription) await storage.initializeDefaultSubscription(user.id);
+          if (!subscription) {
+            await storage.initializeDefaultSubscription(user.id);
+          }
 
-          done(null, {
+          return done(null, {
             userId: user.id,
             email: user.email,
             firstName: user.firstName,
@@ -267,120 +237,190 @@ if (process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APP
             profileImageUrl: user.profileImageUrl,
           });
         } catch (error) {
-          done(error as Error);
+          return done(error as Error);
         }
       }
     )
   );
 }
 
-passport.serializeUser((user: any, done) => done(null, user));
-passport.deserializeUser((user: any, done) => done(null, user));
+// Serialize/deserialize user for session
+passport.serializeUser((user: any, done) => {
+  done(null, user);
+});
 
+passport.deserializeUser((user: any, done) => {
+  done(null, user);
+});
+
+// Middleware to check if user is authenticated
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  if (req.isAuthenticated?.()) {
-    (req as any).userId = (req.user as UserSession).userId;
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const userSession = req.user as UserSession;
+    
+    // Attach user ID to request for downstream middleware
+    (req as any).userId = userSession.userId;
+    
     return next();
   }
+  
   res.status(401).json({ error: "Unauthorized - Please log in" });
 };
 
 export function setupAuth(app: Express) {
   if (isDevelopment) authLogger.debug('setupAuth() called');
   
+  // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
   if (isDevelopment) authLogger.debug('Passport initialized');
 
+  // Test route to verify routing works (development only)
   if (isDevelopment) {
     app.get("/api/auth/test", (req, res) => {
+      authLogger.debug('Test route hit');
       res.json({ message: "OAuth routes working", timestamp: new Date().toISOString() });
     });
   }
 
-  // Google OAuth
+  // Google OAuth routes
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     if (isDevelopment) authLogger.debug('Registering Google OAuth routes');
-    
-    app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-    
-    app.get("/api/auth/google/callback", (req, res, next) => {
-      passport.authenticate("google", (err: any, user: any) => {
-        if (err || !user) {
-          authLogger.error('Google auth error', err);
-          return res.redirect("/login");
+    app.get(
+      "/api/auth/google",
+      (req, res, next) => {
+        if (isDevelopment) authLogger.debug('Initiating Google login');
+        next();
+      },
+      passport.authenticate("google", { scope: ["profile", "email"] })
+    );
+
+    app.get(
+      "/api/auth/google/callback",
+      (req, res, next) => {
+        if (isDevelopment) {
+          authLogger.debug('Callback received', { data: { query: req.query, sessionID: req.sessionID } });
         }
-        secureOAuthLogin(req, res, user, 'Google');
-      })(req, res, next);
-    });
+        next();
+      },
+      (req, res, next) => {
+        passport.authenticate("google", (err: any, user: any, info: any) => {
+          if (isDevelopment) {
+            authLogger.debug('Passport authenticate callback', { data: { hasError: !!err, hasUser: !!user } });
+          }
+          
+          if (err) {
+            authLogger.error('Authentication error', err);
+            return res.redirect("/login");
+          }
+          
+          if (!user) {
+            authLogger.warn('No user returned from passport');
+            return res.redirect("/login");
+          }
+          
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              authLogger.error('Login error', loginErr);
+              return res.redirect("/login");
+            }
+            
+            if (isDevelopment) authLogger.debug('User logged in successfully');
+            
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                authLogger.error('Session save error', saveErr);
+                return res.redirect("/login");
+              }
+              if (isDevelopment) authLogger.debug('Session saved, redirecting');
+              res.redirect("/");
+            });
+          });
+        })(req, res, next);
+      }
+    );
   }
 
-  // Facebook OAuth
+  // Facebook OAuth routes
   if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
-    app.get("/api/auth/facebook", passport.authenticate("facebook", { scope: ["email"] }));
-    
-    app.get("/api/auth/facebook/callback", (req, res, next) => {
-      passport.authenticate("facebook", (err: any, user: any) => {
-        if (err || !user) {
-          authLogger.error('Facebook auth error', err);
-          return res.redirect("/login");
-        }
-        secureOAuthLogin(req, res, user, 'Facebook');
-      })(req, res, next);
-    });
+    app.get(
+      "/api/auth/facebook",
+      passport.authenticate("facebook", { scope: ["email"] })
+    );
+
+    app.get(
+      "/api/auth/facebook/callback",
+      passport.authenticate("facebook", { failureRedirect: "/login" }),
+      (req, res) => {
+        // Explicitly save session before redirecting
+        req.session.save((err) => {
+          if (err) {
+            authLogger.error('Facebook session save error', err);
+            return res.redirect("/login");
+          }
+          res.redirect("/");
+        });
+      }
+    );
   }
 
-  // Apple OAuth
+  // Apple Sign In routes
   if (process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY) {
-    app.post("/api/auth/apple", passport.authenticate("apple"));
-    
-    app.post("/api/auth/apple/callback", (req, res, next) => {
-      passport.authenticate("apple", (err: any, user: any) => {
-        if (err || !user) {
-          authLogger.error('Apple auth error', err);
-          return res.redirect("/login");
-        }
-        secureOAuthLogin(req, res, user, 'Apple');
-      })(req, res, next);
-    });
+    app.post(
+      "/api/auth/apple",
+      passport.authenticate("apple")
+    );
+
+    app.post(
+      "/api/auth/apple/callback",
+      passport.authenticate("apple", { failureRedirect: "/login" }),
+      (req, res) => {
+        // Explicitly save session before redirecting
+        req.session.save((err) => {
+          if (err) {
+            authLogger.error('Apple session save error', err);
+            return res.redirect("/login");
+          }
+          res.redirect("/");
+        });
+      }
+    );
   }
 
+  // Get current user endpoint
   app.get("/api/auth/user", isAuthenticated, async (req, res) => {
     const userSession = req.user as UserSession;
     const user = await storage.getUser(userSession.userId!);
     res.json(user);
   });
 
-  app.post("/api/auth/logout", async (req, res) => {
-    try {
-      await logoutUser(req);
-      await destroySession(req);
-      
-      const isProduction = process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1';
-      res.clearCookie('connect.sid', {
-        path: '/',
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
+  // Logout endpoint
+  app.post("/api/auth/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      req.session.destroy((err) => {
+        if (err) {
+          return res.status(500).json({ error: "Session destruction failed" });
+        }
+        res.json({ success: true });
       });
-      
-      if (isDevelopment) authLogger.debug('Session destroyed and cookie cleared');
-      res.json({ success: true });
-    } catch (error) {
-      authLogger.error('Logout error', error as Error);
-      res.status(500).json({ error: "Logout failed" });
-    }
+    });
   });
 
+  // Check auth status
   app.get("/api/auth/status", (req, res) => {
-    res.json({ authenticated: req.isAuthenticated?.() ?? false });
+    res.json({ authenticated: req.isAuthenticated ? req.isAuthenticated() : false });
   });
 
+  // Get available OAuth providers
   app.get("/api/auth/providers", (req, res) => {
-    res.json({
+    const providers = {
       google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
       facebook: !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
       apple: !!(process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY),
-    });
+    };
+    res.json(providers);
   });
 }

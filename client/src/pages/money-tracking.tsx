@@ -24,7 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, parseJsonSafely, queryClient as globalQueryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient as globalQueryClient } from "@/lib/queryClient";
 import TransactionForm from "@/components/forms/transaction-form";
 import AdvancedSpendingAnalytics from "@/components/money/advanced-spending-analytics";
 import SmartBudgetManagement from "@/components/money/smart-budget-management";
@@ -343,7 +343,7 @@ export default function MoneyTracking() {
       }
       
       const response = await apiRequest('POST', '/api/transactions/bulk-categorize', { transactionIds: uncategorizedIds });
-      return await parseJsonSafely(response);
+      return await response.json();
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -365,7 +365,7 @@ export default function MoneyTracking() {
   const archiveTransactionMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('PATCH', `/api/transactions/${id}/archive`);
-      return await parseJsonSafely(response);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -386,7 +386,7 @@ export default function MoneyTracking() {
   const flagTransactionMutation = useMutation({
     mutationFn: async (id: number) => {
       const response = await apiRequest('PATCH', `/api/transactions/${id}/flag`);
-      return await parseJsonSafely(response);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });

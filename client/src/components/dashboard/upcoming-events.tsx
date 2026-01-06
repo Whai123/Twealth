@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback } from"@/components/ui/avatar";
 import { Plus, Calendar } from"lucide-react";
 import { Link } from"wouter";
 import { SkeletonEvent } from"@/components/ui/skeleton";
-import { safeString } from "@/lib/safe-render";
 
 // Helper function to get user initials
 const getUserInitials = (user: any): string => {
@@ -71,7 +70,7 @@ export default function UpcomingEvents() {
         <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
         <div className="flex-1">
          <h4 className="font-medium text-sm text-foreground" data-testid={`text-event-${event.id}`}>
-          {safeString(event.title)}
+          {event.title}
          </h4>
          <p className="text-xs text-muted-foreground">
           {event.groupId ?"Group Event" :"Personal"} • {new Date(event.startTime).toLocaleString()}

@@ -18,64 +18,6 @@ const debugLog = (context: string, message: string, data?: any) => {
   }
 };
 
-/**
- * Deep sanitize an API response to prevent React Error #300 on mobile Safari.
- * Ensures all values are primitives (strings, numbers, booleans, null) or arrays/objects of primitives.
- * Converts Date objects to ISO strings.
- */
-// CRITICAL: Only JSONB fields containing NESTED OBJECTS must be stringified
-// to prevent React Error #300 on mobile Safari.
-// DO NOT include arrays of primitives (strings, numbers, booleans) - they are safe.
-const JSON_BLOB_FIELDS = new Set([
-  'onboardingData',        // Contains nested object with user profile data
-  'conversationMemory',    // Contains nested objects with life events, preferences
-  'userContext',           // Contains nested financial data object
-  'insights',              // Playbook insights (array of objects)
-  'actions',               // Playbook actions (array of objects)
-  'data',                  // Notification data (nested object)
-  'actionData',            // Notification action data (nested object)
-  'breakdown',             // Financial health breakdown (nested objects)
-]);
-
-function sanitizeApiResponse(data: unknown): unknown {
-  if (data === null || data === undefined) return data;
-  
-  // Handle Date objects - convert to ISO string
-  if (data instanceof Date) {
-    return isNaN(data.getTime()) ? null : data.toISOString();
-  }
-  
-  // Handle arrays - recursively sanitize each item
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeApiResponse(item));
-  }
-  
-  // Handle primitive types
-  if (typeof data === 'string' || typeof data === 'boolean') return data;
-  if (typeof data === 'number') {
-    // Handle NaN/Infinity
-    if (isNaN(data) || !isFinite(data)) return 0;
-    return data;
-  }
-  
-  // Handle objects
-  if (typeof data === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(data)) {
-      // CRITICAL: Stringify known JSON blob fields to prevent React Error #300
-      if (JSON_BLOB_FIELDS.has(key) && value !== null && typeof value === 'object') {
-        result[key] = JSON.stringify(value);
-      } else {
-        result[key] = sanitizeApiResponse(value);
-      }
-    }
-    return result;
-  }
-  
-  // Fallback - convert to string
-  return String(data);
-}
-
 // Webhook event idempotency is now database-backed for persistence across restarts
 // Old events are cleaned up periodically (see cleanupOldWebhookEvents)
 
@@ -321,42 +263,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // ==================== VERSION ENDPOINT ====================
-  // Returns deterministic build version based on Vite manifest hash
-  // This changes every time the app is rebuilt (vite build)
-  const fs = await import('fs');
-  const pathModule = await import('path');
-  const crypto = await import('crypto');
-  
-  const getBuildVersion = (): string => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    if (isProduction) {
-      // Read Vite manifest and hash its contents for deterministic version
-      const manifestPath = pathModule.resolve(process.cwd(), 'dist/public/.vite/manifest.json');
-      
-      try {
-        const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
-        const hash = crypto.createHash('sha256').update(manifestContent).digest('hex').slice(0, 12);
-        console.log(`[Version] Build version from manifest hash: ${hash}`);
-        return hash;
-      } catch (e: any) {
-        console.error(`[Version] ERROR: Cannot read manifest at ${manifestPath}: ${e.message}`);
-        // Deterministic fallback - all instances agree on 'unknown' rather than diverging
-        return 'unknown';
-      }
-    }
-    // In development, use a constant so reloads don't trigger during dev
-    return 'development';
-  };
-  
-  const BUILD_VERSION = getBuildVersion();
-  
-  app.get("/api/version", (req, res) => {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.json({ version: BUILD_VERSION, timestamp: Date.now() });
-  });
-
   // User routes - Requires authentication
   app.get("/api/users/me", isAuthenticated, async (req: any, res) => {
     try {
@@ -423,7 +329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const stats = await storage.getUserStats(userId);
-      res.json(sanitizeApiResponse(stats));
+      res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -867,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const goals = await storage.getFinancialGoalsByUserId(userId);
-      res.json(sanitizeApiResponse(goals));
+      res.json(goals);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -978,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const streak = await storage.getUserStreak(userId);
       const achievements = await storage.getUserAchievements(userId);
       
-      res.json(sanitizeApiResponse({
+      res.json({
         currentStreak: streak?.currentStreak ?? 0,
         longestStreak: streak?.longestStreak ?? 0,
         lastCheckIn: streak?.lastCheckIn ?? null,
@@ -993,7 +899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           progress: a.progress ?? 0,
           target: a.target,
         })),
-      }));
+      });
     } catch (error: any) {
       console.error('Error fetching streak:', error);
       res.status(500).json({ message: error.message });
@@ -2540,9 +2446,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           theme: "system" as const
         };
         const newPrefs = await storage.createUserPreferences(defaultPrefs);
-        return res.json(sanitizeApiResponse(newPrefs));
+        return res.json(newPrefs);
       }
-      res.json(sanitizeApiResponse(preferences));
+      res.json(preferences);
     } catch (error: any) {
       console.error('[/api/user-preferences] Error:', error);
       res.status(500).json({ message: error.message });
@@ -2601,9 +2507,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           defaultGoalPriority: "medium" as const
         };
         const newPrefs = await storage.createFinancialPreferences(defaultPrefs);
-        return res.json(sanitizeApiResponse(newPrefs));
+        return res.json(newPrefs);
       }
-      res.json(sanitizeApiResponse(preferences));
+      res.json(preferences);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2914,7 +2820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const includeRead = req.query.includeRead === 'true';
       
       const notifications = await storage.getNotificationsByUserId(userId, limit, offset, includeRead);
-      res.json(sanitizeApiResponse(notifications));
+      res.json(notifications);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -5233,7 +5139,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const healthScore = await calculateFinancialHealth(storage, userId);
-      res.json(sanitizeApiResponse(healthScore));
+      res.json(healthScore);
     } catch (error: any) {
       console.error('Financial health calculation error:', error);
       res.status(500).json({ message: error.message });
@@ -5427,11 +5333,11 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       const usage = await storage.getUserUsage(userId);
       const addOns = await storage.getUserAddOns(userId);
       
-      res.json(sanitizeApiResponse({
+      res.json({
         subscription,
         usage,
         addOns
-      }));
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -6866,7 +6772,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       const userId = getUserIdFromRequest(req);
       const limit = parseInt(req.query.limit as string) || 10;
       const playbooks = await storage.getPlaybooksByUserId(userId, limit);
-      res.json(sanitizeApiResponse(playbooks));
+      res.json(playbooks);
     } catch (error: any) {
       console.error('Error fetching playbooks:', error);
       res.status(500).json({ message: 'Failed to fetch playbooks' });
@@ -7014,56 +6920,6 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     } catch (error: any) {
       console.error('Error deleting playbook:', error);
       res.status(500).json({ message: 'Failed to delete playbook' });
-    }
-  });
-
-  // Admin endpoints - only accessible by admin email
-  const ADMIN_EMAILS = ['contact.twealth@gmail.com'];
-  
-  const isAdmin = async (req: any, res: any, next: any) => {
-    try {
-      const userId = getUserIdFromRequest(req);
-      const user = await storage.getUser(userId);
-      
-      if (!user || !user.email || !ADMIN_EMAILS.includes(user.email)) {
-        return res.status(403).json({ message: 'Admin access required' });
-      }
-      
-      next();
-    } catch (error) {
-      return res.status(403).json({ message: 'Admin access required' });
-    }
-  };
-
-  app.get("/api/admin/users", isAuthenticated, isAdmin, async (req: any, res) => {
-    try {
-      const usersWithSubs = await storage.getAllUsersWithSubscriptions();
-      res.json({
-        totalUsers: usersWithSubs.length,
-        users: usersWithSubs
-      });
-    } catch (error: any) {
-      console.error('Error fetching admin users:', error);
-      res.status(500).json({ message: 'Failed to fetch users' });
-    }
-  });
-
-  app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req: any, res) => {
-    try {
-      const usersWithSubs = await storage.getAllUsersWithSubscriptions();
-      
-      const stats = {
-        totalUsers: usersWithSubs.length,
-        freeUsers: usersWithSubs.filter(u => u.planName === 'free' || !u.planName).length,
-        proUsers: usersWithSubs.filter(u => u.planName === 'pro').length,
-        enterpriseUsers: usersWithSubs.filter(u => u.planName === 'enterprise').length,
-        activeSubscriptions: usersWithSubs.filter(u => u.subscription?.status === 'active').length,
-      };
-      
-      res.json(stats);
-    } catch (error: any) {
-      console.error('Error fetching admin stats:', error);
-      res.status(500).json({ message: 'Failed to fetch stats' });
     }
   });
 

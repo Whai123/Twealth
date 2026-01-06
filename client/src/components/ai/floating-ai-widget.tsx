@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest, parseJsonSafely } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -50,7 +50,7 @@ export default function FloatingAIWidget() {
       const response = await apiRequest("POST", "/api/chat/conversations", {
         title: "Quick Chat"
       });
-      return await parseJsonSafely(response);
+      return await response.json();
     },
     onSuccess: (data) => {
       setConversationId(data.id);
@@ -105,7 +105,7 @@ export default function FloatingAIWidget() {
         content,
         mode: "quick"
       });
-      return await parseJsonSafely(response);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", conversationId] });

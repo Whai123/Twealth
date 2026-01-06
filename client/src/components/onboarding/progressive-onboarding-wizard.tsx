@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, parseJsonSafely } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 
 const step1Schema = z.object({
   fullName: z.string().min(1, "Name is required"),
@@ -93,17 +93,7 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
 
   useEffect(() => {
     if (!prefsLoading && !isHydrated) {
-      // Parse onboardingData safely - it may be stringified JSON from server
-      let savedData: Record<string, any> = {};
-      try {
-        if (typeof userPreferences?.onboardingData === 'string') {
-          savedData = JSON.parse(userPreferences.onboardingData) || {};
-        } else if (userPreferences?.onboardingData && typeof userPreferences.onboardingData === 'object') {
-          savedData = userPreferences.onboardingData as Record<string, any>;
-        }
-      } catch {
-        savedData = {};
-      }
+      const savedData = userPreferences?.onboardingData || {};
       const savedStep = userPreferences?.onboardingStep || 1;
 
       if (savedData && Object.keys(savedData).length > 0) {
@@ -154,7 +144,7 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
         onboardingStep: data.step,
         onboardingData: data.data,
       });
-      return parseJsonSafely(response);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });
@@ -169,7 +159,7 @@ export function ProgressiveOnboardingWizard({ onComplete }: ProgressiveOnboardin
         onboardingData: data,
         language: data.preferredLanguage || "en",
       });
-      return parseJsonSafely(response);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });

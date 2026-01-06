@@ -5,7 +5,6 @@ import EmptyState from"@/components/ui/empty-state";
 import { Plus, ArrowDown, ArrowUp, Home, ShoppingCart, PiggyBank, Receipt } from"lucide-react";
 import { Link, useLocation } from"wouter";
 import { useUserCurrency } from"@/lib/userContext";
-import { safeString } from "@/lib/safe-render";
 
 const getTransactionIcon = (category: string, type: string) => {
  if (type ==="income") return ArrowDown;
@@ -102,9 +101,9 @@ export default function RecentTransactions() {
            <p 
             className="font-medium text-sm text-foreground truncate" 
             data-testid={`text-transaction-${transaction.id}`}
-            title={safeString(transaction.description || transaction.category)}
+            title={transaction.description || transaction.category}
            >
-            {safeString(transaction.description || transaction.category)}
+            {transaction.description || transaction.category}
            </p>
            <p className="text-xs text-muted-foreground">
             {new Date(transaction.date).toLocaleDateString()}

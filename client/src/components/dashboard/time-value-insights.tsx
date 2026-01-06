@@ -6,7 +6,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Clock, DollarSign, TrendingUp, Calendar, Target, BarChart3 } from"lucide-react";
 import { ChartContainer } from"@/components/ui/chart";
 import { useState } from"react";
-import { safeString } from "@/lib/safe-render";
 
 export default function TimeValueInsights() {
  const [range, setRange] = useState<'7d' | '30d' | '90d'>('30d');
@@ -354,7 +353,7 @@ export default function TimeValueInsights() {
         <div key={event.eventId} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors">
          <div>
           <p className="font-medium text-sm" data-testid={`upcoming-event-${index}`}>
-           {safeString(event.title)}
+           {event.title}
           </p>
           <p className="text-xs text-muted-foreground">
            Estimated value: {currencySymbol}{Math.round(event.estimatedValue).toLocaleString()}

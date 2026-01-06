@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useUserCurrency } from "@/lib/userContext";
-import { safeString, safeNumber } from '@/lib/safe-render';
 
 interface Nudge {
   id: string;
@@ -146,7 +145,7 @@ export function SmartNudgeBanner() {
             id: `goal-almost-${goal.id}`,
             type: "celebration",
             title: "Almost There!",
-            message: `"${safeString(goal.title) || 'Goal'}" is ${progress.toFixed(0)}% complete. One final push!`,
+            message: `"${goal.title}" is ${progress.toFixed(0)}% complete. One final push!`,
             action: { label: "View Goal", href: "/financial-goals" },
             icon: Target,
             priority: 3,
@@ -155,22 +154,18 @@ export function SmartNudgeBanner() {
         }
 
         if (goal.targetDate) {
-          try {
-            const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-            if (daysLeft <= 7 && daysLeft > 0 && progress < 80) {
-              nudges.push({
-                id: `goal-deadline-${goal.id}`,
-                type: "warning",
-                title: "Deadline Approaching",
-                message: `"${safeString(goal.title) || 'Goal'}" is due in ${daysLeft} days with ${progress.toFixed(0)}% progress.`,
-                action: { label: "Add Funds", href: "/financial-goals" },
-                icon: Bell,
-                priority: 2,
-                dismissable: true,
-              });
-            }
-          } catch {
-            // Skip if date parsing fails
+          const daysLeft = Math.ceil((new Date(goal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+          if (daysLeft <= 7 && daysLeft > 0 && progress < 80) {
+            nudges.push({
+              id: `goal-deadline-${goal.id}`,
+              type: "warning",
+              title: "Deadline Approaching",
+              message: `"${goal.title}" is due in ${daysLeft} days with ${progress.toFixed(0)}% progress.`,
+              action: { label: "Add Funds", href: "/financial-goals" },
+              icon: Bell,
+              priority: 2,
+              dismissable: true,
+            });
           }
         }
       });
@@ -235,7 +230,7 @@ export function SmartNudgeBanner() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h4 className="font-semibold text-sm">{safeString(currentNudge.title)}</h4>
+                  <h4 className="font-semibold text-sm">{currentNudge.title}</h4>
                   {nudges.length > 1 && (
                     <Badge variant="outline" className="text-[10px] px-1.5">
                       {currentIndex + 1}/{nudges.length}
@@ -243,7 +238,7 @@ export function SmartNudgeBanner() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-1">
-                  {safeString(currentNudge.message)}
+                  {currentNudge.message}
                 </p>
               </div>
 
@@ -255,7 +250,7 @@ export function SmartNudgeBanner() {
                     className="hidden sm:flex h-8 text-xs"
                     data-testid={`nudge-action-${currentNudge.id}`}
                   >
-                    {safeString(currentNudge.action.label)}
+                    {currentNudge.action.label}
                     <ArrowRight className="w-3 h-3 ml-1" />
                   </Button>
                 )}

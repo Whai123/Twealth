@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import { safeString } from "@/lib/safe-render";
+import { useState, useMemo } from"react";
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card";
 import { Button } from"@/components/ui/button";
 import { Badge } from"@/components/ui/badge";
@@ -338,10 +337,10 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
          </div>
          <div>
           <div className="flex items-center gap-2 mb-1">
-           <h4 className="font-semibold">{safeString(insight.title)}</h4>
+           <h4 className="font-semibold">{insight.title}</h4>
            {getPriorityBadge(insight.priority)}
           </div>
-          <p className="text-sm text-muted-foreground">{safeString(insight.description)}</p>
+          <p className="text-sm text-muted-foreground">{insight.description}</p>
           {insight.potential_saving > 0 && (
            <p className="text-sm text-green-600 font-medium mt-1">
             Save {formatAmount(insight.potential_saving)}/month
@@ -377,10 +376,10 @@ export default function SpendingInsights({ transactions, timeRange }: SpendingIn
          </div>
          <div>
           <div className="flex items-center gap-2 mb-1">
-           <h4 className="font-semibold">{safeString(rec.title)}</h4>
+           <h4 className="font-semibold">{rec.title}</h4>
            <Badge variant="outline">{rec.difficulty}</Badge>
           </div>
-          <p className="text-sm text-muted-foreground">{safeString(rec.description)}</p>
+          <p className="text-sm text-muted-foreground">{rec.description}</p>
           <p className="text-sm text-green-600 font-medium mt-1">
            {rec.benefit}
           </p>

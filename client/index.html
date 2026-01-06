@@ -4,24 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
     
-    <!-- Cache Control - Prevent stale bundle issues -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    
-    <!-- 
-      ==================== SW/RELOAD SCRIPTS REMOVED ====================
-      All automatic reload scripts have been removed to prevent infinite 
-      refresh loops on mobile Safari. Service workers are disabled via
-      main.tsx (VITE_ENABLE_PWA != true).
-      
-      Previous scripts removed:
-      - HARD SW KILLER v2 (caused reload loops on Safari)
-      - Version Check & Auto-Reload System (caused reload on chunk errors)
-      
-      TO RE-ENABLE PWA: Set VITE_ENABLE_PWA=true and add proper SW management.
-    -->
-    
     <!-- Primary Meta Tags -->
     <title>Twealth - Transform Time Into Wealth | AI Financial Assistant</title>
     <meta name="title" content="Twealth - Transform Time Into Wealth | AI Financial Assistant" />
@@ -49,15 +31,18 @@
     <meta name="twitter:description" content="Smart financial management with AI-powered insights. Track money, set goals, and get CFO-level advice in 11 languages." />
     <meta name="twitter:image" content="https://twealth.ltd/og-image.png" />
     
-    <!-- PWA Configuration - DISABLED for stability -->
-    <!-- <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" /> -->
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
     
-    <!-- PWA Meta Tags - DISABLED to prevent iOS standalone mode issues -->
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#8b5cf6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="Twealth" />
     
-    <!-- iOS PWA Meta Tags - DISABLED -->
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Twealth" />
     
     <!-- Microsoft/Windows Tiles -->

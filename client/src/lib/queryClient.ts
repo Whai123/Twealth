@@ -1,84 +1,5 @@
 import { QueryClient, QueryFunction } from"@tanstack/react-query";
 
-// Cache version - increment to force cache clear on deploy
-// v4: Conservative sanitization that preserves data structure + mutation sanitization
-const CACHE_VERSION = 4;
-const CACHE_VERSION_KEY = 'twealth_cache_version';
-
-/**
- * Deep sanitizes API response data to prevent React Error #300.
- * CONSERVATIVE: Preserves data structure, only ensures values are proper types.
- * The actual protection from objects-as-React-children happens at render time
- * via safeString/SafeText in components.
- * 
- * This function ensures:
- * - null/undefined stay as-is (React handles these)
- * - primitives stay as-is
- * - arrays are recursively sanitized
- * - objects are recursively sanitized to ensure nested values are clean
- * - Date objects are converted to ISO strings
- */
-function sanitizeResponseData(data: unknown, depth: number = 0): unknown {
-  // Prevent infinite recursion
-  if (depth > 50) {
-    console.warn('[QueryClient] Max recursion depth reached in sanitizeResponseData');
-    return data;
-  }
-  
-  // null/undefined are safe
-  if (data === null || data === undefined) return data;
-  
-  // Primitives are safe
-  if (typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean') return data;
-  
-  // Date objects - convert to ISO string
-  if (data instanceof Date) {
-    return data.toISOString();
-  }
-  
-  // Arrays: sanitize each element
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeResponseData(item, depth + 1));
-  }
-  
-  // Objects: recursively sanitize all properties
-  if (typeof data === 'object') {
-    const obj = data as Record<string, unknown>;
-    const sanitized: Record<string, unknown> = {};
-    
-    for (const [key, value] of Object.entries(obj)) {
-      sanitized[key] = sanitizeResponseData(value, depth + 1);
-    }
-    
-    return sanitized;
-  }
-  
-  // Fallback for symbols, functions, etc: convert to string
-  return String(data);
-}
-
-/**
- * Check cache version and clear if outdated.
- * Called on app initialization to prevent stale cache issues.
- * Must be called after queryClient is initialized.
- */
-export function checkAndClearStaleCache(client: QueryClient): void {
-  try {
-    const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
-    const currentVersion = String(CACHE_VERSION);
-    
-    if (storedVersion !== currentVersion) {
-      console.log('[QueryClient] Cache version mismatch, clearing stale cache');
-      // Clear React Query cache
-      client.clear();
-      // Update version
-      localStorage.setItem(CACHE_VERSION_KEY, currentVersion);
-    }
-  } catch (e) {
-    console.warn('[QueryClient] Error checking cache version:', e);
-  }
-}
-
 export class RateLimitError extends Error {
  retryAfter: number;
  constructor(message: string, retryAfter: number = 60) {
@@ -150,35 +71,23 @@ export async function apiRequest(
  return res;
 }
 
-/**
- * Helper to parse and sanitize JSON response from mutations.
- * Use this instead of response.json() to prevent React Error #300.
- */
-export async function parseJsonSafely<T = unknown>(response: Response): Promise<T> {
- const data = await response.json();
- return sanitizeResponseData(data) as T;
-}
-
 type UnauthorizedBehavior ="returnNull" |"throw";
-export function getQueryFn<T>(options: { on401: UnauthorizedBehavior }): QueryFunction<T> {
- const { on401: unauthorizedBehavior } = options;
- return async ({ queryKey }) => {
+export const getQueryFn: <T>(options: {
+ on401: UnauthorizedBehavior;
+}) => QueryFunction<T> =
+ ({ on401: unauthorizedBehavior }) =>
+ async ({ queryKey }) => {
   const res = await fetch(queryKey.join("/") as string, {
    credentials:"include",
   });
 
   if (unauthorizedBehavior ==="returnNull" && res.status === 401) {
-   return null as T;
+   return null;
   }
 
   await throwIfResNotOk(res);
-  const data = await res.json();
-  // Sanitize response data to prevent React Error #300
-  // The sanitizeResponseData function ensures all string fields are actually strings
-  // to prevent React Error #300 ("Objects are not valid as React child")
-  return sanitizeResponseData(data) as T;
+  return await res.json();
  };
-}
 
 export const queryClient = new QueryClient({
  defaultOptions: {
