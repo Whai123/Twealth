@@ -14,8 +14,12 @@ const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost:5000';
 // Use production domain for OAuth in production, dev domain in development
 const PRODUCTION_DOMAIN = 'twealth.ltd';
 const domains = REPLIT_DOMAINS.split(',');
-const isDevelopment = process.env.NODE_ENV === 'development';
-const customDomain = isDevelopment ? domains[0] : PRODUCTION_DOMAIN;
+
+// Consistent production detection: NODE_ENV=production OR deployment flag
+const isProduction = process.env.NODE_ENV === 'production' || 
+                     process.env.REPLIT_DEPLOYMENT === '1';
+const isDevelopment = !isProduction;
+const customDomain = isProduction ? PRODUCTION_DOMAIN : domains[0];
 
 // Development-only debug logging for OAuth setup
 if (isDevelopment) {
@@ -39,10 +43,6 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
-  
-  // Detect production: NODE_ENV=production OR deployment flag
-  const isProduction = process.env.NODE_ENV === 'production' || 
-                       process.env.REPLIT_DEPLOYMENT === '1';
   
   // Development-only session config logging
   if (isDevelopment) {
