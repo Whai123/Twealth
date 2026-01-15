@@ -1,57 +1,18 @@
-import { useState, useEffect, lazy, Suspense, useMemo } from "react";
-import { useTranslation } from 'react-i18next';
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Plus, TrendingUp, TrendingDown, DollarSign, Filter, Calendar, 
-  BarChart3, Target, Lightbulb, Sparkles, CheckCircle, FileText, 
-  Download, ChevronDown, ArrowUpRight, ArrowDownRight, Wallet,
-  CreditCard, ShoppingBag, Home, Car, Utensils, Heart, Plane,
-  Zap, Coffee, Smartphone, Gift, Briefcase, PiggyBank, Save, 
-  Building2, AlertCircle, User
+import {
+  Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
+  Wallet, Download, Lightbulb, PiggyBank, Filter, X,
+  Home, Car, Utensils, ShoppingBag, Heart, Zap, DollarSign,
+  CreditCard, Briefcase, Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import EmptyState from "@/components/ui/empty-state";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient as globalQueryClient } from "@/lib/queryClient";
-import TransactionForm from "@/components/forms/transaction-form";
-import AdvancedSpendingAnalytics from "@/components/money/advanced-spending-analytics";
-import SmartBudgetManagement from "@/components/money/smart-budget-management";
-import SpendingInsights from "@/components/money/spending-insights";
-import { SwipeableTransactionItem } from "@/components/transactions/swipeable-transaction-item";
+import { apiRequest } from "@/lib/queryClient";
 import { ResponsiveTransactionDialog } from "@/components/dialogs/responsive-transaction-dialog";
-import { CollapsibleList } from "@/components/virtual-list";
 import { useUserCurrency } from "@/lib/userContext";
-
-const financialProfileSchema = z.object({
-  monthlyIncome: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
-  monthlyExpenses: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
-  monthlySavings: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
-  totalSavings: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
-  savingsGoal: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
-  emergencyFund: z.string().min(1, "Required").refine(v => !isNaN(Number(v)) && Number(v) >= 0, "Must be a valid number"),
-});
-
-type FinancialProfileData = z.infer<typeof financialProfileSchema>;
-
-const CSVAnalysisPanel = lazy(() => import("@/components/money/csv-analysis-panel"));
-
-const TRANSACTION_CATEGORIES = {
-  income: ["salary", "freelance", "investment", "gift", "other"],
-  expense: ["rent", "utilities", "groceries", "dining", "transport", "healthcare", "entertainment", "shopping", "other"],
-  transfer: ["savings", "investment", "goal_contribution"]
-};
 
 const getCategoryIcon = (category: string) => {
   const icons: Record<string, JSX.Element> = {
@@ -64,202 +25,32 @@ const getCategoryIcon = (category: string) => {
     dining: <Utensils className="w-4 h-4" />,
     transport: <Car className="w-4 h-4" />,
     healthcare: <Heart className="w-4 h-4" />,
-    entertainment: <Smartphone className="w-4 h-4" />,
     shopping: <CreditCard className="w-4 h-4" />,
     gift: <Gift className="w-4 h-4" />,
     savings: <PiggyBank className="w-4 h-4" />,
-    travel: <Plane className="w-4 h-4" />,
-    coffee: <Coffee className="w-4 h-4" />,
     other: <Wallet className="w-4 h-4" />,
   };
-  return icons[category.toLowerCase()] || <DollarSign className="w-4 h-4" />;
+  return icons[category?.toLowerCase()] || <DollarSign className="w-4 h-4" />;
 };
 
-function AnimatedNumber({ value, prefix = "$", decimals = 0 }: { value: number; prefix?: string; decimals?: number }) {
-  const [displayValue, setDisplayValue] = useState(0);
-  
-  useEffect(() => {
-    const duration = 1000;
-    const steps = 60;
-    const increment = value / steps;
-    let current = 0;
-    
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= value) {
-        setDisplayValue(value);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(current);
-      }
-    }, duration / steps);
-    
-    return () => clearInterval(timer);
-  }, [value]);
-  
-  return (
-    <span>
-      {prefix}{displayValue.toLocaleString(undefined, { 
-        minimumFractionDigits: decimals, 
-        maximumFractionDigits: decimals 
-      })}
-    </span>
-  );
-}
-
-function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  trend, 
-  trendLabel,
-  colorClass,
-  bgClass,
-  delay = 0,
-  currencyPrefix = "$"
-}: { 
-  title: string; 
-  value: number; 
-  icon: any; 
-  trend?: 'up' | 'down' | 'neutral';
-  trendLabel?: string;
-  colorClass: string;
-  bgClass: string;
-  delay?: number;
-  currencyPrefix?: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-    >
-      <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 border-border/40">
-        <div className={`absolute inset-0 ${bgClass} opacity-50`} />
-        <CardContent className="relative p-4 sm:p-6">
-          <div className="flex items-start justify-between mb-3 sm:mb-4">
-            <div className={`p-2 sm:p-2.5 rounded-xl ${bgClass}`}>
-              <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${colorClass}`} />
-            </div>
-            {trend && (
-              <div className={`flex items-center gap-1 text-xs font-medium ${
-                trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-muted-foreground'
-              }`}>
-                {trend === 'up' ? (
-                  <ArrowUpRight className="w-3 h-3" />
-                ) : trend === 'down' ? (
-                  <ArrowDownRight className="w-3 h-3" />
-                ) : null}
-                {trendLabel}
-              </div>
-            )}
-          </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1">{title}</p>
-          <p className={`text-xl sm:text-3xl font-bold tracking-tight ${colorClass}`}>
-            <AnimatedNumber value={value} prefix={currencyPrefix} />
-          </p>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
-
-function CategoryBreakdown({ transactions }: { transactions: any[] }) {
-  const { formatAmount } = useUserCurrency();
-  const categoryTotals = useMemo(() => {
-    const totals: Record<string, number> = {};
-    transactions
-      .filter(t => t.type === 'expense')
-      .forEach(t => {
-        const cat = t.category || 'other';
-        totals[cat] = (totals[cat] || 0) + parseFloat(t.amount);
-      });
-    return Object.entries(totals)
-      .map(([category, amount]) => ({ category, amount }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-  }, [transactions]);
-
-  const totalExpenses = categoryTotals.reduce((sum, c) => sum + c.amount, 0);
-
-  if (categoryTotals.length === 0) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.3 }}
-    >
-      <Card className="border-border/40">
-        <CardHeader className="pb-3 sm:pb-4">
-          <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-primary" />
-            Top Spending Categories
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4">
-          {categoryTotals.map((cat, index) => {
-            const percentage = totalExpenses > 0 ? (cat.amount / totalExpenses) * 100 : 0;
-            return (
-              <motion.div 
-                key={cat.category}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="space-y-1.5 sm:space-y-2"
-              >
-                <div className="flex items-center justify-between text-xs sm:text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-muted">
-                      {getCategoryIcon(cat.category)}
-                    </div>
-                    <span className="font-medium capitalize">{cat.category}</span>
-                  </div>
-                  <span className="font-semibold">{formatAmount(cat.amount)}</span>
-                </div>
-                <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    className="absolute inset-y-0 left-0 bg-primary rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 0.8, delay: 0.2 + index * 0.1 }}
-                  />
-                </div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground text-right">
-                  {percentage.toFixed(1)}% of expenses
-                </p>
-              </motion.div>
-            );
-          })}
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
+// Quick tips data
+const quickTips = [
+  { title: "50/30/20 Rule", desc: "Needs, wants, savings" },
+  { title: "Emergency Fund", desc: "3-6 months expenses" },
+  { title: "Pay Yourself First", desc: "Auto-save 20%" },
+];
 
 export default function MoneyTracking() {
-  const { t } = useTranslation();
   const { formatAmount, currencySymbol } = useUserCurrency();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
-  
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('add') === '1') {
-      setIsCreateDialogOpen(true);
-      window.history.replaceState({}, '', '/money-tracking');
-    }
-  }, []);
-  
-  const [filterType, setFilterType] = useState<string>("all");
-  const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [timeRange, setTimeRange] = useState<string>("30");
+  const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all');
+  const [timeRange, setTimeRange] = useState("30");
+  const [showFilters, setShowFilters] = useState(false);
 
-  const { data: transactions, isLoading } = useQuery({
-    queryKey: ["/api/transactions", filterType, filterCategory, timeRange],
+  const { data: transactions = [], isLoading } = useQuery({
+    queryKey: ["/api/transactions"],
     queryFn: () => fetch(`/api/transactions?limit=100`).then(res => res.json()),
   });
 
@@ -267,874 +58,300 @@ export default function MoneyTracking() {
     queryKey: ["/api/dashboard/stats"],
   });
 
-  // Financial Profile data and form
-  const { data: profileData } = useQuery<any>({
-    queryKey: ["/api/user/financial-profile"],
-  });
-
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
-  
-  const profileForm = useForm<FinancialProfileData>({
-    resolver: zodResolver(financialProfileSchema),
-    defaultValues: {
-      monthlyIncome: "0",
-      monthlyExpenses: "0",
-      monthlySavings: "0",
-      totalSavings: "0",
-      savingsGoal: "0",
-      emergencyFund: "0",
-    },
-    values: profileData?.profile ? {
-      monthlyIncome: profileData.profile.monthlyIncome?.toString() || "0",
-      monthlyExpenses: profileData.profile.monthlyExpenses?.toString() || "0",
-      monthlySavings: profileData.profile.monthlySavings?.toString() || "0",
-      totalSavings: profileData.profile.totalSavings?.toString() || "0",
-      savingsGoal: profileData.profile.savingsGoal?.toString() || "0",
-      emergencyFund: profileData.profile.emergencyFund?.toString() || "0",
-    } : undefined
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: FinancialProfileData) => {
-      const payload = {
-        profile: {
-          monthlyIncome: data.monthlyIncome,
-          monthlyExpenses: data.monthlyExpenses,
-          monthlySavings: data.monthlySavings,
-          totalSavings: data.totalSavings,
-          savingsGoal: data.savingsGoal,
-          emergencyFund: data.emergencyFund,
-        }
-      };
-      return apiRequest("POST", "/api/user/financial-profile", payload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/financial-profile"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/financial-health"] });
-      toast({
-        title: "Profile Updated!",
-        description: "Your financial profile has been saved successfully.",
-      });
-      setIsSavingProfile(false);
-    },
-    onError: () => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to save your profile. Please try again.",
-        variant: "destructive",
-      });
-      setIsSavingProfile(false);
-    },
-  });
-
-  const onProfileSubmit = async (data: FinancialProfileData) => {
-    setIsSavingProfile(true);
-    updateProfileMutation.mutate(data);
-  };
-
-  const bulkCategorizeMutation = useMutation({
-    mutationFn: async () => {
-      const uncategorizedIds = transactions
-        ?.filter((t: any) => t.category === 'Other' || t.category === 'other')
-        .map((t: any) => t.id) || [];
-      
-      if (uncategorizedIds.length === 0) {
-        throw new Error("No uncategorized transactions to fix");
-      }
-      
-      const response = await apiRequest('POST', '/api/transactions/bulk-categorize', { transactionIds: uncategorizedIds });
-      return await response.json();
-    },
-    onSuccess: (data: any) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-      toast({
-        title: "Categories Fixed",
-        description: `Successfully categorized ${data.updated} of ${data.total} transactions using AI detection.`,
-        variant: "default",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to categorize transactions",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const archiveTransactionMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest('PATCH', `/api/transactions/${id}/archive`);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-      toast({
-        title: "Transaction Archived",
-        description: "Transaction has been archived successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to archive transaction",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const flagTransactionMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest('PATCH', `/api/transactions/${id}/flag`);
-      return await response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-      toast({
-        title: "Transaction Flagged",
-        description: "Transaction has been flagged for review",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to flag transaction",
-        variant: "destructive",
-      });
-    },
-  });
-
+  // Filter transactions
   const filteredTransactions = useMemo(() => {
     if (!transactions) return [];
-    return transactions.filter((transaction: any) => {
-      const typeMatch = filterType === "all" || transaction.type === filterType;
-      const categoryMatch = filterCategory === "all" || transaction.category === filterCategory;
-      
-      const transactionDate = new Date(transaction.date);
+    return transactions.filter((t: any) => {
+      const typeMatch = activeTab === 'all' || t.type === activeTab;
+      const transactionDate = new Date(t.date);
       const daysAgo = new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
       const dateMatch = transactionDate >= daysAgo;
-      
-      return typeMatch && categoryMatch && dateMatch;
+      return typeMatch && dateMatch;
     });
-  }, [transactions, filterType, filterCategory, timeRange]);
+  }, [transactions, activeTab, timeRange]);
 
-  const { totalIncome, totalExpenses, netCashFlow } = useMemo(() => {
+  // Calculate stats
+  const { totalIncome, totalExpenses, netCashFlow, savingsRate } = useMemo(() => {
     const income = filteredTransactions
       .filter((t: any) => t.type === "income")
       .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
-
     const expenses = filteredTransactions
       .filter((t: any) => t.type === "expense")
       .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
-
-    return { totalIncome: income, totalExpenses: expenses, netCashFlow: income - expenses };
+    const net = income - expenses;
+    const rate = income > 0 ? Math.round((net / income) * 100) : 0;
+    return { totalIncome: income, totalExpenses: expenses, netCashFlow: net, savingsRate: rate };
   }, [filteredTransactions]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
-            <div className="h-8 bg-muted/50 rounded-lg w-48 mb-2 animate-pulse" />
-            <div className="h-4 bg-muted/50 rounded w-64 animate-pulse" />
-          </div>
-        </header>
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="p-6 border-border/50">
-                <div className="h-10 w-10 bg-muted/50 rounded-xl mb-4 animate-pulse" />
-                <div className="h-4 bg-muted/50 rounded w-1/2 mb-2 animate-pulse" />
-                <div className="h-8 bg-muted/50 rounded w-3/4 animate-pulse" />
-              </Card>
-            ))}
-          </div>
-          <Card className="p-6">
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <div className="h-10 w-10 bg-muted/50 rounded-full animate-pulse" />
-                  <div className="flex-1">
-                    <div className="h-4 bg-muted/50 rounded w-1/3 mb-2 animate-pulse" />
-                    <div className="h-3 bg-muted/50 rounded w-1/4 animate-pulse" />
-                  </div>
-                  <div className="h-6 bg-muted/50 rounded w-20 animate-pulse" />
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen-mobile bg-background pb-24 md:pb-0">
-      <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
-          <div className="flex items-center justify-between gap-3">
-            <motion.div 
-              className="flex-1 min-w-0"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4 }}
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {/* Header */}
+      <header className="bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">My Money</h1>
+              <p className="text-zinc-500 dark:text-zinc-400 mt-1">Track and manage your finances</p>
+            </div>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 font-medium shadow-sm"
             >
-              <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground truncate">
-                My Money
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block line-clamp-1">
-                Track your finances and manage your financial profile
-              </p>
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <ResponsiveTransactionDialog 
-                open={isCreateDialogOpen} 
-                onOpenChange={setIsCreateDialogOpen}
-              />
-            </motion.div>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Transaction
+            </Button>
           </div>
         </div>
       </header>
-      
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <motion.div 
-            className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-4 sm:mb-6 scrollbar-none scroll-snap-x"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <TabsList className="inline-flex w-auto min-w-full md:grid md:w-full md:grid-cols-6 p-1 gap-1 bg-muted/50">
-              <TabsTrigger value="overview" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-overview">
-                <DollarSign size={14} className="flex-shrink-0" />
-                <span>Overview</span>
-              </TabsTrigger>
-              <TabsTrigger value="profile" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-profile">
-                <User size={14} className="flex-shrink-0" />
-                <span>Profile</span>
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-analytics">
-                <BarChart3 size={14} className="flex-shrink-0" />
-                <span>Analytics</span>
-              </TabsTrigger>
-              <TabsTrigger value="budget" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-budget">
-                <Target size={14} className="flex-shrink-0" />
-                <span>Budget</span>
-              </TabsTrigger>
-              <TabsTrigger value="insights" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-insights">
-                <Lightbulb size={14} className="flex-shrink-0" />
-                <span>Insights</span>
-              </TabsTrigger>
-              <TabsTrigger value="csv-analyzer" className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 text-xs whitespace-nowrap min-h-[44px] touch-target data-[state=active]:bg-background data-[state=active]:shadow-sm scroll-snap-item" data-testid="tab-csv-analyzer">
-                <FileText size={14} className="flex-shrink-0" />
-                <span>CSV</span>
-              </TabsTrigger>
-            </TabsList>
-          </motion.div>
 
-          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <StatCard
-                title="Total Income"
-                value={totalIncome}
-                icon={TrendingUp}
-                trend="up"
-                trendLabel="This period"
-                colorClass="text-green-600 dark:text-green-400"
-                bgClass="bg-green-500/10"
-                delay={0}
-                currencyPrefix={currencySymbol}
-              />
-              <StatCard
-                title="Total Expenses"
-                value={totalExpenses}
-                icon={TrendingDown}
-                trend="down"
-                trendLabel="This period"
-                colorClass="text-red-600 dark:text-red-400"
-                bgClass="bg-red-500/10"
-                delay={0.1}
-                currencyPrefix={currencySymbol}
-              />
-              <StatCard
-                title="Net Cash Flow"
-                value={Math.abs(netCashFlow)}
-                icon={netCashFlow >= 0 ? ArrowUpRight : ArrowDownRight}
-                trend={netCashFlow >= 0 ? 'up' : 'down'}
-                trendLabel={netCashFlow >= 0 ? 'Positive' : 'Negative'}
-                colorClass={netCashFlow >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}
-                bgClass={netCashFlow >= 0 ? "bg-green-500/10" : "bg-red-500/10"}
-                delay={0.2}
-                currencyPrefix={currencySymbol}
-              />
-              <StatCard
-                title="Total Savings"
-                value={(stats as any)?.totalSavings || 0}
-                icon={PiggyBank}
-                trend="neutral"
-                trendLabel="All time"
-                colorClass="text-blue-600 dark:text-blue-400"
-                bgClass="bg-blue-500/10"
-                delay={0.3}
-                currencyPrefix={currencySymbol}
-              />
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+          {/* Main Content - Left Side (3 cols) */}
+          <div className="lg:col-span-3 space-y-6">
+
+            {/* Segmented Pill Tabs */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-full">
+                {(['all', 'income', 'expense'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-all capitalize ${activeTab === tab
+                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                      }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`p-2 rounded-lg transition-colors ${showFilters ? 'bg-zinc-200 dark:bg-zinc-700' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}
+                >
+                  <Filter className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                </button>
+                <button
+                  onClick={() => {
+                    const days = parseInt(timeRange);
+                    const endDate = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(startDate.getDate() - days);
+                    window.location.href = `/api/transactions/export?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
+                  }}
+                  className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  <Download className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+                </button>
+              </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Compact Filter Bar */}
+            <AnimatePresence>
+              {showFilters && (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
                 >
-                  <Card className="border-border/40">
-                    <button 
-                      className="flex items-center justify-between w-full p-4 sm:p-6 md:cursor-default"
-                      onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
-                      data-testid="button-toggle-filters"
+                  <div className="flex items-center gap-3 p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                    <Select value={timeRange} onValueChange={setTimeRange}>
+                      <SelectTrigger className="w-[140px] h-9 text-sm border-zinc-200 dark:border-zinc-700 rounded-lg">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="7">Last 7 days</SelectItem>
+                        <SelectItem value="30">Last 30 days</SelectItem>
+                        <SelectItem value="90">Last 3 months</SelectItem>
+                        <SelectItem value="365">Last year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <button
+                      onClick={() => { setTimeRange("30"); setActiveTab("all"); }}
+                      className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-muted">
-                          <Filter className="w-4 h-4" />
-                        </div>
-                        <div className="text-left">
-                          <span className="text-sm sm:text-base font-semibold">Filters</span>
-                          <span className="text-xs sm:text-sm text-muted-foreground ml-2">
-                            ({filteredTransactions.length} transactions)
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 md:hidden transition-transform ${isFiltersExpanded ? 'rotate-180' : ''}`} />
+                      Clear
                     </button>
-                    
-                    <div className={`${isFiltersExpanded ? 'block' : 'hidden'} md:block px-4 sm:px-6 pb-4 sm:pb-6`}>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium mb-1.5 block text-muted-foreground">Time Range</label>
-                          <Select value={timeRange} onValueChange={setTimeRange}>
-                            <SelectTrigger data-testid="select-time-range" className="h-9 sm:h-10 text-xs sm:text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="7">Last 7 days</SelectItem>
-                              <SelectItem value="30">Last 30 days</SelectItem>
-                              <SelectItem value="90">Last 3 months</SelectItem>
-                              <SelectItem value="365">Last year</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium mb-1.5 block text-muted-foreground">Type</label>
-                          <Select value={filterType} onValueChange={setFilterType}>
-                            <SelectTrigger data-testid="select-transaction-type" className="h-9 sm:h-10 text-xs sm:text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Types</SelectItem>
-                              <SelectItem value="income">Income</SelectItem>
-                              <SelectItem value="expense">Expense</SelectItem>
-                              <SelectItem value="transfer">Transfer</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <label className="text-xs sm:text-sm font-medium mb-1.5 block text-muted-foreground">Category</label>
-                          <Select value={filterCategory} onValueChange={setFilterCategory}>
-                            <SelectTrigger data-testid="select-filter-category" className="h-9 sm:h-10 text-xs sm:text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="all">All Categories</SelectItem>
-                              {Object.entries(TRANSACTION_CATEGORIES).map(([type, categories]) => (
-                                categories.map(category => (
-                                  <SelectItem key={`${type}-${category}`} value={category}>
-                                    {category.charAt(0).toUpperCase() + category.slice(1).replace('_', ' ')}
-                                  </SelectItem>
-                                ))
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="flex items-end gap-2 col-span-2 md:col-span-1">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setFilterType("all");
-                              setFilterCategory("all");
-                              setTimeRange("30");
-                            }}
-                            data-testid="button-clear-filters"
-                            className="text-xs h-9 sm:h-10 flex-1"
-                          >
-                            Clear
-                          </Button>
-                          <Button 
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const params = new URLSearchParams();
-                              if (filterType !== 'all') params.set('type', filterType);
-                              if (filterCategory !== 'all') params.set('category', filterCategory);
-                              const days = parseInt(timeRange);
-                              const endDate = new Date();
-                              const startDate = new Date();
-                              startDate.setDate(startDate.getDate() - days);
-                              params.set('startDate', startDate.toISOString().split('T')[0]);
-                              params.set('endDate', endDate.toISOString().split('T')[0]);
-                              window.location.href = `/api/transactions/export?${params.toString()}`;
-                            }}
-                            data-testid="button-export-csv"
-                            className="text-xs h-9 sm:h-10 flex-1"
-                          >
-                            <Download size={14} className="mr-1.5" />
-                            Export
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-
-                <AnimatePresence mode="wait">
-                  {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="p-4 bg-primary/5 border-primary/20">
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                              <Sparkles className="w-5 h-5 text-primary" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <h4 className="font-semibold text-foreground flex items-center gap-2 text-sm sm:text-base">
-                                AI Smart Categorization
-                              </h4>
-                              <p className="text-xs sm:text-sm text-muted-foreground">
-                                {transactions?.filter((t: any) => t.category === 'Other' || t.category === 'other').length} uncategorized transactions detected
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            onClick={() => bulkCategorizeMutation.mutate()}
-                            disabled={bulkCategorizeMutation.isPending}
-                            size="sm"
-                            className="font-medium flex-shrink-0"
-                            data-testid="button-fix-categories"
-                          >
-                            {bulkCategorizeMutation.isPending ? (
-                              <>
-                                <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent mr-2" />
-                                <span className="hidden sm:inline">Categorizing...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                                <span className="hidden sm:inline">Fix Categories</span>
-                                <span className="sm:hidden">Fix</span>
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </Card>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <Card className="border-border/40">
-                    <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6 pt-4 sm:pt-6">
-                      <CardTitle className="text-sm sm:text-base font-semibold flex items-center gap-2">
-                        <Wallet className="w-4 h-4 text-primary" />
-                        Recent Transactions
-                      </CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                      {filteredTransactions.length === 0 ? (
-                        transactions?.length === 0 ? (
-                          <EmptyState
-                            illustration="transactions"
-                            title="No Transactions Yet"
-                            description="Start tracking your financial journey by adding your first transaction. Every dollar tracked brings you closer to your goals."
-                            actionLabel="Add Your First Transaction"
-                            onAction={() => setIsCreateDialogOpen(true)}
-                            actionTestId="button-add-first-transaction"
-                          />
-                        ) : (
-                          <div className="text-center py-12">
-                            <div className="w-16 h-16 mx-auto bg-muted rounded-2xl flex items-center justify-center mb-4">
-                              <Filter className="w-8 h-8 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-base font-semibold mb-2">No transactions match your filters</h3>
-                            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                              Try adjusting your date range or category filters to see more transactions
-                            </p>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setFilterType("all");
-                                setFilterCategory("all");
-                                setTimeRange("30");
-                              }}
-                            >
-                              Clear Filters
-                            </Button>
-                          </div>
-                        )
-                      ) : (
-                        <CollapsibleList
-                          items={filteredTransactions}
-                          keyExtractor={(t: any) => t.id}
-                          initialVisible={10}
-                          showMoreLabel="View all transactions"
-                          showLessLabel="Show fewer transactions"
-                          className="space-y-2 sm:space-y-3"
-                          renderItem={(transaction: any) => (
-                            <SwipeableTransactionItem
-                              transaction={transaction}
-                              onArchive={(id) => archiveTransactionMutation.mutate(id)}
-                              onFlag={(id) => flagTransactionMutation.mutate(id)}
-                            />
-                          )}
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-
-              <div className="space-y-4 sm:space-y-6">
-                <CategoryBreakdown transactions={filteredTransactions} />
-                
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                >
-                  <Card className="border-border/40 p-4 sm:p-6">
-                    <h3 className="text-sm sm:text-base font-semibold mb-4 flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4 text-amber-500" />
-                      Quick Tips
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Track expenses daily for accurate budgeting
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Review spending categories weekly
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Set budget limits for each category
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="profile" className="space-y-6">
-            <Card className="border-border/40">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5" />
-                  Financial Overview
-                </CardTitle>
-                <CardDescription>
-                  Enter your financial details to get personalized AI advice. These values power all your recommendations.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                      <FormField
-                        control={profileForm.control}
-                        name="monthlyIncome"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Monthly Income</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-9"
-                                  placeholder="5000"
-                                  data-testid="input-monthly-income"
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="monthlyExpenses"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Monthly Expenses</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <TrendingDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-9"
-                                  placeholder="3000"
-                                  data-testid="input-monthly-expenses"
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="monthlySavings"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Monthly Savings</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-9"
-                                  placeholder="2000"
-                                  data-testid="input-monthly-savings"
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="totalSavings"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Total Savings</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-9"
-                                  placeholder="50000"
-                                  data-testid="input-total-savings"
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="savingsGoal"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Savings Goal</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-9"
-                                  placeholder="100000"
-                                  data-testid="input-savings-goal"
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="emergencyFund"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Emergency Fund</FormLabel>
-                            <FormControl>
-                              <div className="relative">
-                                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  step="0.01"
-                                  className="pl-9"
-                                  placeholder="18000"
-                                  data-testid="input-emergency-fund"
-                                />
-                              </div>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button
-                        type="submit"
-                        disabled={isSavingProfile}
-                        data-testid="button-save-profile"
-                      >
-                        {isSavingProfile ? (
-                          <>
-                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Save Profile
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-
-                {profileData?.profile && (
-                  <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="border-border/40">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Monthly Net</p>
-                            <p className="text-2xl font-bold">
-                              ${(parseFloat(profileData.profile.monthlyIncome || "0") - parseFloat(profileData.profile.monthlyExpenses || "0")).toLocaleString()}
-                            </p>
-                          </div>
-                          <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-border/40">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Savings Rate</p>
-                            <p className="text-2xl font-bold">
-                              {(() => {
-                                const income = parseFloat(profileData.profile.monthlyIncome || "0");
-                                const savings = parseFloat(profileData.profile.monthlySavings || "0");
-                                if (income === 0) return "0.0";
-                                return ((savings / income) * 100).toFixed(1);
-                              })()}%
-                            </p>
-                          </div>
-                          <Wallet className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="border-border/40">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Goal Progress</p>
-                            <p className="text-2xl font-bold">
-                              {(() => {
-                                const savings = parseFloat(profileData.profile.totalSavings || "0");
-                                const goal = parseFloat(profileData.profile.savingsGoal || "0");
-                                if (goal === 0) return "0.0";
-                                return ((savings / goal) * 100).toFixed(1);
-                              })()}%
-                            </p>
-                          </div>
-                          <Building2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                        </div>
-                      </CardContent>
-                    </Card>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <TabsContent value="analytics" className="space-y-6">
-            <AdvancedSpendingAnalytics 
-              transactions={filteredTransactions || []} 
-              timeRange={timeRange} 
-            />
-          </TabsContent>
-
-          <TabsContent value="budget" className="space-y-6">
-            <SmartBudgetManagement 
-              transactions={filteredTransactions || []} 
-              timeRange={timeRange} 
-            />
-          </TabsContent>
-
-          <TabsContent value="insights" className="space-y-6">
-            <SpendingInsights 
-              transactions={filteredTransactions || []} 
-              timeRange={timeRange} 
-            />
-          </TabsContent>
-
-          <TabsContent value="csv-analyzer" className="space-y-6">
-            <Suspense fallback={
-              <Card className="p-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-4" />
-                  <p className="text-muted-foreground">Loading CSV Analyzer...</p>
+            {/* KPI Row - 4 Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Income */}
+              <motion.div
+                className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800"
+                whileHover={{ y: -2, boxShadow: '0 8px 30px -12px rgba(0,0,0,0.1)' }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Income</span>
                 </div>
-              </Card>
-            }>
-              <CSVAnalysisPanel />
-            </Suspense>
-          </TabsContent>
-        </Tabs>
-      </div>
+                <p className="text-xl font-bold text-zinc-900 dark:text-white">{formatAmount(totalIncome)}</p>
+              </motion.div>
+
+              {/* Expenses */}
+              <motion.div
+                className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800"
+                whileHover={{ y: -2, boxShadow: '0 8px 30px -12px rgba(0,0,0,0.1)' }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center">
+                    <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Expenses</span>
+                </div>
+                <p className="text-xl font-bold text-zinc-900 dark:text-white">{formatAmount(totalExpenses)}</p>
+              </motion.div>
+
+              {/* Net Cash Flow */}
+              <motion.div
+                className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800"
+                whileHover={{ y: -2, boxShadow: '0 8px 30px -12px rgba(0,0,0,0.1)' }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${netCashFlow >= 0 ? 'bg-emerald-50 dark:bg-emerald-900/30' : 'bg-rose-50 dark:bg-rose-900/30'}`}>
+                    {netCashFlow >= 0 ? <ArrowUpRight className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> : <ArrowDownRight className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
+                  </div>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Net Flow</span>
+                </div>
+                <p className={`text-xl font-bold ${netCashFlow >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  {netCashFlow >= 0 ? '+' : ''}{formatAmount(netCashFlow)}
+                </p>
+              </motion.div>
+
+              {/* Savings Rate */}
+              <motion.div
+                className="bg-white dark:bg-zinc-900 rounded-2xl p-5 border border-zinc-100 dark:border-zinc-800"
+                whileHover={{ y: -2, boxShadow: '0 8px 30px -12px rgba(0,0,0,0.1)' }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+                    <PiggyBank className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Savings</span>
+                </div>
+                <p className="text-xl font-bold text-zinc-900 dark:text-white">{savingsRate}%</p>
+              </motion.div>
+            </div>
+
+            {/* Transactions List */}
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+              <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
+                <h3 className="font-semibold text-zinc-900 dark:text-white">Transactions</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">{filteredTransactions.length} total</p>
+              </div>
+
+              {filteredTransactions.length === 0 ? (
+                /* Empty State */
+                <div className="p-12 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                    <Wallet className="w-8 h-8 text-zinc-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">No transactions yet</h3>
+                  <p className="text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm mx-auto">
+                    Start tracking your money by adding your first transaction.
+                  </p>
+                  <Button
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-6 font-medium"
+                  >
+                    Add your first transaction
+                  </Button>
+                </div>
+              ) : (
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {filteredTransactions.slice(0, 20).map((transaction: any, index: number) => (
+                    <motion.div
+                      key={transaction.id}
+                      className="px-6 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${transaction.type === 'income'
+                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                            }`}>
+                            {getCategoryIcon(transaction.category)}
+                          </div>
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-white">{transaction.description || transaction.category}</p>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 capitalize">{transaction.category}</p>
+                          </div>
+                        </div>
+                        <p className={`font-semibold text-right ${transaction.type === 'income'
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : 'text-zinc-900 dark:text-white'
+                          }`}>
+                          {transaction.type === 'income' ? '+' : '-'}{formatAmount(parseFloat(transaction.amount))}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Side - Quick Tips */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Quick Tips</h3>
+
+            {quickTips.map((tip, index) => (
+              <motion.div
+                key={index}
+                className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800"
+                whileHover={{ y: -2, boxShadow: '0 8px 30px -12px rgba(0,0,0,0.1)' }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+                    <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-zinc-900 dark:text-white text-sm">{tip.title}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{tip.desc}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Summary Card */}
+            <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-200 rounded-2xl p-5 text-white dark:text-zinc-900">
+              <p className="text-xs font-medium opacity-60 mb-2">This Month</p>
+              <p className="text-2xl font-bold mb-1">{formatAmount(Math.abs(netCashFlow))}</p>
+              <p className="text-sm opacity-70">{netCashFlow >= 0 ? 'Saved' : 'Over budget'}</p>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <ResponsiveTransactionDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </div>
   );
 }
