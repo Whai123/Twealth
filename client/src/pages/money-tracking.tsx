@@ -1,16 +1,15 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight,
-  Wallet, Download, Lightbulb, PiggyBank, Filter, X,
+  Wallet, Download, Lightbulb, PiggyBank, Filter,
   Home, Car, Utensils, ShoppingBag, Heart, Zap, DollarSign,
   CreditCard, Briefcase, Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { ResponsiveTransactionDialog } from "@/components/dialogs/responsive-transaction-dialog";
 import { useUserCurrency } from "@/lib/userContext";
 
@@ -41,49 +40,63 @@ const quickTips = [
 ];
 
 export default function MoneyTracking() {
-  const { formatAmount, currencySymbol } = useUserCurrency();
-  const queryClient = useQueryClient();
+  const { formatAmount } = useUserCurrency();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all');
   const [timeRange, setTimeRange] = useState("30");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: transactionsData, isLoading } = useQuery({
+  const { data: rawTransactions, isLoading } = useQuery({
     queryKey: ["/api/transactions"],
-    queryFn: () => fetch(`/api/transactions?limit=100`).then(res => res.json()),
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/transactions?limit=100`);
+        const data = await res.json();
+        // Ensure we always return an array
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    },
   });
 
-  // Ensure transactions is always an array
-  const transactions = Array.isArray(transactionsData) ? transactionsData : [];
+  // Always ensure transactions is an array
+  const transactions: any[] = Array.isArray(rawTransactions) ? rawTransactions : [];
 
-  const { data: stats } = useQuery({
-    queryKey: ["/api/dashboard/stats"],
-  });
-
-  // Filter transactions
+  // Filter transactions safely
   const filteredTransactions = useMemo(() => {
-    if (!transactions || !Array.isArray(transactions)) return [];
-    return transactions.filter((t: any) => {
-      const typeMatch = activeTab === 'all' || t.type === activeTab;
-      const transactionDate = new Date(t.date);
-      const daysAgo = new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
-      const dateMatch = transactionDate >= daysAgo;
-      return typeMatch && dateMatch;
-    });
+    if (!Array.isArray(transactions)) return [];
+    try {
+      return transactions.filter((t: any) => {
+        if (!t) return false;
+        const typeMatch = activeTab === 'all' || t.type === activeTab;
+        const transactionDate = new Date(t.date);
+        const daysAgo = new Date(Date.now() - parseInt(timeRange) * 24 * 60 * 60 * 1000);
+        const dateMatch = transactionDate >= daysAgo;
+        return typeMatch && dateMatch;
+      });
+    } catch {
+      return [];
+    }
   }, [transactions, activeTab, timeRange]);
 
-  // Calculate stats
+  // Calculate stats safely
   const { totalIncome, totalExpenses, netCashFlow, savingsRate } = useMemo(() => {
-    const income = filteredTransactions
-      .filter((t: any) => t.type === "income")
-      .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
-    const expenses = filteredTransactions
-      .filter((t: any) => t.type === "expense")
-      .reduce((sum: number, t: any) => sum + parseFloat(t.amount), 0);
-    const net = income - expenses;
-    const rate = income > 0 ? Math.round((net / income) * 100) : 0;
-    return { totalIncome: income, totalExpenses: expenses, netCashFlow: net, savingsRate: rate };
+    try {
+      const arr = Array.isArray(filteredTransactions) ? filteredTransactions : [];
+      const income = arr
+        .filter((t: any) => t?.type === "income")
+        .reduce((sum: number, t: any) => sum + parseFloat(t?.amount || 0), 0);
+      const expenses = arr
+        .filter((t: any) => t?.type === "expense")
+        .reduce((sum: number, t: any) => sum + parseFloat(t?.amount || 0), 0);
+      const net = income - expenses;
+      const rate = income > 0 ? Math.round((net / income) * 100) : 0;
+      return { totalIncome: income, totalExpenses: expenses, netCashFlow: net, savingsRate: rate };
+    } catch {
+      return { totalIncome: 0, totalExpenses: 0, netCashFlow: 0, savingsRate: 0 };
+    }
   }, [filteredTransactions]);
 
   if (isLoading) {
@@ -285,7 +298,7 @@ export default function MoneyTracking() {
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                   {filteredTransactions.slice(0, 20).map((transaction: any, index: number) => (
                     <motion.div
-                      key={transaction.id}
+                      key={transaction?.id || index}
                       className="px-6 py-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -293,22 +306,22 @@ export default function MoneyTracking() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${transaction.type === 'income'
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${transaction?.type === 'income'
                             ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                             : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                             }`}>
-                            {getCategoryIcon(transaction.category)}
+                            {getCategoryIcon(transaction?.category)}
                           </div>
                           <div>
-                            <p className="font-medium text-zinc-900 dark:text-white">{transaction.description || transaction.category}</p>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400 capitalize">{transaction.category}</p>
+                            <p className="font-medium text-zinc-900 dark:text-white">{transaction?.description || transaction?.category || 'Unknown'}</p>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 capitalize">{transaction?.category || 'other'}</p>
                           </div>
                         </div>
-                        <p className={`font-semibold text-right ${transaction.type === 'income'
+                        <p className={`font-semibold text-right ${transaction?.type === 'income'
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : 'text-zinc-900 dark:text-white'
                           }`}>
-                          {transaction.type === 'income' ? '+' : '-'}{formatAmount(parseFloat(transaction.amount))}
+                          {transaction?.type === 'income' ? '+' : '-'}{formatAmount(parseFloat(transaction?.amount || 0))}
                         </p>
                       </div>
                     </motion.div>
