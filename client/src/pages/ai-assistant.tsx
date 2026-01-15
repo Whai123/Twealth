@@ -1164,44 +1164,61 @@ export default function AIAssistantPage() {
                 </motion.p>
 
                 <motion.div
-                  className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full max-w-4xl"
+                  className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 w-full max-w-4xl"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
                 >
-                  {starterPrompts.map((prompt, index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => setCurrentMessage(prompt.prompt)}
-                      className="group relative flex flex-col items-start gap-3 p-4 sm:p-5 text-left rounded-2xl border border-border/30 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-blue-500/40 hover:bg-white/80 dark:hover:bg-zinc-800/80 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 touch-target overflow-hidden"
-                      data-testid={`starter-prompt-${index}`}
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 + index * 0.08 }}
-                      whileHover={{ y: -4, scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {/* Hover glow effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-blue-500/0 to-indigo-500/0 group-hover:from-blue-500/5 group-hover:via-blue-500/3 group-hover:to-indigo-500/5 transition-all duration-500 rounded-2xl" />
+                  {starterPrompts.map((prompt, index) => {
+                    // Color mapping for each card type
+                    const colorMap: Record<string, { icon: string; hover: string; border: string }> = {
+                      'Buy a Car': { icon: 'from-blue-500 to-blue-600', hover: 'group-hover:text-blue-500', border: 'hover:border-blue-500/50' },
+                      'Emergency Fund': { icon: 'from-emerald-500 to-emerald-600', hover: 'group-hover:text-emerald-500', border: 'hover:border-emerald-500/50' },
+                      'Investment Strategy': { icon: 'from-violet-500 to-violet-600', hover: 'group-hover:text-violet-500', border: 'hover:border-violet-500/50' },
+                      'Retirement Planning': { icon: 'from-amber-500 to-amber-600', hover: 'group-hover:text-amber-500', border: 'hover:border-amber-500/50' },
+                      'Reduce Debt': { icon: 'from-rose-500 to-rose-600', hover: 'group-hover:text-rose-500', border: 'hover:border-rose-500/50' },
+                      'Full Financial Checkup': { icon: 'from-cyan-500 to-cyan-600', hover: 'group-hover:text-cyan-500', border: 'hover:border-cyan-500/50' },
+                    };
+                    const colors = colorMap[prompt.title] || colorMap['Buy a Car'];
 
-                      <div className="relative flex items-start gap-3 w-full">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
-                          <span className="text-blue-600 dark:text-blue-400 [&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
-                            {prompt.icon}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0 pt-0.5">
-                          <p className="font-semibold text-sm sm:text-base mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prompt.title}</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground/70 line-clamp-2 leading-relaxed">{prompt.prompt}</p>
-                        </div>
-                      </div>
+                    return (
+                      <motion.button
+                        key={index}
+                        onClick={() => setCurrentMessage(prompt.prompt)}
+                        className={`group relative flex flex-col items-start gap-3 p-5 sm:p-6 text-left rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-xl ${colors.border} hover:bg-zinc-800/80 hover:shadow-2xl hover:shadow-black/20 transition-all duration-300 touch-target overflow-hidden`}
+                        data-testid={`starter-prompt-${index}`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 + index * 0.1 }}
+                        whileHover={{ y: -6 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {/* Gradient glow on hover */}
+                        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${prompt.gradient} rounded-2xl`} />
 
-                      {/* Arrow indicator */}
-                      <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="w-5 h-5 text-blue-500" />
-                      </div>
-                    </motion.button>
-                  ))}
+                        <div className="relative flex items-start gap-4 w-full">
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.icon} flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
+                            <span className="text-white [&>svg]:w-5 [&>svg]:h-5">
+                              {prompt.icon}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-sm sm:text-base mb-1.5 text-white ${colors.hover} transition-colors`}>{prompt.title}</p>
+                            <p className="text-xs sm:text-sm text-zinc-400 line-clamp-2 leading-relaxed group-hover:text-zinc-300 transition-colors">{prompt.prompt}</p>
+                          </div>
+                        </div>
+
+                        {/* Arrow indicator */}
+                        <motion.div
+                          className="absolute bottom-5 right-5 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                          initial={{ x: -5 }}
+                          whileHover={{ x: 0 }}
+                        >
+                          <ChevronRight className={`w-5 h-5 ${colors.hover.replace('group-hover:', '')}`} />
+                        </motion.div>
+                      </motion.button>
+                    );
+                  })}
                 </motion.div>
 
                 <motion.div
