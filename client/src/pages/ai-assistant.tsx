@@ -813,42 +813,63 @@ export default function AIAssistantPage() {
       />
 
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="shrink-0 border-b border-border/40 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
+        <header className="shrink-0 border-b border-border/30 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-2xl">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <motion.div
-                className="flex items-center gap-2.5 min-w-0"
+                className="flex items-center gap-3 min-w-0"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
               >
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                  <Brain className="w-5 h-5 text-white" />
+                {/* Animated gradient orb background */}
+                <div className="relative">
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-indigo-500/20 to-purple-500/30 rounded-2xl blur-xl"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.5, 0.7, 0.5]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-500/25">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
                 </div>
                 <div>
-                  <h1 className="text-base sm:text-lg font-bold">Twealth AI</h1>
-                  <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">Your Personal CFO</p>
+                  <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">Twealth AI</h1>
+                  <p className="text-[10px] text-muted-foreground/70 font-medium hidden sm:block tracking-wide">Your Personal CFO</p>
                 </div>
               </motion.div>
 
-              <Select value={analysisMode} onValueChange={(v: 'quick' | 'deep') => setAnalysisMode(v)}>
-                <SelectTrigger className="w-[120px] sm:w-[150px] h-9 text-xs sm:text-sm bg-muted/30 border-border/50" data-testid="select-analysis-mode">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="quick">
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium">Quick Chat</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="deep">
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-amber-500" />
-                      <span className="text-sm font-medium">Deep Analysis</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Sleeker mode toggle */}
+              <div className="flex items-center bg-muted/40 rounded-xl p-1 border border-border/30">
+                <button
+                  onClick={() => setAnalysisMode('quick')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${analysisMode === 'quick'
+                    ? 'bg-white dark:bg-zinc-800 shadow-sm text-blue-600 dark:text-blue-400'
+                    : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  data-testid="mode-quick"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Quick</span>
+                </button>
+                <button
+                  onClick={() => setAnalysisMode('deep')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${analysisMode === 'deep'
+                    ? 'bg-white dark:bg-zinc-800 shadow-sm text-amber-600 dark:text-amber-400'
+                    : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  data-testid="mode-deep"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Deep</span>
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
@@ -1047,25 +1068,61 @@ export default function AIAssistantPage() {
 
             {!hasMessages ? (
               <motion.div
-                className="flex flex-col items-center justify-center min-h-[45vh] text-center px-4"
+                className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
+                {/* Large animated gradient orb */}
                 <motion.div
-                  className="relative mb-8"
+                  className="relative mb-10"
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-3xl blur-2xl" />
-                  <div className="relative w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
-                    <Brain className="w-10 h-10 text-white" />
+                  <motion.div
+                    className="absolute -inset-8 bg-gradient-to-br from-blue-500/20 via-indigo-500/15 to-purple-500/20 rounded-full blur-3xl"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 180, 360],
+                      opacity: [0.4, 0.6, 0.4]
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  <motion.div
+                    className="absolute -inset-4 bg-gradient-to-tr from-cyan-500/15 via-blue-500/20 to-indigo-500/15 rounded-full blur-2xl"
+                    animate={{
+                      scale: [1.1, 1, 1.1],
+                      rotate: [360, 180, 0],
+                    }}
+                    transition={{
+                      duration: 6,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/40">
+                    <motion.div
+                      animate={{
+                        rotateY: [0, 360],
+                      }}
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <Brain className="w-12 h-12 text-white" />
+                    </motion.div>
                   </div>
                 </motion.div>
 
                 <motion.h2
-                  className="text-3xl sm:text-4xl font-bold mb-3 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent"
+                  className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-200 dark:to-gray-400 bg-clip-text text-transparent"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
@@ -1073,7 +1130,7 @@ export default function AIAssistantPage() {
                   Your Personal CFO
                 </motion.h2>
                 <motion.p
-                  className="text-muted-foreground text-base sm:text-lg mb-2 max-w-md font-medium"
+                  className="text-muted-foreground text-lg sm:text-xl mb-3 max-w-md font-medium"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
@@ -1081,7 +1138,7 @@ export default function AIAssistantPage() {
                   Expert financial advice powered by AI
                 </motion.p>
                 <motion.p
-                  className="text-sm text-muted-foreground/70 mb-10 max-w-lg"
+                  className="text-sm text-muted-foreground/60 mb-12 max-w-lg leading-relaxed"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
@@ -1090,7 +1147,7 @@ export default function AIAssistantPage() {
                 </motion.p>
 
                 <motion.div
-                  className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 w-full max-w-4xl"
+                  className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full max-w-4xl"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.7 }}
@@ -1099,24 +1156,33 @@ export default function AIAssistantPage() {
                     <motion.button
                       key={index}
                       onClick={() => setCurrentMessage(prompt.prompt)}
-                      className={`group relative flex flex-col sm:flex-row items-start gap-2 sm:gap-3 p-3 sm:p-4 text-left rounded-lg sm:rounded-xl border border-border/50 bg-gradient-to-br ${prompt.gradient} hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 touch-target min-h-[80px] sm:min-h-0`}
+                      className="group relative flex flex-col items-start gap-3 p-4 sm:p-5 text-left rounded-2xl border border-border/30 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-blue-500/40 hover:bg-white/80 dark:hover:bg-zinc-800/80 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 touch-target overflow-hidden"
                       data-testid={`starter-prompt-${index}`}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 15 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.8 + index * 0.05 }}
-                      whileHover={{ y: -2 }}
+                      transition={{ delay: 0.8 + index * 0.08 }}
+                      whileHover={{ y: -4, scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-white dark:bg-zinc-900 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-md transition-shadow">
-                        <span className="text-blue-600 dark:text-blue-400 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-5 sm:[&>svg]:h-5">
-                          {prompt.icon}
-                        </span>
+                      {/* Hover glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-blue-500/0 to-indigo-500/0 group-hover:from-blue-500/5 group-hover:via-blue-500/3 group-hover:to-indigo-500/5 transition-all duration-500 rounded-2xl" />
+
+                      <div className="relative flex items-start gap-3 w-full">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 shadow-sm flex items-center justify-center shrink-0 group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
+                          <span className="text-blue-600 dark:text-blue-400 [&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
+                            {prompt.icon}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0 pt-0.5">
+                          <p className="font-semibold text-sm sm:text-base mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prompt.title}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground/70 line-clamp-2 leading-relaxed">{prompt.prompt}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-xs sm:text-sm mb-0.5 sm:mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prompt.title}</p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed hidden sm:block">{prompt.prompt}</p>
+
+                      {/* Arrow indicator */}
+                      <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <ChevronRight className="w-5 h-5 text-blue-500" />
                       </div>
-                      <ChevronRight className="hidden sm:block w-4 h-4 text-muted-foreground/30 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0 mt-1" />
                     </motion.button>
                   ))}
                 </motion.div>
@@ -1247,16 +1313,31 @@ export default function AIAssistantPage() {
             </div>
           </div>
 
-          {/* Input box */}
-          <div className="max-w-3xl mx-auto px-3 sm:px-6 pb-1 sm:pb-3">
+          {/* Input box - Enhanced */}
+          <div className="max-w-3xl mx-auto px-3 sm:px-6 pb-2 sm:pb-4">
             <motion.div
-              className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${inputFocused
-                ? 'ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10'
-                : 'shadow-md hover:shadow-lg'
+              className={`relative rounded-2xl transition-all duration-300 ${inputFocused
+                ? 'ring-2 ring-blue-500/40 shadow-xl shadow-blue-500/15'
+                : 'shadow-lg hover:shadow-xl'
                 }`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
+              {/* Model indicator badge */}
+              <div className="absolute -top-3 left-4 z-10">
+                <motion.div
+                  className={`px-2.5 py-0.5 text-[10px] font-semibold rounded-full shadow-sm ${analysisMode === 'deep'
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                      : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                    }`}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  key={analysisMode}
+                >
+                  {analysisMode === 'deep' ? '🔬 Deep Analysis' : '⚡ Quick Chat'}
+                </motion.div>
+              </div>
+
               <Textarea
                 ref={textareaRef}
                 value={currentMessage}
@@ -1265,23 +1346,23 @@ export default function AIAssistantPage() {
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => setInputFocused(false)}
                 placeholder="Ask anything about your finances..."
-                className="min-h-[48px] sm:min-h-[56px] max-h-[100px] sm:max-h-[140px] resize-none pr-20 sm:pr-28 text-sm sm:text-base w-full rounded-xl sm:rounded-2xl border-border/50 bg-white dark:bg-zinc-900 py-3 sm:py-4 px-4 sm:px-5 placeholder:text-muted-foreground/60"
+                className="min-h-[56px] sm:min-h-[64px] max-h-[120px] sm:max-h-[160px] resize-none pr-24 sm:pr-32 text-sm sm:text-base w-full rounded-2xl border-border/30 bg-white dark:bg-zinc-900 py-4 sm:py-5 px-4 sm:px-5 placeholder:text-muted-foreground/50 focus:outline-none"
                 rows={1}
                 data-testid="input-message"
               />
 
               {/* Voice and Send buttons */}
-              <div className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 flex items-center gap-1">
+              <div className="absolute right-3 sm:right-4 bottom-3 sm:bottom-4 flex items-center gap-1.5">
                 {speechSupported && (
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}>
                     <Button
                       onClick={handleVoiceInput}
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-all ${isListening
+                      className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl transition-all ${isListening
                         ? 'bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 animate-pulse'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        : 'hover:bg-gray-100 dark:hover:bg-zinc-800'
                         }`}
                       data-testid="button-voice-input"
                     >
@@ -1290,28 +1371,28 @@ export default function AIAssistantPage() {
                   </motion.div>
                 )}
 
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}>
                   <Button
                     onClick={handleSendMessage}
                     disabled={!currentMessage.trim() || sendMessageMutation.isPending || isStreaming || rateLimitRetryAfter > 0}
                     size="icon"
-                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${currentMessage.trim()
-                      ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30'
-                      : 'bg-gray-200 dark:bg-gray-800'
+                    className={`h-10 w-10 sm:h-11 sm:w-11 rounded-xl transition-all duration-300 touch-target ${currentMessage.trim()
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/40'
+                      : 'bg-gray-200 dark:bg-zinc-800'
                       }`}
                     data-testid="button-send-message"
                     title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
                   >
                     {rateLimitRetryAfter > 0 ? (
                       <span className="text-xs font-bold">{rateLimitRetryAfter}</span>
-                    ) : sendMessageMutation.isPending ? (
+                    ) : sendMessageMutation.isPending || isStreaming ? (
                       <motion.div
                         className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       />
                     ) : (
-                      <Send className={`w-4 h-4 ${currentMessage.trim() ? 'text-white' : 'text-gray-400'}`} />
+                      <Send className={`w-4 h-4 sm:w-5 sm:h-5 ${currentMessage.trim() ? 'text-white' : 'text-gray-400'}`} />
                     )}
                   </Button>
                 </motion.div>
