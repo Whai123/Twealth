@@ -22,6 +22,9 @@ import type {
   Transaction,
 } from '@shared/schema';
 import { countryKnowledgeService, type CountryFinancialContext } from '../services/countryKnowledge';
+import type { ScoreDrivers } from '@shared/schema';
+import { buildAILearningContext } from './aiMemoryService';
+
 
 // Context cache configuration
 const CONTEXT_CACHE_TTL_MS = 30000; // 30 seconds - balance between freshness and performance
@@ -41,13 +44,13 @@ const contextCache = new Map<string, CachedContext>();
 function getCachedContext(userId: string): FinancialContext | null {
   const cached = contextCache.get(userId);
   if (!cached) return null;
-  
+
   const now = Date.now();
   if (now - cached.timestamp > CONTEXT_CACHE_TTL_MS) {
     contextCache.delete(userId);
     return null;
   }
-  
+
   return cached.context;
 }
 
@@ -62,7 +65,7 @@ function cacheContext(userId: string, context: FinancialContext): void {
       contextCache.delete(oldestKey);
     }
   }
-  
+
   contextCache.set(userId, {
     context,
     timestamp: Date.now(),
@@ -155,6 +158,17 @@ export interface FinancialContext {
       atRiskGoals: number;
       completedGoals: number;
     };
+    // Twealth Index 4-pillar scoring (if available)
+    twealthIndex?: {
+      cashflowScore: number;
+      stabilityScore: number;
+      growthScore: number;
+      behaviorScore: number;
+      overallScore: number;
+      band: string;
+      confidence: string;
+      drivers: ScoreDrivers;
+    };
   };
   // Proactive insights generated from data
   insights: Array<{
@@ -184,7 +198,15 @@ export interface FinancialContext {
     economicSystem: string;
     financialRegulations: string[];
   };
+  // AI Learning Context - Memory, patterns, and style preferences
+  aiLearningContext?: {
+    memoryContext: string;
+    patternContext: string;
+    styleInstruction: string;
+    fullContext: string;
+  };
 }
+
 
 /**
  * Build financial context from user data
@@ -206,7 +228,7 @@ export async function buildFinancialContext(
       return cached;
     }
   }
-  
+
   // Fetch all user financial data in parallel
   const [
     profile,
@@ -218,6 +240,8 @@ export async function buildFinancialContext(
     allTransactions,
     user,
     userPreferences,
+    twealthScores,
+    aiLearningContext,
   ] = await Promise.all([
     storage.getUserFinancialProfile(userId).catch(() => null),
     storage.getUserExpenseCategories(userId).catch(() => []),
@@ -228,17 +252,22 @@ export async function buildFinancialContext(
     storage.getTransactionsByUserId(userId, 1000).catch(() => []), // More transactions for calculating averages
     storage.getUser(userId).catch(() => null),
     storage.getUserPreferences(userId).catch(() => null),
+    // Fetch Twealth Index scores for personalized AI advice
+    storage.getLatestScoreSnapshot(userId).catch(() => null),
+    // Fetch AI learning context (memory, patterns, style)
+    buildAILearningContext(userId).catch(() => null),
   ]);
-  
+
+
   // Calculate income/expenses from real transaction data (last 6 months)
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  
+
   const recentTransactionsForCalc = allTransactions.filter(tx => {
     const txDate = new Date(tx.date);
     return txDate >= sixMonthsAgo;
   });
-  
+
   // Calculate from actual transactions
   let calculatedIncome = 0;
   let calculatedExpenses = 0;
@@ -250,39 +279,39 @@ export async function buildFinancialContext(
       calculatedExpenses += amount;
     }
   }
-  
+
   // Calculate monthly averages (accounting for number of months with data)
-  const monthsWithData = recentTransactionsForCalc.length > 0 ? 
-    Math.max(1, Math.min(6, Math.ceil((Date.now() - Math.min(...recentTransactionsForCalc.map(tx => new Date(tx.date).getTime()))) / (30.44 * 24 * 60 * 60 * 1000)))) 
+  const monthsWithData = recentTransactionsForCalc.length > 0 ?
+    Math.max(1, Math.min(6, Math.ceil((Date.now() - Math.min(...recentTransactionsForCalc.map(tx => new Date(tx.date).getTime()))) / (30.44 * 24 * 60 * 60 * 1000))))
     : 1;
-  
+
   const avgMonthlyIncomeFromTx = Math.round(calculatedIncome / monthsWithData);
   const avgMonthlyExpensesFromTx = Math.round(calculatedExpenses / monthsWithData);
-  
+
   // Use calculated values if we have transaction data, otherwise fall back to manual profile values
   const hasTransactionData = recentTransactionsForCalc.length >= 5; // Need at least 5 transactions to be meaningful
-  
+
   const monthlyIncome = hasTransactionData && avgMonthlyIncomeFromTx > 0
     ? avgMonthlyIncomeFromTx
     : (profile?.monthlyIncome ? parseFloat(profile.monthlyIncome.toString()) : 0);
-  
+
   const monthlyExpenses = hasTransactionData && avgMonthlyExpensesFromTx > 0
     ? avgMonthlyExpensesFromTx
     : (profile?.monthlyExpenses ? parseFloat(profile.monthlyExpenses.toString()) : 0);
-  
+
   const monthlyNet = monthlyIncome - monthlyExpenses;
-  
+
   // Build income sources - use transaction data if available
   const incomeSources = monthlyIncome > 0
-    ? [{ 
-        name: hasTransactionData ? 'Calculated from Transactions' : 'Primary Income (Manual)', 
-        amount: monthlyIncome 
-      }]
+    ? [{
+      name: hasTransactionData ? 'Calculated from Transactions' : 'Primary Income (Manual)',
+      amount: monthlyIncome
+    }]
     : [];
-  
+
   // Build expense breakdown by category - use transaction data if available
   const expensesByCategory: Record<string, number> = {};
-  
+
   if (hasTransactionData) {
     // Calculate from actual transactions
     const expenseTransactions = recentTransactionsForCalc.filter(tx => tx.type === 'expense');
@@ -301,7 +330,7 @@ export async function buildFinancialContext(
       expensesByCategory[cat.category] = parseFloat(cat.monthlyAmount.toString());
     }
   }
-  
+
   // Normalize debts
   const normalizedDebts = debts.map(debt => ({
     name: debt.name,
@@ -310,12 +339,12 @@ export async function buildFinancialContext(
     min: parseFloat(debt.minimumPayment.toString()),
     monthlyPayment: parseFloat(debt.monthlyPayment.toString()),
   }));
-  
+
   // Normalize assets
   const normalizedAssets = assets.map(asset => {
     // Map asset types to standard categories
     let type: FinancialContext['assets'][0]['type'] = 'other';
-    
+
     switch (typeof asset.type === 'string' ? asset.type.toLowerCase() : '') {
       case 'savings':
       case 'cash':
@@ -356,14 +385,14 @@ export async function buildFinancialContext(
       default:
         type = 'other';
     }
-    
+
     return {
       name: asset.name,
       value: parseFloat(asset.value.toString()),
       type,
     };
   });
-  
+
   // Normalize goals with enhanced progress tracking
   const normalizedGoals = goals.map(goal => {
     const targetDate = new Date(goal.targetDate);
@@ -373,19 +402,19 @@ export async function buildFinancialContext(
       (targetDate.getFullYear() - now.getFullYear()) * 12 +
       (targetDate.getMonth() - now.getMonth())
     );
-    
+
     const target = parseFloat(goal.targetAmount.toString());
     const current = goal.currentAmount ? parseFloat(goal.currentAmount.toString()) : 0;
     const progressPercent = target > 0 ? Math.round((current / target) * 100) : 0;
     const remaining = Math.max(0, target - current);
     const monthlyRequired = monthsDiff > 0 ? Math.max(0, Math.round(remaining / monthsDiff)) : Math.max(0, remaining);
-    
+
     // Calculate if on track (can they save enough each month?)
     // Clamp monthly savings to non-negative - negative savings means user can't make progress
     const monthlySavings = Math.max(0, monthlyIncome - monthlyExpenses);
     // Goal is on track if: already completed, or user can afford the monthly required amount
     const onTrack = progressPercent >= 100 || (monthlySavings > 0 && monthlyRequired <= monthlySavings);
-    
+
     return {
       name: goal.title,
       horizonMonths: monthsDiff,
@@ -396,7 +425,7 @@ export async function buildFinancialContext(
       onTrack,
     };
   });
-  
+
   // Normalize recent transactions (last 20)
   const recentTransactionsSample = transactions.slice(0, 20).map(tx => ({
     date: tx.date.toISOString().split('T')[0], // YYYY-MM-DD
@@ -405,12 +434,12 @@ export async function buildFinancialContext(
     category: tx.category,
     type: tx.type as 'income' | 'expense' | 'transfer',
   }));
-  
+
   // Build user metadata from preferences
   const countryCode = userPreferences?.countryCode || 'US';
   const userAge = undefined; // Could be calculated from DOB if available
   const riskTolerance: 'low' | 'med' | 'high' = 'med'; // Could be from financial preferences
-  
+
   // Get country-specific financial context
   const countryData = countryKnowledgeService.getCountryContext(countryCode);
   const countryContext = countryData ? {
@@ -433,54 +462,54 @@ export async function buildFinancialContext(
     economicSystem: countryData.economicSystem,
     financialRegulations: countryData.financialRegulations,
   } : undefined;
-  
+
   // ========== ENHANCED ANALYTICS ==========
-  
+
   // Calculate net worth
   const totalAssets = normalizedAssets.reduce((sum, a) => sum + a.value, 0);
   const totalDebts = normalizedDebts.reduce((sum, d) => sum + d.balance, 0);
   const netWorth = totalAssets - totalDebts;
-  
+
   // Calculate savings rate
   const monthlySavings = monthlyIncome > 0 ? monthlyIncome - monthlyExpenses : 0;
   const savingsRate = monthlyIncome > 0 ? Math.round((monthlySavings / monthlyIncome) * 100) : 0;
-  
+
   // Calculate debt-to-income ratio
   const totalMonthlyDebtPayments = normalizedDebts.reduce((sum, d) => sum + d.monthlyPayment, 0);
   const debtToIncomeRatio = monthlyIncome > 0 ? Math.round((totalMonthlyDebtPayments / monthlyIncome) * 100) : 0;
-  
+
   // Calculate emergency fund months
   const cashAssets = normalizedAssets.filter(a => a.type === 'cash').reduce((sum, a) => sum + a.value, 0);
   const emergencyFundMonths = monthlyExpenses > 0 ? Math.round((cashAssets / monthlyExpenses) * 10) / 10 : 0;
-  
+
   // Calculate spending trends (current month vs last month)
   const now = new Date();
   const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-  
+
   const currentMonthSpending = allTransactions
     .filter(tx => tx.type === 'expense' && new Date(tx.date) >= currentMonthStart)
     .reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount.toString())), 0);
-  
+
   const lastMonthSpending = allTransactions
     .filter(tx => {
       const txDate = new Date(tx.date);
       return tx.type === 'expense' && txDate >= lastMonthStart && txDate <= lastMonthEnd;
     })
     .reduce((sum, tx) => sum + Math.abs(parseFloat(tx.amount.toString())), 0);
-  
-  const monthOverMonthChange = lastMonthSpending > 0 
+
+  const monthOverMonthChange = lastMonthSpending > 0
     ? Math.round(((currentMonthSpending - lastMonthSpending) / lastMonthSpending) * 100)
     : 0;
-  
+
   const spendingDirection = monthOverMonthChange > 10 ? 'up' : monthOverMonthChange < -10 ? 'down' : 'stable';
-  
+
   // Detect category anomalies (spending significantly above historical average)
   const categoryAnomalies: FinancialContext['analytics']['categoryAnomalies'] = [];
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  
+
   // Build per-category monthly history for accurate anomaly detection
   const categoryMonthlyHistory: Record<string, Record<string, number>> = {};
   for (const tx of allTransactions.filter(t => t.type === 'expense' && new Date(t.date) >= threeMonthsAgo)) {
@@ -490,21 +519,21 @@ export async function buildFinancialContext(
     if (!categoryMonthlyHistory[cat][monthKey]) categoryMonthlyHistory[cat][monthKey] = 0;
     categoryMonthlyHistory[cat][monthKey] += Math.abs(parseFloat(tx.amount.toString()));
   }
-  
+
   // Current month key
   const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
-  
+
   for (const [category, monthlyAmounts] of Object.entries(categoryMonthlyHistory)) {
     const months = Object.entries(monthlyAmounts);
     if (months.length < 2) continue; // Need at least 2 months of data
-    
+
     // Calculate average excluding current month
     const pastMonths = months.filter(([key]) => key !== currentMonthKey);
     if (pastMonths.length === 0) continue;
-    
+
     const avgAmount = pastMonths.reduce((sum, [, amt]) => sum + amt, 0) / pastMonths.length;
     const currentAmount = monthlyAmounts[currentMonthKey] || 0;
-    
+
     // Only flag if current month spending is significantly above historical average
     if (avgAmount > 0 && currentAmount > avgAmount * 1.3 && currentAmount > 50) {
       const percentChange = Math.round(((currentAmount - avgAmount) / avgAmount) * 100);
@@ -517,34 +546,34 @@ export async function buildFinancialContext(
       });
     }
   }
-  
+
   // Sort by severity and percent change
   categoryAnomalies.sort((a, b) => {
     const severityOrder = { high: 0, medium: 1, low: 2 };
     return severityOrder[a.severity] - severityOrder[b.severity] || b.percentChange - a.percentChange;
   });
-  
+
   // Calculate financial health score (0-100)
   let healthScore = 50; // Base score
-  
+
   // Savings rate impact (+/-20 points)
   if (savingsRate >= 20) healthScore += 20;
   else if (savingsRate >= 10) healthScore += 10;
   else if (savingsRate < 0) healthScore -= 20;
   else healthScore -= 10;
-  
+
   // Emergency fund impact (+/-15 points)
   if (emergencyFundMonths >= 6) healthScore += 15;
   else if (emergencyFundMonths >= 3) healthScore += 8;
   else if (emergencyFundMonths < 1) healthScore -= 15;
-  
+
   // Debt-to-income impact (+/-15 points)
   if (debtToIncomeRatio === 0) healthScore += 15;
   else if (debtToIncomeRatio <= 20) healthScore += 8;
   else if (debtToIncomeRatio > 40) healthScore -= 15;
-  
+
   healthScore = Math.max(0, Math.min(100, healthScore));
-  
+
   // Top spending categories
   const sortedCategories = Object.entries(expensesByCategory)
     .sort(([, a], [, b]) => b - a)
@@ -554,7 +583,7 @@ export async function buildFinancialContext(
       amount: Math.round(amount),
       percent: monthlyExpenses > 0 ? Math.round((amount / monthlyExpenses) * 100) : 0,
     }));
-  
+
   // Goal progress summary
   const goalProgress = {
     totalGoals: normalizedGoals.length,
@@ -562,10 +591,10 @@ export async function buildFinancialContext(
     atRiskGoals: normalizedGoals.filter(g => !g.onTrack && g.progressPercent < 100).length,
     completedGoals: normalizedGoals.filter(g => g.progressPercent >= 100).length,
   };
-  
+
   // ========== PROACTIVE INSIGHTS ==========
   const insights: FinancialContext['insights'] = [];
-  
+
   // Spending anomaly warnings
   if (monthOverMonthChange > 25) {
     insights.push({
@@ -575,7 +604,7 @@ export async function buildFinancialContext(
       priority: 'high',
     });
   }
-  
+
   // Category overspending
   for (const anomaly of categoryAnomalies.slice(0, 2)) {
     if (anomaly.severity === 'high') {
@@ -587,7 +616,7 @@ export async function buildFinancialContext(
       });
     }
   }
-  
+
   // Emergency fund tip
   if (emergencyFundMonths < 3 && monthlyExpenses > 0) {
     insights.push({
@@ -597,7 +626,7 @@ export async function buildFinancialContext(
       priority: emergencyFundMonths < 1 ? 'high' : 'medium',
     });
   }
-  
+
   // High savings rate achievement
   if (savingsRate >= 30) {
     insights.push({
@@ -607,7 +636,7 @@ export async function buildFinancialContext(
       priority: 'low',
     });
   }
-  
+
   // Goals at risk
   const atRiskGoals = normalizedGoals.filter(g => !g.onTrack && g.horizonMonths > 0 && g.progressPercent < 100);
   if (atRiskGoals.length > 0) {
@@ -618,7 +647,7 @@ export async function buildFinancialContext(
       priority: 'high',
     });
   }
-  
+
   // Debt payoff opportunity
   if (normalizedDebts.length > 0 && savingsRate > 15) {
     const highestAPR = normalizedDebts.reduce((max, d) => d.apr > max.apr ? d : max, normalizedDebts[0]);
@@ -667,14 +696,28 @@ export async function buildFinancialContext(
       financialHealthScore: healthScore,
       topSpendingCategories: sortedCategories,
       goalProgress,
+      // Add Twealth Index 4-pillar scoring if available
+      twealthIndex: twealthScores ? {
+        cashflowScore: twealthScores.cashflowScore,
+        stabilityScore: twealthScores.stabilityScore,
+        growthScore: twealthScores.growthScore,
+        behaviorScore: twealthScores.behaviorScore,
+        overallScore: twealthScores.twealthIndex,
+        band: twealthScores.band,
+        confidence: twealthScores.confidence?.toString() || '0',
+        drivers: twealthScores.drivers as ScoreDrivers,
+      } : undefined,
     },
     insights,
     countryContext,
+    // AI Learning Context - Memory, patterns, and style preferences
+    aiLearningContext: aiLearningContext || undefined,
   };
-  
+
+
   // Cache the context for future requests
   cacheContext(userId, context);
-  
+
   return context;
 }
 

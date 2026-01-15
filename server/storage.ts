@@ -1,8 +1,8 @@
-import { 
-  type User, 
+import {
+  type User,
   type InsertUser,
-  type UpsertUser, 
-  type Group, 
+  type UpsertUser,
+  type Group,
   type InsertGroup,
   type GroupMember,
   type InsertGroupMember,
@@ -98,6 +98,11 @@ import {
   type InsertAiUsageLog,
   type Playbook,
   type InsertPlaybook,
+  // World-class scoring system types
+  type MonthlyFinancials,
+  type InsertMonthlyFinancials,
+  type ScoreSnapshot,
+  type InsertScoreSnapshot,
   users,
   groups,
   groupMembers,
@@ -147,7 +152,10 @@ import {
   userAssets,
   aiUsageLogs,
   playbooks,
-  webhookEvents
+  webhookEvents,
+  // World-class scoring tables
+  monthlyFinancials,
+  scoreSnapshots
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, gte, lte, sql, or, exists } from "drizzle-orm";
@@ -285,14 +293,14 @@ export interface IStorage {
   getSentFriendRequests(userId: string): Promise<Array<FriendRequest & { toUser: SafeUser }>>;
   updateFriendRequestStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendRequest>;
   deleteFriendRequest(id: string): Promise<void>;
-  
+
   // Friendship methods
   createFriendship(friendship: InsertFriendship): Promise<Friendship>;
   getFriendsByUserId(userId: string): Promise<Array<SafeUser>>;
   areFriends(userId: string, friendId: string): Promise<boolean>;
   removeFriendship(userId: string, friendId: string): Promise<void>;
   searchUsers(query: string, excludeUserId: string): Promise<SafeUser[]>;
-  
+
   // Shared Goals methods
   shareGoal(share: InsertSharedGoal): Promise<SharedGoal>;
   getSharedGoals(userId: string): Promise<Array<SharedGoal & { goal: FinancialGoal; owner: SafeUser }>>;
@@ -300,47 +308,47 @@ export interface IStorage {
   removeGoalShare(goalId: string, sharedWithUserId: string): Promise<void>;
   updateGoalSharePermission(goalId: string, sharedWithUserId: string, permission: 'view' | 'contribute'): Promise<SharedGoal>;
   shareGoalWithGroup(goalId: string, ownerId: string, groupId: string, permission: 'view' | 'contribute'): Promise<{ groupShare: SharedGoal; memberShares: SharedGoal[]; memberCount: number }>;
-  
+
   // Shared Budgets methods
   createSharedBudget(budget: InsertSharedBudget): Promise<SharedBudget>;
   getSharedBudget(id: string): Promise<SharedBudget | undefined>;
   getSharedBudgetsByUserId(userId: string): Promise<Array<SharedBudget & { members: Array<SafeUser> }>>;
   updateSharedBudget(id: string, updates: Partial<SharedBudget>): Promise<SharedBudget>;
   deleteSharedBudget(id: string): Promise<void>;
-  
+
   addSharedBudgetMember(member: InsertSharedBudgetMember): Promise<SharedBudgetMember>;
   getSharedBudgetMembers(budgetId: string): Promise<Array<SharedBudgetMember & { user: SafeUser }>>;
   removeSharedBudgetMember(budgetId: string, userId: string): Promise<void>;
-  
+
   createSharedBudgetExpense(expense: InsertSharedBudgetExpense): Promise<SharedBudgetExpense>;
   getSharedBudgetExpenses(budgetId: string): Promise<Array<SharedBudgetExpense & { user: SafeUser }>>;
   updateSharedBudgetExpense(id: string, updates: Partial<SharedBudgetExpense>): Promise<SharedBudgetExpense>;
   deleteSharedBudgetExpense(id: string): Promise<void>;
-  
+
   // Friend Group Invitations methods
   createFriendGroupInvitation(invitation: InsertFriendGroupInvitation): Promise<FriendGroupInvitation>;
   getFriendGroupInvitations(userId: string): Promise<Array<FriendGroupInvitation & { group: Group; invitedBy: SafeUser }>>;
   updateFriendGroupInvitationStatus(id: string, status: 'accepted' | 'declined'): Promise<FriendGroupInvitation>;
   deleteFriendGroupInvitation(id: string): Promise<void>;
   bulkInviteFriendsToGroup(groupId: string, invitedBy: string, friendIds: string[], role?: string): Promise<FriendGroupInvitation[]>;
-  
+
   // RSVP methods
   updateEventRSVP(eventId: string, userId: string, status: 'yes' | 'no' | 'maybe'): Promise<Event>;
-  
+
   // Event expense methods
   getEventExpense(id: string): Promise<EventExpense | undefined>;
   getEventExpensesByEventId(eventId: string): Promise<EventExpense[]>;
   createEventExpense(expense: InsertEventExpense): Promise<EventExpense>;
   updateEventExpense(id: string, updates: Partial<EventExpense>): Promise<EventExpense>;
   deleteEventExpense(id: string): Promise<void>;
-  
+
   // Event expense share methods
   getEventExpenseShare(id: string): Promise<EventExpenseShare | undefined>;
   getEventExpenseSharesByExpenseId(expenseId: string): Promise<EventExpenseShare[]>;
   createEventExpenseShare(share: InsertEventExpenseShare): Promise<EventExpenseShare>;
   updateEventExpenseShare(id: string, updates: Partial<EventExpenseShare>): Promise<EventExpenseShare>;
   deleteEventExpenseShare(id: string): Promise<void>;
-  
+
   // Event financial summary methods
   getEventFinancialSummary(eventId: string): Promise<{
     budget: number | null;
@@ -353,10 +361,10 @@ export interface IStorage {
       totalPaid: number;
     }>;
   }>;
-  
+
   // Utility methods for user management
   getFirstUser(): Promise<SafeUser | undefined>;
-  
+
   // User settings methods
   getUserSettings(userId: string): Promise<UserSettings | undefined>;
   createUserSettings(settings: InsertUserSettings): Promise<UserSettings>;
@@ -427,7 +435,7 @@ export interface IStorage {
   createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
   updateChatConversation(id: string, updates: Partial<ChatConversation>): Promise<ChatConversation>;
   deleteChatConversation(id: string): Promise<void>;
-  
+
   getChatMessages(conversationId: string, limit?: number, offset?: number): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatMessagesByUserId(userId: string, limit?: number): Promise<ChatMessage[]>;
@@ -456,21 +464,21 @@ export interface IStorage {
   createUsageRecord(usage: InsertUsageTracking): Promise<UsageTracking>;
   updateUsageRecord(id: string, updates: Partial<UsageTracking>): Promise<UsageTracking>;
   incrementUsage(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed' | 'aiInsightsGenerated', amount?: number): Promise<UsageTracking>;
-  
+
   // Add-on methods
   getUserAddOns(userId: string): Promise<SubscriptionAddOn[]>;
   createAddOn(addOn: InsertSubscriptionAddOn): Promise<SubscriptionAddOn>;
-  
+
   // Subscription helpers
   initializeDefaultSubscription(userId: string): Promise<Subscription>;
   checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }>;
   resetUsage(userId: string): Promise<void>;
-  
+
   // Webhook idempotency
   isWebhookEventProcessed(eventId: string): Promise<boolean>;
   markWebhookEventProcessed(eventId: string, eventType: string): Promise<void>;
   cleanupOldWebhookEvents(maxAgeHours: number): Promise<number>;
-  
+
   // Tier-aware AI methods
   getUserSubscriptionWithUsage(userId: string): Promise<{ subscription: Subscription; usage: UsageTracking | null; plan: SubscriptionPlan } | null>;
   incrementUsageCounters(userId: string, subscriptionId: string, modelType: 'scout' | 'sonnet' | 'gpt5' | 'opus'): Promise<void>;
@@ -493,17 +501,17 @@ export interface IStorage {
   createCryptoHolding(holding: InsertCryptoHolding): Promise<CryptoHolding>;
   updateCryptoHolding(id: string, updates: Partial<CryptoHolding>): Promise<CryptoHolding>;
   deleteCryptoHolding(id: string): Promise<void>;
-  
+
   getCryptoPriceAlert(id: string): Promise<CryptoPriceAlert | undefined>;
   getUserCryptoPriceAlerts(userId: string): Promise<CryptoPriceAlert[]>;
   createCryptoPriceAlert(alert: InsertCryptoPriceAlert): Promise<CryptoPriceAlert>;
   updateCryptoPriceAlert(id: string, updates: Partial<CryptoPriceAlert>): Promise<CryptoPriceAlert>;
   deleteCryptoPriceAlert(id: string): Promise<void>;
-  
+
   getCryptoTransaction(id: string): Promise<CryptoTransaction | undefined>;
   getUserCryptoTransactions(userId: string, limit?: number): Promise<CryptoTransaction[]>;
   createCryptoTransaction(transaction: InsertCryptoTransaction): Promise<CryptoTransaction>;
-  
+
   getUserCryptoPortfolioValue(userId: string): Promise<{
     totalValue: number;
     holdings: Array<{
@@ -520,17 +528,17 @@ export interface IStorage {
   getUserFinancialProfile(userId: string): Promise<UserFinancialProfile | undefined>;
   createUserFinancialProfile(profile: InsertUserFinancialProfile): Promise<UserFinancialProfile>;
   updateUserFinancialProfile(userId: string, updates: Partial<UserFinancialProfile>): Promise<UserFinancialProfile>;
-  
+
   // Expense Categories methods
   getUserExpenseCategories(userId: string): Promise<UserExpenseCategory[]>;
   updateUserExpenseCategories(userId: string, categories: InsertUserExpenseCategory[]): Promise<UserExpenseCategory[]>;
-  
+
   // Debts methods
   getUserDebts(userId: string): Promise<UserDebt[]>;
   createUserDebt(debt: InsertUserDebt): Promise<UserDebt>;
   updateUserDebt(id: string, updates: Partial<UserDebt>): Promise<UserDebt>;
   deleteUserDebt(id: string): Promise<void>;
-  
+
   // Assets methods
   getUserAssets(userId: string): Promise<UserAsset[]>;
   createUserAsset(asset: InsertUserAsset): Promise<UserAsset>;
@@ -544,6 +552,19 @@ export interface IStorage {
   updatePlaybook(id: string, updates: Partial<Playbook>): Promise<Playbook>;
   deletePlaybook(id: string): Promise<void>;
   markPlaybookViewed(id: string): Promise<void>;
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WORLD-CLASS SCORING SYSTEM
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Monthly Financials methods (aggregated per-month data)
+  getMonthlyFinancials(userId: string, fromMonth: Date, toMonth: Date): Promise<MonthlyFinancials[]>;
+  upsertMonthlyFinancials(data: InsertMonthlyFinancials): Promise<MonthlyFinancials>;
+
+  // Score Snapshots methods (4-pillar scoring history)
+  getLatestScoreSnapshot(userId: string): Promise<ScoreSnapshot | undefined>;
+  getScoreSnapshots(userId: string, limit?: number): Promise<ScoreSnapshot[]>;
+  upsertScoreSnapshot(data: InsertScoreSnapshot): Promise<ScoreSnapshot>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -561,7 +582,7 @@ export class DatabaseStorage implements IStorage {
         .from(users)
         .where(sql`${users.id} = ${userData.id}`)
         .limit(1);
-      
+
       // If found by ID, update that user
       if (existingById.length > 0) {
         const [user] = await db
@@ -574,7 +595,7 @@ export class DatabaseStorage implements IStorage {
           .returning();
         return user;
       }
-      
+
       // If not found by ID, try by email
       if (userData.email) {
         const existingByEmail = await db
@@ -582,7 +603,7 @@ export class DatabaseStorage implements IStorage {
           .from(users)
           .where(sql`${users.email} = ${userData.email}`)
           .limit(1);
-        
+
         if (existingByEmail.length > 0) {
           // Update existing user found by email - DO NOT change ID to avoid FK violations
           const { id, ...updateData } = userData;
@@ -597,7 +618,7 @@ export class DatabaseStorage implements IStorage {
           return user;
         }
       }
-      
+
       // No existing user found - insert new
       const [user] = await db
         .insert(users)
@@ -630,20 +651,20 @@ export class DatabaseStorage implements IStorage {
         profileImageUrl: insertUser.profileImageUrl || null,
       })
       .returning();
-    
+
     // Return user (no password field to exclude)
     return user;
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<SafeUser> {
     const updateData = { ...updates, updatedAt: new Date() };
-    
+
     const [user] = await db
       .update(users)
       .set(updateData)
       .where(eq(users.id, id))
       .returning();
-    
+
     // Return user (no password field to exclude)
     return user;
   }
@@ -656,7 +677,7 @@ export class DatabaseStorage implements IStorage {
 
   async getGroupsByUserId(userId: string): Promise<any[]> {
     const userGroups = await db
-      .select({ 
+      .select({
         group: groups,
         memberCount: sql<number>`count(distinct ${groupMembers.userId})::int`
       })
@@ -664,7 +685,7 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(groupMembers, eq(groups.id, groupMembers.groupId))
       .where(eq(groupMembers.userId, userId))
       .groupBy(groups.id);
-    
+
     return userGroups.map(ug => ({ ...ug.group, memberCount: ug.memberCount }));
   }
 
@@ -678,14 +699,14 @@ export class DatabaseStorage implements IStorage {
         status: insertGroup.status || "active",
       })
       .returning();
-    
+
     // Auto-add owner as admin member
     await this.addGroupMember({
       groupId: group.id,
       userId: group.ownerId,
       role: "admin",
     });
-    
+
     return group;
   }
 
@@ -831,12 +852,12 @@ export class DatabaseStorage implements IStorage {
 
   async getUpcomingEventsWithAttendees(userId: string, limit: number = 10): Promise<EventWithAttendees[]> {
     const upcomingEvents = await this.getUpcomingEvents(userId, limit);
-    
+
     // Populate attendee user details for each event
     const eventsWithAttendees: EventWithAttendees[] = await Promise.all(
       upcomingEvents.map(async (event) => {
         const attendees = Array.isArray(event.attendees) ? event.attendees : [];
-        
+
         // Fetch user details for each attendee
         const attendeesWithUsers = await Promise.all(
           attendees.map(async (attendee: any) => {
@@ -864,14 +885,14 @@ export class DatabaseStorage implements IStorage {
             };
           })
         );
-        
+
         return {
           ...event,
           attendeesWithUsers,
         };
       })
     );
-    
+
     return eventsWithAttendees;
   }
 
@@ -972,8 +993,8 @@ export class DatabaseStorage implements IStorage {
       const goal = await this.getFinancialGoal(transaction.goalId);
       if (goal) {
         const newAmount = parseFloat(goal.currentAmount || "0") + parseFloat(transaction.amount.toString());
-        await this.updateFinancialGoal(transaction.goalId, { 
-          currentAmount: newAmount.toString() 
+        await this.updateFinancialGoal(transaction.goalId, {
+          currentAmount: newAmount.toString()
         });
 
         // Create goal contribution record
@@ -1003,12 +1024,12 @@ export class DatabaseStorage implements IStorage {
 
   async bulkCreateTransactions(insertTransactions: InsertTransaction[]): Promise<Transaction[]> {
     if (insertTransactions.length === 0) return [];
-    
+
     const createdTransactions = await db
       .insert(transactions)
       .values(insertTransactions as (typeof transactions.$inferInsert)[])
       .returning();
-    
+
     return createdTransactions;
   }
 
@@ -1023,7 +1044,7 @@ export class DatabaseStorage implements IStorage {
   }> {
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - months);
-    
+
     const userTransactions = await db
       .select()
       .from(transactions)
@@ -1033,11 +1054,11 @@ export class DatabaseStorage implements IStorage {
           gte(transactions.date, startDate)
         )
       );
-    
+
     let totalIncome = 0;
     let totalExpenses = 0;
     const categoryBreakdown: Record<string, number> = {};
-    
+
     for (const tx of userTransactions) {
       const amount = parseFloat(tx.amount.toString());
       if (tx.type === 'income') {
@@ -1045,11 +1066,11 @@ export class DatabaseStorage implements IStorage {
       } else if (tx.type === 'expense') {
         totalExpenses += Math.abs(amount);
       }
-      
+
       const category = tx.category || 'Other';
       categoryBreakdown[category] = (categoryBreakdown[category] || 0) + Math.abs(amount);
     }
-    
+
     return {
       totalIncome,
       totalExpenses,
@@ -1125,7 +1146,7 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(financialGoals, eq(goalMilestones.goalId, financialGoals.id))
       .where(and(eq(goalMilestones.userId, userId), eq(goalMilestones.isSeen, false)))
       .orderBy(desc(goalMilestones.celebratedAt));
-    
+
     return results.map(r => ({
       ...r.goal_milestones,
       goal: r.financial_goals,
@@ -1189,24 +1210,24 @@ export class DatabaseStorage implements IStorage {
   private computeWeeklyProgress(existingProgress: boolean[] | null, lastCheckIn: Date | null): boolean[] {
     const now = new Date();
     const todayIndex = now.getDay();
-    
+
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
-    
+
     let weekProgress: boolean[] = [false, false, false, false, false, false, false];
-    
+
     if (existingProgress && Array.isArray(existingProgress) && lastCheckIn) {
       const lastCheckInDate = new Date(lastCheckIn);
       lastCheckInDate.setHours(0, 0, 0, 0);
-      
+
       if (lastCheckInDate >= startOfWeek) {
         weekProgress = [...existingProgress];
       }
     }
-    
+
     weekProgress[todayIndex] = true;
-    
+
     return weekProgress;
   }
 
@@ -1215,7 +1236,7 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const newAchievements: string[] = [];
-    
+
     if (!existingStreak) {
       const weeklyProgress = this.computeWeeklyProgress(null, null);
       await db.insert(userStreaks).values({
@@ -1226,75 +1247,75 @@ export class DatabaseStorage implements IStorage {
         lastCheckIn: now,
         weeklyProgress,
       });
-      
+
       await this.checkAndUnlockAchievements(userId, 1, 1, newAchievements);
       return { streakIncreased: true, newStreak: 1, newAchievements };
     }
-    
+
     // Handle null lastCheckIn - treat as new streak
     if (!existingStreak.lastCheckIn) {
       const weeklyProgress = this.computeWeeklyProgress(null, null);
       await db
         .update(userStreaks)
-        .set({ 
-          currentStreak: 1, 
-          longestStreak: 1, 
+        .set({
+          currentStreak: 1,
+          longestStreak: 1,
           totalCheckIns: 1,
           lastCheckIn: now,
           weeklyProgress,
           updatedAt: now,
         })
         .where(eq(userStreaks.userId, userId));
-      
+
       await this.checkAndUnlockAchievements(userId, 1, 1, newAchievements);
       return { streakIncreased: true, newStreak: 1, newAchievements };
     }
-    
+
     const lastCheckIn = new Date(existingStreak.lastCheckIn);
     const lastCheckInDate = new Date(lastCheckIn.getFullYear(), lastCheckIn.getMonth(), lastCheckIn.getDate());
     const diffDays = Math.floor((today.getTime() - lastCheckInDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     // Use nullish coalescing to handle nullable integer fields
     const currentStreakValue = existingStreak.currentStreak ?? 0;
     const longestStreakValue = existingStreak.longestStreak ?? 0;
-    
+
     if (diffDays === 0) {
       return { streakIncreased: false, newStreak: currentStreakValue, newAchievements: [] };
     }
-    
+
     const existingProgress = existingStreak.weeklyProgress as boolean[] | null;
     const weeklyProgress = this.computeWeeklyProgress(existingProgress, existingStreak.lastCheckIn);
     const newTotalCheckIns = (existingStreak.totalCheckIns ?? 0) + 1;
-    
+
     if (diffDays === 1) {
       const newStreak = currentStreakValue + 1;
       const newLongest = Math.max(longestStreakValue, newStreak);
       await db
         .update(userStreaks)
-        .set({ 
-          currentStreak: newStreak, 
-          longestStreak: newLongest, 
+        .set({
+          currentStreak: newStreak,
+          longestStreak: newLongest,
           totalCheckIns: newTotalCheckIns,
           lastCheckIn: now,
           weeklyProgress,
           updatedAt: now,
         })
         .where(eq(userStreaks.userId, userId));
-      
+
       await this.checkAndUnlockAchievements(userId, newStreak, newTotalCheckIns, newAchievements);
       return { streakIncreased: true, newStreak, newAchievements };
     } else {
       await db
         .update(userStreaks)
-        .set({ 
-          currentStreak: 1, 
+        .set({
+          currentStreak: 1,
           totalCheckIns: newTotalCheckIns,
           lastCheckIn: now,
           weeklyProgress,
           updatedAt: now,
         })
         .where(eq(userStreaks.userId, userId));
-      
+
       await this.checkAndUnlockAchievements(userId, 1, newTotalCheckIns, newAchievements);
       return { streakIncreased: true, newStreak: 1, newAchievements };
     }
@@ -1303,12 +1324,12 @@ export class DatabaseStorage implements IStorage {
   private async checkAndUnlockAchievements(userId: string, currentStreak: number, totalCheckIns: number, newAchievements: string[]): Promise<void> {
     const existingAchievements = await this.getUserAchievements(userId);
     const existingIds = new Set(existingAchievements.map(a => a.achievementId));
-    
+
     const streakMilestones = [
       { id: 'streak_7', streak: 7, target: 7 },
       { id: 'streak_30', streak: 30, target: 30 },
     ];
-    
+
     for (const milestone of streakMilestones) {
       if (currentStreak >= milestone.streak && !existingIds.has(milestone.id)) {
         try {
@@ -1324,7 +1345,7 @@ export class DatabaseStorage implements IStorage {
         }
       }
     }
-    
+
     for (const milestone of streakMilestones) {
       if (!existingIds.has(milestone.id) && currentStreak < milestone.streak) {
         try {
@@ -1404,10 +1425,10 @@ export class DatabaseStorage implements IStorage {
     const actualIncome = parseFloat(incomeData?.monthlyIncome?.toString() || "0");
     const goalsTotal = parseFloat(userGoals?.totalSavings?.toString() || "0");
     const savingsEstimate = parseFloat(prefs?.currentSavingsEstimate?.toString() || "0");
-    
+
     // Monthly income: use actual transactions if available, otherwise estimate
     const monthlyIncome = actualIncome > 0 ? actualIncome : parseFloat(prefs?.monthlyIncomeEstimate?.toString() || "0");
-    
+
     // Total savings: use MAX of (goals total, initial estimate) to account for savings not yet allocated to goals
     // This ensures we never show less than what the user said they have saved
     const totalSavings = Math.max(goalsTotal, savingsEstimate);
@@ -1434,7 +1455,7 @@ export class DatabaseStorage implements IStorage {
   // Group invite methods
   async createGroupInvite(insertInvite: InsertGroupInvite): Promise<{ invite: GroupInvite; inviteUrl: string }> {
     const token = this.generateToken();
-    
+
     const [invite] = await db
       .insert(groupInvites)
       .values({
@@ -1511,7 +1532,7 @@ export class DatabaseStorage implements IStorage {
   // Calendar share methods
   async createCalendarShare(insertShare: InsertCalendarShare): Promise<{ share: CalendarShare; shareUrl: string }> {
     const token = this.generateToken();
-    
+
     const [share] = await db
       .insert(calendarShares)
       .values({
@@ -1529,11 +1550,11 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(calendarShares)
       .where(eq(calendarShares.token, token));
-    
+
     // Check if share exists and not expired
     if (!share) return undefined;
     if (share.expiresAt && new Date() > share.expiresAt) return undefined;
-    
+
     return share;
   }
 
@@ -1556,7 +1577,7 @@ export class DatabaseStorage implements IStorage {
           )
         )
       );
-    
+
     return shares;
   }
 
@@ -1802,7 +1823,7 @@ export class DatabaseStorage implements IStorage {
 
   async searchUsers(query: string, excludeUserId: string): Promise<SafeUser[]> {
     const searchPattern = `%${query.toLowerCase()}%`;
-    
+
     const foundUsers = await db
       .select({
         id: users.id,
@@ -2269,7 +2290,7 @@ export class DatabaseStorage implements IStorage {
 
   async bulkInviteFriendsToGroup(groupId: string, invitedBy: string, friendIds: string[], role?: string): Promise<FriendGroupInvitation[]> {
     const invitationRole: 'admin' | 'member' = role === 'admin' ? 'admin' : 'member';
-    
+
     const invitationsData = friendIds.map(friendId => ({
       groupId,
       invitedBy,
@@ -2296,10 +2317,10 @@ export class DatabaseStorage implements IStorage {
 
     // Parse current attendees
     let attendees = Array.isArray(event.attendees) ? event.attendees : [];
-    
+
     // Find existing RSVP
     const existingIndex = attendees.findIndex((a: any) => a.userId === userId);
-    
+
     if (existingIndex >= 0) {
       // Update existing RSVP
       attendees[existingIndex] = { userId, status };
@@ -2383,7 +2404,7 @@ export class DatabaseStorage implements IStorage {
         await this.updateEvent(expense.eventId, { actualCost: newCost.toString() });
       }
     }
-    
+
     await db.delete(eventExpenses).where(eq(eventExpenses.id, id));
   }
 
@@ -2523,20 +2544,20 @@ export class DatabaseStorage implements IStorage {
         notes: insertTimeLog.notes || null,
       })
       .returning();
-    
+
     // Update event's actual duration if this log is completed
     if (timeLog.endedAt && timeLog.durationMinutes) {
       const event = await this.getEvent(insertTimeLog.eventId);
       if (event) {
         const currentDuration = event.actualDurationMinutes || 0;
         const newDuration = currentDuration + timeLog.durationMinutes;
-        await this.updateEvent(insertTimeLog.eventId, { 
+        await this.updateEvent(insertTimeLog.eventId, {
           actualDurationMinutes: newDuration,
           timeTracked: true
         });
       }
     }
-    
+
     return timeLog;
   }
 
@@ -2554,7 +2575,7 @@ export class DatabaseStorage implements IStorage {
         )
       );
     }
-    
+
     return await db.select().from(eventTimeLogs).where(eq(eventTimeLogs.userId, userId));
   }
 
@@ -2583,29 +2604,29 @@ export class DatabaseStorage implements IStorage {
     // Get user settings for hourly rate
     const settings = await this.getUserSettings(userId);
     const hourlyRate = settings?.hourlyRate ? parseFloat(settings.hourlyRate.toString()) : 50;
-    
+
     // Calculate date range
     const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
+
     // Get time logs for the period
     const timeLogs = await this.getUserTimeLogs(userId, startDate, new Date());
     const totalTimeMinutes = timeLogs.reduce((sum, log) => sum + (log.durationMinutes || 0), 0);
     const totalTimeHours = totalTimeMinutes / 60;
     const timeValue = totalTimeHours * hourlyRate;
-    
+
     // Get user's events and calculate total costs
     const userEvents = await this.getEventsByUserId(userId);
-    const recentEvents = userEvents.filter(event => 
+    const recentEvents = userEvents.filter(event =>
       event.createdAt && new Date(event.createdAt) >= startDate
     );
-    const totalCost = recentEvents.reduce((sum, event) => 
+    const totalCost = recentEvents.reduce((sum, event) =>
       sum + parseFloat(event.actualCost?.toString() || "0"), 0
     );
-    
+
     const netImpact = timeValue - totalCost;
-    
+
     // Calculate top categories (simplified - using event descriptions as categories)
     const categoryMap: Record<string, { timeHours: number; value: number }> = {};
     for (const log of timeLogs) {
@@ -2613,21 +2634,21 @@ export class DatabaseStorage implements IStorage {
       const category = event?.description || "Other";
       const hours = (log.durationMinutes || 0) / 60;
       const value = hours * hourlyRate;
-      
+
       if (!categoryMap[category]) {
         categoryMap[category] = { timeHours: 0, value: 0 };
       }
       categoryMap[category].timeHours += hours;
       categoryMap[category].value += value;
     }
-    
+
     const topCategories = Object.entries(categoryMap)
       .map(([category, data]) => ({ category, ...data }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 5);
-    
+
     // Get upcoming high-impact events (with high budgets or long durations)
-    const upcomingEvents = userEvents.filter(event => 
+    const upcomingEvents = userEvents.filter(event =>
       new Date(event.startTime) > new Date()
     );
     const upcomingHighImpact = upcomingEvents
@@ -2643,7 +2664,7 @@ export class DatabaseStorage implements IStorage {
       })
       .sort((a, b) => b.estimatedValue - a.estimatedValue)
       .slice(0, 5);
-    
+
     return {
       totalTimeHours,
       timeValue,
@@ -2662,20 +2683,20 @@ export class DatabaseStorage implements IStorage {
     const event = await this.getEvent(eventId);
     const settings = await this.getUserSettings(userId);
     const hourlyRate = settings?.hourlyRate ? parseFloat(settings.hourlyRate.toString()) : 50;
-    
+
     if (!event) {
       return { plannedTimeValue: 0, actualTimeValue: 0, totalImpact: 0 };
     }
-    
-    const plannedMinutes = event.plannedDurationMinutes || 
+
+    const plannedMinutes = event.plannedDurationMinutes ||
       ((new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / (1000 * 60));
     const actualMinutes = event.actualDurationMinutes || 0;
-    
+
     const plannedTimeValue = (plannedMinutes / 60) * hourlyRate;
     const actualTimeValue = (actualMinutes / 60) * hourlyRate;
     const actualCost = parseFloat(event.actualCost?.toString() || "0");
     const totalImpact = actualTimeValue + actualCost;
-    
+
     return {
       plannedTimeValue,
       actualTimeValue,
@@ -2714,7 +2735,7 @@ export class DatabaseStorage implements IStorage {
       .select({ count: sql<number>`count(*)` })
       .from(notifications)
       .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-    
+
     return result?.count || 0;
   }
 
@@ -2734,9 +2755,9 @@ export class DatabaseStorage implements IStorage {
   async markNotificationAsRead(id: string): Promise<Notification> {
     const [notification] = await db
       .update(notifications)
-      .set({ 
-        isRead: true, 
-        readAt: new Date() 
+      .set({
+        isRead: true,
+        readAt: new Date()
       })
       .where(eq(notifications.id, id))
       .returning();
@@ -2746,9 +2767,9 @@ export class DatabaseStorage implements IStorage {
   async markAllNotificationsAsRead(userId: string): Promise<void> {
     await db
       .update(notifications)
-      .set({ 
-        isRead: true, 
-        readAt: new Date() 
+      .set({
+        isRead: true,
+        readAt: new Date()
       })
       .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
   }
@@ -2766,10 +2787,27 @@ export class DatabaseStorage implements IStorage {
     return notification;
   }
 
+  // Helper to check if a similar notification was already sent recently
+  private async hasRecentNotification(userId: string, type: string, hoursAgo: number = 24): Promise<boolean> {
+    const cutoff = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+    const existing = await db
+      .select()
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.type, type),
+          gte(notifications.createdAt, cutoff)
+        )
+      )
+      .limit(1);
+    return existing.length > 0;
+  }
+
   // Smart notification generation
   async generateSmartNotifications(userId: string): Promise<Notification[]> {
     const newNotifications: Notification[] = [];
-    
+
     // Check various conditions and generate notifications
     const dailyBriefing = await this.generateDailyBriefing(userId);
     const deadlineNotifications = await this.checkGoalDeadlines(userId);
@@ -2792,7 +2830,7 @@ export class DatabaseStorage implements IStorage {
     // Check if we've already sent a daily briefing today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // Query for daily briefings created today (not just last 10)
     const todaysBriefings = await db
       .select()
@@ -2817,7 +2855,7 @@ export class DatabaseStorage implements IStorage {
     const totalIncome = recentTransactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-    
+
     const totalExpenses = recentTransactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
@@ -2858,7 +2896,7 @@ export class DatabaseStorage implements IStorage {
       message,
       priority,
       category: 'suggestions',
-      data: { 
+      data: {
         savingsRate,
         totalIncome,
         totalExpenses,
@@ -2873,6 +2911,12 @@ export class DatabaseStorage implements IStorage {
 
   async checkFinancialRisks(userId: string): Promise<Notification[]> {
     const newNotifications: Notification[] = [];
+
+    // Skip if we already sent a risk alert in the last 24 hours
+    if (await this.hasRecentNotification(userId, 'risk_alert', 24)) {
+      return newNotifications;
+    }
+
     const transactions = await this.getTransactionsByUserId(userId, 100);
     const goals = await this.getFinancialGoalsByUserId(userId);
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -2919,9 +2963,9 @@ export class DatabaseStorage implements IStorage {
     const totalExpenses = recentTransactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-    
-    const hasEmergencyGoal = goals.some(g => 
-      g.status === 'active' && 
+
+    const hasEmergencyGoal = goals.some(g =>
+      g.status === 'active' &&
       (g.title.toLowerCase().includes('emergency') || g.category?.toLowerCase().includes('emergency'))
     );
 
@@ -2936,7 +2980,7 @@ export class DatabaseStorage implements IStorage {
         category: 'suggestions',
         data: { recommendedFund, monthlyExpenses: totalExpenses },
         actionType: 'create_goal',
-        actionData: { 
+        actionData: {
           title: 'Emergency Fund',
           targetAmount: recommendedFund,
           category: 'emergency'
@@ -2992,24 +3036,41 @@ export class DatabaseStorage implements IStorage {
 
     // Check if no transactions in the last 7 days
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const recentTransactionInLast7Days = recentTransactions.some(t => 
+    const recentTransactionInLast7Days = recentTransactions.some(t =>
       new Date(t.date) >= sevenDaysAgo
     );
 
     if (!recentTransactionInLast7Days) {
-      const notification = await this.createNotification({
-        userId,
-        type: 'transaction_reminder',
-        title: `Don't forget to track your expenses`,
-        message: `You haven't added any transactions in the last 7 days. Keep track of your spending to stay on top of your financial goals.`,
-        priority: 'normal',
-        category: 'transactions',
-        data: { daysSinceLastTransaction: 7 },
-        actionType: 'add_transaction',
-        actionData: { type: 'expense' }
-      });
+      // Check if we already sent a transaction reminder in the last 24 hours
+      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const existingReminders = await db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.type, 'transaction_reminder'),
+            gte(notifications.createdAt, oneDayAgo)
+          )
+        )
+        .limit(1);
 
-      newNotifications.push(notification);
+      // Only create notification if none exists in last 24 hours
+      if (existingReminders.length === 0) {
+        const notification = await this.createNotification({
+          userId,
+          type: 'transaction_reminder',
+          title: `Don't forget to track your expenses`,
+          message: `You haven't added any transactions in the last 7 days. Keep track of your spending to stay on top of your financial goals.`,
+          priority: 'normal',
+          category: 'transactions',
+          data: { daysSinceLastTransaction: 7 },
+          actionType: 'add_transaction',
+          actionData: { type: 'expense' }
+        });
+
+        newNotifications.push(notification);
+      }
     }
 
     return newNotifications;
@@ -3017,16 +3078,22 @@ export class DatabaseStorage implements IStorage {
 
   async checkBudgetWarnings(userId: string): Promise<Notification[]> {
     const newNotifications: Notification[] = [];
+
+    // Skip if we already sent a budget warning in the last 24 hours
+    if (await this.hasRecentNotification(userId, 'budget_warning', 24)) {
+      return newNotifications;
+    }
+
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    
+
     // Get income and expenses for the last 30 days
     const transactions = await this.getTransactionsByUserId(userId, 100);
     const recentTransactions = transactions.filter(t => new Date(t.date) >= thirtyDaysAgo);
-    
+
     const totalIncome = recentTransactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-    
+
     const totalExpenses = recentTransactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
@@ -3098,7 +3165,7 @@ export class DatabaseStorage implements IStorage {
         });
 
         newNotifications.push(notification);
-        
+
         // Mark goal as completed
         await this.updateFinancialGoal(goal.id, { status: 'completed' });
       }
@@ -3227,7 +3294,7 @@ export class DatabaseStorage implements IStorage {
         ['Groups', groups.length, `Total: ${groups.length} groups`],
         ['Time Logs', timeLogs.length, `Total: ${timeLogs.length} time logs`],
       ];
-      
+
       return csvData.map(row => row.join(',')).join('\n');
     }
   }
@@ -3272,7 +3339,7 @@ export class DatabaseStorage implements IStorage {
     const [conversation] = await db.select()
       .from(chatConversations)
       .where(eq(chatConversations.id, conversationId));
-    
+
     if (!conversation) return undefined;
 
     const messages = await db.select()
@@ -3383,10 +3450,10 @@ export class DatabaseStorage implements IStorage {
     const userFeedback = await db.select()
       .from(messageFeedback)
       .where(eq(messageFeedback.userId, userId));
-    
+
     const helpful = userFeedback.filter(f => f.rating === 'helpful').length;
     const notHelpful = userFeedback.filter(f => f.rating === 'not_helpful').length;
-    
+
     return {
       helpful,
       notHelpful,
@@ -3471,7 +3538,7 @@ export class DatabaseStorage implements IStorage {
         eq(subscriptions.userId, userId),
         eq(subscriptions.status, 'active')
       ));
-    
+
     return result;
   }
 
@@ -3480,12 +3547,12 @@ export class DatabaseStorage implements IStorage {
       .from(subscriptions)
       .innerJoin(subscriptionPlans, eq(subscriptions.planId, subscriptionPlans.id))
       .where(eq(subscriptions.stripeSubscriptionId, stripeSubscriptionId));
-    
+
     if (!row) return undefined;
-    
-    return { 
-      ...row.subscriptions, 
-      plan: row.subscription_plans 
+
+    return {
+      ...row.subscriptions,
+      plan: row.subscription_plans
     };
   }
 
@@ -3506,7 +3573,7 @@ export class DatabaseStorage implements IStorage {
 
   async cancelSubscription(id: string): Promise<Subscription> {
     const [cancelledSubscription] = await db.update(subscriptions)
-      .set({ 
+      .set({
         status: 'cancelled',
         cancelledAt: new Date()
       })
@@ -3518,7 +3585,7 @@ export class DatabaseStorage implements IStorage {
   // Usage Tracking methods
   async getUserUsage(userId: string): Promise<UsageTracking | undefined> {
     const subscription = await this.getUserSubscription(userId);
-    
+
     // For lifetime limit plans (Free), get ALL TIME usage, not just this month
     if (subscription?.plan?.isLifetimeLimit) {
       const [usage] = await db.select()
@@ -3528,7 +3595,7 @@ export class DatabaseStorage implements IStorage {
         .limit(1);
       return usage;
     }
-    
+
     // For monthly limit plans (Pro), get current month usage
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -3564,17 +3631,17 @@ export class DatabaseStorage implements IStorage {
     let usage = await this.getUserUsage(userId);
     const subscription = await this.getUserSubscription(userId);
     const isLifetime = subscription?.plan?.isLifetimeLimit || false;
-    
+
     if (!usage) {
       // Create new usage record
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
+
       // For lifetime plans, use account creation date as start, far future as end
       const periodStart = isLifetime ? now : startOfMonth;
       const periodEnd = isLifetime ? new Date('2099-12-31') : endOfMonth;
-      
+
       usage = await this.createUsageRecord({
         userId,
         subscriptionId: subscription?.id || null,
@@ -3590,10 +3657,10 @@ export class DatabaseStorage implements IStorage {
       if (type === 'aiChatsUsed') updates.aiChatsUsed = (usage.aiChatsUsed || 0) + amount;
       if (type === 'aiDeepAnalysisUsed') updates.aiDeepAnalysisUsed = (usage.aiDeepAnalysisUsed || 0) + amount;
       if (type === 'aiInsightsGenerated') updates.aiInsightsGenerated = (usage.aiInsightsGenerated || 0) + amount;
-      
+
       usage = await this.updateUsageRecord(usage.id, updates);
     }
-    
+
     return usage;
   }
 
@@ -3647,7 +3714,7 @@ export class DatabaseStorage implements IStorage {
     } else if (freePlan[0].aiChatLimit !== 50 || freePlan[0].isLifetimeLimit) {
       // Update existing free plan to new limit and monthly settings
       await db.update(subscriptionPlans)
-        .set({ 
+        .set({
           aiChatLimit: 50,
           isLifetimeLimit: false,
           billingInterval: 'monthly',
@@ -3676,7 +3743,7 @@ export class DatabaseStorage implements IStorage {
   async checkUsageLimit(userId: string, type: 'aiChatsUsed' | 'aiDeepAnalysisUsed'): Promise<{ allowed: boolean; usage: number; limit: number }> {
     const subscription = await this.getUserSubscription(userId);
     const usage = await this.getUserUsage(userId);
-    
+
     if (!subscription) {
       return { allowed: false, usage: 0, limit: 0 };
     }
@@ -3691,21 +3758,21 @@ export class DatabaseStorage implements IStorage {
     }
 
     const currentUsage = usage?.[type] || 0;
-    const limit = type === 'aiChatsUsed' 
+    const limit = type === 'aiChatsUsed'
       ? subscription.plan.aiChatLimit || 0
       : subscription.plan.aiDeepAnalysisLimit || 0;
 
     // Check add-ons for extra quota
     const addOns = await this.getUserAddOns(userId);
     const extraQuota = addOns
-      .filter(addon => 
+      .filter(addon =>
         (type === 'aiChatsUsed' && addon.addOnType === 'extra_chats') ||
         (type === 'aiDeepAnalysisUsed' && addon.addOnType === 'extra_deep_analysis')
       )
       .reduce((total, addon) => total + addon.quantity, 0);
 
     const totalLimit = limit + extraQuota;
-    
+
     return {
       allowed: currentUsage < totalLimit,
       usage: currentUsage,
@@ -3715,7 +3782,7 @@ export class DatabaseStorage implements IStorage {
 
   async resetUsage(userId: string): Promise<void> {
     const usage = await this.getUserUsage(userId);
-    
+
     if (usage) {
       // Reset all usage counters to 0
       await this.updateUsageRecord(usage.id, {
@@ -3846,7 +3913,7 @@ export class DatabaseStorage implements IStorage {
       .from(referrals)
       .where(eq(referrals.referredUserId, referredUserId))
       .limit(1);
-    
+
     if (existingReferral) {
       throw new Error('User has already been referred');
     }
@@ -3890,16 +3957,16 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.select({
       total: sql<number>`sum(${bonusCredits.amount})`
     })
-    .from(bonusCredits)
-    .where(and(
-      eq(bonusCredits.userId, userId),
-      eq(bonusCredits.isUsed, false),
-      or(
-        sql`${bonusCredits.expiresAt} IS NULL`,
-        gte(bonusCredits.expiresAt, new Date())
-      )
-    ));
-    
+      .from(bonusCredits)
+      .where(and(
+        eq(bonusCredits.userId, userId),
+        eq(bonusCredits.isUsed, false),
+        or(
+          sql`${bonusCredits.expiresAt} IS NULL`,
+          gte(bonusCredits.expiresAt, new Date())
+        )
+      ));
+
     return result?.total || 0;
   }
 
@@ -3921,7 +3988,7 @@ export class DatabaseStorage implements IStorage {
 
     for (const credit of availableCredits) {
       if (remainingAmount <= 0) break;
-      
+
       if (credit.amount <= remainingAmount) {
         creditsToUpdate.push(credit.id);
         remainingAmount -= credit.amount;
@@ -3930,7 +3997,7 @@ export class DatabaseStorage implements IStorage {
         await db.update(bonusCredits)
           .set({ amount: credit.amount - remainingAmount })
           .where(eq(bonusCredits.id, credit.id));
-        
+
         // Create a new record for the used portion
         await db.insert(bonusCredits).values({
           userId: userId,
@@ -3942,7 +4009,7 @@ export class DatabaseStorage implements IStorage {
           isUsed: true,
           usedAt: new Date()
         });
-        
+
         remainingAmount = 0;
         break;
       }
@@ -4049,14 +4116,14 @@ export class DatabaseStorage implements IStorage {
     }>;
   }> {
     const holdings = await this.getUserCryptoHoldings(userId);
-    
+
     const result = {
       totalValue: 0,
       holdings: holdings.map(h => {
         const amount = parseFloat(h.amount);
         const price = parseFloat(h.currentPrice || '0');
         const value = amount * price;
-        
+
         return {
           symbol: h.symbol,
           name: h.name,
@@ -4116,7 +4183,7 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, lastUpdated: new Date() })
       .where(eq(userFinancialProfiles.userId, userId))
       .returning();
-    
+
     if (!result) {
       throw new Error('Financial profile not found');
     }
@@ -4134,7 +4201,7 @@ export class DatabaseStorage implements IStorage {
       // Delete existing categories
       await tx.delete(userExpenseCategories)
         .where(eq(userExpenseCategories.userId, userId));
-      
+
       // Insert new categories with userId
       if (categories.length > 0) {
         const valuesToInsert = categories.map(cat => ({
@@ -4143,7 +4210,7 @@ export class DatabaseStorage implements IStorage {
         }));
         await tx.insert(userExpenseCategories).values(valuesToInsert);
       }
-      
+
       // Return updated list
       return await tx.select()
         .from(userExpenseCategories)
@@ -4169,7 +4236,7 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(userDebts.id, id))
       .returning();
-    
+
     if (!result) {
       throw new Error('Debt not found');
     }
@@ -4180,7 +4247,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(userDebts)
       .where(eq(userDebts.id, id))
       .returning();
-    
+
     if (result.length === 0) {
       throw new Error('Debt not found');
     }
@@ -4204,7 +4271,7 @@ export class DatabaseStorage implements IStorage {
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(userAssets.id, id))
       .returning();
-    
+
     if (!result) {
       throw new Error('Asset not found');
     }
@@ -4215,7 +4282,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(userAssets)
       .where(eq(userAssets.id, id))
       .returning();
-    
+
     if (result.length === 0) {
       throw new Error('Asset not found');
     }
@@ -4247,7 +4314,7 @@ export class DatabaseStorage implements IStorage {
       .set(updates)
       .where(eq(playbooks.id, id))
       .returning();
-    
+
     if (!result) {
       throw new Error('Playbook not found');
     }
@@ -4258,18 +4325,834 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(playbooks)
       .where(eq(playbooks.id, id))
       .returning();
-    
+
     if (result.length === 0) {
       throw new Error('Playbook not found');
     }
   }
 
   async markPlaybookViewed(id: string): Promise<void> {
-    await db
-      .update(playbooks)
+    await db.update(playbooks)
       .set({ isViewed: true, viewedAt: new Date() })
       .where(eq(playbooks.id, id));
   }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WORLD-CLASS SCORING SYSTEM - Database implementations
+  // ═══════════════════════════════════════════════════════════════════════
+
+  async getMonthlyFinancials(userId: string, fromMonth: Date, toMonth: Date): Promise<MonthlyFinancials[]> {
+    return await db
+      .select()
+      .from(monthlyFinancials)
+      .where(
+        and(
+          eq(monthlyFinancials.userId, userId),
+          gte(monthlyFinancials.month, fromMonth),
+          lte(monthlyFinancials.month, toMonth)
+        )
+      )
+      .orderBy(desc(monthlyFinancials.month));
+  }
+
+  async upsertMonthlyFinancials(data: InsertMonthlyFinancials): Promise<MonthlyFinancials> {
+    const [result] = await db
+      .insert(monthlyFinancials)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [monthlyFinancials.userId, monthlyFinancials.month],
+        set: {
+          incomeCents: data.incomeCents,
+          expenseCents: data.expenseCents,
+          fixedExpenseCents: data.fixedExpenseCents,
+          emergencyFundCents: data.emergencyFundCents,
+          totalDebtCents: data.totalDebtCents,
+          investmentContribCents: data.investmentContribCents,
+          insuredAmountCents: data.insuredAmountCents,
+          transactionCount: data.transactionCount,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+    return result;
+  }
+
+  async getLatestScoreSnapshot(userId: string): Promise<ScoreSnapshot | undefined> {
+    const [result] = await db
+      .select()
+      .from(scoreSnapshots)
+      .where(eq(scoreSnapshots.userId, userId))
+      .orderBy(desc(scoreSnapshots.month))
+      .limit(1);
+    return result;
+  }
+
+  async getScoreSnapshots(userId: string, limit: number = 12): Promise<ScoreSnapshot[]> {
+    return await db
+      .select()
+      .from(scoreSnapshots)
+      .where(eq(scoreSnapshots.userId, userId))
+      .orderBy(desc(scoreSnapshots.month))
+      .limit(limit);
+  }
+
+  async upsertScoreSnapshot(data: InsertScoreSnapshot): Promise<ScoreSnapshot> {
+    const [result] = await db
+      .insert(scoreSnapshots)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [scoreSnapshots.userId, scoreSnapshots.month],
+        set: {
+          cashflowScore: data.cashflowScore,
+          stabilityScore: data.stabilityScore,
+          growthScore: data.growthScore,
+          behaviorScore: data.behaviorScore,
+          twealthIndex: data.twealthIndex,
+          band: data.band,
+          confidence: data.confidence,
+          drivers: data.drivers,
+          components: data.components
+        }
+      })
+      .returning();
+    return result;
+  }
 }
 
-export const storage = new DatabaseStorage();
+// In-memory storage for local development without database
+class InMemoryStorage implements Partial<IStorage> {
+  private users: Map<string, User> = new Map();
+  private subscriptions: Map<string, Subscription & { plan: SubscriptionPlan }> = new Map();
+  private usageRecords: Map<string, UsageTracking> = new Map();
+  private userPreferences: Map<string, UserPreferences> = new Map();
+  private financialPreferences: Map<string, FinancialPreferences> = new Map();
+  private privacySettings: Map<string, PrivacySettings> = new Map();
+  private userSettings: Map<string, UserSettings> = new Map();
+  private userFinancialProfiles: Map<string, UserFinancialProfile> = new Map();
+  private transactions: Map<string, Transaction> = new Map();
+  private financialGoals: Map<string, FinancialGoal> = new Map();
+  private budgets: Map<string, Budget> = new Map();
+  private chatConversations: Map<string, ChatConversation> = new Map();
+  private chatMessages: Map<string, ChatMessage> = new Map();
+  private notifications: Map<string, Notification> = new Map();
+  private groups: Map<string, Group> = new Map();
+  private events: Map<string, Event> = new Map();
+
+  // User methods
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existing = this.users.get(userData.id);
+    const user: User = {
+      id: userData.id,
+      email: userData.email || existing?.email || null,
+      firstName: userData.firstName || existing?.firstName || null,
+      lastName: userData.lastName || existing?.lastName || null,
+      profileImageUrl: userData.profileImageUrl || existing?.profileImageUrl || null,
+      createdAt: existing?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(userData.id, user);
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    for (const user of Array.from(this.users.values())) {
+      if (user.email === email) return user;
+    }
+    return undefined;
+  }
+
+  async getUserByUsername(_username: string): Promise<User | undefined> {
+    return undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<SafeUser> {
+    const id = `user_${Date.now()}`;
+    const user: User = {
+      id,
+      email: insertUser.email || null,
+      firstName: insertUser.firstName || null,
+      lastName: insertUser.lastName || null,
+      profileImageUrl: insertUser.profileImageUrl || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<SafeUser> {
+    const user = this.users.get(id);
+    if (!user) throw new Error('User not found');
+    const updated = { ...user, ...updates, updatedAt: new Date() };
+    this.users.set(id, updated);
+    return updated;
+  }
+
+  async getFirstUser(): Promise<User | undefined> {
+    return Array.from(this.users.values())[0];
+  }
+
+  // Subscription methods
+  async getUserSubscription(userId: string): Promise<(Subscription & { plan: SubscriptionPlan }) | undefined> {
+    return this.subscriptions.get(userId);
+  }
+
+  async initializeDefaultSubscription(userId: string): Promise<Subscription> {
+    const freePlan: SubscriptionPlan = {
+      id: 'free_plan',
+      name: 'Free',
+      displayName: 'Free',
+      description: 'Basic free plan',
+      currency: 'USD',
+      isActive: true,
+      priceThb: '0',
+      priceUsd: '0',
+      billingInterval: 'monthly',
+      stripePriceId: null,
+      features: ['Basic AI Chat', 'Financial Tracking', 'Goal Setting'],
+      aiChatLimit: 10,
+      aiDeepAnalysisLimit: 2,
+      aiInsightsFrequency: 'never',
+      scoutLimit: 50,
+      sonnetLimit: 20,
+      gpt5Limit: 10,
+      opusLimit: 5,
+      isLifetimeLimit: false,
+      sortOrder: 0,
+      createdAt: new Date(),
+    };
+
+    const subscription: Subscription & { plan: SubscriptionPlan } = {
+      id: `sub_${userId}`,
+      userId,
+      planId: 'free_plan',
+      status: 'active',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      stripeSubscriptionId: null,
+      stripeCustomerId: null,
+      createdAt: new Date(),
+      cancelledAt: null,
+      trialEnd: null,
+      localCurrency: 'USD',
+      localPrice: null,
+      freePremium: false,
+      plan: freePlan,
+    };
+
+    this.subscriptions.set(userId, subscription);
+
+    // Initialize usage tracking
+    const usage: UsageTracking = {
+      id: `usage_${userId}`,
+      userId,
+      subscriptionId: subscription.id,
+      periodStart: new Date(),
+      periodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      aiChatsUsed: 0,
+      aiDeepAnalysisUsed: 0,
+      aiInsightsGenerated: 0,
+      scoutQueriesUsed: 0,
+      sonnetQueriesUsed: 0,
+      gpt5QueriesUsed: 0,
+      opusQueriesUsed: 0,
+      totalTokensUsed: 0,
+      estimatedCostUsd: '0',
+      lastResetAt: new Date(),
+      createdAt: new Date(),
+    };
+    this.usageRecords.set(userId, usage);
+
+    return subscription;
+  }
+
+  async getUserUsage(userId: string): Promise<UsageTracking | undefined> {
+    return this.usageRecords.get(userId);
+  }
+
+  // User Preferences methods
+  async getUserPreferences(userId: string): Promise<UserPreferences | undefined> {
+    return this.userPreferences.get(userId);
+  }
+
+  async createUserPreferences(preferences: InsertUserPreferences): Promise<UserPreferences> {
+    const id = `prefs_${Date.now()}`;
+    const prefs: UserPreferences = {
+      id,
+      userId: preferences.userId,
+      theme: preferences.theme || 'system',
+      currency: preferences.currency || 'USD',
+      language: preferences.language || 'en',
+      timeZone: preferences.timeZone || 'UTC',
+      dateFormat: preferences.dateFormat || 'MM/dd/yyyy',
+      hasCompletedOnboarding: preferences.hasCompletedOnboarding ?? false,
+      onboardingStep: preferences.onboardingStep ?? null,
+      onboardingData: preferences.onboardingData || null,
+      emailNotifications: preferences.emailNotifications ?? true,
+      pushNotifications: preferences.pushNotifications ?? true,
+      marketingEmails: preferences.marketingEmails ?? false,
+      weeklyReports: preferences.weeklyReports ?? true,
+      goalReminders: preferences.goalReminders ?? true,
+      expenseAlerts: preferences.expenseAlerts ?? true,
+      cryptoEnabled: preferences.cryptoEnabled ?? false,
+      experienceLevel: preferences.experienceLevel || 'beginner',
+      preferredCurrencies: preferences.preferredCurrencies || ['USD'],
+      demoMode: preferences.demoMode ?? true,
+      countryCode: preferences.countryCode || 'US',
+      monthlyIncomeEstimate: preferences.monthlyIncomeEstimate || null,
+      monthlyExpensesEstimate: preferences.monthlyExpensesEstimate || null,
+      currentSavingsEstimate: preferences.currentSavingsEstimate || null,
+      conversationMemory: preferences.conversationMemory || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.userPreferences.set(preferences.userId, prefs);
+    return prefs;
+  }
+
+  async updateUserPreferences(userId: string, updates: Partial<UserPreferences>): Promise<UserPreferences> {
+    let prefs = this.userPreferences.get(userId);
+    if (!prefs) {
+      // Create default preferences if they don't exist
+      prefs = await this.createUserPreferences({ userId, theme: 'system' });
+    }
+    const updated = { ...prefs, ...updates, updatedAt: new Date() };
+    this.userPreferences.set(userId, updated);
+    return updated;
+  }
+
+  // Financial Preferences methods
+  async getFinancialPreferences(userId: string): Promise<FinancialPreferences | undefined> {
+    return this.financialPreferences.get(userId);
+  }
+
+  async createFinancialPreferences(preferences: InsertFinancialPreferences): Promise<FinancialPreferences> {
+    const id = `finprefs_${Date.now()}`;
+    const prefs: FinancialPreferences = {
+      id,
+      userId: preferences.userId,
+      defaultBudgetPeriod: preferences.defaultBudgetPeriod || 'monthly',
+      budgetWarningThreshold: preferences.budgetWarningThreshold ?? 80,
+      autoSavingsEnabled: preferences.autoSavingsEnabled ?? false,
+      autoSavingsAmount: preferences.autoSavingsAmount || '0',
+      autoSavingsFrequency: preferences.autoSavingsFrequency || 'monthly',
+      defaultGoalPriority: preferences.defaultGoalPriority || 'medium',
+      expenseCategories: preferences.expenseCategories || null,
+      incomeCategories: preferences.incomeCategories || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.financialPreferences.set(preferences.userId, prefs);
+    return prefs;
+  }
+
+  async updateFinancialPreferences(userId: string, updates: Partial<FinancialPreferences>): Promise<FinancialPreferences> {
+    let prefs = this.financialPreferences.get(userId);
+    if (!prefs) {
+      prefs = await this.createFinancialPreferences({
+        userId,
+        defaultBudgetPeriod: 'monthly',
+        autoSavingsAmount: '0',
+        autoSavingsFrequency: 'monthly',
+        defaultGoalPriority: 'medium',
+      });
+    }
+    const updated = { ...prefs, ...updates, updatedAt: new Date() };
+    this.financialPreferences.set(userId, updated);
+    return updated;
+  }
+
+  // Privacy Settings methods
+  async getPrivacySettings(userId: string): Promise<PrivacySettings | undefined> {
+    return this.privacySettings.get(userId);
+  }
+
+  async createPrivacySettings(settings: InsertPrivacySettings): Promise<PrivacySettings> {
+    const id = `privacy_${Date.now()}`;
+    const priv: PrivacySettings = {
+      id,
+      userId: settings.userId,
+      profileVisibility: settings.profileVisibility || 'private',
+      dataRetentionPeriod: settings.dataRetentionPeriod ?? 365,
+      allowAnalytics: settings.allowAnalytics ?? true,
+      allowCookies: settings.allowCookies ?? true,
+      shareDataWithPartners: settings.shareDataWithPartners ?? false,
+      allowDataExport: settings.allowDataExport ?? true,
+      twoFactorEnabled: settings.twoFactorEnabled ?? false,
+      lastPasswordChange: null,
+      lastDataExport: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.privacySettings.set(settings.userId, priv);
+    return priv;
+  }
+
+  async updatePrivacySettings(userId: string, updates: Partial<PrivacySettings>): Promise<PrivacySettings> {
+    let settings = this.privacySettings.get(userId);
+    if (!settings) {
+      settings = await this.createPrivacySettings({ userId, profileVisibility: 'private' });
+    }
+    const updated = { ...settings, ...updates, updatedAt: new Date() };
+    this.privacySettings.set(userId, updated);
+    return updated;
+  }
+
+  // User Settings methods
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
+    return this.userSettings.get(userId);
+  }
+
+  async createUserSettings(settings: InsertUserSettings): Promise<UserSettings> {
+    const id = `settings_${Date.now()}`;
+    const s: UserSettings = {
+      id,
+      userId: settings.userId,
+      hourlyRate: settings.hourlyRate || '50',
+      currency: settings.currency || 'USD',
+      workHoursPerWeek: settings.workHoursPerWeek ?? 40,
+      timeValueStrategy: settings.timeValueStrategy || 'fixed',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.userSettings.set(settings.userId, s);
+    return s;
+  }
+
+  async updateUserSettings(userId: string, updates: Partial<UserSettings>): Promise<UserSettings> {
+    let settings = this.userSettings.get(userId);
+    if (!settings) {
+      settings = await this.createUserSettings({ userId, hourlyRate: '50', timeValueStrategy: 'fixed' });
+    }
+    const updated = { ...settings, ...updates, updatedAt: new Date() };
+    this.userSettings.set(userId, updated);
+    return updated;
+  }
+
+  // Financial Profile methods
+  async getUserFinancialProfile(userId: string): Promise<UserFinancialProfile | undefined> {
+    return this.userFinancialProfiles.get(userId);
+  }
+
+  async createUserFinancialProfile(profile: InsertUserFinancialProfile): Promise<UserFinancialProfile> {
+    const id = `profile_${Date.now()}`;
+    const p: UserFinancialProfile = {
+      id,
+      userId: profile.userId,
+      monthlyIncome: profile.monthlyIncome,
+      monthlyExpenses: profile.monthlyExpenses,
+      monthlySavings: profile.monthlySavings,
+      totalSavings: profile.totalSavings,
+      savingsGoal: profile.savingsGoal,
+      emergencyFund: profile.emergencyFund,
+      createdAt: new Date(),
+      lastUpdated: new Date(),
+    };
+    this.userFinancialProfiles.set(profile.userId, p);
+    return p;
+  }
+
+  async updateUserFinancialProfile(userId: string, updates: Partial<UserFinancialProfile>): Promise<UserFinancialProfile> {
+    let profile = this.userFinancialProfiles.get(userId);
+    if (!profile) throw new Error('Financial profile not found');
+    const updated = { ...profile, ...updates, lastUpdated: new Date() };
+    this.userFinancialProfiles.set(userId, updated);
+    return updated;
+  }
+
+  // Transaction methods
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    return this.transactions.get(id);
+  }
+
+  async getTransactionsByUserId(userId: string, limit?: number): Promise<Transaction[]> {
+    const txns = Array.from(this.transactions.values())
+      .filter(t => t.userId === userId)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return limit ? txns.slice(0, limit) : txns;
+  }
+
+  async getTransactionsByGoalId(goalId: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values()).filter(t => t.goalId === goalId);
+  }
+
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const id = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const t: Transaction = {
+      id,
+      userId: transaction.userId || '',
+      type: transaction.type,
+      category: transaction.category || 'other',
+      amount: transaction.amount,
+      description: transaction.description || null,
+      date: transaction.date,
+      goalId: transaction.goalId || null,
+      destination: transaction.destination || null,
+      isArchived: transaction.isArchived ?? false,
+      isFlagged: transaction.isFlagged ?? false,
+      createdAt: new Date(),
+    };
+    this.transactions.set(id, t);
+    return t;
+  }
+
+  async bulkCreateTransactions(transactions: InsertTransaction[]): Promise<Transaction[]> {
+    return Promise.all(transactions.map(t => this.createTransaction(t)));
+  }
+
+  async updateTransaction(id: string, updates: Partial<Transaction>): Promise<Transaction> {
+    const t = this.transactions.get(id);
+    if (!t) throw new Error('Transaction not found');
+    const updated = { ...t, ...updates };
+    this.transactions.set(id, updated);
+    return updated;
+  }
+
+  async deleteTransaction(id: string): Promise<void> {
+    this.transactions.delete(id);
+  }
+
+  async getFinancialSummary(userId: string, _months?: number) {
+    const txns = await this.getTransactionsByUserId(userId);
+    const income = txns.filter(t => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const expenses = txns.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    return {
+      totalIncome: income,
+      totalExpenses: expenses,
+      averageMonthlyIncome: income,
+      averageMonthlyExpenses: expenses,
+      netCashFlow: income - expenses,
+      transactionCount: txns.length,
+      categoryBreakdown: {},
+    };
+  }
+
+  // Financial Goal methods
+  async getFinancialGoal(id: string): Promise<FinancialGoal | undefined> {
+    return this.financialGoals.get(id);
+  }
+
+  async getFinancialGoalsByUserId(userId: string): Promise<FinancialGoal[]> {
+    return Array.from(this.financialGoals.values()).filter(g => g.userId === userId);
+  }
+
+  async createFinancialGoal(goal: InsertFinancialGoal): Promise<FinancialGoal> {
+    const id = `goal_${Date.now()}`;
+    const g: FinancialGoal = {
+      id,
+      userId: goal.userId,
+      title: goal.title,
+      description: goal.description || null,
+      targetAmount: goal.targetAmount,
+      currentAmount: goal.currentAmount || '0',
+      targetDate: goal.targetDate,
+      category: goal.category || null,
+      priority: goal.priority || 'medium',
+      status: goal.status || 'active',
+      createdAt: new Date(),
+    };
+    this.financialGoals.set(id, g);
+    return g;
+  }
+
+  async updateFinancialGoal(id: string, updates: Partial<FinancialGoal>): Promise<FinancialGoal> {
+    const g = this.financialGoals.get(id);
+    if (!g) throw new Error('Goal not found');
+    const updated = { ...g, ...updates };
+    this.financialGoals.set(id, updated);
+    return updated;
+  }
+
+  async deleteFinancialGoal(id: string): Promise<void> {
+    this.financialGoals.delete(id);
+  }
+
+  // Budget methods
+  async getBudget(id: string): Promise<Budget | undefined> {
+    return this.budgets.get(id);
+  }
+
+  async getBudgetsByUserId(userId: string): Promise<Budget[]> {
+    return Array.from(this.budgets.values()).filter(b => b.userId === userId);
+  }
+
+  async getBudgetByUserAndCategory(userId: string, category: string): Promise<Budget | undefined> {
+    return Array.from(this.budgets.values()).find(b => b.userId === userId && b.category === category);
+  }
+
+  async createBudget(budget: InsertBudget): Promise<Budget> {
+    const id = `budget_${Date.now()}`;
+    const b: Budget = {
+      id,
+      userId: budget.userId || '',
+      category: budget.category,
+      monthlyLimit: budget.monthlyLimit,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.budgets.set(id, b);
+    return b;
+  }
+
+  async updateBudget(id: string, updates: Partial<Budget>): Promise<Budget> {
+    const b = this.budgets.get(id);
+    if (!b) throw new Error('Budget not found');
+    const updated = { ...b, ...updates, updatedAt: new Date() };
+    this.budgets.set(id, updated);
+    return updated;
+  }
+
+  async deleteBudget(id: string): Promise<void> {
+    this.budgets.delete(id);
+  }
+
+  // Chat methods
+  async getChatConversations(userId: string): Promise<ChatConversation[]> {
+    return Array.from(this.chatConversations.values())
+      .filter(c => c.userId === userId)
+      .sort((a, b) => new Date(b.lastMessageAt || b.createdAt || 0).getTime() - new Date(a.lastMessageAt || a.createdAt || 0).getTime());
+  }
+
+  async getChatConversation(id: string): Promise<ChatConversation | undefined> {
+    return this.chatConversations.get(id);
+  }
+
+  async getChatConversationWithMessages(id: string): Promise<(ChatConversation & { messages: ChatMessage[] }) | undefined> {
+    const conversation = this.chatConversations.get(id);
+    if (!conversation) return undefined;
+    const messages = Array.from(this.chatMessages.values())
+      .filter(m => m.conversationId === id)
+      .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+    return { ...conversation, messages };
+  }
+
+  async createChatConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
+    const id = `conv_${Date.now()}`;
+    const c: ChatConversation = {
+      id,
+      userId: conversation.userId,
+      title: conversation.title || null,
+      isActive: conversation.isActive ?? true,
+      lastMessageAt: new Date(),
+      createdAt: new Date(),
+    };
+    this.chatConversations.set(id, c);
+    return c;
+  }
+
+  async updateChatConversation(id: string, updates: Partial<ChatConversation>): Promise<ChatConversation> {
+    const c = this.chatConversations.get(id);
+    if (!c) throw new Error('Conversation not found');
+    const updated = { ...c, ...updates };
+    this.chatConversations.set(id, updated);
+    return updated;
+  }
+
+  async deleteChatConversation(id: string): Promise<void> {
+    this.chatConversations.delete(id);
+    // Also delete associated messages
+    for (const [msgId, msg] of this.chatMessages) {
+      if (msg.conversationId === id) {
+        this.chatMessages.delete(msgId);
+      }
+    }
+  }
+
+  async getChatMessages(conversationId: string): Promise<ChatMessage[]> {
+    return Array.from(this.chatMessages.values())
+      .filter(m => m.conversationId === conversationId)
+      .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+  }
+
+  async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const id = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const m: ChatMessage = {
+      id,
+      conversationId: message.conversationId,
+      role: message.role,
+      content: message.content,
+      userContext: message.userContext || null,
+      tokenCount: message.tokenCount || null,
+      cost: message.cost || null,
+      createdAt: new Date(),
+    };
+    this.chatMessages.set(id, m);
+    // Update conversation lastMessageAt
+    const conv = this.chatConversations.get(message.conversationId);
+    if (conv) {
+      conv.lastMessageAt = new Date();
+      this.chatConversations.set(message.conversationId, conv);
+    }
+    return m;
+  }
+
+  async getChatMessagesByUserId(userId: string): Promise<ChatMessage[]> {
+    const userConvs = await this.getChatConversations(userId);
+    const convIds = new Set(userConvs.map(c => c.id));
+    return Array.from(this.chatMessages.values()).filter(m => convIds.has(m.conversationId));
+  }
+
+  // Notification methods
+  async getNotificationsByUserId(userId: string, limit?: number, _offset?: number, includeRead?: boolean): Promise<Notification[]> {
+    let notifs = Array.from(this.notifications.values())
+      .filter(n => n.userId === userId)
+      .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    if (!includeRead) {
+      notifs = notifs.filter(n => !n.isRead);
+    }
+    return limit ? notifs.slice(0, limit) : notifs;
+  }
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    return Array.from(this.notifications.values()).filter(n => n.userId === userId && !n.isRead).length;
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const id = `notif_${Date.now()}`;
+    const n: Notification = {
+      id,
+      userId: notification.userId,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      isRead: false,
+      actionUrl: notification.actionUrl || null,
+      metadata: notification.metadata || null,
+      expiresAt: notification.expiresAt || null,
+      createdAt: new Date(),
+    };
+    this.notifications.set(id, n);
+    return n;
+  }
+
+  async markNotificationAsRead(id: string): Promise<Notification> {
+    const n = this.notifications.get(id);
+    if (!n) throw new Error('Notification not found');
+    n.isRead = true;
+    n.readAt = new Date();
+    this.notifications.set(id, n);
+    return n;
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    for (const [id, n] of this.notifications) {
+      if (n.userId === userId && !n.isRead) {
+        n.isRead = true;
+        n.readAt = new Date();
+        this.notifications.set(id, n);
+      }
+    }
+  }
+
+  async generateSmartNotifications(_userId: string): Promise<Notification[]> {
+    return [];
+  }
+
+  // User Stats
+  async getUserStats(userId: string) {
+    const goals = await this.getFinancialGoalsByUserId(userId);
+    const txns = await this.getTransactionsByUserId(userId);
+    const savings = txns.filter(t => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0) -
+      txns.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    return {
+      totalSavings: savings,
+      activeGoals: goals.filter(g => g.status === 'active').length,
+      monthlyIncome: 0,
+      upcomingEvents: 0,
+    };
+  }
+
+  // Subscription plans
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return [{
+      id: 'free_plan',
+      name: 'Free',
+      displayName: 'Free',
+      description: 'Basic free plan',
+      currency: 'USD',
+      isActive: true,
+      priceThb: '0',
+      priceUsd: '0',
+      monthlyPrice: '0',
+      yearlyPrice: '0',
+      features: ['Basic AI Chat', 'Financial Tracking', 'Goal Setting'],
+      aiChatLimit: 10,
+      aiDeepAnalysisLimit: 2,
+      scoutQueriesLimit: 50,
+      sonnetQueriesLimit: 20,
+      gpt5QueriesLimit: 10,
+      opusQueriesLimit: 5,
+      isLifetimeLimit: false,
+      sortOrder: 0,
+      createdAt: new Date(),
+    }];
+  }
+
+  async getSubscriptionPlan(_id: string): Promise<SubscriptionPlan | undefined> {
+    return (await this.getSubscriptionPlans())[0];
+  }
+
+  // Stub methods for features we don't need for local dev
+  async getGroup(_id: string) { return undefined; }
+  async getGroupsByUserId(_userId: string) { return []; }
+  async createGroup(group: any) {
+    const id = `group_${Date.now()}`;
+    const g = { id, ...group, createdAt: new Date() };
+    this.groups.set(id, g);
+    return g;
+  }
+  async updateGroup(id: string, updates: any) {
+    const g = this.groups.get(id);
+    if (!g) throw new Error('Group not found');
+    const updated = { ...g, ...updates };
+    this.groups.set(id, updated);
+    return updated;
+  }
+  async deleteGroup(id: string) { this.groups.delete(id); }
+  async getGroupMembers(_groupId: string) { return []; }
+  async getGroupMembersWithUserInfo(_groupId: string) { return []; }
+  async addGroupMember(member: any) { return { id: `member_${Date.now()}`, ...member }; }
+  async removeGroupMember(_groupId: string, _userId: string) { }
+  async updateGroupMemberRole(_groupId: string, _userId: string, role: string) { return { id: '', groupId: '', userId: '', role, joinedAt: new Date() }; }
+
+  async getEvent(_id: string) { return undefined; }
+  async getEventsByUserId(_userId: string) { return []; }
+  async getEventsByGroupId(_groupId: string) { return []; }
+  async getUserAccessibleEventsWithGroups(_userId: string) { return []; }
+  async getUpcomingEvents(_userId: string) { return []; }
+  async getUpcomingEventsWithAttendees(_userId: string) { return []; }
+  async createEvent(event: any) {
+    const id = `event_${Date.now()}`;
+    const e = { id, ...event, createdAt: new Date() };
+    this.events.set(id, e);
+    return e;
+  }
+  async updateEvent(id: string, updates: any) {
+    const e = this.events.get(id);
+    if (!e) throw new Error('Event not found');
+    const updated = { ...e, ...updates };
+    this.events.set(id, updated);
+    return updated;
+  }
+  async deleteEvent(id: string) { this.events.delete(id); }
+
+  async getGoalContributions(_goalId: string) { return []; }
+  async createGoalContribution(contribution: any) { return { id: `contrib_${Date.now()}`, ...contribution }; }
+  async getGoalMilestones(_goalId: string) { return []; }
+  async getUnseenMilestones(_userId: string) { return []; }
+  async createGoalMilestone(milestone: any) { return { id: `milestone_${Date.now()}`, ...milestone }; }
+  async markMilestonesSeen(_userId: string) { }
+  async checkAndCreateMilestones(_userId: string, _goalId: string, _currentAmount: number, _targetAmount: number) { return []; }
+  async getUserStreak(_userId: string) { return null; }
+  async checkInStreak(_userId: string) { return { streakIncreased: false, newStreak: 0, newAchievements: [] }; }
+  async getUserAchievements(_userId: string) { return []; }
+  async exportUserData(_userId: string, format: 'json' | 'csv') { return format === 'json' ? '{}' : ''; }
+  async deleteUserData(_userId: string) { }
+}
+
+// Export appropriate storage based on database availability
+export const storage: IStorage = db ? new DatabaseStorage() : new InMemoryStorage() as unknown as IStorage;

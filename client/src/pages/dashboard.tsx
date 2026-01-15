@@ -1,91 +1,55 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Target, Sparkles, TrendingUp, TrendingDown, Brain, ChevronRight, Award, Star, Zap, DollarSign, PiggyBank, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowRight, Target, Sparkles, TrendingUp, Brain, DollarSign, ArrowUpRight, ArrowDownRight, Shield, Activity, Flame, Plus, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import NotificationsBell from "@/components/dashboard/notifications-bell";
 import OnboardingWizard from "@/components/onboarding/onboarding-wizard";
 import { useOnboarding } from "@/hooks/use-onboarding";
-import { UserPreferences, FinancialGoal } from "@shared/schema";
+import { FinancialGoal } from "@shared/schema";
 import { SmartNudgeBanner } from "@/components/smart-nudges";
 import { StreakWidget, AchievementBadges } from "@/components/streak-system";
-import { useUserCurrency, useUserPreferences } from "@/lib/userContext";
+import { useUserCurrency } from "@/lib/userContext";
 
 interface DashboardStats {
-  totalTransactions: number;
   monthlyIncome: number;
   monthlyExpenses: number;
-  savingsRate: number;
-  totalGoals: number;
-  activeGoalsCount: number;
-  netWorth?: number;
 }
 
-interface FinancialHealthResponse {
-  overall: number;
-  grade: string;
-  breakdown: {
-    savingsRate?: { value: number; score: number; weight: number };
-    emergencyFund?: { months: number; score: number; weight: number };
-    goalProgress?: { value: number; score: number; weight: number };
-    budgetAdherence?: { value: number; score: number; weight: number };
-    debtRatio?: { value: number; score: number; weight: number };
+interface TwealthIndexResponse {
+  cashflowScore: number;
+  stabilityScore: number;
+  growthScore: number;
+  behaviorScore: number;
+  twealthIndex: number;
+  band: string;
+  confidence: string;
+  drivers: {
+    overall: { action: string };
   };
-  insights: string[];
-  recommendations: string[];
 }
 
 interface SubscriptionResponse {
-  plan: {
-    name: string;
-    scoutLimit: number;
-    sonnetLimit: number;
-    gpt5Limit: number;
-    opusLimit: number;
-  };
-  usage: {
-    scoutQueriesUsed: number;
-    sonnetQueriesUsed: number;
-    gpt5QueriesUsed: number;
-    opusQueriesUsed: number;
-  };
+  plan: { name: string; scoutLimit: number };
+  usage: { scoutQueriesUsed: number };
 }
 
-function AnimatedNumber({ value, suffix = "", prefix = "", decimals = 0 }: { value: number; suffix?: string; prefix?: string; decimals?: number }) {
-  const [displayValue, setDisplayValue] = useState(0);
-  
+// Animated counter
+function Counter({ value, className = "" }: { value: number; className?: string }) {
+  const [count, setCount] = useState(0);
   useEffect(() => {
-    const duration = 1000;
-    const startTime = Date.now();
-    const startValue = displayValue;
-    
-    const animate = () => {
-      const now = Date.now();
-      const progress = Math.min((now - startTime) / duration, 1);
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const current = startValue + (value - startValue) * easeOutQuart;
-      
-      setDisplayValue(current);
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+    const duration = 800;
+    const start = Date.now();
+    const tick = () => {
+      const progress = Math.min((Date.now() - start) / duration, 1);
+      setCount(Math.round(value * (1 - Math.pow(1 - progress, 4))));
+      if (progress < 1) requestAnimationFrame(tick);
     };
-    
-    requestAnimationFrame(animate);
+    requestAnimationFrame(tick);
   }, [value]);
-  
-  return (
-    <span>
-      {prefix}{decimals > 0 ? displayValue.toFixed(decimals) : Math.round(displayValue).toLocaleString()}{suffix}
-    </span>
-  );
+  return <span className={`tabular-nums ${className}`}>{count}</span>;
 }
 
 function getGreeting(): string {
@@ -95,599 +59,300 @@ function getGreeting(): string {
   return "Good evening";
 }
 
-function getMotivationalMessage(healthScore: number, savingsRate: number): string {
-  if (healthScore >= 80) return "Outstanding financial discipline. Keep it up!";
-  if (healthScore >= 60) return "You're making solid progress toward your goals.";
-  if (savingsRate > 15) return "Great savings rate! Consider investing the surplus.";
-  return "Small steps lead to big changes. Start with one goal.";
-}
-
 export default function Dashboard() {
-  const { t } = useTranslation();
   const { showOnboarding, completeOnboarding } = useOnboarding();
-  const { formatAmount, currencySymbol } = useUserCurrency();
-  const { getUserName } = useUserPreferences();
-  
-  const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
-    queryKey: ["/api/dashboard/stats"],
-  });
-  
-  const { data: financialHealth, isLoading: healthLoading } = useQuery<FinancialHealthResponse>({
-    queryKey: ["/api/financial-health"],
-  });
-  
-  const { data: goals, isLoading: goalsLoading } = useQuery<FinancialGoal[]>({
-    queryKey: ["/api/financial-goals"],
-  });
+  const { formatAmount } = useUserCurrency();
 
-  const { data: preferences } = useQuery<UserPreferences>({
-    queryKey: ['/api/user-preferences'],
-  });
+  const { data: stats } = useQuery<DashboardStats>({ queryKey: ["/api/dashboard/stats"] });
+  const { data: twealthIndex, isLoading } = useQuery<TwealthIndexResponse>({ queryKey: ["/api/twealth-index"] });
+  const { data: goals } = useQuery<FinancialGoal[]>({ queryKey: ["/api/financial-goals"] });
+  const { data: subscription } = useQuery<SubscriptionResponse>({ queryKey: ["/api/subscription"] });
 
-  const { data: subscription } = useQuery<SubscriptionResponse>({
-    queryKey: ["/api/subscription"],
-  });
-  
-  const healthScore = financialHealth?.overall ?? 0;
-  const healthGrade = financialHealth?.grade ?? 'Building';
-  const savingsRate = financialHealth?.breakdown?.savingsRate?.value ?? 0;
-  const emergencyFundMonths = financialHealth?.breakdown?.emergencyFund?.months ?? 0;
-  
-  const activeGoals = Array.isArray(goals) ? goals.filter((g) => g.status === "active") : [];
-  const nextGoal = activeGoals.length > 0 ? activeGoals[0] : null;
-  const nextGoalProgress = nextGoal 
-    ? Math.min(100, (parseFloat(nextGoal.currentAmount || '0') / parseFloat(String(nextGoal.targetAmount))) * 100)
-    : 0;
-  
-  const tierName = subscription?.plan?.name ?? 'Free';
-  const scoutUsed = subscription?.usage?.scoutQueriesUsed ?? 0;
-  const scoutLimit = subscription?.plan?.scoutLimit ?? 50;
-  const queriesRemaining = scoutLimit - scoutUsed;
-  
-  const monthlyIncome = stats?.monthlyIncome ?? 0;
-  const monthlyExpenses = stats?.monthlyExpenses ?? 0;
-  const netCashFlow = monthlyIncome - monthlyExpenses;
-  const monthlySavingsCapacity = monthlyIncome - parseFloat(String(preferences?.monthlyExpensesEstimate ?? '0'));
-  
-  const isPositiveCashFlow = netCashFlow >= 0;
-  
-  if (showOnboarding) {
-    return <OnboardingWizard onComplete={completeOnboarding} />;
-  }
+  const score = twealthIndex?.twealthIndex ?? 0;
+  const band = twealthIndex?.band ?? "Building";
+  const activeGoals = useMemo(() => Array.isArray(goals) ? goals.filter(g => g.status === "active") : [], [goals]);
+  const queriesLeft = (subscription?.plan?.scoutLimit ?? 50) - (subscription?.usage?.scoutQueriesUsed ?? 0);
+  const income = stats?.monthlyIncome ?? 0;
+  const expenses = stats?.monthlyExpenses ?? 0;
+  const netFlow = income - expenses;
 
-  const aiNextSteps = useMemo(() => {
-    const steps = [];
-    
-    if (emergencyFundMonths < 3) {
-      steps.push({
-        icon: Star,
-        title: "Build Emergency Fund",
-        description: `${emergencyFundMonths.toFixed(1)} months saved. Target: 3-6 months.`,
-        action: "Create Goal",
-        href: "/financial-goals",
-        priority: "high"
-      });
-    }
-    
-    if (savingsRate < 20 && monthlySavingsCapacity > 0) {
-      steps.push({
-        icon: TrendingUp,
-        title: "Increase Savings Rate",
-        description: `Currently ${savingsRate.toFixed(0)}%. Potential: ${formatAmount(monthlySavingsCapacity)}/mo.`,
-        action: "Optimize",
-        href: "/money-tracking",
-        priority: "medium"
-      });
-    }
-    
-    if (nextGoal && nextGoalProgress < 50 && nextGoal.targetDate) {
-      const daysToTarget = Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-      if (daysToTarget > 0) {
-        steps.push({
-          icon: Target,
-          title: `Accelerate "${nextGoal.title}"`,
-          description: `${daysToTarget} days left. ${nextGoalProgress.toFixed(0)}% complete.`,
-          action: "Review",
-          href: "/financial-goals",
-          priority: "medium"
-        });
-      }
-    }
-    
-    if (queriesRemaining > 10) {
-      steps.push({
-        icon: Brain,
-        title: "Get AI Advice",
-        description: `${queriesRemaining} queries available. Ask anything!`,
-        action: "Chat",
-        href: "/ai-assistant",
-        priority: "low"
-      });
-    }
-    
-    return steps.slice(0, 3);
-  }, [emergencyFundMonths, savingsRate, monthlySavingsCapacity, nextGoal, nextGoalProgress, queriesRemaining, formatAmount]);
+  const pillars = [
+    { key: "cashflow", label: "Cashflow", score: twealthIndex?.cashflowScore ?? 0, color: "#3B82F6" },
+    { key: "stability", label: "Stability", score: twealthIndex?.stabilityScore ?? 0, color: "#10B981" },
+    { key: "growth", label: "Growth", score: twealthIndex?.growthScore ?? 0, color: "#8B5CF6" },
+    { key: "behavior", label: "Behavior", score: twealthIndex?.behaviorScore ?? 0, color: "#F59E0B" },
+  ];
 
-  const getHealthColor = (score: number) => {
-    if (score >= 75) return { text: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500", light: "bg-emerald-50 dark:bg-emerald-950/30", border: "border-emerald-200 dark:border-emerald-800" };
-    if (score >= 60) return { text: "text-blue-600 dark:text-blue-400", bg: "bg-blue-500", light: "bg-blue-50 dark:bg-blue-950/30", border: "border-blue-200 dark:border-blue-800" };
-    if (score >= 40) return { text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500", light: "bg-amber-50 dark:bg-amber-950/30", border: "border-amber-200 dark:border-amber-800" };
-    return { text: "text-red-600 dark:text-red-400", bg: "bg-red-500", light: "bg-red-50 dark:bg-red-950/30", border: "border-red-200 dark:border-red-800" };
-  };
+  if (showOnboarding) return <OnboardingWizard onComplete={completeOnboarding} />;
 
-  const healthColors = getHealthColor(healthScore);
+  const circumference = 2 * Math.PI * 70;
+  const offset = circumference - (score / 100) * circumference;
+  const scoreColor = score >= 80 ? "#10B981" : score >= 60 ? "#3B82F6" : score >= 40 ? "#F59E0B" : "#EF4444";
 
   return (
-    <div className="min-h-screen-mobile bg-gradient-to-b from-background to-muted/20 pb-20 md:pb-0">
-      <header className="bg-background/80 backdrop-blur-xl border-b border-border/40 sticky top-0 z-30">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground truncate">
-                  {getGreeting()}
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-1 sm:line-clamp-none">
-                  {getMotivationalMessage(healthScore, savingsRate)}
-                </p>
-              </motion.div>
-            </div>
-            
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <NotificationsBell />
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#09090b] pb-24 md:pb-8">
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* HEADER - Minimal, Apple-style                                       */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <header className="sticky top-0 z-50 bg-[#f8f9fa]/90 dark:bg-[#09090b]/90 backdrop-blur-2xl border-b border-black/[0.04] dark:border-white/[0.04]">
+        <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <p className="text-[13px] font-medium text-muted-foreground">{getGreeting()}</p>
+            <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-foreground">Dashboard</h1>
+          </motion.div>
+          <NotificationsBell />
         </div>
       </header>
 
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-10 space-y-4 sm:space-y-6 lg:space-y-10">
-        
+      <main className="max-w-5xl mx-auto px-5 py-6 space-y-6">
         <SmartNudgeBanner />
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* HERO CARD - The Centerpiece                                         */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
+          transition={{ duration: 0.4 }}
         >
-          <Card className="border-0 shadow-lg sm:shadow-xl bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900/50 overflow-hidden">
-            <CardContent className="p-0">
-              <div className="grid lg:grid-cols-2 gap-0">
-                <div className="p-4 sm:p-6 lg:p-8 xl:p-10">
-                  <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
-                    <Badge 
-                      className={`${healthColors.light} ${healthColors.text} ${healthColors.border} border text-xs font-medium px-2 sm:px-3 py-0.5 sm:py-1`}
-                    >
-                      {healthGrade}
-                    </Badge>
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">AI-Powered Analysis</span>
-                  </div>
-                  
-                  <h2 className="text-xs sm:text-sm lg:text-base font-medium text-muted-foreground mb-2 sm:mb-3">
-                    Financial Health Score
-                  </h2>
-                  
-                  {healthLoading ? (
-                    <Skeleton className="h-16 sm:h-20 lg:h-24 w-32 sm:w-40" />
-                  ) : (
-                    <div className="flex items-end gap-2 sm:gap-3 mb-3 sm:mb-4">
-                      <span 
-                        className={`text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter ${healthColors.text}`}
-                        data-testid="hero-health-score"
-                      >
-                        <AnimatedNumber value={healthScore} />
-                      </span>
-                      <span className="text-xl sm:text-2xl lg:text-3xl font-semibold text-muted-foreground/30 mb-1 sm:mb-2">/100</span>
+          <div className="relative overflow-hidden rounded-[24px] bg-white dark:bg-[#18181b] shadow-[0_1px_3px_rgba(0,0,0,0.05),0_20px_40px_-20px_rgba(0,0,0,0.1)] dark:shadow-none border border-black/[0.03] dark:border-white/[0.05]">
+            {/* Gradient accent line at top */}
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 via-violet-500 to-emerald-500" />
+
+            <div className="p-6 sm:p-8">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+                {/* Left: Score Visualization */}
+                <div className="flex items-center gap-6 lg:gap-8">
+                  {/* Circular Score */}
+                  <div className="relative flex-shrink-0">
+                    <svg className="w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] -rotate-90" viewBox="0 0 160 160">
+                      {/* Background track */}
+                      <circle cx="80" cy="80" r="70" fill="none" strokeWidth="8" className="stroke-black/[0.04] dark:stroke-white/[0.06]" />
+                      {/* Animated progress */}
+                      <motion.circle
+                        cx="80" cy="80" r="70"
+                        fill="none"
+                        stroke={scoreColor}
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        initial={{ strokeDashoffset: circumference }}
+                        animate={{ strokeDashoffset: offset }}
+                        transition={{ duration: 1.2, ease: [0.32, 0.72, 0, 1] }}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      {isLoading ? (
+                        <Skeleton className="w-16 h-12" />
+                      ) : (
+                        <>
+                          <span className="text-[44px] sm:text-[52px] font-bold tracking-[-0.03em] leading-none" style={{ color: scoreColor }}>
+                            <Counter value={score} />
+                          </span>
+                          <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground mt-1">
+                            {band}
+                          </span>
+                        </>
+                      )}
                     </div>
-                  )}
-                  
-                  <div className="h-1.5 sm:h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden mb-3 sm:mb-4">
-                    <motion.div 
-                      className={`h-full ${healthColors.bg} rounded-full`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${healthScore}%` }}
-                      transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-                    />
                   </div>
-                  
-                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
-                    Based on savings rate, emergency fund, debt ratio, and goal progress
-                  </p>
+
+                  {/* Score Details */}
+                  <div className="hidden sm:block">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-1">
+                      Twealth Index™
+                    </p>
+                    <p className="text-[15px] text-muted-foreground leading-relaxed max-w-[280px]">
+                      {twealthIndex?.drivers?.overall?.action || "Track consistently to unlock insights"}
+                    </p>
+                    <div className="flex gap-2 mt-4">
+                      <Link href="/financial-score">
+                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[13px] font-medium px-3.5 border-black/10 dark:border-white/10">
+                          View details
+                        </Button>
+                      </Link>
+                      <Link href="/ai-assistant">
+                        <Button size="sm" className="h-8 rounded-full text-[13px] font-medium px-3.5" style={{ background: scoreColor }}>
+                          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                          Get advice
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                
-                <div className="bg-gray-50/50 dark:bg-gray-800/30 p-4 sm:p-6 lg:p-8 xl:p-10 border-t lg:border-t-0 lg:border-l border-border/30">
-                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground mb-4 sm:mb-6">Key Metrics</h3>
-                  
-                  <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                    <motion.div 
-                      className="space-y-0.5 sm:space-y-1"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.4 }}
-                      data-testid="metric-savings-rate"
-                    >
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="p-1 sm:p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30">
-                          <PiggyBank className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
+
+                {/* Right: Pillar Bars - Data Viz */}
+                <div className="flex-1 lg:pl-8 lg:border-l border-black/[0.04] dark:border-white/[0.06]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground mb-4">
+                    Financial Pillars
+                  </p>
+                  <div className="space-y-3">
+                    {pillars.map((p, i) => (
+                      <motion.div
+                        key={p.key}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 + i * 0.05 }}
+                        className="flex items-center gap-3"
+                      >
+                        <span className="w-16 text-[13px] font-medium text-muted-foreground">{p.label}</span>
+                        <div className="flex-1 h-2 bg-black/[0.03] dark:bg-white/[0.05] rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: p.color }}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${p.score}%` }}
+                            transition={{ duration: 0.8, delay: 0.2 + i * 0.05 }}
+                          />
                         </div>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">Savings Rate</span>
-                      </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-                        <AnimatedNumber value={savingsRate} suffix="%" decimals={1} />
-                      </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="space-y-0.5 sm:space-y-1"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.5 }}
-                      data-testid="metric-emergency-fund"
-                    >
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="p-1 sm:p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30">
-                          <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">Emergency Fund</span>
-                      </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-                        <AnimatedNumber value={emergencyFundMonths} suffix=" mo" decimals={1} />
-                      </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="space-y-0.5 sm:space-y-1"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.6 }}
-                      data-testid="metric-cash-flow"
-                    >
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className={`p-1 sm:p-1.5 rounded-md ${isPositiveCashFlow ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                          {isPositiveCashFlow ? (
-                            <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
-                          ) : (
-                            <ArrowDownRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-600 dark:text-red-400" />
-                          )}
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">Monthly Flow</span>
-                      </div>
-                      <div className={`text-xl sm:text-2xl lg:text-3xl font-bold ${isPositiveCashFlow ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {isPositiveCashFlow ? '+' : ''}<AnimatedNumber value={netCashFlow} prefix={currencySymbol} />
-                      </div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="space-y-0.5 sm:space-y-1"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: 0.7 }}
-                      data-testid="metric-goals"
-                    >
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <div className="p-1 sm:p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30">
-                          <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <span className="text-[10px] sm:text-xs text-muted-foreground">Active Goals</span>
-                      </div>
-                      <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-                        <AnimatedNumber value={activeGoals.length} />
-                      </div>
-                    </motion.div>
+                        <span className="w-8 text-[13px] font-semibold text-right tabular-nums">
+                          {p.score}
+                        </span>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <Card className="h-full border-border/40 hover:border-border/60 transition-colors">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
-                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground">AI Insights</h3>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Personalized recommendations</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-2 sm:space-y-3">
-                  <AnimatePresence>
-                    {aiNextSteps.length > 0 ? (
-                      aiNextSteps.map((step, idx) => (
-                        <motion.div
-                          key={idx}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: idx * 0.1 }}
-                        >
-                          <Link href={step.href}>
-                            <button 
-                              className="w-full text-left p-3 sm:p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-primary/5 transition-all group min-h-[56px] touch-target"
-                              data-testid={`ai-step-${idx}`}
-                            >
-                              <div className="flex items-start gap-2 sm:gap-3">
-                                <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
-                                  step.priority === 'high' 
-                                    ? 'bg-orange-100 dark:bg-orange-900/30' 
-                                    : step.priority === 'medium' 
-                                    ? 'bg-blue-100 dark:bg-blue-900/30' 
-                                    : 'bg-gray-100 dark:bg-gray-800'
-                                }`}>
-                                  <step.icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
-                                    step.priority === 'high' 
-                                      ? 'text-orange-600 dark:text-orange-400' 
-                                      : step.priority === 'medium' 
-                                      ? 'text-blue-600 dark:text-blue-400' 
-                                      : 'text-muted-foreground'
-                                  }`} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-2 mb-0.5 sm:mb-1">
-                                    <span className="font-medium text-xs sm:text-sm text-foreground truncate">{step.title}</span>
-                                    <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground group-hover:translate-x-1 group-hover:text-primary transition-all flex-shrink-0" />
-                                  </div>
-                                  <p className="text-[10px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2">{step.description}</p>
-                                </div>
-                              </div>
-                            </button>
-                          </Link>
-                        </motion.div>
-                      ))
-                    ) : (
-                      <motion.div 
-                        className="text-center py-6 sm:py-8"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                      >
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                          <Award className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <p className="text-xs sm:text-sm font-medium text-foreground">Excellent work!</p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">No urgent actions needed</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                
-                <Link href="/ai-assistant">
-                  <Button className="w-full mt-4 sm:mt-6 group min-h-[44px]" data-testid="button-view-ai-insights">
-                    <Brain className="w-4 h-4 mr-2" />
-                    <span className="text-sm sm:text-base">Ask AI Anything</span>
-                    <ArrowRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
+              {/* Mobile CTAs */}
+              <div className="flex gap-2 mt-6 sm:hidden">
+                <Link href="/financial-score" className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full h-9 rounded-full text-[13px]">
+                    Details
                   </Button>
                 </Link>
-              </CardContent>
-            </Card>
+                <Link href="/ai-assistant" className="flex-1">
+                  <Button size="sm" className="w-full h-9 rounded-full text-[13px]" style={{ background: scoreColor }}>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                    AI Advice
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* METRICS ROW - Apple Card Style                                      */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          {[
+            { label: "Income", value: formatAmount(income), icon: ArrowUpRight, color: "#10B981" },
+            { label: "Expenses", value: formatAmount(expenses), icon: ArrowDownRight, color: "#EF4444" },
+            { label: "Net", value: `${netFlow >= 0 ? "+" : ""}${formatAmount(netFlow)}`, icon: DollarSign, color: netFlow >= 0 ? "#10B981" : "#EF4444" },
+          ].map((metric, i) => (
+            <motion.div
+              key={metric.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + i * 0.05 }}
+              className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181b] shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-none border border-black/[0.03] dark:border-white/[0.05]"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${metric.color}15` }}>
+                  <metric.icon className="w-4 h-4" style={{ color: metric.color }} />
+                </div>
+                <span className="text-[12px] font-medium text-muted-foreground">{metric.label}</span>
+              </div>
+              <p className="text-[20px] sm:text-[24px] font-semibold tracking-[-0.02em]" style={{ color: metric.label === "Net" ? metric.color : undefined }}>
+                {metric.value}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ACTIONS - Clean Grid                                                */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+          {/* AI Advisor - Featured */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <Link href="/ai-assistant" className="block h-full">
+              <div className="h-full p-5 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#6366F1] text-white hover:opacity-95 transition-opacity">
+                <div className="flex items-start justify-between mb-12">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Brain className="w-5 h-5" />
+                  </div>
+                  <span className="text-[11px] font-semibold bg-white/20 px-2 py-0.5 rounded-full">
+                    {queriesLeft} left
+                  </span>
+                </div>
+                <p className="text-[17px] font-semibold mb-0.5">AI Advisor</p>
+                <p className="text-[13px] text-white/70">Get financial guidance</p>
+              </div>
+            </Link>
           </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-          >
-            <Card className="h-full border-border/40 hover:border-border/60 transition-colors">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/20">
-                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground">Next Goal</h3>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Track your progress</p>
-                  </div>
+
+          {/* Add Transaction */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+            <Link href="/money-tracking?add=1" className="block h-full">
+              <div className="h-full p-5 rounded-2xl bg-white dark:bg-[#18181b] border border-black/[0.03] dark:border-white/[0.05] shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-none hover:border-black/[0.08] dark:hover:border-white/[0.1] transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-12">
+                  <Plus className="w-5 h-5 text-emerald-500" />
                 </div>
-                
-                {nextGoal ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    <div>
-                      <h4 className="font-medium text-sm sm:text-base text-foreground mb-1 truncate">{nextGoal.title}</h4>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-xl sm:text-2xl font-bold text-foreground">
-                          {formatAmount(parseFloat(nextGoal.currentAmount || '0'))}
-                        </span>
-                        <span className="text-xs sm:text-sm text-muted-foreground">
-                          / {formatAmount(parseFloat(String(nextGoal.targetAmount)))}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
-                        <span className="font-medium">{nextGoalProgress.toFixed(0)}% complete</span>
-                        {nextGoal.targetDate && (
-                          <span>{new Date(nextGoal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                        )}
-                      </div>
-                      <div className="h-2.5 sm:h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                        <motion.div 
-                          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, nextGoalProgress)}%` }}
-                          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-                        />
-                      </div>
-                    </div>
-                    
-                    {nextGoal.targetDate && (
-                      <div className="p-3 sm:p-4 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50">
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">Monthly contribution needed</p>
-                        <p className="text-lg sm:text-xl font-bold text-foreground">
-                          {formatAmount(Math.max(0, (parseFloat(String(nextGoal.targetAmount)) - parseFloat(nextGoal.currentAmount || '0')) / 
-                            Math.max(1, Math.ceil((new Date(nextGoal.targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))))}
-                          <span className="text-xs sm:text-sm font-normal text-muted-foreground">/month</span>
-                        </p>
-                      </div>
-                    )}
-                    
-                    <Link href="/financial-goals">
-                      <Button variant="outline" className="w-full group min-h-[44px]" data-testid="button-manage-goals">
-                        <span className="text-sm">Manage Goals</span>
-                        <ArrowRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 sm:py-8">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <Target className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
-                    </div>
-                    <p className="text-xs sm:text-sm font-medium text-foreground mb-1">No active goals</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mb-4 sm:mb-6">Set a target to start tracking</p>
-                    <Link href="/financial-goals?create=1">
-                      <Button className="w-full min-h-[44px]" data-testid="button-create-first-goal">
-                        <Target className="w-4 h-4 mr-2" />
-                        <span className="text-sm">Create First Goal</span>
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                <p className="text-[17px] font-semibold mb-0.5">Add Transaction</p>
+                <p className="text-[13px] text-muted-foreground">Log income or expense</p>
+              </div>
+            </Link>
           </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-            className="md:col-span-2 lg:col-span-1"
-          >
-            <Card className="h-full border-border/40 hover:border-border/60 transition-colors">
-              <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                  <div className="p-2 sm:p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+
+          {/* Goals */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <Link href="/financial-goals" className="block h-full">
+              <div className="h-full p-5 rounded-2xl bg-white dark:bg-[#18181b] border border-black/[0.03] dark:border-white/[0.05] shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-none hover:border-black/[0.08] dark:hover:border-white/[0.1] transition-colors">
+                <div className="flex items-start justify-between mb-12">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-blue-500" />
                   </div>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground">Quick Actions</h3>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Common tasks</p>
-                  </div>
+                  <span className="text-[28px] font-bold tracking-tight">{activeGoals.length}</span>
                 </div>
-                
-                <div className="space-y-2 sm:space-y-3">
-                  <Link href="/money-tracking?add=1">
-                    <Button variant="outline" className="w-full justify-start h-11 sm:h-12 group touch-target" data-testid="button-add-transaction">
-                      <div className="p-1 sm:p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 mr-2 sm:mr-3">
-                        <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <span className="text-sm">Add Transaction</span>
-                      <ChevronRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                  
-                  <Link href="/money-tracking">
-                    <Button variant="outline" className="w-full justify-start h-11 sm:h-12 group touch-target" data-testid="button-view-spending">
-                      <div className="p-1 sm:p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30 mr-2 sm:mr-3">
-                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <span className="text-sm">View Spending</span>
-                      <ChevronRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                  
-                  <Link href="/subscription">
-                    <Button variant="outline" className="w-full justify-start h-11 sm:h-12 group touch-target" data-testid="button-upgrade-plan">
-                      <div className="p-1 sm:p-1.5 rounded-md bg-violet-100 dark:bg-violet-900/30 mr-2 sm:mr-3">
-                        <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-violet-600 dark:text-violet-400" />
-                      </div>
-                      <span className="text-sm">AI Plan</span>
-                      <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs">
-                        {tierName}
-                      </Badge>
-                    </Button>
-                  </Link>
-                </div>
-                
-                <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-border/40">
-                  <div className="flex items-center justify-between mb-2 sm:mb-3">
-                    <span className="text-xs sm:text-sm font-medium text-foreground">AI Queries</span>
-                    <span className="text-xs sm:text-sm text-muted-foreground">{queriesRemaining} remaining</span>
-                  </div>
-                  <div className="h-1.5 sm:h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                    <motion.div 
-                      className="h-full bg-gradient-to-r from-violet-500 to-purple-600 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.max(0, (queriesRemaining / scoutLimit) * 100)}%` }}
-                      transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
-                    />
-                  </div>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5 sm:mt-2">
-                    {scoutUsed} of {scoutLimit} used this month
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                <p className="text-[17px] font-semibold mb-0.5">Goals</p>
+                <p className="text-[13px] text-muted-foreground">Track your progress</p>
+              </div>
+            </Link>
           </motion.div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-        >
-          <Card className="border-border/40 bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/30">
-            <CardContent className="p-4 sm:p-6 lg:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                <div className="w-full sm:w-auto">
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-0.5 sm:mb-1">Explore More</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Access detailed analytics and advanced features
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
-                  <Link href="/money-tracking" className="flex-1 sm:flex-none">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto group min-h-[40px] touch-target" data-testid="button-view-transactions">
-                      <span className="text-xs sm:text-sm">Transactions</span>
-                      <ArrowRight className="w-3.5 h-3.5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                  <Link href="/financial-goals" className="flex-1 sm:flex-none">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto group min-h-[40px] touch-target" data-testid="button-all-goals">
-                      <span className="text-xs sm:text-sm">All Goals</span>
-                      <ArrowRight className="w-3.5 h-3.5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                  <Link href="/groups" className="flex-1 sm:flex-none">
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto group min-h-[40px] touch-target" data-testid="button-groups">
-                      <span className="text-xs sm:text-sm">Groups</span>
-                      <ArrowRight className="w-3.5 h-3.5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.55 }}
-          >
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* ENGAGEMENT WIDGETS                                                  */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
             <StreakWidget />
           </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.6 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
             <AchievementBadges />
           </motion.div>
         </div>
-      </div>
+
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        {/* FOOTER NAV                                                          */}
+        {/* ═══════════════════════════════════════════════════════════════════ */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.55 }}
+          className="flex items-center justify-center gap-4 pt-2 text-[13px]"
+        >
+          {[
+            { label: "Transactions", href: "/money-tracking" },
+            { label: "Groups", href: "/groups" },
+            { label: `Upgrade`, href: "/subscription", badge: subscription?.plan?.name ?? "Free" },
+            { label: "Settings", href: "/settings" },
+          ].map((item, i) => (
+            <Link key={item.label} href={item.href}>
+              <button className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                {item.label}
+                {item.badge && (
+                  <span className="text-[10px] font-medium bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            </Link>
+          ))}
+        </motion.div>
+      </main>
     </div>
   );
 }

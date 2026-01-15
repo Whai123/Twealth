@@ -58,7 +58,7 @@ const transactionLimiter = rateLimit({
 function getUserIdFromRequest(req: any): string {
   return req.userId || req.user?.userId;
 }
-import { 
+import {
   insertUserSchema,
   insertGroupSchema,
   insertGroupMemberSchema,
@@ -95,9 +95,13 @@ import {
   insertUserExpenseCategorySchema,
   insertUserDebtSchema,
   insertUserAssetSchema,
-  type UserPreferences
+  type UserPreferences,
+  insertGoalSchema,
+  investmentStrategies
 } from "@shared/schema";
 import { z } from "zod";
+import { recomputeScores } from "./scoringEngine";
+import { autoCategorizeTransaction } from "./categorizationService";
 
 // Reusable typed schemas for user preference updates
 const updateUserPreferencesSchema = insertUserPreferencesSchema.omit({ userId: true }).partial();
@@ -148,22 +152,22 @@ function parseAmount(value: string | number | null | undefined): string {
   if (value === null || value === undefined) {
     return "0.00";
   }
-  
+
   if (typeof value === 'number') {
     return isNaN(value) ? "0.00" : value.toFixed(2);
   }
-  
+
   // Remove dollar signs, commas, and whitespace
   const cleaned = String(value).replace(/[\$,\s]/g, '');
-  
+
   // Parse to number and back to fixed decimal string
   const num = parseFloat(cleaned);
-  
+
   // Return 0 for NaN instead of throwing
   if (isNaN(num)) {
     return "0.00";
   }
-  
+
   return num.toFixed(2);
 }
 
@@ -184,11 +188,11 @@ try {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+
   // Note: Auth setup (setupAuth) is done in server/index.ts before this function is called
   // Note: Raw body middleware for Stripe webhooks is set up in server/index.ts
   // Note: /api/auth/user is defined in customAuth.ts - don't redefine it here
-  
+
   // ==================== HEALTH CHECK ENDPOINT ====================
   // Production-grade health check for monitoring and load balancers
   app.get("/api/health", async (req, res) => {
@@ -211,10 +215,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const hasGroqKey = !!process.env.GROQ_API_KEY;
     const hasAnthropicIntegration = !!process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY;
     const hasOpenAIIntegration = !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
-    
+
     if (hasGroqKey || hasAnthropicIntegration || hasOpenAIIntegration) {
-      checks.ai = { 
-        status: 'healthy', 
+      checks.ai = {
+        status: 'healthy',
         message: `Providers: ${[
           hasGroqKey ? 'Groq' : null,
           hasAnthropicIntegration ? 'Anthropic' : null,
@@ -239,7 +243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
     const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
     const heapUsagePercent = (memUsage.heapUsed / memUsage.heapTotal) * 100;
-    
+
     if (heapUsagePercent < 80) {
       checks.memory = { status: 'healthy', message: `${heapUsedMB}MB / ${heapTotalMB}MB (${heapUsagePercent.toFixed(1)}%)` };
     } else if (heapUsagePercent < 95) {
@@ -268,7 +272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         console.error('[/api/users/me] User not found for ID:', userId);
         return res.status(404).json({ message: "User not found" });
@@ -284,11 +288,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const query = req.query.q as string;
-      
+
       if (!query || query.trim().length < 2) {
         return res.status(400).json({ message: "Search query must be at least 2 characters" });
       }
-      
+
       const users = await storage.searchUsers(query, userId);
       res.json(users);
     } catch (error: any) {
@@ -300,13 +304,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requestingUserId = getUserIdFromRequest(req);
       const targetUserId = req.params.id;
-      
+
       // Only allow users to view their own profile or limited public info
       const user = await storage.getUser(targetUserId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Return full profile for own user, limited for others
       if (requestingUserId === targetUserId) {
         res.json(user);
@@ -339,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/financial-profile", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Fetch all financial profile data
       const [profile, expenseCategories, debts, assets] = await Promise.all([
         storage.getUserFinancialProfile(userId),
@@ -347,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getUserDebts(userId),
         storage.getUserAssets(userId)
       ]);
-      
+
       res.json({
         profile: profile || null,
         expenseCategories,
@@ -364,29 +368,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { profile, expenseCategories, debts, assets } = req.body;
-      
+
       // Validate and create/update profile if provided
       let savedProfile = null;
       if (profile) {
         const validatedProfile = insertUserFinancialProfileSchema.parse({ ...profile, userId });
         const existingProfile = await storage.getUserFinancialProfile(userId);
-        
+
         if (existingProfile) {
           savedProfile = await storage.updateUserFinancialProfile(userId, validatedProfile);
         } else {
           savedProfile = await storage.createUserFinancialProfile(validatedProfile);
         }
       }
-      
+
       // Update expense categories if provided
       let savedCategories: any[] = [];
       if (expenseCategories && Array.isArray(expenseCategories)) {
-        const validatedCategories = expenseCategories.map(cat => 
+        const validatedCategories = expenseCategories.map(cat =>
           insertUserExpenseCategorySchema.parse({ ...cat, userId })
         );
         savedCategories = await storage.updateUserExpenseCategories(userId, validatedCategories);
       }
-      
+
       // Update debts if provided (sequential to ensure data integrity)
       if (debts && Array.isArray(debts)) {
         const existingDebts = await storage.getUserDebts(userId);
@@ -398,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createUserDebt(validatedDebt);
         }
       }
-      
+
       // Update assets if provided (sequential to ensure data integrity)
       if (assets && Array.isArray(assets)) {
         const existingAssets = await storage.getUserAssets(userId);
@@ -410,7 +414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.createUserAsset(validatedAsset);
         }
       }
-      
+
       // Return updated composite profile
       const [updatedProfile, updatedCategories, updatedDebts, updatedAssets] = await Promise.all([
         savedProfile ? Promise.resolve(savedProfile) : storage.getUserFinancialProfile(userId),
@@ -418,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getUserDebts(userId),
         storage.getUserAssets(userId)
       ]);
-      
+
       res.json({
         profile: updatedProfile || null,
         expenseCategories: updatedCategories,
@@ -460,14 +464,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
-      
+
       // Check if user is a member of this group
       const members = await storage.getGroupMembers(req.params.id);
       const isMember = members.some((m: any) => m.userId === userId);
       if (!isMember) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       res.json(group);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -481,14 +485,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
-      
+
       // Check if user is owner or admin
       const members = await storage.getGroupMembers(req.params.id);
       const userMember = members.find((m: any) => m.userId === userId);
       if (!userMember || (userMember.role !== 'owner' && userMember.role !== 'admin')) {
         return res.status(403).json({ message: "Only group owners and admins can update the group" });
       }
-      
+
       const updateData = insertGroupSchema.partial().parse(req.body);
       const updatedGroup = await storage.updateGroup(req.params.id, updateData);
       res.json(updatedGroup);
@@ -504,12 +508,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
-      
+
       // Only owner can delete the group
       if (group.ownerId !== userId) {
         return res.status(403).json({ message: "Only the group owner can delete the group" });
       }
-      
+
       await storage.deleteGroup(req.params.id);
       res.status(204).send();
     } catch (error: any) {
@@ -522,13 +526,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const members = await storage.getGroupMembers(req.params.id);
-      
+
       // Check if user is a member of this group
       const isMember = members.some((m: any) => m.userId === userId);
       if (!isMember) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       res.json(members);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -539,13 +543,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const members = await storage.getGroupMembers(req.params.id);
-      
+
       // Check if user is a member of this group
       const isMember = members.some((m: any) => m.userId === userId);
       if (!isMember) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       const membersWithUsers = await storage.getGroupMembersWithUserInfo(req.params.id);
       res.json(membersWithUsers);
     } catch (error: any) {
@@ -557,13 +561,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const members = await storage.getGroupMembers(req.params.id);
-      
+
       // Check if user is owner or admin
       const userMember = members.find((m: any) => m.userId === userId);
       if (!userMember || (userMember.role !== 'owner' && userMember.role !== 'admin')) {
         return res.status(403).json({ message: "Only group owners and admins can add members" });
       }
-      
+
       const memberData = { ...req.body, groupId: req.params.id };
       const validatedData = insertGroupMemberSchema.parse(memberData);
       const member = await storage.addGroupMember(validatedData);
@@ -577,16 +581,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requestingUserId = getUserIdFromRequest(req);
       const members = await storage.getGroupMembers(req.params.groupId);
-      
+
       // Check if user is owner/admin OR removing themselves
       const userMember = members.find((m: any) => m.userId === requestingUserId);
       const isOwnerOrAdmin = userMember && (userMember.role === 'owner' || userMember.role === 'admin');
       const isRemovingSelf = requestingUserId === req.params.userId;
-      
+
       if (!isOwnerOrAdmin && !isRemovingSelf) {
         return res.status(403).json({ message: "Only group owners/admins can remove members, or you can remove yourself" });
       }
-      
+
       await storage.removeGroupMember(req.params.groupId, req.params.userId);
       res.status(204).send();
     } catch (error: any) {
@@ -604,7 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: userId,
         expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default 7 days
       };
-      
+
       const validatedData = insertGroupInviteSchema.parse(inviteData);
       const result = await storage.createGroupInvite(validatedData);
       res.status(201).json(result);
@@ -619,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!invite) {
         return res.status(404).json({ message: "Invalid or expired invite" });
       }
-      
+
       // Return invite metadata without sensitive information
       const group = await storage.getGroup(invite.groupId);
       res.json({
@@ -662,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const groupId = req.query.groupId as string;
       const limit = parseInt(req.query.limit as string) || 100;
       const offset = parseInt(req.query.offset as string) || 0;
-      
+
       let events;
       if (groupId) {
         events = await storage.getEventsByGroupId(groupId);
@@ -671,7 +675,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = getUserIdFromRequest(req);
         events = await storage.getUserAccessibleEventsWithGroups(userId, limit, offset);
       }
-      
+
       res.json(events);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -681,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/events/upcoming", isAuthenticated, async (req: any, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       // Use authenticated user from session
       const userId = getUserIdFromRequest(req);
       const events = await storage.getUpcomingEventsWithAttendees(userId, limit);
@@ -702,7 +706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...(req.body.budget != null && { budget: req.body.budget.toString() }),
         ...(req.body.actualCost != null && { actualCost: req.body.actualCost.toString() }),
       };
-      
+
       const validatedData = insertEventSchema.parse(eventData);
       const event = await storage.createEvent(validatedData);
       res.status(201).json(event);
@@ -734,7 +738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...(req.body.budget != null && { budget: req.body.budget.toString() }),
         ...(req.body.actualCost != null && { actualCost: req.body.actualCost.toString() }),
       };
-      
+
       const updateData = insertEventSchema.partial().parse(eventData);
       const event = await storage.updateEvent(req.params.id, updateData);
       res.json(event);
@@ -756,11 +760,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/events/:id/rsvp", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Validate RSVP data using Zod schema
       const rsvpSchema = eventAttendeeSchema.pick({ status: true });
       const { status } = rsvpSchema.parse(req.body);
-      
+
       const event = await storage.updateEventRSVP(req.params.id, userId, status);
       res.json(event);
     } catch (error: any) {
@@ -784,7 +788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const validatedData = insertFinancialGoalSchema.parse({ ...req.body, userId });
       const goal = await storage.createFinancialGoal(validatedData);
-      
+
       // Auto-disable demo mode when user adds real data
       try {
         const preferences = await storage.getUserPreferences(userId);
@@ -794,7 +798,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         // Non-critical - don't fail goal creation if demo mode update fails
       }
-      
+
       res.status(201).json(goal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -820,10 +824,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         ...(req.body.targetDate && { targetDate: new Date(req.body.targetDate) }),
       };
-      
+
       const updateData = insertFinancialGoalSchema.partial().parse(goalData);
       const goal = await storage.updateFinancialGoal(req.params.id, updateData);
-      
+
       // Check for new milestones if currentAmount was updated
       if (updateData.currentAmount) {
         const currentAmount = parseFloat(goal.currentAmount || '0');
@@ -834,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currentAmount,
           targetAmount
         );
-        
+
         // Return goal with any new milestones
         res.json({ ...goal, newMilestones });
       } else {
@@ -883,7 +887,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const streak = await storage.getUserStreak(userId);
       const achievements = await storage.getUserAchievements(userId);
-      
+
       res.json({
         currentStreak: streak?.currentStreak ?? 0,
         longestStreak: streak?.longestStreak ?? 0,
@@ -932,19 +936,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { sharedWithUserId, permission } = req.body;
-      
+
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
       if (!goal || goal.userId !== userId) {
         return res.status(403).json({ message: "You can only share your own goals" });
       }
-      
+
       // Check if they are friends
       const areFriends = await storage.areFriends(userId, sharedWithUserId);
       if (!areFriends) {
         return res.status(400).json({ message: "You can only share goals with friends" });
       }
-      
+
       const share = await storage.shareGoal({
         goalId: req.params.goalId,
         ownerId: userId,
@@ -952,7 +956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         permission: permission || 'view',
         status: 'active'
       });
-      
+
       res.status(201).json(share);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -972,13 +976,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/goals/:goalId/shares", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
       if (!goal || goal.userId !== userId) {
         return res.status(403).json({ message: "You can only view shares for your own goals" });
       }
-      
+
       const shares = await storage.getGoalShares(req.params.goalId);
       res.json(shares);
     } catch (error: any) {
@@ -989,13 +993,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/goals/:goalId/share/:userId", isAuthenticated, async (req: any, res) => {
     try {
       const ownerId = getUserIdFromRequest(req);
-      
+
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
       if (!goal || goal.userId !== ownerId) {
         return res.status(403).json({ message: "You can only unshare your own goals" });
       }
-      
+
       await storage.removeGoalShare(req.params.goalId, req.params.userId);
       res.status(204).send();
     } catch (error: any) {
@@ -1007,13 +1011,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const ownerId = getUserIdFromRequest(req);
       const { permission } = req.body;
-      
+
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
       if (!goal || goal.userId !== ownerId) {
         return res.status(403).json({ message: "You can only update shares for your own goals" });
       }
-      
+
       const share = await storage.updateGoalSharePermission(req.params.goalId, req.params.userId, permission);
       res.json(share);
     } catch (error: any) {
@@ -1025,9 +1029,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { groupId, permission } = req.body;
-      
+
       debugLog('Goals', 'Starting share request', { goalId: req.params.goalId, userId, groupId, permission });
-      
+
       // Verify goal ownership
       const goal = await storage.getFinancialGoal(req.params.goalId);
       debugLog('Goals', 'Goal found', { goalUserId: goal?.userId, requestUserId: userId, matches: goal?.userId === userId });
@@ -1035,7 +1039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         debugLog('Goals', 'Share failed: ownership check failed');
         return res.status(403).json({ message: "You can only share your own goals" });
       }
-      
+
       // Verify user is member of the group
       const members = await storage.getGroupMembers(groupId);
       debugLog('Goals', 'Group members found', { count: members.length });
@@ -1045,7 +1049,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         debugLog('Goals', 'Share failed: user not a member of the group');
         return res.status(403).json({ message: "You must be a member of the group to share goals with it" });
       }
-      
+
       // Share goal with group
       const result = await storage.shareGoalWithGroup(
         req.params.goalId,
@@ -1053,7 +1057,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         groupId,
         permission || 'view'
       );
-      
+
       // Create notifications for all group members
       const notificationPromises = members
         .filter((m: any) => m.userId !== userId)
@@ -1067,9 +1071,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           data: { goalId: req.params.goalId, groupId, permission },
           isRead: false,
         }));
-      
+
       await Promise.all(notificationPromises);
-      
+
       res.status(201).json({
         success: true,
         groupShare: result.groupShare,
@@ -1090,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: userId,
         status: 'active'
       });
-      
+
       const budget = await storage.createSharedBudget(validatedData);
       res.status(201).json(budget);
     } catch (error: any) {
@@ -1112,19 +1116,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const budget = await storage.getSharedBudget(req.params.id);
-      
+
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       // Check if user is a member
       const members = await storage.getSharedBudgetMembers(req.params.id);
       const isMember = members.some(m => m.userId === userId);
-      
+
       if (!isMember) {
         return res.status(403).json({ message: "You don't have access to this budget" });
       }
-      
+
       res.json(budget);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1135,16 +1139,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const budget = await storage.getSharedBudget(req.params.id);
-      
+
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       // Only owner can update budget
       if (budget.createdBy !== userId) {
         return res.status(403).json({ message: "Only the owner can update this budget" });
       }
-      
+
       const updateData = insertSharedBudgetSchema.partial().parse(req.body);
       const updatedBudget = await storage.updateSharedBudget(req.params.id, updateData);
       res.json(updatedBudget);
@@ -1157,16 +1161,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const budget = await storage.getSharedBudget(req.params.id);
-      
+
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       // Only owner can delete budget
       if (budget.createdBy !== userId) {
         return res.status(403).json({ message: "Only the owner can delete this budget" });
       }
-      
+
       await storage.deleteSharedBudget(req.params.id);
       res.status(204).send();
     } catch (error: any) {
@@ -1178,23 +1182,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { goalId } = req.body;
-      
+
       // Verify budget exists and user owns it
       const budget = await storage.getSharedBudget(req.params.budgetId);
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       if (budget.createdBy !== userId) {
         return res.status(403).json({ message: "Only the budget owner can link a goal" });
       }
-      
+
       // Verify goal exists and user has access (owner or shared with them)
       const goal = await storage.getFinancialGoal(goalId);
       if (!goal) {
         return res.status(404).json({ message: "Financial goal not found" });
       }
-      
+
       const hasAccess = goal.userId === userId;
       if (!hasAccess) {
         // Check if goal is shared with user
@@ -1204,12 +1208,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "You don't have access to this goal" });
         }
       }
-      
+
       // Update budget with linked goal
       const updatedBudget = await storage.updateSharedBudget(req.params.budgetId, {
         linkedGoalId: goalId,
       });
-      
+
       // Return updated budget with goal info
       res.json({
         ...updatedBudget,
@@ -1225,29 +1229,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { userId: newMemberId, role } = req.body;
-      
+
       const budget = await storage.getSharedBudget(req.params.budgetId);
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       // Only owner can add members
       if (budget.createdBy !== userId) {
         return res.status(403).json({ message: "Only the owner can add members" });
       }
-      
+
       // Check if they are friends
       const areFriends = await storage.areFriends(userId, newMemberId);
       if (!areFriends) {
         return res.status(400).json({ message: "You can only add friends to shared budgets" });
       }
-      
+
       const member = await storage.addSharedBudgetMember({
         budgetId: req.params.budgetId,
         userId: newMemberId,
         role: role || 'member'
       });
-      
+
       res.status(201).json(member);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1257,15 +1261,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shared-budgets/:budgetId/members", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Check if user is a member
       const members = await storage.getSharedBudgetMembers(req.params.budgetId);
       const isMember = members.some(m => m.userId === userId);
-      
+
       if (!isMember) {
         return res.status(403).json({ message: "You don't have access to this budget" });
       }
-      
+
       res.json(members);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1276,19 +1280,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const currentUserId = getUserIdFromRequest(req);
       const budget = await storage.getSharedBudget(req.params.budgetId);
-      
+
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       // Owner can remove anyone, or user can remove themselves
       const isOwner = budget.createdBy === currentUserId;
       const isSelf = currentUserId === req.params.userId;
-      
+
       if (!isOwner && !isSelf) {
         return res.status(403).json({ message: "You can only remove yourself or be the owner" });
       }
-      
+
       await storage.removeSharedBudgetMember(req.params.budgetId, req.params.userId);
       res.status(204).send();
     } catch (error: any) {
@@ -1300,24 +1304,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/shared-budgets/:budgetId/expenses", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Check if user is a member
       const members = await storage.getSharedBudgetMembers(req.params.budgetId);
       const isMember = members.some(m => m.userId === userId);
-      
+
       if (!isMember) {
         return res.status(403).json({ message: "You must be a member to add expenses" });
       }
-      
+
       const validatedData = insertSharedBudgetExpenseSchema.parse({
         ...req.body,
         budgetId: req.params.budgetId,
         userId,
         date: new Date(req.body.date || Date.now())
       });
-      
+
       const expense = await storage.createSharedBudgetExpense(validatedData);
-      
+
       // Check if budget has a linked goal and update it
       const budget = await storage.getSharedBudget(req.params.budgetId);
       if (budget?.linkedGoalId) {
@@ -1326,13 +1330,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const currentAmount = parseFloat(goal.currentAmount?.toString() || '0');
           const expenseAmount = parseFloat(expense.amount.toString());
           const newAmount = currentAmount + expenseAmount;
-          
+
           await storage.updateFinancialGoal(budget.linkedGoalId, {
             currentAmount: newAmount.toFixed(2),
           });
         }
       }
-      
+
       res.status(201).json(expense);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1342,15 +1346,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/shared-budgets/:budgetId/expenses", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Check if user is a member
       const members = await storage.getSharedBudgetMembers(req.params.budgetId);
       const isMember = members.some(m => m.userId === userId);
-      
+
       if (!isMember) {
         return res.status(403).json({ message: "You don't have access to this budget" });
       }
-      
+
       const expenses = await storage.getSharedBudgetExpenses(req.params.budgetId);
       res.json(expenses);
     } catch (error: any) {
@@ -1365,16 +1369,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select()
         .from(sharedBudgetExpenses)
         .where(eq(sharedBudgetExpenses.id, req.params.id));
-      
+
       if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
       }
-      
+
       // Only the creator can update
       if (expense.userId !== userId) {
         return res.status(403).json({ message: "You can only update your own expenses" });
       }
-      
+
       const updateData = insertSharedBudgetExpenseSchema.partial().parse(req.body);
       const updatedExpense = await storage.updateSharedBudgetExpense(req.params.id, updateData);
       res.json(updatedExpense);
@@ -1387,28 +1391,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const budget = await storage.getSharedBudget(req.params.budgetId);
-      
+
       if (!budget) {
         return res.status(404).json({ message: "Shared budget not found" });
       }
-      
+
       const [expense] = await db
         .select()
         .from(sharedBudgetExpenses)
         .where(eq(sharedBudgetExpenses.id, req.params.id));
-      
+
       if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
       }
-      
+
       // Owner or expense creator can delete
       const isOwner = budget.createdBy === userId;
       const isCreator = expense.userId === userId;
-      
+
       if (!isOwner && !isCreator) {
         return res.status(403).json({ message: "You can only delete your own expenses or be the owner" });
       }
-      
+
       await storage.deleteSharedBudgetExpense(req.params.id);
       res.status(204).send();
     } catch (error: any) {
@@ -1421,26 +1425,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { invitedUserId, role, message } = req.body;
-      
+
       // Verify user is admin of the group
       const members = await storage.getGroupMembers(req.params.groupId);
       const member = members.find(m => m.userId === userId);
       if (!member || member.role !== 'admin') {
         return res.status(403).json({ message: "Only group admins can invite friends" });
       }
-      
+
       // Check if they are friends
       const areFriends = await storage.areFriends(userId, invitedUserId);
       if (!areFriends) {
         return res.status(400).json({ message: "You can only invite friends to groups" });
       }
-      
+
       // Check if already a member
       const existingMember = members.find(m => m.userId === invitedUserId);
       if (existingMember) {
         return res.status(400).json({ message: "User is already a member of this group" });
       }
-      
+
       const invitation = await storage.createFriendGroupInvitation({
         groupId: req.params.groupId,
         invitedBy: userId,
@@ -1449,7 +1453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending',
         message: message || null
       });
-      
+
       res.status(201).json(invitation);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1460,51 +1464,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { friendIds, role } = req.body;
-      
+
       if (!Array.isArray(friendIds) || friendIds.length === 0) {
         return res.status(400).json({ message: "friendIds must be a non-empty array" });
       }
-      
+
       // Verify user is group owner or admin
       const members = await storage.getGroupMembers(req.params.groupId);
       const member = members.find(m => m.userId === userId);
       if (!member || (member.role !== 'owner' && member.role !== 'admin')) {
         return res.status(403).json({ message: "Only group owners and admins can invite friends" });
       }
-      
+
       // Get group for notifications
       const group = await storage.getGroup(req.params.groupId);
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
       }
-      
+
       // Verify all are friends and not already members
       const validFriendIds: string[] = [];
       const errors: string[] = [];
-      
+
       for (const friendId of friendIds) {
         const areFriends = await storage.areFriends(userId, friendId);
         if (!areFriends) {
           errors.push(`User ${friendId} is not your friend`);
           continue;
         }
-        
+
         const existingMember = members.find(m => m.userId === friendId);
         if (existingMember) {
           errors.push(`User ${friendId} is already a member`);
           continue;
         }
-        
+
         validFriendIds.push(friendId);
       }
-      
+
       if (validFriendIds.length === 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "No valid friends to invite",
-          errors 
+          errors
         });
       }
-      
+
       // Bulk create invitations
       const invitations = await storage.bulkInviteFriendsToGroup(
         req.params.groupId,
@@ -1512,9 +1516,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validFriendIds,
         role
       );
-      
+
       // Create notifications for each invited friend
-      const notificationPromises = invitations.map(inv => 
+      const notificationPromises = invitations.map(inv =>
         storage.createNotification({
           userId: inv.invitedUserId,
           type: 'group_invitation',
@@ -1526,9 +1530,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isRead: false,
         })
       );
-      
+
       await Promise.all(notificationPromises);
-      
+
       res.status(201).json({
         success: true,
         invitations,
@@ -1554,21 +1558,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { status } = req.body;
-      
+
       // Get invitation to verify it belongs to user
       const [invitation] = await db
         .select()
         .from(friendGroupInvitations)
         .where(eq(friendGroupInvitations.id, req.params.id));
-      
+
       if (!invitation) {
         return res.status(404).json({ message: "Invitation not found" });
       }
-      
+
       if (invitation.invitedUserId !== userId) {
         return res.status(403).json({ message: "This invitation is not for you" });
       }
-      
+
       const updatedInvitation = await storage.updateFriendGroupInvitationStatus(req.params.id, status);
       res.json(updatedInvitation);
     } catch (error: any) {
@@ -1579,22 +1583,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/group-invitations/:id", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Get invitation to verify user can delete it
       const [invitation] = await db
         .select()
         .from(friendGroupInvitations)
         .where(eq(friendGroupInvitations.id, req.params.id));
-      
+
       if (!invitation) {
         return res.status(404).json({ message: "Invitation not found" });
       }
-      
+
       // Can delete if you sent it or received it
       if (invitation.invitedBy !== userId && invitation.invitedUserId !== userId) {
         return res.status(403).json({ message: "You don't have permission to delete this invitation" });
       }
-      
+
       await storage.deleteFriendGroupInvitation(req.params.id);
       res.status(204).send();
     } catch (error: any) {
@@ -1607,7 +1611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const goalId = req.query.goalId as string;
       const limit = parseInt(req.query.limit as string) || 50;
-      
+
       let transactions;
       if (goalId) {
         transactions = await storage.getTransactionsByGoalId(goalId);
@@ -1615,7 +1619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = getUserIdFromRequest(req);
         transactions = await storage.getTransactionsByUserId(userId, limit);
       }
-      
+
       res.json(transactions);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1661,7 +1665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const parsed = parseFloat(String(amount));
         return isNaN(parsed) ? 0 : parsed;
       };
-      
+
       const summary = {
         totalIncome: transactions
           .filter((t: any) => t.type === 'income')
@@ -1724,20 +1728,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get userId from authenticated session
       const userId = getUserIdFromRequest(req);
-      
+
       // Parse and validate request body
       let validatedData = insertTransactionSchema.parse(req.body);
-      
+
       // Set userId from session
       validatedData = { ...validatedData, userId };
-      
+
       // Auto-categorize if category is not provided or is "Other"
       if (!validatedData.category || validatedData.category === 'Other' || validatedData.category === 'other') {
         const description = validatedData.description || '';
         const amount = parseFloat(validatedData.amount.toString());
         const type = validatedData.type as 'income' | 'expense' | 'transfer';
         const autoCategory = autoCategorizeTransaction(description, amount, type);
-        
+
         if (autoCategory !== 'Other') {
           validatedData = { ...validatedData, category: autoCategory };
           debugLog('Transactions', `Auto-categorized "${description}" → ${autoCategory}`);
@@ -1746,9 +1750,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           validatedData = { ...validatedData, category: 'other' };
         }
       }
-      
+
       const transaction = await storage.createTransaction(validatedData);
-      
+
       // Auto-disable demo mode when user adds real data
       try {
         const preferences = await storage.getUserPreferences(userId);
@@ -1758,7 +1762,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         // Non-critical - don't fail transaction creation if demo mode update fails
       }
-      
+
+      // TRIGGER TWEALTH INDEX UPDATE
+      // Recompute scores for the current month whenever a transaction occurs
+      try {
+        await recomputeScores(storage, userId);
+      } catch (e) {
+        console.error('[POST /api/transactions] Failed to recompute Twealth Index:', e);
+        // Fallthrough - do not fail the request
+      }
+
       res.status(201).json(transaction);
     } catch (error: any) {
       console.error('[POST /api/transactions] Error:', error);
@@ -1771,25 +1784,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { transactions: txData } = req.body;
-      
+
       if (!Array.isArray(txData) || txData.length === 0) {
         return res.status(400).json({ message: "No transactions provided" });
       }
-      
+
       if (txData.length > 500) {
         return res.status(400).json({ message: "Maximum 500 transactions per import" });
       }
-      
+
       const transactionsToCreate: InsertTransaction[] = txData.map((tx: any) => {
         const amount = parseFloat(tx.amount?.toString() || '0');
         const type = amount >= 0 ? 'income' : 'expense';
         const description = tx.description || '';
-        
+
         let category = tx.category || autoCategorizeTransaction(description, Math.abs(amount), type);
         if (!category || category === 'Other') {
           category = type === 'income' ? 'salary' : 'other';
         }
-        
+
         return {
           userId,
           amount: Math.abs(amount).toString(),
@@ -1799,9 +1812,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           date: new Date(tx.date),
         };
       });
-      
+
       const created = await storage.bulkCreateTransactions(transactionsToCreate);
-      
+
       // Auto-disable demo mode when user imports real data
       try {
         const preferences = await storage.getUserPreferences(userId);
@@ -1811,8 +1824,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         // Non-critical
       }
-      
-      res.status(201).json({ 
+
+      res.status(201).json({
         imported: created.length,
         message: `Successfully imported ${created.length} transactions`
       });
@@ -1827,7 +1840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const months = parseInt(req.query.months as string) || 6;
-      
+
       const summary = await storage.getFinancialSummary(userId, months);
       res.json(summary);
     } catch (error: any) {
@@ -1879,7 +1892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         ...(req.body.date && { date: new Date(req.body.date) }),
       };
-      
+
       const updateData = insertTransactionSchema.partial().parse(transactionData);
       const transaction = await storage.updateTransaction(req.params.id, updateData);
       res.json(transaction);
@@ -1901,11 +1914,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { transactionIds } = req.body;
-      
+
       if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
         return res.status(400).json({ message: "transactionIds array is required" });
       }
-      
+
       // Get all transactions and auto-categorize them
       const updated = [];
       for (const txId of transactionIds) {
@@ -1913,25 +1926,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!transaction || transaction.userId !== userId) {
           continue; // Skip transactions that don't exist or don't belong to user
         }
-        
+
         // Auto-categorize
         const description = transaction.description || '';
         const amount = parseFloat(transaction.amount.toString());
         const type = transaction.type as 'income' | 'expense' | 'transfer';
         const autoCategory = autoCategorizeTransaction(description, amount, type);
-        
+
         if (autoCategory !== 'Other' && autoCategory !== transaction.category) {
           const updatedTx = await storage.updateTransaction(txId, { category: autoCategory });
           updated.push(updatedTx);
           debugLog('Transactions', `Bulk-categorized "${description}" → ${autoCategory}`);
         }
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         updated: updated.length,
         total: transactionIds.length,
-        transactions: updated 
+        transactions: updated
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -1943,13 +1956,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const transaction = await storage.getTransaction(req.params.id);
-      
+
       if (!transaction || transaction.userId !== userId) {
         return res.status(404).json({ message: "Transaction not found" });
       }
-      
-      const updated = await storage.updateTransaction(req.params.id, { 
-        isArchived: !transaction.isArchived 
+
+      const updated = await storage.updateTransaction(req.params.id, {
+        isArchived: !transaction.isArchived
       });
       res.json(updated);
     } catch (error: any) {
@@ -1962,13 +1975,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const transaction = await storage.getTransaction(req.params.id);
-      
+
       if (!transaction || transaction.userId !== userId) {
         return res.status(404).json({ message: "Transaction not found" });
       }
-      
-      const updated = await storage.updateTransaction(req.params.id, { 
-        isFlagged: !transaction.isFlagged 
+
+      const updated = await storage.updateTransaction(req.params.id, {
+        isFlagged: !transaction.isFlagged
       });
       res.json(updated);
     } catch (error: any) {
@@ -1990,21 +2003,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/budgets", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Parse and validate request body
       let validatedData = insertBudgetSchema.parse(req.body);
-      
+
       // Set userId from session
       validatedData = { ...validatedData, userId };
-      
+
       // Check if budget already exists for this category
       const existing = await storage.getBudgetByUserAndCategory(userId, validatedData.category);
       if (existing) {
-        return res.status(409).json({ 
-          message: `Budget already exists for category "${validatedData.category}". Please update it instead.` 
+        return res.status(409).json({
+          message: `Budget already exists for category "${validatedData.category}". Please update it instead.`
         });
       }
-      
+
       const budget = await storage.createBudget(validatedData);
       res.status(201).json(budget);
     } catch (error: any) {
@@ -2016,11 +2029,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const budget = await storage.getBudget(req.params.id);
-      
+
       if (!budget || budget.userId !== userId) {
         return res.status(404).json({ message: "Budget not found" });
       }
-      
+
       const updated = await storage.updateBudget(req.params.id, req.body);
       res.json(updated);
     } catch (error: any) {
@@ -2032,11 +2045,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const budget = await storage.getBudget(req.params.id);
-      
+
       if (!budget || budget.userId !== userId) {
         return res.status(404).json({ message: "Budget not found" });
       }
-      
+
       await storage.deleteBudget(req.params.id);
       res.status(204).send();
     } catch (error: any) {
@@ -2065,7 +2078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Set default expiry to 30 days if not provided
         ...(req.body.expiresAt ? { expiresAt: new Date(req.body.expiresAt) } : { expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
       };
-      
+
       const validatedData = insertCalendarShareSchema.parse(shareData);
       const result = await storage.createCalendarShare(validatedData);
       res.status(201).json(result);
@@ -2088,7 +2101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const token = req.params.token;
     try {
       const events = await storage.getEventsForShare(token);
-      
+
       // Generate ICS content
       const icsLines = [
         "BEGIN:VCALENDAR",
@@ -2102,7 +2115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const startDate = new Date(event.startTime).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         const endDate = new Date(event.endTime).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
         const uid = `${event.id}@schedulmoney.app`;
-        
+
         icsLines.push(
           "BEGIN:VEVENT",
           `UID:${uid}`,
@@ -2117,9 +2130,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       icsLines.push("END:VCALENDAR");
-      
+
       const icsContent = icsLines.join('\r\n');
-      
+
       res.set({
         'Content-Type': 'text/calendar; charset=utf-8',
         'Content-Disposition': 'attachment; filename="calendar.ics"',
@@ -2139,7 +2152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         toUserId: req.body.toUserId,
         message: req.body.message,
       };
-      
+
       const validatedData = insertFriendRequestSchema.parse(requestData);
       const request = await storage.createFriendRequest(validatedData);
       res.status(201).json(request);
@@ -2171,11 +2184,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/friend-requests/:id/respond", isAuthenticated, async (req: any, res) => {
     try {
       const { status } = req.body;
-      
+
       if (!['accepted', 'declined'].includes(status)) {
         return res.status(400).json({ message: "Invalid status. Must be 'accepted' or 'declined'" });
       }
-      
+
       const request = await storage.updateFriendRequestStatus(req.params.id, status);
       res.json(request);
     } catch (error: any) {
@@ -2237,16 +2250,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Coerce amount to string for validation
         amount: req.body.amount?.toString() || "0"
       };
-      
+
       const validatedData = insertEventExpenseSchema.parse(expenseData);
       const expense = await storage.createEventExpense(validatedData);
-      
+
       // Convert decimal amount to number for response
       const formattedExpense = {
         ...expense,
         amount: parseFloat(expense.amount.toString())
       };
-      
+
       res.status(201).json(formattedExpense);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2259,12 +2272,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!expense) {
         return res.status(404).json({ message: "Expense not found" });
       }
-      
+
       const formattedExpense = {
         ...expense,
         amount: parseFloat(expense.amount.toString())
       };
-      
+
       res.json(formattedExpense);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -2278,15 +2291,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...(req.body.date && { date: new Date(req.body.date) }),
         ...(req.body.amount && { amount: req.body.amount.toString() })
       };
-      
+
       const updateData = insertEventExpenseSchema.partial().parse(expenseData);
       const expense = await storage.updateEventExpense(req.params.id, updateData);
-      
+
       const formattedExpense = {
         ...expense,
         amount: parseFloat(expense.amount.toString())
       };
-      
+
       res.json(formattedExpense);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2323,15 +2336,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expenseId: req.params.expenseId,
         shareAmount: req.body.shareAmount?.toString() || "0"
       };
-      
+
       const validatedData = insertEventExpenseShareSchema.parse(shareData);
       const share = await storage.createEventExpenseShare(validatedData);
-      
+
       const formattedShare = {
         ...share,
         shareAmount: parseFloat(share.shareAmount.toString())
       };
-      
+
       res.status(201).json(formattedShare);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2346,12 +2359,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       const updateData = insertEventExpenseShareSchema.partial().parse(shareData);
       const share = await storage.updateEventExpenseShare(req.params.id, updateData);
-      
+
       const formattedShare = {
         ...share,
         shareAmount: parseFloat(share.shareAmount.toString())
       };
-      
+
       res.json(formattedShare);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2387,7 +2400,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = getUserIdFromRequest(req);
       const settings = await storage.getUserSettings(userId);
       if (!settings) {
-        return res.status(404).json({ message: "User settings not found" });
+        // Create default settings if they don't exist
+        const defaultSettings = {
+          userId: userId,
+          hourlyRate: "50.00"
+        };
+        const newSettings = await storage.createUserSettings(defaultSettings);
+        return res.json({
+          ...newSettings,
+          hourlyRate: parseFloat((newSettings.hourlyRate || 50).toString())
+        });
       }
       res.json({
         ...settings,
@@ -2432,16 +2454,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const user = await storage.getUser(userId);
-      
+
       if (!user) {
         console.error('[/api/user-preferences] User not found for ID:', userId);
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const preferences = await storage.getUserPreferences(user.id);
       if (!preferences) {
         // Create default preferences if they don't exist
-        const defaultPrefs = { 
+        const defaultPrefs = {
           userId: user.id,
           theme: "system" as const
         };
@@ -2473,19 +2495,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { onboardingStep, onboardingData } = req.body;
-      
+
       // Get current preferences to merge onboarding data
       const currentPrefs = await storage.getUserPreferences(userId);
       const mergedData = {
         ...currentPrefs?.onboardingData as any,
         ...onboardingData
       } as any;
-      
+
       const preferences = await storage.updateUserPreferences(userId, {
         onboardingStep,
         onboardingData: mergedData
       });
-      
+
       res.json(preferences);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2530,15 +2552,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/calculate-tax", isAuthenticated, async (req: any, res) => {
     try {
       const { income, period, countryCode } = req.body;
-      
+
       if (!income || income <= 0) {
         return res.status(400).json({ message: "Income must be a positive number" });
       }
-      
+
       const country = countryCode || 'US';
-      
+
       if (!taxService.isCountrySupported(country)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: `Country code ${country} is not supported`,
           supportedCountries: taxService.getSupportedCountries().map(c => ({
             code: c.countryCode,
@@ -2546,11 +2568,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }))
         });
       }
-      
-      const result = period === 'annual' 
+
+      const result = period === 'annual'
         ? taxService.calculateAnnualTax(income, country)
         : taxService.calculateMonthlyTax(income, country);
-      
+
       res.json(result);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2575,7 +2597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const transactions = await storage.getTransactionsByUserId(userId, 100); // Last 100 transactions
-      
+
       const insights = spendingPatternService.analyzeSpendingPatterns(transactions as any);
       res.json(insights);
     } catch (error: any) {
@@ -2619,18 +2641,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const format = req.query.format as 'json' | 'csv' || 'json';
-      
+
       if (format !== 'json' && format !== 'csv') {
         return res.status(400).json({ message: "Format must be 'json' or 'csv'" });
       }
 
       const exportData = await storage.exportUserData(userId, format);
-      
+
       // Update last export timestamp
       await storage.updatePrivacySettings(userId, { lastDataExport: new Date() });
-      
+
       const filename = `twealth-data-${userId}-${new Date().toISOString().split('T')[0]}.${format}`;
-      
+
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Content-Type', format === 'json' ? 'application/json' : 'text/csv');
       res.send(exportData);
@@ -2643,13 +2665,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { confirmation } = req.body;
-      
+
       if (confirmation !== 'DELETE') {
-        return res.status(400).json({ 
-          message: "Data deletion requires confirmation field with value 'DELETE'" 
+        return res.status(400).json({
+          message: "Data deletion requires confirmation field with value 'DELETE'"
         });
       }
-      
+
       await storage.deleteUserData(userId);
       res.json({ message: "All user data has been permanently deleted" });
     } catch (error: any) {
@@ -2661,7 +2683,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/time-logs", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Convert date strings to Date objects
       const timeLogData = {
         ...req.body,
@@ -2669,7 +2691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startedAt: req.body.startedAt ? new Date(req.body.startedAt) : undefined,
         endedAt: req.body.endedAt ? new Date(req.body.endedAt) : undefined
       };
-      
+
       // Calculate duration if both dates are provided
       if (timeLogData.startedAt && timeLogData.endedAt) {
         if (timeLogData.endedAt <= timeLogData.startedAt) {
@@ -2678,7 +2700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const durationMs = timeLogData.endedAt.getTime() - timeLogData.startedAt.getTime();
         timeLogData.durationMinutes = Math.round(durationMs / (1000 * 60));
       }
-      
+
       const validatedData = insertEventTimeLogSchema.parse(timeLogData);
       const timeLog = await storage.createTimeLog(validatedData);
       res.status(201).json(timeLog);
@@ -2700,10 +2722,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const { range } = req.query;
-      
+
       let startDate: Date | undefined;
       let endDate: Date | undefined;
-      
+
       if (range === '7d') {
         startDate = new Date();
         startDate.setDate(startDate.getDate() - 7);
@@ -2717,7 +2739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startDate.setDate(startDate.getDate() - 90);
         endDate = new Date();
       }
-      
+
       const timeLogs = await storage.getUserTimeLogs(userId, startDate, endDate);
       res.json(timeLogs);
     } catch (error: any) {
@@ -2733,7 +2755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         startedAt: req.body.startedAt ? new Date(req.body.startedAt) : undefined,
         endedAt: req.body.endedAt ? new Date(req.body.endedAt) : undefined
       };
-      
+
       // Calculate duration if both dates are provided
       if (updateData.startedAt && updateData.endedAt) {
         if (updateData.endedAt <= updateData.startedAt) {
@@ -2742,7 +2764,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const durationMs = updateData.endedAt.getTime() - updateData.startedAt.getTime();
         updateData.durationMinutes = Math.round(durationMs / (1000 * 60));
       }
-      
+
       const validatedData = insertEventTimeLogSchema.omit({ userId: true, eventId: true }).partial().parse(updateData);
       const timeLog = await storage.updateTimeLog(req.params.id, validatedData);
       res.json(timeLog);
@@ -2787,17 +2809,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const range = (req.query.range as '7d' | '30d' | '90d') || '30d';
-      
+
       // Get basic insights
       const insights = await storage.getTimeValueInsights(userId, range);
-      
+
       // Get user settings for context
       const settings = await storage.getUserSettings(userId);
-      
+
       // Calculate additional metrics
       const averageHourlyValue = insights.totalTimeHours > 0 ? insights.timeValue / insights.totalTimeHours : 0;
       const timeEfficiency = insights.timeValue > 0 ? ((insights.timeValue - insights.totalCost) / insights.timeValue) * 100 : 0;
-      
+
       res.json({
         ...insights,
         hourlyRate: settings?.hourlyRate ? parseFloat(settings.hourlyRate.toString()) : 50,
@@ -2818,7 +2840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
       const includeRead = req.query.includeRead === 'true';
-      
+
       const notifications = await storage.getNotificationsByUserId(userId, limit, offset, includeRead);
       res.json(notifications);
     } catch (error: any) {
@@ -2843,7 +2865,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...req.body,
         userId: userId,
       };
-      
+
       const validatedData = insertNotificationSchema.parse(notificationData);
       const notification = await storage.createNotification(validatedData);
       res.status(201).json(notification);
@@ -2856,7 +2878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const notifications = await storage.generateSmartNotifications(userId);
-      res.json({ 
+      res.json({
         generated: notifications.length,
         notifications: notifications.slice(0, 5) // Return first 5 for preview
       });
@@ -2955,7 +2977,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
-      
+
       // Verify ownership
       const conversation = await storage.getChatConversation(conversationId);
       if (!conversation || conversation.userId !== userId) {
@@ -2980,7 +3002,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
-      
+
       // Verify ownership
       const conversation = await storage.getChatConversation(conversationId);
       if (!conversation || conversation.userId !== userId) {
@@ -2998,14 +3020,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = getUserIdFromRequest(req);
       const conversationId = req.params.id;
-      
+
       // Ensure user has a subscription
       let subscription = await storage.getUserSubscription(userId);
       if (!subscription) {
         await storage.initializeDefaultSubscription(userId);
         subscription = await storage.getUserSubscription(userId);
       }
-      
+
       // Map plan name to tier for cache isolation
       const tierFromPlan = (planName: string | undefined): 'free' | 'pro' | 'enterprise' => {
         if (!planName) return 'free';
@@ -3015,7 +3037,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return 'free';
       };
       const subscriptionTier = tierFromPlan(subscription?.plan?.name);
-      
+
       // Validate conversation exists and belongs to user
       const conversation = await storage.getChatConversation(conversationId);
       if (!conversation || conversation.userId !== userId) {
@@ -3023,10 +3045,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const userMessage = req.body.content;
-      
+      const isDeepAnalysis = req.body.isDeepAnalysis === true;
+
       if (!userMessage || typeof userMessage !== 'string') {
         return res.status(400).json({ message: "Message content is required" });
       }
+
+      console.log('[AI Chat] Request received', { isDeepAnalysis, messagePreview: userMessage.slice(0, 50) });
 
       // Save user message
       const userChatMessage = await storage.createChatMessage({
@@ -3042,7 +3067,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This ensures we capture data even if AI fails later
       const messageLower = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
       const estimates: any = {};
-      
+
       // Extract income-related numbers
       const incomeMatch = messageLower.match(/(?:earn|make|income|salary).*?(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
       if (incomeMatch) {
@@ -3051,7 +3076,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimates.monthlyIncomeEstimate = amount.toString();
         }
       }
-      
+
       // Extract expense-related numbers
       const expenseMatch = messageLower.match(/(?:spend|expense|cost).*?(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
       if (expenseMatch) {
@@ -3060,7 +3085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimates.monthlyExpensesEstimate = amount.toString();
         }
       }
-      
+
       // Extract savings-related numbers  
       const savingsMatch = messageLower.match(/(?:have|saved|savings|save).*?(\$?\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/i);
       if (savingsMatch) {
@@ -3069,7 +3094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimates.currentSavingsEstimate = amount.toString();
         }
       }
-      
+
       // Save estimates if we found any
       if (Object.keys(estimates).length > 0) {
         await storage.updateUserPreferences(userId, estimates);
@@ -3094,9 +3119,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recentExpenses = recentTransactions
         .filter(t => t.type === 'expense' && t.date >= thirtyDaysAgo)
         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      
-      const monthlyExpenses = recentExpenses > 0 
-        ? recentExpenses 
+
+      const monthlyExpenses = recentExpenses > 0
+        ? recentExpenses
         : parseFloat(userPreferences?.monthlyExpensesEstimate?.toString() || "0");
 
       const userContext: UserContext = {
@@ -3158,18 +3183,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: m.content,
         timestamp: m.createdAt || new Date()
       }));
-      
+
       // Summarize older messages (beyond the last 6) to maintain context without token bloat
       const recentMessages = allMessages.slice(-6);
       const olderMessages = allMessages.slice(0, -6);
-      const conversationSummary = olderMessages.length > 0 
+      const conversationSummary = olderMessages.length > 0
         ? summarizeConversationHistory(olderMessages)
         : '';
-      
+
       // Inject conversation summary as context at the start of the history
       // This ensures the AI knows what was discussed earlier in long conversations
       const conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
-      
+
       if (conversationSummary && conversationSummary.trim()) {
         // Add summary as an assistant message that provides full context from older messages
         conversationHistory.push({
@@ -3177,7 +3202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content: conversationSummary.trim()
         });
       }
-      
+
       // Add recent messages in full detail
       conversationHistory.push(...recentMessages.map(m => ({
         role: m.role,
@@ -3189,16 +3214,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // CODE-LEVEL IMPOSSIBILITY CHECK (Pre-AI Validation)
       // Detect if user is discussing a purchase/goal and calculate feasibility BEFORE AI sees it
       let impossibleGoalFlag: string | null = null;
-      
+
       const msgLower = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
       const purchaseKeywords = ['buy', 'purchase', 'get', 'want', 'need', 'lambo', 'lamborghini', 'ferrari', 'house', 'car', 'yacht', 'ซื้อ', 'อยาก', 'comprar', 'quiero', '买', '想'];
       const timeKeywords = ['year', 'years', 'month', 'months', 'ปี', 'เดือน', 'años', 'meses', '年', '月'];
-      
+
       const hasPurchaseIntent = purchaseKeywords.some(kw => msgLower.includes(kw));
       const hasTimeframe = timeKeywords.some(kw => msgLower.includes(kw));
-      
+
       debugLog('AI', 'Impossibility check', { hasPurchaseIntent, hasTimeframe });
-      
+
       if (hasPurchaseIntent && hasTimeframe) {
         debugLog('AI', 'Both conditions met, proceeding with feasibility check');
         // Extract potential price (look for common luxury items or dollar amounts)
@@ -3206,15 +3231,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g, // $573,966 or $1,000,000
           /(\d{1,3}(?:,\d{3})+)/g, // 573966 or 1000000
         ];
-        
+
         // Extract timeframe in years
         const yearMatch = msgLower.match(/(\d+)\s*(?:year|years|ปี|años|年)/);
         const monthMatch = msgLower.match(/(\d+)\s*(?:month|months|เดือน|meses|月)/);
-        
+
         let yearsExtracted = 0;
         if (yearMatch) yearsExtracted = parseInt(yearMatch[1]);
         else if (monthMatch) yearsExtracted = parseInt(monthMatch[1]) / 12;
-        
+
         // Known luxury items with prices
         const luxuryItems: Record<string, number> = {
           'lambo': 573966, 'lamborghini': 573966,
@@ -3224,9 +3249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'yacht': 2000000, 'superyacht': 10000000,
           'mansion': 2000000, 'villa': 1500000
         };
-        
+
         let goalAmount = 0;
-        
+
         // Check for luxury items first
         for (const [item, price] of Object.entries(luxuryItems)) {
           if (msgLower.includes(item)) {
@@ -3234,7 +3259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
           }
         }
-        
+
         // If no luxury item, try to extract price from message
         if (goalAmount === 0) {
           for (const pattern of pricePatterns) {
@@ -3248,13 +3273,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-        
+
         // If we found both goal amount and timeframe, check feasibility
         debugLog('AI', `Extracted goal data`, { goalAmount, yearsExtracted });
-        
+
         if (goalAmount > 0 && yearsExtracted > 0 && yearsExtracted <= 30) {
           debugLog('AI', 'Running feasibility check', { income: userContext.monthlyIncome, expenses: userContext.monthlyExpenses });
-          
+
           const { checkGoalFeasibility } = await import('./financialCalculations');
           const feasibility = checkGoalFeasibility(
             goalAmount,
@@ -3263,12 +3288,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             userContext.monthlyExpenses,
             userContext.totalSavings
           );
-          
+
           debugLog('AI', 'Feasibility result', { isFeasible: feasibility.isFeasible, monthlyNeeded: feasibility.monthlyNeeded, capacity: feasibility.monthlyCapacity });
-          
+
           if (!feasibility.isFeasible) {
             debugLog('AI', 'Impossible goal detected', { goalAmount, years: yearsExtracted, reason: feasibility.reason });
-            
+
             impossibleGoalFlag = `
 CRITICAL: IMPOSSIBLE GOAL DETECTED
 
@@ -3294,7 +3319,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
       try {
         // Get memory context from previous conversations
         const memoryContext = await getMemoryContext(storage, userId);
-        
+
         // Enhance userContext with impossibility flag and memory
         // Note: conversationSummary is now injected into conversationHistory directly
         const enhancedContext = {
@@ -3302,11 +3327,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
           ...(impossibleGoalFlag && { impossibleGoalWarning: impossibleGoalFlag }),
           ...(memoryContext && { memoryContext })
         };
-        
+
         // Use tier-aware AI router for intelligent model selection and quota enforcement
         // Pass conversation history for context (last 6 messages + older summary)
-        const tierResult = await routeWithTierCheck(userId, userMessage, storage, conversationHistory);
-        
+        // Force Claude Sonnet when Deep Analysis mode is selected
+        const tierResult = await routeWithTierCheck(userId, userMessage, storage, {
+          conversationHistory,
+          forceDeepAnalysis: isDeepAnalysis
+        });
+
         // Handle quota exceeded response
         if ('type' in tierResult && tierResult.type === 'quota_exceeded') {
           const quotaError = tierResult as QuotaExceededError;
@@ -3320,25 +3349,25 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             nextTier: quotaError.nextTier
           });
         }
-        
+
         // Extract AI result from successful response
         const aiResult = tierResult as HybridAIResponse;
-        
+
         // Type guard: Ensure aiResult is valid HybridAIResponse
         if (!aiResult || typeof aiResult !== 'object' || !('answer' in aiResult)) {
           throw new Error('Invalid AI response: result is null or not an object');
         }
-        
+
         // HALLUCINATION CHECK: Warn if AI claims action but no tools called
         const lowerResponse = typeof aiResult.answer === 'string' ? aiResult.answer.toLowerCase() : '';
-        const claimsAction = lowerResponse.includes('goal created') || lowerResponse.includes('added to your goals') || 
-                             lowerResponse.includes('i\'ve created') || lowerResponse.includes('i\'ve added') ||
-                             lowerResponse.includes('i added') || lowerResponse.includes('i created');
+        const claimsAction = lowerResponse.includes('goal created') || lowerResponse.includes('added to your goals') ||
+          lowerResponse.includes('i\'ve created') || lowerResponse.includes('i\'ve added') ||
+          lowerResponse.includes('i added') || lowerResponse.includes('i created');
         if (claimsAction && (!aiResult.toolCalls || aiResult.toolCalls.length === 0)) {
           console.warn('WARNING: AI claims to have performed action but NO TOOL CALLS made!');
           console.warn('   Response:', typeof aiResult.answer === 'string' ? aiResult.answer.substring(0, 200) : 'N/A');
         }
-        
+
         // Handle tool calls if AI wants to take actions
         const actionsPerformed: any[] = [];
         if (aiResult.toolCalls && aiResult.toolCalls.length > 0) {
@@ -3347,17 +3376,17 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             // Extract function details from nested structure
             const toolName = toolCall.function.name;
             const toolArgs = toolCall.function.arguments;
-            
+
             try {
-              
+
               debugLog('AI', `Executing tool: ${toolName}`, toolArgs);
-              
+
               if (toolName === 'create_financial_goal') {
                 debugLog('AI', 'Starting goal creation');
-                
+
                 // Coerce string boolean to actual boolean (fixes LLM returning "true" instead of true)
                 const userConfirmed = toolArgs.userConfirmed === true || toolArgs.userConfirmed === "true" || toolArgs.userConfirmed === "True";
-                
+
                 // Allow goal creation when user gives clear imperative command (AI should only call this when appropriate)
                 if (!userConfirmed && !toolArgs.name && !toolArgs.targetAmount) {
                   debugLog('AI', 'Blocked create_financial_goal: missing required data');
@@ -3367,7 +3396,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   });
                   continue;
                 }
-                
+
                 debugLog('AI', 'Creating goal', { userId, name: toolArgs.name });
                 const goal = await storage.createFinancialGoal({
                   userId: userId,
@@ -3386,7 +3415,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'create_calendar_event') {
                 // Coerce string boolean to actual boolean
                 const userConfirmed = toolArgs.userConfirmed === true || toolArgs.userConfirmed === "true" || toolArgs.userConfirmed === "True";
-                
+
                 // Allow event creation when user gives clear imperative command
                 if (!userConfirmed && !toolArgs.title && !toolArgs.date) {
                   debugLog('AI', 'Blocked create_calendar_event: missing required data');
@@ -3418,11 +3447,11 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   date: toolArgs.date ? new Date(toolArgs.date) : new Date()
                 });
                 debugLog('AI', 'Transaction created', { id: transaction.id, amount: transaction.amount, category: transaction.category });
-                
+
                 // Calculate budget impact for proactive insights
                 const txnAmount = parseFloat(transaction.amount);
                 let budgetImpact: any = null;
-                
+
                 if (toolArgs.type === 'expense') {
                   try {
                     // Get this month's spending in the same category
@@ -3432,33 +3461,33 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     const categorySpending = allTransactions
                       .filter(t => t.type === 'expense' && t.category === toolArgs.category && t.date >= monthStart)
                       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-                    
+
                     // Get budget info if available - validate it's a real number > 0
                     const expenseCategories = await storage.getUserExpenseCategories(userId);
                     const categoryBudget = expenseCategories.find(c => c.category.toLowerCase() === toolArgs.category.toLowerCase());
                     const parsedBudget = categoryBudget ? parseFloat(categoryBudget.monthlyAmount) : NaN;
                     const monthlyBudget = !isNaN(parsedBudget) && parsedBudget > 0 ? parsedBudget : null;
-                    
+
                     // Get total monthly income for context - validate it's a real number > 0
                     const profile = await storage.getUserFinancialProfile(userId);
                     const parsedIncome = profile ? parseFloat(profile.monthlyIncome || '') : NaN;
                     const monthlyIncome = !isNaN(parsedIncome) && parsedIncome > 0 ? parsedIncome : null;
-                    
+
                     budgetImpact = {
                       categorySpendingThisMonth: categorySpending,
                       monthlyBudget,
                       hasBudgetSet: monthlyBudget !== null,
-                      percentOfBudget: monthlyBudget !== null 
-                        ? Math.round((categorySpending / monthlyBudget) * 100) 
+                      percentOfBudget: monthlyBudget !== null
+                        ? Math.round((categorySpending / monthlyBudget) * 100)
                         : null,
-                      percentOfIncome: monthlyIncome !== null 
-                        ? Math.round((categorySpending / monthlyIncome) * 100) 
+                      percentOfIncome: monthlyIncome !== null
+                        ? Math.round((categorySpending / monthlyIncome) * 100)
                         : null,
-                      isOverBudget: monthlyBudget !== null 
-                        ? categorySpending > monthlyBudget 
+                      isOverBudget: monthlyBudget !== null
+                        ? categorySpending > monthlyBudget
                         : null,
-                      remainingBudget: monthlyBudget !== null 
-                        ? Math.max(0, monthlyBudget - categorySpending) 
+                      remainingBudget: monthlyBudget !== null
+                        ? Math.max(0, monthlyBudget - categorySpending)
                         : null
                     };
                   } catch (err) {
@@ -3466,7 +3495,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     // Don't let budget calculation errors break transaction creation
                   }
                 }
-                
+
                 actionsPerformed.push({
                   type: 'transaction_added',
                   data: transaction,
@@ -3475,7 +3504,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'create_group') {
                 // Coerce string boolean to actual boolean
                 const userConfirmed = toolArgs.userConfirmed === true || toolArgs.userConfirmed === "true" || toolArgs.userConfirmed === "True";
-                
+
                 // Groups require explicit confirmation (more sensitive action)
                 if (!userConfirmed) {
                   debugLog('AI', 'Blocked create_group: userConfirmed not true');
@@ -3508,7 +3537,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 const symbol = toolArgs.symbol.toUpperCase();
                 const coinId = toolArgs.symbol.toLowerCase();
                 const name = cryptoNames[symbol] || symbol;
-                
+
                 const holding = await storage.createCryptoHolding({
                   userId: userId,
                   coinId: coinId,
@@ -3526,17 +3555,17 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 const { age, riskTolerance, investmentAmount } = toolArgs;
                 const stockAllocation = Math.max(10, Math.min(90, 110 - age));
                 const bondAllocation = 100 - stockAllocation;
-                
+
                 // Adjust for risk tolerance
                 let adjustedStocks = stockAllocation;
                 if (riskTolerance === 'aggressive') adjustedStocks = Math.min(90, stockAllocation + 15);
                 if (riskTolerance === 'conservative') adjustedStocks = Math.max(10, stockAllocation - 15);
                 const adjustedBonds = Math.max(5, 100 - adjustedStocks - 5); // 5% alternatives
-                
+
                 const stockAmount = (investmentAmount * adjustedStocks / 100);
                 const bondAmount = (investmentAmount * adjustedBonds / 100);
                 const altAmount = investmentAmount - stockAmount - bondAmount;
-                
+
                 actionsPerformed.push({
                   type: 'portfolio_analyzed',
                   data: {
@@ -3553,13 +3582,13 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'calculate_debt_payoff') {
                 // Compare avalanche vs snowball debt payoff strategies
                 const { debts, extraPayment } = toolArgs;
-                
+
                 // Simple debt payoff calculator
                 const calculatePayoff = (debtOrder: any[]) => {
                   let totalMonths = 0;
                   let totalInterest = 0;
                   let remainingDebts = debtOrder.map(d => ({ ...d }));
-                  
+
                   while (remainingDebts.length > 0) {
                     totalMonths++;
                     // Pay minimum on all debts
@@ -3568,29 +3597,29 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                       totalInterest += monthlyInterest;
                       d.balance += monthlyInterest - d.minPayment;
                     });
-                    
+
                     // Apply extra payment to first debt
                     if (remainingDebts.length > 0) {
                       remainingDebts[0].balance -= extraPayment;
                     }
-                    
+
                     // Remove paid off debts
                     remainingDebts = remainingDebts.filter(d => d.balance > 0);
-                    
+
                     if (totalMonths > 600) break; // Safety limit
                   }
-                  
+
                   return { months: totalMonths, interest: Math.round(totalInterest) };
                 };
-                
+
                 // Avalanche: Sort by interest rate (highest first)
                 const avalancheOrder = [...debts].sort((a, b) => b.interestRate - a.interestRate);
                 const avalancheResult = calculatePayoff(avalancheOrder);
-                
+
                 // Snowball: Sort by balance (lowest first)
                 const snowballOrder = [...debts].sort((a, b) => a.balance - b.balance);
                 const snowballResult = calculatePayoff(snowballOrder);
-                
+
                 actionsPerformed.push({
                   type: 'debt_analyzed',
                   data: {
@@ -3612,19 +3641,19 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 const { principal, monthlyContribution, annualReturn, years, inflationRate } = toolArgs;
                 const months = years * 12;
                 const monthlyRate = annualReturn / 100 / 12;
-                
+
                 // Future value formula: FV = PV(1+r)^n + PMT * [((1+r)^n - 1) / r]
                 const principalGrowth = principal * Math.pow(1 + monthlyRate, months);
                 const contributionGrowth = monthlyContribution * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
                 const futureValue = principalGrowth + contributionGrowth;
-                
+
                 // Inflation-adjusted value
                 const inflation = (inflationRate || 3) / 100;
                 const realValue = futureValue / Math.pow(1 + inflation, years);
-                
+
                 const totalInvested = principal + (monthlyContribution * months);
                 const totalGrowth = futureValue - totalInvested;
-                
+
                 actionsPerformed.push({
                   type: 'future_value_calculated',
                   data: {
@@ -3641,18 +3670,18 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 const yearsToRetirement = retirementAge - currentAge;
                 const targetAmount = annualExpenses * 25; // 4% rule
                 const needed = targetAmount - currentSavings;
-                
+
                 // Calculate required monthly savings (assuming 8% annual return)
                 const monthlyRate = 0.08 / 12;
                 const months = yearsToRetirement * 12;
                 const futureValueOfCurrent = currentSavings * Math.pow(1 + monthlyRate, months);
                 const stillNeeded = targetAmount - futureValueOfCurrent;
-                
+
                 // PMT formula: PMT = FV * r / ((1+r)^n - 1)
-                const requiredMonthly = stillNeeded > 0 
+                const requiredMonthly = stillNeeded > 0
                   ? stillNeeded * monthlyRate / (Math.pow(1 + monthlyRate, months) - 1)
                   : 0;
-                
+
                 actionsPerformed.push({
                   type: 'retirement_calculated',
                   data: {
@@ -3666,29 +3695,29 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'calculate_emergency_fund') {
                 // Calculate ideal emergency fund size
                 const { monthlyExpenses, incomeStability, dependents = 0, hasInsurance = true } = toolArgs;
-                
+
                 // Base recommendation: 3-6 months
                 let months = 4; // Default middle ground
-                
+
                 // Adjust based on income stability
                 if (incomeStability === 'very_stable') months = 3;
                 else if (incomeStability === 'stable') months = 4;
                 else if (incomeStability === 'variable') months = 6;
                 else if (incomeStability === 'unstable') months = 9;
-                
+
                 // Add 1 month per dependent
                 months += dependents;
-                
+
                 // Add 1 month if no insurance
                 if (!hasInsurance) months += 1;
-                
+
                 // Cap at reasonable limits
                 months = Math.max(3, Math.min(12, months));
-                
+
                 const targetAmount = monthlyExpenses * months;
                 const minAmount = monthlyExpenses * 3;
                 const maxAmount = monthlyExpenses * 6;
-                
+
                 actionsPerformed.push({
                   type: 'emergency_fund_calculated',
                   data: {
@@ -3705,10 +3734,10 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'credit_score_improvement_plan') {
                 // Generate personalized credit improvement strategies
                 const { currentScore, hasDebt = false, missedPayments = false, creditUtilization } = toolArgs;
-                
+
                 const strategies: string[] = [];
                 let priorityAction = '';
-                
+
                 // Payment history (35% of score)
                 if (missedPayments) {
                   priorityAction = 'Payment History (35% impact)';
@@ -3717,7 +3746,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 } else {
                   strategies.push('Keep perfect payment history - your track record is strong! Set autopay as backup');
                 }
-                
+
                 // Credit utilization (30% of score)
                 if (creditUtilization && creditUtilization > 30) {
                   if (!priorityAction) priorityAction = 'Credit Utilization (30% impact)';
@@ -3729,22 +3758,22 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 } else {
                   strategies.push('Aim for under 10% credit utilization on all cards for best score');
                 }
-                
+
                 // Length of credit history (15%)
                 strategies.push('Keep oldest credit accounts open forever - age of credit is 15% of score');
                 strategies.push('Don\'t close old cards even if unused - put small recurring charge + autopay');
-                
+
                 // Credit mix (10%)
                 if (!hasDebt) {
                   strategies.push('Consider diverse credit mix: credit card + installment loan (car, personal) = 10% boost');
                 } else {
                   strategies.push('Good credit mix with existing debt - pay it down while maintaining variety');
                 }
-                
+
                 // New credit (10%)
                 strategies.push('Limit hard inquiries - only apply when necessary (under 2 per year ideal)');
                 strategies.push('Space out applications 6+ months apart to avoid looking desperate');
-                
+
                 // Score-specific advice
                 let scoreAdvice = '';
                 if (currentScore && currentScore < 580) {
@@ -3760,7 +3789,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 } else {
                   scoreAdvice = 'Follow these strategies for 6-12 months to see 50-100 point improvement';
                 }
-                
+
                 actionsPerformed.push({
                   type: 'credit_improvement_analyzed',
                   data: {
@@ -3774,30 +3803,30 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               } else if (toolName === 'calculate_rent_affordability') {
                 // Calculate rent affordability using 30% rule
                 const { monthlyIncome, otherDebts = 0, desiredLocation } = toolArgs;
-                
+
                 // 30% rule: rent should be max 30% of gross income
                 const thirtyPercentRule = monthlyIncome * 0.30;
-                
+
                 // Adjusted for debt: 30% of (income - debt)
                 const adjustedIncome = monthlyIncome - otherDebts;
                 const adjustedMax = adjustedIncome * 0.30;
-                
+
                 // 50/30/20 rule: rent is part of 50% needs
                 const fiftyThirtyTwentyMax = monthlyIncome * 0.50;
-                
+
                 // Conservative recommendation (lower of two methods)
                 const recommendedMax = Math.min(thirtyPercentRule, adjustedMax);
                 const comfortableRange = {
                   min: recommendedMax * 0.75,
                   max: recommendedMax
                 };
-                
+
                 // Calculate remaining budget after rent
                 const afterRent = monthlyIncome - recommendedMax - otherDebts;
                 const monthlySavings = monthlyIncome * 0.20;
                 const discretionary = monthlyIncome * 0.30;
                 const remainingForNeeds = fiftyThirtyTwentyMax - recommendedMax - otherDebts;
-                
+
                 actionsPerformed.push({
                   type: 'rent_affordability_calculated',
                   data: {
@@ -3820,41 +3849,41 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 });
               } else if (toolName === 'calculate_mortgage_payment') {
                 // Calculate mortgage payment with PITI breakdown
-                const { 
-                  homePrice, 
-                  downPayment, 
-                  interestRate, 
+                const {
+                  homePrice,
+                  downPayment,
+                  interestRate,
                   loanTermYears,
                   propertyTaxRate = 1.2,
                   insuranceAnnual = 1200
                 } = toolArgs;
-                
+
                 const loanAmount = homePrice - downPayment;
                 const monthlyRate = (interestRate / 100) / 12;
                 const numPayments = loanTermYears * 12;
-                
+
                 // Monthly mortgage payment (principal + interest)
-                const monthlyPI = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
-                                  (Math.pow(1 + monthlyRate, numPayments) - 1);
-                
+                const monthlyPI = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+                  (Math.pow(1 + monthlyRate, numPayments) - 1);
+
                 // Property tax (monthly)
                 const monthlyTax = (homePrice * (propertyTaxRate / 100)) / 12;
-                
+
                 // Insurance (monthly)
                 const monthlyInsurance = insuranceAnnual / 12;
-                
+
                 // PMI if down payment < 20%
                 const downPaymentPercent = (downPayment / homePrice) * 100;
                 const needsPMI = downPaymentPercent < 20;
                 const monthlyPMI = needsPMI ? (loanAmount * 0.005) / 12 : 0; // 0.5% annual PMI
-                
+
                 // Total monthly payment (PITI + PMI)
                 const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI;
-                
+
                 // Total cost over lifetime
                 const totalPaid = (monthlyPI * numPayments) + (monthlyTax * numPayments) + (monthlyInsurance * numPayments);
                 const totalInterest = (monthlyPI * numPayments) - loanAmount;
-                
+
                 actionsPerformed.push({
                   type: 'mortgage_calculated',
                   data: {
@@ -3889,7 +3918,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   currentRetirementContribution = 0,
                   hasInvestments = false
                 } = toolArgs;
-                
+
                 // 2024 tax brackets (simplified)
                 const brackets: Record<string, any> = {
                   'single': [
@@ -3911,15 +3940,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     { limit: Infinity, rate: 37 }
                   ]
                 };
-                
+
                 const taxBrackets = brackets[filingStatus] || brackets['single'];
                 const standardDeduction = filingStatus === 'married_joint' ? 27700 : 13850;
-                
+
                 // Calculate current tax
                 const taxableIncome = Math.max(0, annualIncome - standardDeduction);
                 let currentTax = 0;
                 let remainingIncome = taxableIncome;
-                
+
                 for (const bracket of taxBrackets) {
                   const previousLimit = taxBrackets[taxBrackets.indexOf(bracket) - 1]?.limit || 0;
                   const incomeInBracket = Math.min(remainingIncome, bracket.limit - previousLimit);
@@ -3927,39 +3956,39 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   remainingIncome -= incomeInBracket;
                   if (remainingIncome <= 0) break;
                 }
-                
+
                 const effectiveTaxRate = (currentTax / annualIncome) * 100;
-                
+
                 // Retirement account optimization
                 const retirementLimit = filingStatus === 'married_joint' ? 46000 : 23000; // 401k + IRA limits
-                const retirementOpportunity = hasRetirementAccount 
+                const retirementOpportunity = hasRetirementAccount
                   ? Math.min(retirementLimit - currentRetirementContribution, annualIncome * 0.20)
                   : Math.min(retirementLimit, annualIncome * 0.15);
                 const retirementTaxSavings = retirementOpportunity * (effectiveTaxRate / 100);
-                
+
                 // Generate strategies
                 const strategies: string[] = [];
-                
+
                 if (!hasRetirementAccount || currentRetirementContribution < 6000) {
                   strategies.push(`MAX OUT Roth IRA ($7,000/year) - Tax-free growth forever! Saves $${Math.round(7000 * 0.22)} in future taxes`);
                 }
-                
+
                 if (currentRetirementContribution < retirementLimit * 0.5) {
                   strategies.push(`Increase 401(k) to $${Math.round(retirementOpportunity)} - Immediate $${Math.round(retirementTaxSavings)} tax deduction!`);
                 }
-                
+
                 if (hasInvestments) {
                   strategies.push('Tax-Loss Harvesting: Sell losing investments to offset gains - can save 15-20% on capital gains');
                   strategies.push('Hold investments 1+ year for long-term capital gains (15% vs 22-37% short-term)');
                 }
-                
+
                 strategies.push(`HSA Triple Tax Advantage: Contribute $4,150 (single) or $8,300 (family) - Deductible, grows tax-free, withdraws tax-free for medical`);
                 strategies.push('Bunch deductions: Prepay property tax + extra charity in one year to exceed standard deduction');
-                
+
                 if (annualIncome > 200000) {
                   strategies.push('Backdoor Roth IRA: Max traditional IRA → convert to Roth for high earners (over income limits)');
                 }
-                
+
                 actionsPerformed.push({
                   type: 'tax_optimization_analyzed',
                   data: {
@@ -3983,7 +4012,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 const estimates: any = {};
                 const warnings: string[] = [];
                 const errors: string[] = [];
-                
+
                 // Enhanced validation helper with smart parsing
                 const validateAmount = (value: any, name: string, field: 'income' | 'expenses' | 'savings') => {
                   // Parse the value - handle various formats
@@ -3995,15 +4024,15 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   } else {
                     num = value;
                   }
-                  
+
                   if (isNaN(num) || num < 0) {
                     errors.push(`${name} must be a valid positive number`);
                     return 0;
                   }
-                  
+
                   // Field-specific validation thresholds
                   const thresholds = {
-                    income: { 
+                    income: {
                       warning: 50000, // $50k/month = $600k/year - already very high
                       error: 150000   // $150k/month = $1.8M/year - likely an error
                     },
@@ -4016,9 +4045,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                       error: 100000000   // $100M - likely typo
                     }
                   };
-                  
+
                   const threshold = thresholds[field];
-                  
+
                   // Critical error check - values that are almost certainly wrong
                   if (num > threshold.error) {
                     errors.push(
@@ -4028,7 +4057,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     );
                     return num; // Return for error display, but won't save
                   }
-                  
+
                   // Warning check - high but possibly correct
                   if (num > threshold.warning) {
                     warnings.push(
@@ -4036,46 +4065,46 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                       `Is this correct?`
                     );
                   }
-                  
+
                   return num;
                 };
-                
+
                 // Validate each field
                 let income = 0;
                 let expenses = 0;
                 let savings = 0;
-                
+
                 if (toolArgs.monthlyIncome !== undefined) {
                   income = validateAmount(toolArgs.monthlyIncome, 'Monthly income', 'income');
                   if (errors.length === 0) {
                     estimates.monthlyIncomeEstimate = income.toString();
                   }
                 }
-                
+
                 if (toolArgs.monthlyExpenses !== undefined) {
                   expenses = validateAmount(toolArgs.monthlyExpenses, 'Monthly expenses', 'expenses');
                   if (errors.length === 0) {
                     estimates.monthlyExpensesEstimate = expenses.toString();
                   }
                 }
-                
+
                 if (toolArgs.currentSavings !== undefined) {
                   savings = validateAmount(toolArgs.currentSavings, 'Current savings', 'savings');
                   if (errors.length === 0) {
                     estimates.currentSavingsEstimate = savings.toString();
                   }
                 }
-                
+
                 // Logical consistency checks (only if no critical errors)
                 if (errors.length === 0) {
                   // Expenses vs Income check
                   if (income > 0 && expenses > 0 && expenses > income * 1.5) {
                     warnings.push(
-                      `Your expenses ($${expenses.toLocaleString()}) are ${Math.round((expenses/income - 1) * 100)}% higher than income - ` +
+                      `Your expenses ($${expenses.toLocaleString()}) are ${Math.round((expenses / income - 1) * 100)}% higher than income - ` +
                       `this creates significant debt. Is this temporary or ongoing?`
                     );
                   }
-                  
+
                   // Savings vs Income consistency
                   if (income > 10000 && savings < 1000) {
                     warnings.push(
@@ -4083,7 +4112,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                       `Is your net worth really $${savings.toLocaleString()}?`
                     );
                   }
-                  
+
                   // Negative savings rate check
                   if (income > 0 && expenses > income) {
                     const deficit = expenses - income;
@@ -4093,7 +4122,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                     );
                   }
                 }
-                
+
                 // If there are CRITICAL ERRORS, don't save - ask user to correct
                 if (errors.length > 0) {
                   debugLog('AI', 'Financial data validation errors (not saved)', { errors });
@@ -4154,10 +4183,10 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 // 20/4/10 rule calculations
                 const maxMonthlyPayment = monthlyIncome * 0.10;
                 const availableForPayment = Math.max(0, maxMonthlyPayment - currentCarPayment);
-                
+
                 // Check if budget is overextended
                 const budgetOverextended = currentCarPayment >= maxMonthlyPayment;
-                
+
                 if (budgetOverextended) {
                   // Budget is already maxed out or over
                   actionsPerformed.push({
@@ -4179,19 +4208,19 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   });
                   continue;
                 }
-                
+
                 // Calculate max car price based on payment with enforced 4-year term
                 const numPayments = loanTerm * 12;
                 const pvFactor = (Math.pow(1 + monthlyRate, numPayments) - 1) / (monthlyRate * Math.pow(1 + monthlyRate, numPayments));
                 const maxLoanAmountFromPayment = availableForPayment * pvFactor;
-                
+
                 // ENFORCE 20/4/10 RULE: Calculate max affordable price based on 20% down requirement
                 const maxPriceWith20PercentDown = downPayment / 0.20;
-                
+
                 // Use the LOWER of payment-based cap and down-payment-based cap (strictest constraint wins)
                 const maxCarPrice = Math.min(maxLoanAmountFromPayment + downPayment, maxPriceWith20PercentDown);
                 const maxLoanAmount = maxCarPrice - downPayment;
-                
+
                 // Validate that we have a reasonable result
                 if (maxCarPrice <= 0 || !isFinite(maxCarPrice)) {
                   actionsPerformed.push({
@@ -4210,7 +4239,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                   });
                   continue;
                 }
-                
+
                 // Calculate compliance metrics
                 const downPaymentPercent = (downPayment / maxCarPrice) * 100;
                 const meetsDownPaymentRule = downPaymentPercent >= 20;
@@ -4301,7 +4330,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
 
                 // Strategy 3: Accelerated payoff with extra payment
                 const acceleratedPayment = standardMonthlyPayment + extraPayment;
-                const acceleratedMonths = extraPayment > 0 
+                const acceleratedMonths = extraPayment > 0
                   ? Math.ceil(Math.log(totalBalance / (acceleratedPayment - totalBalance * monthlyRate)) / Math.log(1 + monthlyRate))
                   : standardMonths;
                 const acceleratedTotalPaid = acceleratedPayment * acceleratedMonths;
@@ -4378,9 +4407,9 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                       eligible: false,
                       reason: 'Requires employment in public service, nonprofit, or government'
                     },
-                    recommendation: pslfEligible 
+                    recommendation: pslfEligible
                       ? 'Pursue PSLF - potential forgiveness of $' + Math.round(pslfForgiveness).toLocaleString()
-                      : extraPayment > 500 
+                      : extraPayment > 500
                         ? 'Accelerated payoff saves most interest'
                         : averageInterestRate > 7
                           ? 'Refinance to save on interest'
@@ -4473,7 +4502,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 if (timeHorizon < 2) {
                   recommended = ['High-Yield Savings Account (HYSA)', 'Certificates of Deposit (CDs)'];
                 } else if (timeHorizon < 5) {
-                  recommended = riskTolerance === 'aggressive' 
+                  recommended = riskTolerance === 'aggressive'
                     ? ['S&P 500 Index Fund (VOO/VTI)', 'Total Bond Market (BND/AGG)']
                     : ['Total Bond Market (BND/AGG)', 'High-Yield Savings Account (HYSA)'];
                 } else {
@@ -4517,10 +4546,10 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             }
           }
         }
-        
+
         // Generate response content - use AI response or create confirmation if empty
         let responseContent = aiResult.answer;
-        
+
         // DEFENSIVE LOGGING: Alert if AI returns empty response (regression detection)
         if (!responseContent || responseContent.trim() === '') {
           console.error('CRITICAL: AI returned empty response!', {
@@ -4534,45 +4563,45 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             message: 'This should never happen - investigate hybrid AI service'
           });
         }
-        
+
         // Sanitize response: remove any leaked function call syntax or technical details
         if (responseContent) {
           // Remove ALL variations of <function>...</function> syntax (with or without attributes)
           responseContent = responseContent.replace(/<function[^>]*>.*?<\/function>/gi, '').trim();
-          
+
           // Remove any standalone <function> or </function> tags that might be left over
           responseContent = responseContent.replace(/<\/?function[^>]*>/gi, '').trim();
-          
+
           // Remove "Tool Calls" sections and similar technical disclosures
           responseContent = responseContent.replace(/##?\s*Tool Calls?.*$/gi, '').trim();
           responseContent = responseContent.replace(/I've made the following tool calls?:.*$/gi, '').trim();
           responseContent = responseContent.replace(/\*\*Tool Calls?\*\*:?.*$/gi, '').trim();
-          
+
           // Remove numbered tool call lists (1. create_financial_goal, 2. generate_investment...)
           responseContent = responseContent.replace(/\d+\.\s*\w+_\w+:?\s*.*$/gm, (match: string) => {
             if (match.match(/\w+_\w+/)) return '';
             return match;
           }).trim();
-          
+
           // Remove standalone function call patterns  
           responseContent = responseContent.replace(/\{[^}]*"?\w+"?\s*:\s*[^}]+\}/g, (match: string) => {
             // Only remove if it looks like a function call (has common function params)
-            if (match.includes('targetAmount') || match.includes('userConfirmed') || 
-                match.includes('category') && match.includes('description')) {
+            if (match.includes('targetAmount') || match.includes('userConfirmed') ||
+              match.includes('category') && match.includes('description')) {
               return '';
             }
             return match;
           }).trim();
-          
+
           // Clean up any double newlines or trailing whitespace
           responseContent = responseContent.replace(/\n{3,}/g, '\n\n').trim();
         }
-        
+
         // CRITICAL: Ensure responseContent is always a string to prevent TypeError at line 4163
         if (!responseContent) {
           responseContent = '';
         }
-        
+
         // If AI used tools but didn't provide a text response, generate detailed explanation
         if ((!responseContent || responseContent.trim() === '') && actionsPerformed.length > 0) {
           const confirmations = actionsPerformed.map(action => {
@@ -4586,12 +4615,12 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
               const txn = action.data;
               const impact = action.budgetImpact;
               let response = `Tracked: ${txn.type === 'income' ? 'Received' : 'Spent'} $${parseFloat(txn.amount).toLocaleString()} on ${txn.category}.`;
-              
+
               // Add budget impact insights for expenses
               if (impact && txn.type === 'expense') {
                 response += `\n\n**Budget Impact:**`;
                 response += `\n- ${txn.category} spending this month: $${impact.categorySpendingThisMonth.toLocaleString()}`;
-                
+
                 if (impact.hasBudgetSet && impact.monthlyBudget !== null) {
                   response += ` of $${impact.monthlyBudget.toLocaleString()} budget (${impact.percentOfBudget}%)`;
                   if (impact.isOverBudget) {
@@ -4604,12 +4633,12 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
                 } else {
                   response += `\n- 💡 No budget set for ${txn.category} yet. Consider setting a monthly limit to track spending!`;
                 }
-                
+
                 if (impact.percentOfIncome !== null && impact.percentOfIncome > 15) {
                   response += `\n- 💡 This category is ${impact.percentOfIncome}% of your monthly income`;
                 }
               }
-              
+
               return response;
             } else if (action.type === 'group_created') {
               const group = action.data;
@@ -4749,16 +4778,16 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
             }
             return '';
           }).filter(Boolean).join('\n\n');
-          
+
           responseContent = confirmations || 'Analysis completed! Let me know if you need clarification on any aspect.';
         }
-        
+
         // CRITICAL: Triple-layer defense to ensure responseContent is ALWAYS a non-empty string
         // 1. Convert to string (handles null/undefined)
         // 2. Trim whitespace  
         // 3. Provide fallback if empty
         const safeResponseContent = (String(responseContent || '').trim()) || 'I processed your request. How else can I help you?';
-        
+
         // Save AI response with guaranteed safe string
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
@@ -4774,8 +4803,8 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
 
         // Update conversation title if it's the first exchange
         if (conversationHistory.length <= 1) {
-          const title = userMessage.length > 50 
-            ? userMessage.substring(0, 47) + "..." 
+          const title = userMessage.length > 50
+            ? userMessage.substring(0, 47) + "..."
             : userMessage;
           await storage.updateChatConversation(conversationId, { title });
         }
@@ -4791,21 +4820,21 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         const groqError = aiError.groqError;
         const actualErrorMsg = groqError?.originalMessage || aiError.message || 'Unknown error';
         const errorCode = groqError?.code || groqError?.statusCode || aiError.code || aiError.status;
-        
+
         console.error('[AI Chat Error]', {
           type: aiError.constructor?.name,
           code: errorCode,
           message: actualErrorMsg
         });
-        
+
         // User-friendly error messages (never expose internal details)
         let errorMessage = "I'm having trouble processing your request. Please try again in a moment.";
-        
+
         // Check if user is trying to create something
         const lowerMsg = typeof userMessage === 'string' ? userMessage.toLowerCase() : '';
-        const isCreationIntent = lowerMsg.includes('add') || lowerMsg.includes('create') || 
-                                lowerMsg.includes('goal') || lowerMsg.includes('track');
-        
+        const isCreationIntent = lowerMsg.includes('add') || lowerMsg.includes('create') ||
+          lowerMsg.includes('goal') || lowerMsg.includes('track');
+
         if (isCreationIntent) {
           if (conversationHistory.length > 2) {
             errorMessage = "I'd be happy to help with that! Could you share the specific details you'd like tracked? For example: goal name, target amount, and timeline.";
@@ -4821,7 +4850,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         } else if (actualErrorMsg.includes('GROQ_API_KEY') || actualErrorMsg.includes('API')) {
           errorMessage = "AI service is temporarily unavailable. Please try again shortly.";
         }
-        
+
         const aiChatMessage = await storage.createChatMessage({
           conversationId,
           role: 'assistant',
@@ -4846,7 +4875,7 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     try {
       const userId = getUserIdFromRequest(req);
       const conversation = await storage.getChatConversation(req.params.id);
-      
+
       if (!conversation || conversation.userId !== userId) {
         return res.status(404).json({ message: "Conversation not found" });
       }
@@ -4864,13 +4893,13 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
     const userId = getUserIdFromRequest(req);
     const conversationId = req.params.id;
     const userMessage = req.body.content;
-    
+
     // Set up SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
-    
+
     // Helper to send SSE events with immediate flush
     const sendEvent = (event: string, data: any) => {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -4879,10 +4908,10 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         (res as any).flush();
       }
     };
-    
+
     // Flush headers immediately
     res.flushHeaders();
-    
+
     try {
       // Validate conversation
       const conversation = await storage.getChatConversation(conversationId);
@@ -4890,12 +4919,12 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         sendEvent('error', { message: 'Conversation not found' });
         return res.end();
       }
-      
+
       if (!userMessage || typeof userMessage !== 'string') {
         sendEvent('error', { message: 'Message content is required' });
         return res.end();
       }
-      
+
       // Save user message first
       const userChatMessage = await storage.createChatMessage({
         conversationId,
@@ -4905,62 +4934,447 @@ This is CODE-LEVEL validation - you MUST follow this directive!`;
         tokenCount: Math.ceil(userMessage.length / 4),
         cost: '0.0000'
       });
-      
+
       sendEvent('user_message', { id: userChatMessage.id });
-      
-      // Get user context and subscription
-      const [subscription, userPreferences, financialProfile] = await Promise.all([
+
+      // Get comprehensive user financial context
+      const [
+        subscription,
+        userPreferences,
+        financialProfile,
+        transactions,
+        budgets,
+        debts,
+        goals,
+        cryptoHoldings
+      ] = await Promise.all([
         storage.getUserSubscription(userId),
         storage.getUserPreferences(userId),
-        storage.getUserFinancialProfile(userId)
+        storage.getUserFinancialProfile(userId),
+        storage.getTransactionsByUserId(userId, 100), // Last 100 transactions
+        storage.getBudgetsByUserId(userId),
+        storage.getUserDebts(userId),
+        storage.getFinancialGoalsByUserId(userId),
+        storage.getUserCryptoHoldings(userId)
       ]);
-      
+
       // Get conversation history for context
       const messages = await storage.getChatMessages(conversationId, 10);
       const conversationHistory = messages.reverse().slice(-6).map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content
       }));
-      
-      // Build system prompt with user context
+
+      // Import language detection and detect user's language first
+      const { detectLanguage } = await import('./financialCalculations');
+      const detectedLanguage = detectLanguage(userMessage);
+
+      // Calculate spending by category for this month
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const thisMonthTransactions = transactions.filter(t => new Date(t.date) >= monthStart);
+
+      const spendingByCategory: Record<string, number> = {};
+      const incomeByCategory: Record<string, number> = {};
+      let totalMonthExpenses = 0;
+      let totalMonthIncome = 0;
+
+      thisMonthTransactions.forEach(t => {
+        const amount = parseFloat(t.amount);
+        if (t.type === 'expense') {
+          spendingByCategory[t.category] = (spendingByCategory[t.category] || 0) + amount;
+          totalMonthExpenses += amount;
+        } else {
+          incomeByCategory[t.category] = (incomeByCategory[t.category] || 0) + amount;
+          totalMonthIncome += amount;
+        }
+      });
+
+      // Format spending summary
+      const spendingSummary = Object.entries(spendingByCategory)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([cat, amt]) => `${cat}: $${amt.toFixed(2)}`)
+        .join(', ');
+
+      // Format budget status
+      const budgetStatus = budgets.map(b => {
+        const spent = spendingByCategory[b.category] || 0;
+        const budgetAmt = parseFloat(b.amount);
+        const pct = budgetAmt > 0 ? Math.round((spent / budgetAmt) * 100) : 0;
+        const status = pct >= 100 ? '🔴 OVER' : pct >= 80 ? '🟡 WARNING' : '🟢 OK';
+        return `${b.category}: $${spent.toFixed(0)}/$${budgetAmt.toFixed(0)} (${pct}%) ${status}`;
+      }).join('\n');
+
+      // Format debts
+      const debtsSummary = debts.map(d => {
+        return `${d.name}: $${parseFloat(d.balance).toFixed(2)} at ${d.interestRate}% APR`;
+      }).join('\n');
+      const totalDebt = debts.reduce((sum, d) => sum + parseFloat(d.balance), 0);
+
+      // Format goals
+      const goalsSummary = goals.map(g => {
+        const current = parseFloat(g.currentAmount);
+        const target = parseFloat(g.targetAmount);
+        const pct = target > 0 ? Math.round((current / target) * 100) : 0;
+        const daysLeft = Math.ceil((new Date(g.targetDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return `${g.title}: $${current.toFixed(0)}/$${target.toFixed(0)} (${pct}%) - ${daysLeft} days left`;
+      }).join('\n');
+
+      // Format crypto
+      const cryptoSummary = cryptoHoldings.map(c => {
+        return `${c.symbol}: ${c.amount} units @ $${parseFloat(c.averageBuyPrice).toFixed(2)} avg`;
+      }).join(', ');
+
+      // Recent transactions (last 10)
+      const recentTxns = transactions.slice(0, 10).map(t => {
+        const date = new Date(t.date).toLocaleDateString();
+        return `${date}: ${t.type === 'expense' ? '-' : '+'}$${parseFloat(t.amount).toFixed(2)} (${t.category})${t.description ? ' - ' + t.description : ''}`;
+      }).join('\n');
+
+      // Build system prompt with comprehensive context
       const language = userPreferences?.language || 'en';
       const monthlyIncome = financialProfile?.monthlyIncome || '0';
-      
-      const systemPrompt = `You are a helpful financial advisor assistant. 
-Respond in ${language === 'th' ? 'Thai' : 'English'}.
-User's monthly income: $${monthlyIncome}.
-Be concise but helpful. Focus on practical, actionable advice.`;
-      
-      // Import and use Scout client for fast streaming
-      const { getScoutClient } = await import('./ai/clients');
-      const scoutClient = getScoutClient();
-      
+      const monthlyExpenses = financialProfile?.monthlyExpenses || '0';
+      const totalSavings = financialProfile?.totalSavings || '0';
+
+      const systemPrompt = `You are Twealth AI, a world-class Certified Financial Planner (CFP) and personal Chief Financial Officer.
+
+🔴 RESPONSE LANGUAGE 🔴
+${detectedLanguage === 'th' ? `คุณต้องตอบเป็นภาษาไทยเท่านั้น! 
+ใช้คำศัพท์ทางการเงินไทย: เงินออม, รายได้, ค่าใช้จ่าย, เป้าหมายการเงิน, งบประมาณ, กองทุนรวม, หุ้น
+สกุลเงิน: ใช้ ฿ หรือ บาท` : `Respond in ${language === 'th' ? 'Thai' : 'English'}.`}
+
+═══════════════════════════════════════════════════
+📊 CLIENT FINANCIAL PROFILE
+═══════════════════════════════════════════════════
+• Monthly Income (Profile): $${monthlyIncome}
+• Monthly Expenses (Profile): $${monthlyExpenses}
+• Total Savings: $${totalSavings}
+• Savings Rate: ${parseFloat(monthlyIncome) > 0 ? Math.round((parseFloat(monthlyIncome) - parseFloat(monthlyExpenses)) / parseFloat(monthlyIncome) * 100) : 0}%
+
+═══════════════════════════════════════════════════
+💰 THIS MONTH'S ACTUAL DATA (${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })})
+═══════════════════════════════════════════════════
+• Total Income This Month: $${totalMonthIncome.toFixed(2)}
+• Total Expenses This Month: $${totalMonthExpenses.toFixed(2)}
+• Net This Month: $${(totalMonthIncome - totalMonthExpenses).toFixed(2)}
+• Transactions Count: ${thisMonthTransactions.length}
+
+**Spending by Category:**
+${spendingSummary || 'No expenses recorded this month'}
+
+${budgetStatus ? `**Budget Status:**
+${budgetStatus}` : ''}
+
+═══════════════════════════════════════════════════
+💳 DEBTS (Total: $${totalDebt.toFixed(2)})
+═══════════════════════════════════════════════════
+${debtsSummary || 'No debts tracked'}
+
+═══════════════════════════════════════════════════
+🎯 FINANCIAL GOALS
+═══════════════════════════════════════════════════
+${goalsSummary || 'No active goals'}
+
+${cryptoSummary ? `═══════════════════════════════════════════════════
+📈 CRYPTO HOLDINGS
+═══════════════════════════════════════════════════
+${cryptoSummary}` : ''}
+
+═══════════════════════════════════════════════════
+📝 RECENT TRANSACTIONS (Last 10)
+═══════════════════════════════════════════════════
+${recentTxns || 'No recent transactions'}
+
+═══════════════════════════════════════════════════
+🏆 YOUR EXPERTISE (CFP-LEVEL KNOWLEDGE)
+═══════════════════════════════════════════════════
+
+**1. CASH FLOW MASTERY**
+- Zero-based budgeting, 50/30/20, Pay Yourself First
+- Cash flow quadrant analysis (income vs expenses optimization)
+- Spending pattern analysis and behavioral nudges
+- Emergency fund sizing: 3-6 months (stable income) vs 6-12 months (variable)
+
+**2. DEBT OPTIMIZATION**
+- Avalanche method (highest APR first - mathematically optimal)
+- Snowball method (smallest balance first - psychologically optimal)
+- Debt consolidation analysis and refinancing strategies
+- Debt-to-Income ratio targets: <36% total, <28% housing
+
+**3. INVESTMENT STRATEGY**
+- Asset allocation by age: 110-age in stocks (aggressive) or 100-age (moderate)
+- Core-satellite portfolio approach (80% index funds, 20% tactical)
+- Tax-advantaged accounts prioritization: 401k match → Roth IRA → HSA → Taxable
+- Dollar-cost averaging vs lump sum analysis
+- Rebalancing triggers: 5% drift threshold
+
+**4. RETIREMENT PLANNING**
+- FIRE calculations (25x annual expenses = FI number)
+- Safe withdrawal rate: 4% rule (traditional) vs 3.5% (conservative)
+- Social Security optimization strategies
+- Retirement account contribution limits and catch-up provisions
+
+**5. TAX OPTIMIZATION**
+- Tax-loss harvesting opportunities
+- Roth conversion ladder strategies
+- Tax bracket management and income smoothing
+- Deduction optimization (standard vs itemized)
+
+**6. GOAL-BASED PLANNING**
+- Time-horizon based investment selection
+- Goal priority matrix (safety → security → independence → freedom)
+- Milestone tracking with progress visualization
+- SMART goal framework application
+
+**7. BEHAVIORAL FINANCE**
+- Loss aversion awareness and mitigation
+- Anchoring bias recognition
+- Present bias solutions (automation, pre-commitment)
+- Mental accounting optimization
+
+═══════════════════════════════════════════════════
+💡 ADVICE METHODOLOGY
+═══════════════════════════════════════════════════
+
+1. **DIAGNOSE**: Analyze their specific financial situation first
+2. **EDUCATE**: Explain the "why" behind your recommendations
+3. **PRESCRIBE**: Give 2-3 specific, numbered action steps
+4. **QUANTIFY**: Include actual numbers and calculations when possible
+5. **ENCOURAGE**: Celebrate progress and build confidence
+
+**Response Structure**:
+- Start with a brief acknowledgment of their question
+- Provide clear, actionable advice with specific numbers
+- End with a forward-looking next step or question
+
+**Tone**: Professional yet warm. Like a trusted friend who happens to be a financial expert.
+
+═══════════════════════════════════════════════════
+⚠️ PROFESSIONAL BOUNDARIES
+═══════════════════════════════════════════════════
+
+- You CANNOT modify user data - direct them to app settings
+- For tax filing specifics, recommend a CPA
+- For legal matters (estate planning, etc.), recommend an attorney
+- For insurance specifics, recommend a licensed agent
+- Always disclose when something requires professional consultation
+
+You are here to empower users with world-class financial guidance. Make every interaction valuable!
+
+🔧 ACTION CAPABILITIES
+You can take real actions in the app. Use these formats IN YOUR RESPONSE when the user asks:
+
+**Financial Goals:**
+[ACTION:CREATE_GOAL|name=Goal Name|amount=5000|date=2025-12-31]
+
+**Transactions:**
+[ACTION:ADD_TRANSACTION|type=expense|amount=100|category=groceries|description=Weekly groceries]
+
+**Debt Tracking:**
+[ACTION:ADD_DEBT|name=Credit Card|amount=5000|type=credit_card|rate=18.99|minPayment=150]
+
+**Budgets:**
+[ACTION:CREATE_BUDGET|category=food|amount=500|period=monthly]
+
+**Reminders:**
+[ACTION:SET_REMINDER|title=Pay rent|date=2025-02-01|description=Monthly rent payment]
+
+**Update Profile:**
+[ACTION:UPDATE_PROFILE|income=5000|expenses=3000|savings=10000]
+
+RULES:
+- Only use actions when the user EXPLICITLY asks to create, add, track, or set something
+- Always explain what you did in your response after the action
+- Never use actions for questions or informational queries`;
+
+      // Import clients and tools
+      const { getScoutClient, getGeminiClient } = await import('./ai/clients');
+
       let fullResponse = '';
       let tokensIn = 0;
       let tokensOut = 0;
       let cost = 0;
-      
-      sendEvent('stream_start', { model: 'scout' });
-      
-      // Stream the response
-      for await (const chunk of scoutClient.chatStream({
-        messages: conversationHistory,
-        system: systemPrompt,
-        temperature: 0.7
-      })) {
-        if (chunk.type === 'text' && chunk.content) {
-          fullResponse += chunk.content;
-          sendEvent('text', { content: chunk.content });
-        } else if (chunk.type === 'done') {
-          tokensIn = chunk.tokensIn || 0;
-          tokensOut = chunk.tokensOut || 0;
-          cost = chunk.cost || 0;
-        } else if (chunk.type === 'error') {
-          sendEvent('error', { message: chunk.error });
+      let modelUsed = 'groq';
+      let fallbackUsed = false;
+      const actionsPerformed: any[] = [];
+
+      // Helper to parse action parameters
+      const parseActionParams = (paramsStr: string): Record<string, string> => {
+        const params: Record<string, string> = {};
+        paramsStr.split('|').forEach(pair => {
+          const [key, value] = pair.split('=');
+          if (key && value) params[key.trim()] = value.trim();
+        });
+        return params;
+      };
+
+      // Helper to parse amount string
+      const parseAmount = (str: string): string => {
+        if (!str) return '0';
+        const cleaned = str.replace(/[^0-9.]/g, '');
+        return cleaned || '0';
+      };
+
+      // Try Groq FIRST (fast, reliable, no rate limits), fallback to Gemini
+      try {
+        const scoutClient = getScoutClient();
+        sendEvent('stream_start', { model: 'groq' });
+
+        const groqResponse = await scoutClient.chat({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory,
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.7,
+          maxTokens: 2000
+        });
+
+        fullResponse = groqResponse.text;
+        tokensIn = groqResponse.tokensIn;
+        tokensOut = groqResponse.tokensOut;
+        cost = groqResponse.cost;
+
+        // Parse and execute actions from response
+        // Extended regex to support all action types
+        const actionRegex = /\[ACTION:(CREATE_GOAL|ADD_TRANSACTION|ADD_DEBT|CREATE_BUDGET|SET_REMINDER|UPDATE_PROFILE)\|([^\]]+)\]/g;
+        let match;
+        while ((match = actionRegex.exec(fullResponse)) !== null) {
+          const actionType = match[1];
+          const params = parseActionParams(match[2]);
+
+          try {
+            if (actionType === 'CREATE_GOAL' && params.name && params.amount) {
+              const targetDate = params.date ? new Date(params.date) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+              const goal = await storage.createFinancialGoal({
+                userId: userId,
+                title: params.name,
+                targetAmount: parseAmount(params.amount),
+                currentAmount: '0',
+                targetDate: targetDate,
+                description: params.description || null,
+                category: 'savings'
+              });
+              actionsPerformed.push({ type: 'goal_created', data: goal });
+              console.log('[StreamingAI] Created goal:', goal.title);
+
+            } else if (actionType === 'ADD_TRANSACTION' && params.type && params.amount) {
+              const transaction = await storage.createTransaction({
+                userId: userId,
+                type: params.type as 'income' | 'expense',
+                amount: parseAmount(params.amount),
+                category: params.category || 'other',
+                description: params.description || null,
+                date: params.date ? new Date(params.date) : new Date()
+              });
+              actionsPerformed.push({ type: 'transaction_added', data: transaction });
+              console.log('[StreamingAI] Added transaction:', transaction.amount, transaction.category);
+
+            } else if (actionType === 'ADD_DEBT' && params.name && params.amount) {
+              const debt = await storage.createUserDebt({
+                userId: userId,
+                name: params.name,
+                type: (params.type as 'credit_card' | 'loan' | 'mortgage' | 'student_loan' | 'other') || 'other',
+                balance: parseAmount(params.amount),
+                interestRate: params.rate ? parseAmount(params.rate) : '0',
+                minimumPayment: params.minPayment ? parseAmount(params.minPayment) : '0',
+                dueDate: params.dueDate ? new Date(params.dueDate) : null
+              });
+              actionsPerformed.push({ type: 'debt_added', data: debt });
+              console.log('[StreamingAI] Added debt:', debt.name, debt.balance);
+
+            } else if (actionType === 'CREATE_BUDGET' && params.category && params.amount) {
+              const budget = await storage.createBudget({
+                userId: userId,
+                category: params.category,
+                amount: parseAmount(params.amount),
+                period: (params.period as 'weekly' | 'monthly' | 'yearly') || 'monthly',
+                startDate: params.startDate ? new Date(params.startDate) : new Date()
+              });
+              actionsPerformed.push({ type: 'budget_created', data: budget });
+              console.log('[StreamingAI] Created budget:', budget.category, budget.amount);
+
+            } else if (actionType === 'SET_REMINDER' && params.title && params.date) {
+              const event = await storage.createEvent({
+                createdBy: userId,
+                title: params.title,
+                description: params.description || 'Financial reminder',
+                startTime: new Date(params.date),
+                endTime: new Date(params.date)
+              });
+              actionsPerformed.push({ type: 'reminder_set', data: event });
+              console.log('[StreamingAI] Set reminder:', event.title, event.startTime);
+
+            } else if (actionType === 'UPDATE_PROFILE' && (params.income || params.expenses || params.savings)) {
+              const updates: any = {};
+              if (params.income) updates.monthlyIncome = parseAmount(params.income);
+              if (params.expenses) updates.monthlyExpenses = parseAmount(params.expenses);
+              if (params.savings) updates.totalSavings = parseAmount(params.savings);
+
+              const profile = await storage.updateUserFinancialProfile(userId, updates);
+              actionsPerformed.push({ type: 'profile_updated', data: profile });
+              console.log('[StreamingAI] Updated profile:', updates);
+            }
+
+          } catch (actionError: any) {
+            console.error('[StreamingAI] Action failed:', actionError.message);
+          }
+        }
+
+        // Clean action tags from response before sending to user
+        const cleanedResponse = fullResponse.replace(actionRegex, '').trim();
+
+        // Send the cleaned response
+        sendEvent('text', { content: cleanedResponse });
+      } catch (groqError: any) {
+        console.log('[StreamingAI] Groq failed, attempting Gemini fallback...', {
+          error: groqError.message?.substring(0, 100)
+        });
+
+        // Try Gemini as fallback
+        try {
+          fallbackUsed = true;
+          modelUsed = 'gemini';
+          sendEvent('stream_start', { model: 'gemini', fallback: true });
+
+          const geminiClient = getGeminiClient();
+          for await (const chunk of geminiClient.chatStream({
+            messages: conversationHistory,
+            system: systemPrompt,
+            temperature: 0.7
+          })) {
+            if (chunk.type === 'text' && chunk.content) {
+              fullResponse += chunk.content;
+              sendEvent('text', { content: chunk.content });
+            } else if (chunk.type === 'done') {
+              tokensIn = chunk.tokensIn || 0;
+              tokensOut = chunk.tokensOut || 0;
+              cost = chunk.cost || 0;
+            } else if (chunk.type === 'error') {
+              throw new Error(chunk.error || 'Gemini streaming failed');
+            }
+          }
+        } catch (geminiError: any) {
+          console.error('[StreamingAI] Both AI providers failed:', geminiError.message);
+          const errorInUserLanguage = detectedLanguage === 'th'
+            ? 'ระบบ AI กำลังยุ่งอยู่ในขณะนี้ กรุณาลองใหม่อีกครั้ง'
+            : 'AI service is temporarily unavailable. Please try again.';
+          sendEvent('error', { message: errorInUserLanguage });
           return res.end();
         }
       }
-      
+
+      // If we got no response at all
+      if (!fullResponse || fullResponse.trim() === '') {
+        const emptyResponseMsg = detectedLanguage === 'th'
+          ? 'ขอโทษ ฉันไม่เข้าใจ กรุณาลองถามใหม่อีกครั้ง'
+          : 'I couldn\'t generate a response. Please try again.';
+        fullResponse = emptyResponseMsg;
+        sendEvent('text', { content: fullResponse });
+      }
+
       // Save the complete AI response
       const aiChatMessage = await storage.createChatMessage({
         conversationId,
@@ -4970,18 +5384,20 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         tokenCount: tokensOut,
         cost: cost.toFixed(6)
       });
-      
+
       // Update conversation memory
       await extractAndUpdateMemory(storage, userId, userMessage, fullResponse);
-      
+
       sendEvent('stream_end', {
         id: aiChatMessage.id,
         tokensIn,
         tokensOut,
         cost,
-        model: 'scout'
+        model: modelUsed,
+        fallback: fallbackUsed,
+        actionsPerformed: actionsPerformed.length > 0 ? actionsPerformed : undefined
       });
-      
+
       res.end();
     } catch (error: any) {
       console.error('[StreamingAI] Error:', error);
@@ -4995,21 +5411,21 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const { message } = req.body;
-      
+
       if (!message || typeof message !== 'string') {
         return res.status(400).json({ message: "Message is required" });
       }
-      
+
       debugLog('TierAI', 'Request received', { userId, messagePreview: message.substring(0, 100) });
-      
+
       // Call tier-aware router for quota enforcement
-      const response = await routeWithTierCheck(userId, message, storage);
-      
+      const response = await routeWithTierCheck(userId, message, storage, {});
+
       // Check if quota exceeded
       if ('type' in response && response.type === 'quota_exceeded') {
         const quotaError = response as QuotaExceededError;
         debugLog('TierAI', 'Quota exceeded', { model: quotaError.model, used: quotaError.used, limit: quotaError.limit });
-        
+
         // Return 429 Too Many Requests with upgrade CTA
         return res.status(429).json({
           ...quotaError,
@@ -5017,7 +5433,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           upgradeCta: quotaError.nextTier ? `Upgrade to ${quotaError.nextTier} for more AI queries.` : 'You are on the highest tier.',
         });
       }
-      
+
       // Success - log tier/model/quota context (cast to HybridAIResponse after quota check)
       const successResponse = response as HybridAIResponse;
       debugLog('TierAI', 'Response generated', {
@@ -5028,17 +5444,17 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         cost: successResponse.cost,
         downgraded: successResponse.tierDowngraded || false
       });
-      
+
       res.json(successResponse);
     } catch (error: any) {
       console.error('[TierAI] Error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: error.message || "Failed to generate advice",
         error: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });
-  
+
   // Cost optimization stats endpoint
   app.get("/api/ai/cost-stats", async (req, res) => {
     try {
@@ -5055,9 +5471,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       await storage.resetUsage(userId);
-      
+
       debugLog('Subscription', 'Usage reset', { userId });
-      res.json({ 
+      res.json({
         message: "Usage reset successfully",
         userId: userId,
         timestamp: new Date().toISOString()
@@ -5081,7 +5497,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       // Check if feedback already exists
       const existingFeedback = await storage.getMessageFeedback(messageId, userId);
-      
+
       let feedback;
       if (existingFeedback) {
         // Update existing feedback
@@ -5111,13 +5527,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const { messageId } = req.params;
-      
+
       const feedback = await storage.getMessageFeedback(messageId, userId);
-      
+
       if (!feedback) {
         return res.status(404).json({ message: "No feedback found for this message" });
       }
-      
+
       res.json(feedback);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -5134,7 +5550,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     }
   });
 
-  // Financial Health Score endpoint
+  // Financial Health Score endpoint (Legacy - keeping for backwards compatibility)
   app.get("/api/financial-health", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
@@ -5142,6 +5558,74 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       res.json(healthScore);
     } catch (error: any) {
       console.error('Financial health calculation error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WORLD-CLASS TWEALTH INDEX - 4 Pillar Scoring System
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Get latest Twealth Index score
+  app.get("/api/twealth-index", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+
+      // First try to get cached score
+      let score = await storage.getLatestScoreSnapshot(userId);
+
+      // If no score exists, compute it
+      if (!score) {
+        const { recomputeScores } = await import('./scoringEngine');
+        const result = await recomputeScores(storage, userId);
+        score = await storage.getLatestScoreSnapshot(userId);
+        if (!score) {
+          // Return the computed result directly if saving failed
+          res.json({
+            ...result,
+            isNew: true,
+            message: "First-time score computed - add more transactions for accuracy"
+          });
+          return;
+        }
+      }
+
+      res.json(score);
+    } catch (error: any) {
+      console.error('Twealth Index error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Recompute Twealth Index (call after adding transactions)
+  app.post("/api/twealth-index/recompute", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const { month } = req.body; // Optional: specific month to recompute
+
+      const { recomputeScores } = await import('./scoringEngine');
+      const result = await recomputeScores(storage, userId, month ? new Date(month) : undefined);
+
+      res.json({
+        success: true,
+        score: result
+      });
+    } catch (error: any) {
+      console.error('Twealth Index recompute error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get Twealth Index history (for trend charts)
+  app.get("/api/twealth-index/history", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      const limit = parseInt(req.query.limit as string) || 12;
+
+      const history = await storage.getScoreSnapshots(userId, limit);
+      res.json(history);
+    } catch (error: any) {
+      console.error('Twealth Index history error:', error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -5197,11 +5681,11 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   app.get("/api/ai/insights", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Check usage limit for insights
       const usageCheck = await storage.checkUsageLimit(userId, 'aiChatsUsed'); // Use chat quota for insights
       if (!usageCheck.allowed) {
-        return res.status(429).json({ 
+        return res.status(429).json({
           insight: "Upgrade to get more AI insights.",
           error: "Usage limit exceeded",
           usage: usageCheck.usage,
@@ -5218,12 +5702,12 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         storage.getTransactionsByUserId(userId, 5),
         storage.getUserSubscription(userId)
       ]);
-      
+
       // Map plan name to tier
       const tierName = subscription?.plan?.name?.toLowerCase() || '';
-      const subscriptionTier: 'free' | 'pro' | 'enterprise' = 
+      const subscriptionTier: 'free' | 'pro' | 'enterprise' =
         tierName.includes('enterprise') ? 'enterprise' :
-        tierName.includes('pro') ? 'pro' : 'free';
+          tierName.includes('pro') ? 'pro' : 'free';
 
       const userContext: UserContext = {
         userId, // For cache isolation
@@ -5242,15 +5726,15 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       };
 
       const insight = await aiService.generateProactiveInsight(userContext);
-      
+
       // Track usage
       await storage.incrementUsage(userId, 'aiInsightsGenerated');
-      
+
       res.json({ insight });
     } catch (error: any) {
-      res.status(500).json({ 
+      res.status(500).json({
         insight: "Focus on tracking your spending patterns this week.",
-        error: error.message 
+        error: error.message
       });
     }
   });
@@ -5322,17 +5806,17 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       let subscription = await storage.getUserSubscription(userId);
-      
+
       // Initialize free subscription if user doesn't have one
       if (!subscription) {
         await storage.initializeDefaultSubscription(userId);
         subscription = await storage.getUserSubscription(userId);
       }
-      
+
       // Get current usage
       const usage = await storage.getUserUsage(userId);
       const addOns = await storage.getUserAddOns(userId);
-      
+
       res.json({
         subscription,
         usage,
@@ -5346,27 +5830,27 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   app.get("/api/subscription/usage", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
-      
+
       // Get subscription with usage data
       const subData = await storage.getUserSubscriptionWithUsage(userId);
-      
+
       if (!subData) {
         return res.status(404).json({ message: "Subscription not found" });
       }
-      
+
       const { plan, usage } = subData;
-      
+
       // Calculate usage for each model tier
       const scoutUsed = usage?.scoutQueriesUsed || 0;
       const sonnetUsed = usage?.sonnetQueriesUsed || 0;
       const gpt5Used = usage?.gpt5QueriesUsed || 0;
       const opusUsed = usage?.opusQueriesUsed || 0;
-      
+
       const scoutLimit = plan.scoutLimit || 0;
       const sonnetLimit = plan.sonnetLimit || 0;
       const gpt5Limit = plan.gpt5Limit || 0;
       const opusLimit = plan.opusLimit || 0;
-      
+
       // Also provide legacy format for backward compatibility
       const totalUsed = scoutUsed + sonnetUsed + gpt5Used + opusUsed;
       const totalLimit = scoutLimit + sonnetLimit + gpt5Limit + opusLimit;
@@ -5423,9 +5907,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   app.post("/api/subscription/create-payment-intent", isAuthenticated, async (req: any, res) => {
     try {
       if (!stripe) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           message: "Payment processing unavailable - Stripe not configured",
-          requiresSetup: true 
+          requiresSetup: true
         });
       }
 
@@ -5434,13 +5918,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const { planId } = req.body;
-      
+
       if (!planId) {
         return res.status(400).json({ message: "Plan ID is required" });
       }
-      
+
       // Get the target plan
       const plan = await storage.getSubscriptionPlan(planId);
       if (!plan) {
@@ -5459,7 +5943,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       // Create or get Stripe customer
       let stripeCustomerId = '';
-      
+
       if (currentSubscription?.stripeCustomerId) {
         stripeCustomerId = currentSubscription.stripeCustomerId;
       } else {
@@ -5479,7 +5963,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         }
         const customer = await stripe.customers.create(customerData);
         stripeCustomerId = customer.id;
-        
+
         // Save the customer ID to the subscription
         await storage.updateSubscription(currentSubscription!.id, {
           stripeCustomerId: stripeCustomerId
@@ -5516,9 +6000,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   app.post("/api/subscription/create-subscription", isAuthenticated, async (req: any, res) => {
     try {
       if (!stripe) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           message: "Subscription processing unavailable - Stripe not configured",
-          requiresSetup: true 
+          requiresSetup: true
         });
       }
 
@@ -5527,13 +6011,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const { planId, priceId } = req.body; // priceId from Stripe dashboard
-      
+
       if (!planId || !priceId) {
         return res.status(400).json({ message: "Plan ID and Price ID are required" });
       }
-      
+
       const plan = await storage.getSubscriptionPlan(planId);
       if (!plan) {
         return res.status(404).json({ message: "Plan not found" });
@@ -5548,7 +6032,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       // Create or get Stripe customer
       let stripeCustomerId = '';
-      
+
       if (currentSubscription?.stripeCustomerId) {
         stripeCustomerId = currentSubscription.stripeCustomerId;
       } else {
@@ -5565,7 +6049,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         }
         const customer = await stripe.customers.create(customerData);
         stripeCustomerId = customer.id;
-        
+
         // Save the customer ID to the subscription
         await storage.updateSubscription(currentSubscription!.id, {
           stripeCustomerId: stripeCustomerId
@@ -5601,14 +6085,14 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   app.post("/api/subscription/create-checkout-session", isAuthenticated, async (req: any, res) => {
     try {
       if (!stripe) {
-        return res.status(503).json({ 
+        return res.status(503).json({
           message: "Payment processing unavailable - Stripe not configured",
-          requiresSetup: true 
+          requiresSetup: true
         });
       }
 
       const userId = getUserIdFromRequest(req);
-      
+
       // Validate request body with Zod
       const checkoutSessionSchema = z.object({
         planId: z.string().min(1, "Plan ID is required")
@@ -5616,9 +6100,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       const validation = checkoutSessionSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Invalid request body",
-          errors: validation.error.errors 
+          errors: validation.error.errors
         });
       }
 
@@ -5636,9 +6120,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       // Check if plan has Stripe price ID configured
       if (!plan.stripePriceId) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: `Stripe price ID not configured for ${plan.name} plan`,
-          requiresSetup: true 
+          requiresSetup: true
         });
       }
 
@@ -5655,18 +6139,18 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       }
 
       let customerId = currentSubscription?.stripeCustomerId;
-      
+
       if (!customerId) {
         // Create Stripe customer
         const customer = await stripe.customers.create({
           email: user.email || undefined,
-          name: user.firstName && user.lastName 
-            ? `${user.firstName} ${user.lastName}` 
+          name: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
             : user.email || undefined,
           metadata: { userId }
         });
         customerId = customer.id;
-        
+
         // Save customer ID
         await storage.updateSubscription(currentSubscription!.id, {
           stripeCustomerId: customerId
@@ -5678,7 +6162,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       const host = req.get('host') || process.env.REPLIT_DEV_DOMAIN;
       const baseUrl = `${protocol}://${host}`;
 
-      stripeLogger.info('Creating checkout session', { 
+      stripeLogger.info('Creating checkout session', {
         data: { userId, planId: plan.id, planName: plan.name, customerId }
       });
 
@@ -5699,13 +6183,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         }
       });
 
-      stripeLogger.info('Checkout session created', { 
+      stripeLogger.info('Checkout session created', {
         data: { sessionId: session.id, status: session.status }
       });
 
       if (!session.url) {
         console.error('[Checkout] ERROR: Stripe returned null URL!', session);
-        return res.status(500).json({ 
+        return res.status(500).json({
           message: "Stripe checkout session created but no URL returned",
           sessionId: session.id
         });
@@ -5715,10 +6199,10 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
     } catch (error: any) {
       console.error('[Checkout] Error creating session:', error);
-      
+
       // Provide helpful error messages based on error type
       let errorMessage = error.message || "Failed to create checkout session";
-      
+
       if (error.type === 'StripeInvalidRequestError') {
         errorMessage = "Invalid payment configuration. Please contact support.";
       } else if (error.code === 'resource_missing') {
@@ -5726,8 +6210,8 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       } else if (error.statusCode === 401) {
         errorMessage = "Payment service authentication failed. Please contact support.";
       }
-      
-      res.status(500).json({ 
+
+      res.status(500).json({
         message: errorMessage,
         errorType: error.type || 'unknown'
       });
@@ -5738,24 +6222,24 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const { planId } = req.body;
-      
+
       if (!planId) {
         return res.status(400).json({ message: "Plan ID is required" });
       }
-      
+
       // Get the target plan
       const plan = await storage.getSubscriptionPlan(planId);
       if (!plan) {
         return res.status(404).json({ message: "Plan not found" });
       }
-      
+
       // Get current subscription
       let currentSubscription = await storage.getUserSubscription(userId);
       if (!currentSubscription) {
         await storage.initializeDefaultSubscription(userId);
         currentSubscription = await storage.getUserSubscription(userId);
       }
-      
+
       // Check if Stripe is available for real payment processing
       if (stripe && currentSubscription!.stripeSubscriptionId) {
         try {
@@ -5786,7 +6270,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           // Fall back to local update if Stripe fails
           const now = new Date();
           const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-          
+
           await storage.updateSubscription(currentSubscription!.id, {
             planId: plan.id,
             currentPeriodStart: now,
@@ -5798,7 +6282,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         // For demo/development mode - direct upgrade
         const now = new Date();
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        
+
         await storage.updateSubscription(currentSubscription!.id, {
           planId: plan.id,
           currentPeriodStart: now,
@@ -5806,11 +6290,11 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           localPrice: plan.priceThb,
         });
       }
-      
+
       // Get the updated subscription with plan details
       const updatedSubscription = await storage.getUserSubscription(userId);
-      
-      res.json({ 
+
+      res.json({
         message: "Subscription upgraded successfully",
         subscription: updatedSubscription,
         requiresPayment: !stripe || !currentSubscription!.stripeSubscriptionId
@@ -5835,35 +6319,35 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       const plan = await storage.getSubscriptionPlan(planId);
 
       if (!currentSubscription || !plan) {
-        return res.status(404).json({ 
-          success: false, 
-          message: "Subscription or plan not found" 
+        return res.status(404).json({
+          success: false,
+          message: "Subscription or plan not found"
         });
       }
 
       // Check if the plan was successfully updated
       const isUpdated = currentSubscription.planId === planId;
-      
+
       res.json({
         success: isUpdated,
         planName: plan.displayName,
         currentPlan: currentSubscription.plan?.displayName || 'Unknown',
-        message: isUpdated 
-          ? "Plan successfully updated" 
+        message: isUpdated
+          ? "Plan successfully updated"
           : "Plan update pending - please contact support if this persists"
       });
 
     } catch (error: any) {
       console.error('Payment verification error:', error);
-      res.status(500).json({ 
-        success: false, 
-        message: error.message 
+      res.status(500).json({
+        success: false,
+        message: error.message
       });
     }
   });
 
   // ===== Investment Intelligence Routes =====
-  
+
   // Get all investment strategies
   app.get("/api/investments/strategies", isAuthenticated, async (req: any, res) => {
     try {
@@ -5924,13 +6408,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   }
 
   // ===== Crypto Routes =====
-  
+
   // Get user's crypto holdings
   app.get("/api/crypto/holdings", isAuthenticated, async (req: any, res) => {
     try {
       const userId = getUserIdFromRequest(req);
       const holdings = await storage.getUserCryptoHoldings(userId);
-      
+
       // Fetch current prices for all holdings
       const updatedHoldings = await Promise.all(holdings.map(async (holding) => {
         try {
@@ -5947,7 +6431,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           return { ...holding, priceChange24h: 0 };
         }
       }));
-      
+
       res.json(updatedHoldings);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -5962,14 +6446,14 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         ...req.body,
         userId
       });
-      
+
       // Fetch initial price
       const priceData = await cryptoService.getCryptoPrice(validatedData.coinId);
       if (priceData) {
         validatedData.currentPrice = priceData.current_price.toString();
         validatedData.lastPriceUpdate = new Date();
       }
-      
+
       const holding = await storage.createCryptoHolding(validatedData);
       res.json(holding);
     } catch (error: any) {
@@ -5982,16 +6466,16 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const holdingId = req.params.id;
-      
+
       // Verify ownership
       const holding = await storage.getCryptoHolding(holdingId);
       if (!holding || holding.userId !== userId) {
         return res.status(404).json({ message: "Holding not found" });
       }
-      
+
       // Validate update data
       const validatedData = insertCryptoHoldingSchema.partial().parse(req.body);
-      
+
       const updatedHolding = await storage.updateCryptoHolding(holdingId, validatedData);
       res.json(updatedHolding);
     } catch (error: any) {
@@ -6004,13 +6488,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const holdingId = req.params.id;
-      
+
       // Verify ownership
       const holding = await storage.getCryptoHolding(holdingId);
       if (!holding || holding.userId !== userId) {
         return res.status(404).json({ message: "Holding not found" });
       }
-      
+
       await storage.deleteCryptoHolding(holdingId);
       res.json({ message: "Holding deleted successfully" });
     } catch (error: any) {
@@ -6025,7 +6509,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       if (!ids || typeof ids !== 'string') {
         return res.status(400).json({ message: "Coin IDs are required" });
       }
-      
+
       const coinIds = ids.split(',');
       const prices = await cryptoService.getCryptoPrices(coinIds);
       res.json(prices);
@@ -6039,11 +6523,11 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const { coinId } = req.params;
       const price = await cryptoService.getCryptoPrice(coinId);
-      
+
       if (!price) {
         return res.status(404).json({ message: "Cryptocurrency not found" });
       }
-      
+
       res.json(price);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -6057,7 +6541,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       if (!query || typeof query !== 'string') {
         return res.status(400).json({ message: "Search query is required" });
       }
-      
+
       const results = await cryptoService.searchCrypto(query);
       res.json(results);
     } catch (error: any) {
@@ -6070,14 +6554,14 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const portfolio = await storage.getUserCryptoPortfolioValue(userId);
-      
+
       // Update with latest prices
       const holdingsWithPrices = await Promise.all(
         portfolio.holdings.map(async (holding) => {
           try {
             const coinId = (await storage.getUserCryptoHoldings(userId))
               .find(h => h.symbol === holding.symbol)?.coinId;
-            
+
             if (coinId) {
               const priceData = await cryptoService.getCryptoPrice(coinId);
               if (priceData) {
@@ -6097,7 +6581,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           }
         })
       );
-      
+
       const totalValue = holdingsWithPrices.reduce((sum, h) => sum + h.value, 0);
       res.json({ totalValue, holdings: holdingsWithPrices });
     } catch (error: any) {
@@ -6125,25 +6609,25 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         ...req.body,
         userId
       });
-      
+
       const transaction = await storage.createCryptoTransaction(validatedData);
-      
+
       // Update holding if it's a buy/sell transaction
       if (transaction.holdingId) {
         const holding = await storage.getCryptoHolding(transaction.holdingId);
         if (holding) {
           const currentAmount = parseFloat(holding.amount);
           const transactionAmount = parseFloat(transaction.amount);
-          const newAmount = transaction.type === 'buy' 
-            ? currentAmount + transactionAmount 
+          const newAmount = transaction.type === 'buy'
+            ? currentAmount + transactionAmount
             : currentAmount - transactionAmount;
-          
+
           await storage.updateCryptoHolding(transaction.holdingId, {
             amount: newAmount.toString()
           });
         }
       }
-      
+
       res.json(transaction);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -6169,7 +6653,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         ...req.body,
         userId
       });
-      
+
       const alert = await storage.createCryptoPriceAlert(validatedData);
       res.json(alert);
     } catch (error: any) {
@@ -6182,13 +6666,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const alertId = req.params.id;
-      
+
       // Verify ownership
       const alert = await storage.getCryptoPriceAlert(alertId);
       if (!alert || alert.userId !== userId) {
         return res.status(404).json({ message: "Alert not found" });
       }
-      
+
       const updatedAlert = await storage.updateCryptoPriceAlert(alertId, req.body);
       res.json(updatedAlert);
     } catch (error: any) {
@@ -6201,13 +6685,13 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const alertId = req.params.id;
-      
+
       // Verify ownership
       const alert = await storage.getCryptoPriceAlert(alertId);
       if (!alert || alert.userId !== userId) {
         return res.status(404).json({ message: "Alert not found" });
       }
-      
+
       await storage.deleteCryptoPriceAlert(alertId);
       res.json({ message: "Alert deleted successfully" });
     } catch (error: any) {
@@ -6236,8 +6720,8 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           event = JSON.parse(req.body.toString());
         } else {
           stripeLogger.error('Webhook secret required in production');
-          return res.status(401).json({ 
-            error: "Webhook secret required for signature verification" 
+          return res.status(401).json({
+            error: "Webhook secret required for signature verification"
           });
         }
       } catch (err: any) {
@@ -6251,7 +6735,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         stripeLogger.info('Duplicate webhook event received', { data: { eventId: event.id, type: event.type } });
         return res.json({ received: true, duplicate: true });
       }
-      
+
       // Mark event as processed before handling to prevent race conditions
       await storage.markWebhookEventProcessed(event.id, event.type);
 
@@ -6283,12 +6767,12 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           const paymentIntent = event.data.object;
           await handlePaymentSuccess(paymentIntent);
           break;
-        
+
         case 'invoice.payment_succeeded':
           const invoice = event.data.object;
           await handleSubscriptionPaymentSuccess(invoice);
           break;
-          
+
         default:
           stripeLogger.debug('Unhandled event type', { data: { type: event.type } });
       }
@@ -6309,9 +6793,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       let referralCode = await storage.getUserReferralCode(userId);
-      
+
       // Create referral code if user doesn't have one
       if (!referralCode) {
         const code = `${(user.firstName || user.email?.split('@')[0] || 'USER').toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -6323,7 +6807,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
           isActive: true
         });
       }
-      
+
       res.json(referralCode);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -6338,10 +6822,10 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       }
 
       const userId = getUserIdFromRequest(req);
-      
+
       // Process the referral
       const referral = await storage.processReferral(userId, referralCode);
-      
+
       // Add bonus credits for the referred user (10 AI chats)
       await storage.addBonusCredits({
         userId: userId,
@@ -6359,9 +6843,9 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         referralId: referral.id,
         description: "Referral bonus: 10 AI chats for successful referral"
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         bonusCredits: 10,
         message: "Referral successful! You and your friend both received 10 bonus AI chats!"
       });
@@ -6387,7 +6871,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         storage.getUserBonusCredits(userId),
         storage.getAvailableBonusCredits(userId)
       ]);
-      
+
       res.json({
         credits,
         availableAmount
@@ -6403,22 +6887,22 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       if (!code) {
         return res.status(400).json({ message: "Referral code is required" });
       }
-      
+
       const referralCode = await storage.getReferralByCode(code);
       if (!referralCode) {
         return res.status(404).json({ message: "Invalid referral code" });
       }
-      
+
       const currentUses = referralCode.currentUses ?? 0;
       const maxUses = referralCode.maxUses ?? 100;
-      
+
       if (currentUses >= maxUses) {
         return res.status(400).json({ message: "Referral code has reached maximum uses" });
       }
-      
-      res.json({ 
-        valid: true, 
-        usesRemaining: maxUses - currentUses 
+
+      res.json({
+        valid: true,
+        usesRemaining: maxUses - currentUses
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -6429,7 +6913,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   async function handlePaymentSuccess(paymentIntent: any) {
     try {
       const { userId, planId } = paymentIntent.metadata;
-      
+
       if (!userId || !planId) {
         console.error('Missing metadata in payment intent:', paymentIntent.id);
         return;
@@ -6453,7 +6937,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
         // Update the subscription to the new plan
         const now = new Date();
         const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        
+
         await storage.updateSubscription(currentSubscription.id, {
           planId: plan.id,
           status: 'active',
@@ -6475,7 +6959,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const subscription = invoice.subscription;
       const { userId, planId } = invoice.metadata || {};
-      
+
       if (!userId || !planId) {
         console.error('Missing metadata in invoice:', invoice.id);
         return;
@@ -6490,7 +6974,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       let currentSubscription = await storage.getUserSubscription(userId);
       if (currentSubscription) {
         const subscriptionDetails = await stripe!.subscriptions.retrieve(subscription);
-        
+
         await storage.updateSubscription(currentSubscription.id, {
           planId: plan.id,
           status: 'active',
@@ -6512,7 +6996,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   async function handleCheckoutSessionCompleted(session: any) {
     try {
       const { userId, planId } = session.metadata || {};
-      
+
       if (!userId || !planId) {
         console.error('Missing metadata in checkout session:', session.id);
         return;
@@ -6568,7 +7052,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   async function handleSubscriptionCreated(subscription: any) {
     try {
       const { userId, planId } = subscription.metadata || {};
-      
+
       if (!userId || !planId) {
         stripeLogger.debug('No metadata in subscription, skipping');
         return;
@@ -6610,7 +7094,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       // Find subscription by Stripe subscription ID
       const currentSubscription = await storage.getSubscriptionByStripeId(subscription.id);
-      
+
       if (!currentSubscription) {
         stripeLogger.debug('Subscription not found in database, ignoring update', { data: { subscriptionId: subscription.id } });
         return;
@@ -6626,7 +7110,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       // Find the plan with matching Stripe price ID
       const plans = await storage.getSubscriptionPlans();
       const plan = plans.find(p => p.stripePriceId === priceId);
-      
+
       if (!plan) {
         console.error('Plan not found for price ID:', priceId);
         console.error('Available plans:', plans.map(p => ({ name: p.name, stripePriceId: p.stripePriceId })));
@@ -6669,7 +7153,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       // Find subscription by Stripe subscription ID
       const currentSubscription = await storage.getSubscriptionByStripeId(subscription.id);
-      
+
       if (!currentSubscription) {
         stripeLogger.debug('Subscription not found, ignoring deletion', { data: { subscriptionId: subscription.id } });
         return;
@@ -6678,7 +7162,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       // Get Free plan
       const plans = await storage.getSubscriptionPlans();
       const freePlan = plans.find(p => p.name.toLowerCase() === 'free');
-      
+
       if (!freePlan) {
         console.error('Free plan not found for downgrade');
         return;
@@ -6713,17 +7197,17 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       // Fetch live rates from exchangerate-api.com (free tier)
       const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch exchange rates');
       }
 
       const data = await response.json();
-      
+
       // Extract only the currencies we support
       const supportedCurrencies = ['USD', 'THB', 'EUR', 'IDR', 'INR', 'BRL', 'MXN', 'GBP', 'JPY', 'CAD', 'AUD', 'VND', 'PHP', 'MYR', 'TRY'];
       const rates: Record<string, number> = {};
-      
+
       supportedCurrencies.forEach(currency => {
         rates[currency] = data.rates[currency] || 1;
       });
@@ -6765,7 +7249,7 @@ Be concise but helpful. Focus on practical, actionable advice.`;
   });
 
   // ==================== AI PLAYBOOKS ROUTES ====================
-  
+
   // Get user's playbooks
   app.get("/api/playbooks", isAuthenticated, async (req: any, res) => {
     try {
@@ -6789,10 +7273,10 @@ Be concise but helpful. Focus on practical, actionable advice.`;
 
       // Import playbook service
       const { generateWeeklyPlaybook } = await import('./playbookService');
-      
+
       // Generate playbook
       const playbookData = await generateWeeklyPlaybook(userId, storage, tier);
-      
+
       // Save to database
       const playbook = await storage.createPlaybook({
         ...playbookData,
@@ -6811,23 +7295,23 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const playbook = await storage.getPlaybook(req.params.id);
-      
+
       if (!playbook) {
         return res.status(404).json({ message: 'Playbook not found' });
       }
-      
+
       // Verify ownership
       if (playbook.userId !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
       }
-      
+
       // Mark as viewed if not already
       if (!playbook.isViewed) {
         await storage.markPlaybookViewed(req.params.id);
         playbook.isViewed = true;
         playbook.viewedAt = new Date();
       }
-      
+
       res.json(playbook);
     } catch (error: any) {
       console.error('Error fetching playbook:', error);
@@ -6848,51 +7332,51 @@ Be concise but helpful. Focus on practical, actionable advice.`;
       // Validate request body
       const validationResult = completeActionSchema.safeParse(req.body);
       if (!validationResult.success) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid request body',
-          errors: validationResult.error.flatten().fieldErrors 
+          errors: validationResult.error.flatten().fieldErrors
         });
       }
-      
+
       const { actionIndex, estimatedSavings } = validationResult.data;
 
       const playbook = await storage.getPlaybook(req.params.id);
-      
+
       if (!playbook) {
         return res.status(404).json({ message: 'Playbook not found' });
       }
-      
+
       // Verify ownership
       if (playbook.userId !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
       }
-      
+
       // Get current completed action indices (prevent duplicate completions)
-      const completedIndices: number[] = Array.isArray(playbook.completedActionIndices) 
+      const completedIndices: number[] = Array.isArray(playbook.completedActionIndices)
         ? playbook.completedActionIndices as number[]
         : [];
-      
+
       // Check if action was already completed
       if (completedIndices.includes(actionIndex)) {
-        return res.status(409).json({ 
-          message: 'Action already completed', 
-          alreadyCompleted: true 
+        return res.status(409).json({
+          message: 'Action already completed',
+          alreadyCompleted: true
         });
       }
-      
+
       // Update playbook with completed action
       const newCompletedIndices = [...completedIndices, actionIndex];
       const newActionsCompleted = newCompletedIndices.length;
       const newRoiSavings = parseFloat(playbook.roiSavings?.toString() || '0') + (estimatedSavings || 0);
       const newCumulativeRoi = parseFloat(playbook.cumulativeRoi?.toString() || '0') + (estimatedSavings || 0);
-      
+
       const updatedPlaybook = await storage.updatePlaybook(req.params.id, {
         actionsCompleted: newActionsCompleted,
         completedActionIndices: newCompletedIndices,
         roiSavings: newRoiSavings.toFixed(2),
         cumulativeRoi: newCumulativeRoi.toFixed(2),
       });
-      
+
       res.json(updatedPlaybook);
     } catch (error: any) {
       console.error('Error completing action:', error);
@@ -6905,16 +7389,16 @@ Be concise but helpful. Focus on practical, actionable advice.`;
     try {
       const userId = getUserIdFromRequest(req);
       const playbook = await storage.getPlaybook(req.params.id);
-      
+
       if (!playbook) {
         return res.status(404).json({ message: 'Playbook not found' });
       }
-      
+
       // Verify ownership
       if (playbook.userId !== userId) {
         return res.status(403).json({ message: 'Unauthorized' });
       }
-      
+
       await storage.deletePlaybook(req.params.id);
       res.json({ message: 'Playbook deleted successfully' });
     } catch (error: any) {

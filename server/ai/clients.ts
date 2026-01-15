@@ -1,18 +1,15 @@
 /**
- * AI Clients - 4-Model Architecture
- * - Scout (Llama 4 via Groq): PRIMARY - Fast queries (Fast)
- * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic (Smart)
- * - GPT-5 (OpenAI): MATH - Advanced calculations (Math)
- * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis (CFO)
+ * AI Clients - 2-Tier Architecture (Free/Pro)
+ * - Gemini Flash 2.0: FREE TIER - Fast queries for all users (Free: 50/mo)
+ * - Claude Sonnet 4.5: PRO TIER - Advanced reasoning for Pro users
+ * 
+ * Legacy clients (deprecated but still available):
+ * - Scout (Llama 4 via Groq)
+ * - GPT-5 (OpenAI)
+ * - Opus 4.1 (Claude) - Enterprise only
  * 
  * Standardized interface for all providers with cost tracking
  * Return shape: { text, tokensIn, tokensOut, cost, model }
- * 
- * Features:
- * - Retry logic with exponential backoff for transient failures
- * - Graceful error handling with user-friendly messages
- * - Circuit-breaker pattern for provider outages
- * - Structured logging for production observability
  */
 
 import Groq from "groq-sdk";
@@ -20,6 +17,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { getAIConfig, type ModelId } from '../config/ai';
 import { aiLogger } from '../utils/logger';
+
+// Re-export Gemini client
+export { GeminiClient, getGeminiClient } from './gemini-client';
 
 // Retry configuration
 const RETRY_CONFIG = {
@@ -125,13 +125,13 @@ async function withRetry<T>(
   operationName: string
 ): Promise<T> {
   let lastError: any;
-  
+
   for (let attempt = 0; attempt < RETRY_CONFIG.maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error: any) {
       lastError = error;
-      
+
       // Log the error with structured context
       aiLogger.warn(`${provider} ${operationName} attempt ${attempt + 1} failed`, {
         data: {
@@ -142,24 +142,24 @@ async function withRetry<T>(
           statusCode: error.status,
         }
       });
-      
+
       // Don't retry if not retryable or last attempt
       if (!isRetryableError(error) || attempt === RETRY_CONFIG.maxRetries - 1) {
         break;
       }
-      
+
       // Wait before retrying
       const delay = getBackoffDelay(attempt);
       aiLogger.debug(`${provider} retrying in ${Math.round(delay)}ms`);
       await sleep(delay);
     }
   }
-  
+
   // Categorize the final error
   const statusCode = lastError?.status || lastError?.statusCode;
   let errorCode: AIClientError['code'] = 'unknown';
   let message = 'An unexpected error occurred';
-  
+
   if (statusCode === 429) {
     errorCode = 'rate_limit';
     message = 'AI service is temporarily overloaded. Please try again in a moment.';
@@ -173,7 +173,7 @@ async function withRetry<T>(
     errorCode = 'timeout';
     message = 'AI request timed out. Please try a simpler question.';
   }
-  
+
   throw createAIClientError(
     `${provider} error: ${message}`,
     errorCode,
@@ -235,14 +235,14 @@ export interface StreamChunk {
 export class GPT5Client {
   private openai: OpenAI;
   private model = 'gpt-5';
-  
+
   constructor() {
     this.openai = new OpenAI({
       apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || '',
       baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || 'https://api.openai.com/v1',
     });
   }
-  
+
   async chat(options: ChatOptions): Promise<AIResponse> {
     const {
       messages,
@@ -251,13 +251,13 @@ export class GPT5Client {
       maxTokens = 8192,
       temperature = 0.7,
     } = options;
-    
+
     // Build OpenAI message format
     const openaiMessages = messages.map(msg => ({
       role: msg.role,
       content: msg.content,
     }));
-    
+
     // Add system message if provided
     if (system) {
       openaiMessages.unshift({
@@ -265,7 +265,7 @@ export class GPT5Client {
         content: system,
       });
     }
-    
+
     return withRetry(async () => {
       const completion = await this.openai.chat.completions.create({
         model: this.model,
@@ -274,12 +274,12 @@ export class GPT5Client {
         temperature,
         tools: tools as any,
       });
-      
+
       const message = completion.choices[0]?.message;
       const text = message?.content || '';
       const tokensIn = completion.usage?.prompt_tokens || 0;
       const tokensOut = completion.usage?.completion_tokens || 0;
-      
+
       // Extract tool calls from OpenAI response
       const toolCalls: ToolCall[] | undefined = message?.tool_calls
         ?.filter((tc: any) => tc.type === 'function' && tc.function)
@@ -302,7 +302,7 @@ export class GPT5Client {
           }
         })
         .filter((tc): tc is ToolCall => tc !== null);
-      
+
       // Calculate cost (GPT-5 includes reasoning tokens in output)
       const aiConfig = getAIConfig();
       const cost = aiConfig.estimateCost(
@@ -310,7 +310,7 @@ export class GPT5Client {
         tokensIn,
         tokensOut
       );
-      
+
       return {
         text,
         tokensIn,
@@ -321,7 +321,7 @@ export class GPT5Client {
       };
     }, 'GPT5Client', 'chat');
   }
-  
+
   async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
     const {
       messages,
@@ -329,19 +329,19 @@ export class GPT5Client {
       maxTokens = 8192,
       temperature = 0.7,
     } = options;
-    
+
     const openaiMessages = messages.map(msg => ({
       role: msg.role,
       content: msg.content,
     }));
-    
+
     if (system) {
       openaiMessages.unshift({
         role: 'system' as const,
         content: system,
       });
     }
-    
+
     try {
       const stream = await this.openai.chat.completions.create({
         model: this.model,
@@ -351,27 +351,27 @@ export class GPT5Client {
         stream: true,
         stream_options: { include_usage: true },
       });
-      
+
       let fullText = '';
       let tokensIn = 0;
       let tokensOut = 0;
-      
+
       for await (const chunk of stream) {
         const delta = chunk.choices[0]?.delta;
         if (delta?.content) {
           fullText += delta.content;
           yield { type: 'text', content: delta.content };
         }
-        
+
         if (chunk.usage) {
           tokensIn = chunk.usage.prompt_tokens || 0;
           tokensOut = chunk.usage.completion_tokens || 0;
         }
       }
-      
+
       const aiConfig = getAIConfig();
       const cost = aiConfig.estimateCost('gpt-5' as ModelId, tokensIn, tokensOut);
-      
+
       yield {
         type: 'done',
         tokensIn,
@@ -392,13 +392,13 @@ export class GPT5Client {
 export class ScoutClient {
   private groq: Groq;
   private config = getAIConfig().scout;
-  
+
   constructor() {
     this.groq = new Groq({
       apiKey: this.config.apiKey,
     });
   }
-  
+
   async chat(options: ChatOptions): Promise<AIResponse> {
     const {
       messages,
@@ -407,13 +407,13 @@ export class ScoutClient {
       maxTokens = this.config.maxTokens,
       temperature = this.config.temperature,
     } = options;
-    
+
     // Build Groq message format
     const groqMessages = messages.map(msg => ({
       role: msg.role === 'system' ? 'system' as const : msg.role,
       content: msg.content,
     }));
-    
+
     // Add system message if provided
     if (system) {
       groqMessages.unshift({
@@ -421,7 +421,7 @@ export class ScoutClient {
         content: system,
       });
     }
-    
+
     return withRetry(async () => {
       const completion = await this.groq.chat.completions.create({
         model: this.config.model,
@@ -430,12 +430,12 @@ export class ScoutClient {
         temperature,
         tools: tools as any,
       });
-      
+
       const message = completion.choices[0]?.message;
       const text = message?.content || '';
       const tokensIn = completion.usage?.prompt_tokens || 0;
       const tokensOut = completion.usage?.completion_tokens || 0;
-      
+
       // Extract tool calls from Groq response (same format as OpenAI)
       const toolCalls: ToolCall[] | undefined = message?.tool_calls
         ?.filter((tc: any) => tc.type === 'function' && tc.function)
@@ -458,7 +458,7 @@ export class ScoutClient {
           }
         })
         .filter((tc): tc is ToolCall => tc !== null);
-      
+
       // Calculate cost
       const aiConfig = getAIConfig();
       const cost = aiConfig.estimateCost(
@@ -466,7 +466,7 @@ export class ScoutClient {
         tokensIn,
         tokensOut
       );
-      
+
       return {
         text,
         tokensIn,
@@ -477,7 +477,7 @@ export class ScoutClient {
       };
     }, 'ScoutClient', 'chat');
   }
-  
+
   async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
     const {
       messages,
@@ -485,19 +485,19 @@ export class ScoutClient {
       maxTokens = this.config.maxTokens,
       temperature = this.config.temperature,
     } = options;
-    
+
     const groqMessages = messages.map(msg => ({
       role: msg.role === 'system' ? 'system' as const : msg.role,
       content: msg.content,
     }));
-    
+
     if (system) {
       groqMessages.unshift({
         role: 'system',
         content: system,
       });
     }
-    
+
     try {
       const stream = await this.groq.chat.completions.create({
         model: this.config.model,
@@ -506,27 +506,27 @@ export class ScoutClient {
         temperature,
         stream: true,
       });
-      
+
       let fullText = '';
       let tokensIn = 0;
       let tokensOut = 0;
-      
+
       for await (const chunk of stream) {
         const delta = chunk.choices[0]?.delta;
         if (delta?.content) {
           fullText += delta.content;
           yield { type: 'text', content: delta.content };
         }
-        
+
         if (chunk.x_groq?.usage) {
           tokensIn = chunk.x_groq.usage.prompt_tokens || 0;
           tokensOut = chunk.x_groq.usage.completion_tokens || 0;
         }
       }
-      
+
       const aiConfig = getAIConfig();
       const cost = aiConfig.estimateCost(this.config.model as ModelId, tokensIn, tokensOut);
-      
+
       yield {
         type: 'done',
         tokensIn,
@@ -541,7 +541,7 @@ export class ScoutClient {
 }
 
 /**
- * Anthropic Client (Claude Sonnet 3.5/4.5 and Opus 4.1)
+ * Anthropic Client (Claude Sonnet 3.5 and Opus)
  * REASONING + CFO-LEVEL - Sonnet for strategy (Pro: 25 queries/month, Enterprise: 60 queries/month)
  * Opus for CFO analysis (Enterprise only: 20 queries/month)
  */
@@ -549,23 +549,35 @@ export class AnthropicClient {
   private anthropic: Anthropic;
   private model: string;
   private modelType: 'opus' | 'sonnet'; // Track which type for config lookup
-  
-  constructor(model: 'claude-sonnet-4-5' | 'claude-opus-4-1') {
+
+  constructor(model: 'sonnet' | 'opus') {
     const config = getAIConfig();
-    this.modelType = model.includes('opus') ? 'opus' : 'sonnet';
-    const modelConfig = config.reasoning; // Both use the same reasoning config
-    
-    this.model = model; // Use exact model name passed in
+    this.modelType = model;
+    const modelConfig = config.reasoning;
+
+    // Use config model for Sonnet, or hardcode Opus model
+    if (model === 'sonnet') {
+      this.model = modelConfig.model; // From AI_REASON_MODEL env or default
+    } else {
+      this.model = 'claude-3-opus-20240229'; // Opus fallback
+    }
+
+    console.log(`[AnthropicClient] Initialized with model: ${this.model}, baseURL: ${modelConfig.baseURL}`);
+    const apiKeyMasked = modelConfig.apiKey ? `${modelConfig.apiKey.slice(0, 10)}...${modelConfig.apiKey.slice(-4)}` : 'NO KEY';
+    console.log(`[AnthropicClient] API Key (masked): ${apiKeyMasked}`);
+
     this.anthropic = new Anthropic({
       apiKey: modelConfig.apiKey,
       baseURL: modelConfig.baseURL,
     });
   }
-  
+
+
+
   async chat(options: ChatOptions): Promise<AIResponse> {
     const config = getAIConfig();
     const modelConfig = config.reasoning;
-    
+
     const {
       messages,
       system,
@@ -573,7 +585,7 @@ export class AnthropicClient {
       maxTokens = modelConfig.maxTokens,
       temperature = modelConfig.temperature,
     } = options;
-    
+
     // Build Anthropic message format (exclude system messages from messages array)
     const anthropicMessages = messages
       .filter(msg => msg.role !== 'system')
@@ -581,47 +593,64 @@ export class AnthropicClient {
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
       }));
-    
+
     const clientName = this.modelType === 'opus' ? 'OpusClient' : 'SonnetClient';
-    
+
+    // Convert OpenAI-format tools to Anthropic format
+    // OpenAI: { type: "function", function: { name, description, parameters } }
+    // Anthropic: { name, description, input_schema }
+    const anthropicTools = tools?.map((tool: any) => {
+      if (tool.type === 'function' && tool.function) {
+        return {
+          name: tool.function.name,
+          description: tool.function.description,
+          input_schema: tool.function.parameters || { type: 'object', properties: {} },
+        };
+      }
+      // Already in Anthropic format or unknown format
+      return tool;
+    });
+
     return withRetry(async () => {
+      console.log(`[${clientName}] Making API call with model: ${this.model}`);
+
       const message = await this.anthropic.messages.create({
         model: this.model,
         max_tokens: maxTokens,
         temperature,
         system: system || undefined,
         messages: anthropicMessages,
-        tools: tools as any,
+        tools: anthropicTools as any,
       });
-      
+
       // Extract text from response
       const textContent = message.content.find(block => block.type === 'text');
       const text = textContent && textContent.type === 'text' ? textContent.text : '';
-      
+
       // Extract tool calls from Anthropic response (they use 'tool_use' blocks)
       const toolUseBlocks = message.content.filter(block => block.type === 'tool_use');
       const toolCalls: ToolCall[] | undefined = toolUseBlocks.length > 0
         ? toolUseBlocks.map((block: any) => ({
-            id: block.id,
-            type: 'function' as const,
-            function: {
-              name: block.name,
-              // Coerce string booleans to actual booleans
-              arguments: coerceToolArguments(block.input || {}),
-            },
-          }))
+          id: block.id,
+          type: 'function' as const,
+          function: {
+            name: block.name,
+            // Coerce string booleans to actual booleans
+            arguments: coerceToolArguments(block.input || {}),
+          },
+        }))
         : undefined;
-      
+
       const tokensIn = message.usage.input_tokens || 0;
       const tokensOut = message.usage.output_tokens || 0;
-      
+
       // Calculate cost
       const cost = config.estimateCost(
         this.model as ModelId,
         tokensIn,
         tokensOut
       );
-      
+
       return {
         text,
         tokensIn,
@@ -632,25 +661,25 @@ export class AnthropicClient {
       };
     }, clientName, 'chat');
   }
-  
+
   async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
     const config = getAIConfig();
     const modelConfig = config.reasoning;
-    
+
     const {
       messages,
       system,
       maxTokens = modelConfig.maxTokens,
       temperature = modelConfig.temperature,
     } = options;
-    
+
     const anthropicMessages = messages
       .filter(msg => msg.role !== 'system')
       .map(msg => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
       }));
-    
+
     try {
       const stream = this.anthropic.messages.stream({
         model: this.model,
@@ -659,10 +688,10 @@ export class AnthropicClient {
         system: system || undefined,
         messages: anthropicMessages,
       });
-      
+
       let tokensIn = 0;
       let tokensOut = 0;
-      
+
       for await (const event of stream) {
         if (event.type === 'content_block_delta') {
           const delta = event.delta as any;
@@ -670,14 +699,14 @@ export class AnthropicClient {
             yield { type: 'text', content: delta.text };
           }
         }
-        
+
         if (event.type === 'message_delta') {
           const usage = (event as any).usage;
           if (usage) {
             tokensOut = usage.output_tokens || 0;
           }
         }
-        
+
         if (event.type === 'message_start') {
           const message = (event as any).message;
           if (message?.usage) {
@@ -685,9 +714,9 @@ export class AnthropicClient {
           }
         }
       }
-      
+
       const cost = config.estimateCost(this.model as ModelId, tokensIn, tokensOut);
-      
+
       yield {
         type: 'done',
         tokensIn,
@@ -746,7 +775,7 @@ export function getScoutClient(): ScoutClient {
  */
 export function getSonnetClient(): AnthropicClient {
   if (!sonnetClient) {
-    sonnetClient = new AnthropicClient('claude-sonnet-4-5');
+    sonnetClient = new AnthropicClient('sonnet');
   }
   return sonnetClient;
 }
@@ -757,7 +786,7 @@ export function getSonnetClient(): AnthropicClient {
  */
 export function getOpusClient(): AnthropicClient {
   if (!opusClient) {
-    opusClient = new AnthropicClient('claude-opus-4-1');
+    opusClient = new AnthropicClient('opus');
   }
   return opusClient;
 }

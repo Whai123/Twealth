@@ -408,7 +408,7 @@ export const financialPreferences = pgTable("financial_preferences", {
   defaultGoalPriority: text("default_goal_priority", { enum: ["low", "medium", "high"] }).default("medium"),
   expenseCategories: jsonb("expense_categories").default([
     "Food & Dining",
-    "Transportation", 
+    "Transportation",
     "Shopping",
     "Entertainment",
     "Utilities",
@@ -419,7 +419,7 @@ export const financialPreferences = pgTable("financial_preferences", {
   ]),
   incomeCategories: jsonb("income_categories").default([
     "Salary",
-    "Freelance", 
+    "Freelance",
     "Investment",
     "Business",
     "Gift",
@@ -544,6 +544,94 @@ export const userAssets = pgTable("user_assets", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_assets_user_id").on(table.userId),
+]);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WORLD-CLASS FINANCIAL SCORING SYSTEM (4 PILLARS)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Monthly Financial Aggregates - Materialized "financial state" per month
+export const monthlyFinancials = pgTable("monthly_financials", {
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  month: timestamp("month").notNull(), // Normalized to first day of month
+
+  // Income & Expenses
+  incomeCents: integer("income_cents").notNull().default(0),
+  expenseCents: integer("expense_cents").notNull().default(0), // Stored as positive magnitude
+  fixedExpenseCents: integer("fixed_expense_cents").notNull().default(0), // Rent, subscriptions, etc.
+
+  // Wealth Building
+  emergencyFundCents: integer("emergency_fund_cents").notNull().default(0),
+  totalDebtCents: integer("total_debt_cents").notNull().default(0),
+  investmentContribCents: integer("investment_contrib_cents").notNull().default(0),
+
+  // Risk Protection
+  insuredAmountCents: integer("insured_amount_cents").notNull().default(0),
+
+  // Metadata
+  transactionCount: integer("transaction_count").notNull().default(0),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_monthly_user_month").on(table.userId, table.month),
+  unique("unique_monthly_user_month").on(table.userId, table.month),
+]);
+
+// Score Snapshots - 4-Pillar scoring history with explainability
+export const scoreSnapshots = pgTable("score_snapshots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  month: timestamp("month").notNull(), // Normalized to first day of month
+
+  // THE 4 PILLARS (0-100 each)
+  cashflowScore: integer("cashflow_score").notNull(), // Cashflow Resilience
+  stabilityScore: integer("stability_score").notNull(), // Stability & Risk
+  growthScore: integer("growth_score").notNull(), // Wealth Growth Quality
+  behaviorScore: integer("behavior_score").notNull(), // Behavioral Alpha
+
+  // COMPOSITE INDEX (weighted average)
+  twealthIndex: integer("twealth_index").notNull(), // Overall 0-100
+
+  // UX ELEMENTS
+  band: text("band").notNull(), // "Critical" | "Needs Work" | "Good" | "Great"
+  confidence: decimal("confidence", { precision: 4, scale: 3 }).notNull(), // 0.000 to 1.000
+
+  // EXPLAINABILITY
+  drivers: jsonb("drivers").notNull().$type<{
+    cashflow: { drivers: string[]; action: string };
+    stability: { drivers: string[]; action: string };
+    growth: { drivers: string[]; action: string };
+    behavior: { drivers: string[]; action: string };
+    overall: { drivers: string[]; action: string };
+  }>(),
+
+  // DEBUG/TUNING
+  components: jsonb("components").notNull().$type<{
+    // Cashflow components
+    netRatio: number;
+    fixedRatio: number;
+    incomeVol: number;
+    A: number; B: number; C: number;
+    // Stability components
+    liquidityCoverage: number;
+    leverage: number;
+    protectionRatio: number;
+    L: number; D: number; P: number;
+    // Growth components
+    savingRate: number;
+    investRate: number;
+    incomeGrowth: number;
+    consistency: number;
+    S: number; I: number; G: number; Co: number;
+    // Behavior components
+    loggingConsistency: number;
+    budgetAdherence: number;
+    Ba: number; Bc: number;
+  }>(),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_scores_user_month").on(table.userId, table.month),
+  unique("unique_scores_user_month").on(table.userId, table.month),
 ]);
 
 // Insert schemas for Replit Auth
@@ -1685,3 +1773,124 @@ export const bonusCreditsRelations = relations(bonusCredits, ({ one }) => ({
     references: [referrals.id],
   }),
 }));
+
+// ═══════════════════════════════════════════════════════════════════════════
+// WORLD-CLASS SCORING SYSTEM TYPES
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const insertMonthlyFinancialsSchema = createInsertSchema(monthlyFinancials);
+export const insertScoreSnapshotSchema = createInsertSchema(scoreSnapshots).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type MonthlyFinancials = typeof monthlyFinancials.$inferSelect;
+export type InsertMonthlyFinancials = z.infer<typeof insertMonthlyFinancialsSchema>;
+export type ScoreSnapshot = typeof scoreSnapshots.$inferSelect;
+export type InsertScoreSnapshot = z.infer<typeof insertScoreSnapshotSchema>;
+
+// Score bands
+export type ScoreBand = 'Critical' | 'Needs Work' | 'Good' | 'Great';
+
+// Drivers structure for explainability
+export type ScoreDrivers = {
+  cashflow: { drivers: string[]; action: string };
+  stability: { drivers: string[]; action: string };
+  growth: { drivers: string[]; action: string };
+  behavior: { drivers: string[]; action: string };
+  overall: { drivers: string[]; action: string };
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AI LEARNING SYSTEM - Memory, Patterns, and Personalization
+// ═══════════════════════════════════════════════════════════════════════════
+
+// AI User Memories - Long-term facts learned from conversations
+export const aiUserMemories = pgTable("ai_user_memories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  factType: text("fact_type").notNull(), // 'preference', 'life_event', 'financial_goal', 'context', 'personal'
+  factKey: text("fact_key").notNull(),   // e.g., 'job_title', 'wife_name', 'investment_style', 'risk_tolerance'
+  factValue: text("fact_value").notNull(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default("0.80"), // 0.00 to 1.00
+  source: text("source").default("conversation"), // 'conversation', 'action', 'inferred', 'explicit'
+  lastMentionedAt: timestamp("last_mentioned_at").defaultNow(),
+  mentionCount: integer("mention_count").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_ai_memories_user_id").on(table.userId),
+  unique("unique_ai_memory_user_key").on(table.userId, table.factKey),
+]);
+
+// AI Spending Patterns - Detected patterns in user spending behavior
+export const aiSpendingPatterns = pgTable("ai_spending_patterns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  patternType: text("pattern_type").notNull(), // 'recurring', 'seasonal', 'impulse', 'trend', 'anomaly'
+  category: text("category").notNull(),        // 'food', 'transport', 'entertainment', 'shopping', etc.
+  patternData: jsonb("pattern_data").notNull().$type<{
+    average: number;                           // Average amount for this pattern
+    trend: 'increasing' | 'decreasing' | 'stable'; // Overall trend
+    frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+    lastAmount?: number;                       // Most recent amount
+    percentChange?: number;                    // % change from previous period
+    prediction?: number;                       // Predicted next amount
+    seasonalPeak?: string;                     // e.g., "December" for holiday spending
+    impulseThreshold?: number;                 // Amount that triggers impulse flag
+  }>(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default("0.70"),
+  detectedAt: timestamp("detected_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ai_patterns_user_id").on(table.userId),
+  unique("unique_ai_pattern_user_type_category").on(table.userId, table.patternType, table.category),
+]);
+
+// AI Communication Preferences - Learn how user prefers to communicate
+export const aiCommunicationPrefs = pgTable("ai_communication_prefs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }).unique(),
+  adviceLength: text("advice_length").default("balanced"), // 'brief', 'balanced', 'detailed'
+  communicationStyle: text("communication_style").default("friendly"), // 'professional', 'friendly', 'casual'
+  usesEmoji: boolean("uses_emoji").default(true),
+  prefersActionFirst: boolean("prefers_action_first").default(true), // Execute actions before explaining
+  technicalLevel: text("technical_level").default("intermediate"), // 'beginner', 'intermediate', 'expert'
+  topicsOfInterest: text("topics_of_interest").array().default(sql`ARRAY[]::text[]`), // ['investing', 'budgeting', 'crypto']
+  preferredExamples: text("preferred_examples").default("relatable"), // 'relatable', 'technical', 'none'
+  responseSpeed: text("response_speed").default("balanced"), // 'quick', 'balanced', 'thorough'
+  // Learning signals
+  positiveSignals: integer("positive_signals").default(0), // Count of positive feedback
+  negativeSignals: integer("negative_signals").default(0), // Count of negative feedback
+  lastFeedbackAt: timestamp("last_feedback_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ai_comm_prefs_user_id").on(table.userId),
+]);
+
+// Insert schemas for AI learning tables
+export const insertAiUserMemorySchema = createInsertSchema(aiUserMemories).omit({
+  id: true,
+  createdAt: true,
+  lastMentionedAt: true,
+});
+
+export const insertAiSpendingPatternSchema = createInsertSchema(aiSpendingPatterns).omit({
+  id: true,
+  detectedAt: true,
+  updatedAt: true,
+});
+
+export const insertAiCommunicationPrefsSchema = createInsertSchema(aiCommunicationPrefs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for AI learning
+export type AiUserMemory = typeof aiUserMemories.$inferSelect;
+export type InsertAiUserMemory = z.infer<typeof insertAiUserMemorySchema>;
+export type AiSpendingPattern = typeof aiSpendingPatterns.$inferSelect;
+export type InsertAiSpendingPattern = z.infer<typeof insertAiSpendingPatternSchema>;
+export type AiCommunicationPrefs = typeof aiCommunicationPrefs.$inferSelect;
+export type InsertAiCommunicationPrefs = z.infer<typeof insertAiCommunicationPrefsSchema>;

@@ -5,19 +5,21 @@ import { Strategy as AppleStrategy } from "passport-apple";
 import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
+import createMemoryStore from "memorystore";
 import { storage } from "./storage";
 import { authLogger } from "./utils/logger";
 
-// Safe default for REPLIT_DOMAINS in development
-const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || 'localhost:5000';
+// Safe default for development - use PORT env or default to 5003
+const DEV_PORT = process.env.PORT || '5003';
+const REPLIT_DOMAINS = process.env.REPLIT_DOMAINS || `localhost:${DEV_PORT}`;
 
 // Use production domain for OAuth in production, dev domain in development
 const PRODUCTION_DOMAIN = 'twealth.ltd';
 const domains = REPLIT_DOMAINS.split(',');
 
 // Consistent production detection: NODE_ENV=production OR deployment flag
-const isProduction = process.env.NODE_ENV === 'production' || 
-                     process.env.REPLIT_DEPLOYMENT === '1';
+const isProduction = process.env.NODE_ENV === 'production' ||
+  process.env.REPLIT_DEPLOYMENT === '1';
 const isDevelopment = !isProduction;
 const customDomain = isProduction ? PRODUCTION_DOMAIN : domains[0];
 
@@ -27,7 +29,9 @@ if (isDevelopment) {
   authLogger.debug('Using domain for callbacks', { data: { domain: customDomain } });
 }
 
-const FRONTEND_URL = `https://${customDomain}`;
+// Use http for localhost development, https for production
+const protocol = isDevelopment ? 'http' : 'https';
+const FRONTEND_URL = `${protocol}://${customDomain}`;
 const BACKEND_URL = FRONTEND_URL; // Same domain setup
 
 if (isDevelopment) {
@@ -36,17 +40,34 @@ if (isDevelopment) {
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
-  
+
+  // Use in-memory session store when DATABASE_URL is not available
+  let sessionStore: session.Store;
+
+  if (process.env.DATABASE_URL) {
+    const pgStore = connectPg(session);
+    sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: false,
+      ttl: sessionTtl,
+      tableName: "sessions",
+    });
+    if (isDevelopment) {
+      authLogger.debug('Using PostgreSQL session store');
+    }
+  } else {
+    const MemoryStore = createMemoryStore(session);
+    sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
+    if (isDevelopment) {
+      authLogger.debug('Using in-memory session store (no DATABASE_URL)');
+    }
+  }
+
   // Development-only session config logging
   if (isDevelopment) {
-    authLogger.debug('Session configuration', { 
+    authLogger.debug('Session configuration', {
       data: {
         NODE_ENV: process.env.NODE_ENV,
         REPLIT_DEPLOYMENT: process.env.REPLIT_DEPLOYMENT,
@@ -56,13 +77,13 @@ export function getSession() {
       }
     });
   }
-  
+
   // Use a safe default for SESSION_SECRET in development
   const sessionSecret = process.env.SESSION_SECRET || (isDevelopment ? 'dev-session-secret-change-in-production' : undefined);
   if (!sessionSecret) {
     throw new Error('SESSION_SECRET must be set in production');
   }
-  
+
   return session({
     secret: sessionSecret,
     store: sessionStore,
@@ -77,6 +98,7 @@ export function getSession() {
     },
   });
 }
+
 
 interface UserSession {
   userId?: string;
@@ -257,19 +279,19 @@ passport.deserializeUser((user: any, done) => {
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
     const userSession = req.user as UserSession;
-    
+
     // Attach user ID to request for downstream middleware
     (req as any).userId = userSession.userId;
-    
+
     return next();
   }
-  
+
   res.status(401).json({ error: "Unauthorized - Please log in" });
 };
 
 export function setupAuth(app: Express) {
   if (isDevelopment) authLogger.debug('setupAuth() called');
-  
+
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
@@ -308,25 +330,25 @@ export function setupAuth(app: Express) {
           if (isDevelopment) {
             authLogger.debug('Passport authenticate callback', { data: { hasError: !!err, hasUser: !!user } });
           }
-          
+
           if (err) {
             authLogger.error('Authentication error', err);
             return res.redirect("/login");
           }
-          
+
           if (!user) {
             authLogger.warn('No user returned from passport');
             return res.redirect("/login");
           }
-          
+
           req.login(user, (loginErr) => {
             if (loginErr) {
               authLogger.error('Login error', loginErr);
               return res.redirect("/login");
             }
-            
+
             if (isDevelopment) authLogger.debug('User logged in successfully');
-            
+
             req.session.save((saveErr) => {
               if (saveErr) {
                 authLogger.error('Session save error', saveErr);
@@ -414,12 +436,68 @@ export function setupAuth(app: Express) {
     res.json({ authenticated: req.isAuthenticated ? req.isAuthenticated() : false });
   });
 
+  // Dev-only login endpoint for local development without OAuth
+  if (isDevelopment && !process.env.GOOGLE_CLIENT_ID) {
+    app.post("/api/auth/dev-login", async (req, res) => {
+      authLogger.debug('Dev login requested');
+
+      try {
+        // Create or get a dev user
+        const devUser = await storage.upsertUser({
+          id: 'dev_user_local',
+          email: 'dev@localhost',
+          firstName: 'Dev',
+          lastName: 'User',
+          profileImageUrl: null,
+        });
+
+        // Initialize subscription if new user
+        const subscription = await storage.getUserSubscription(devUser.id);
+        if (!subscription) {
+          await storage.initializeDefaultSubscription(devUser.id);
+        }
+
+        const userSession: UserSession = {
+          userId: devUser.id,
+          email: devUser.email || 'dev@localhost',
+          firstName: devUser.firstName || 'Dev',
+          lastName: devUser.lastName || 'User',
+          profileImageUrl: devUser.profileImageUrl || undefined,
+        };
+
+        req.login(userSession, (loginErr) => {
+          if (loginErr) {
+            authLogger.error('Dev login error', loginErr);
+            return res.status(500).json({ error: 'Login failed' });
+          }
+
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              authLogger.error('Dev session save error', saveErr);
+              return res.status(500).json({ error: 'Session save failed' });
+            }
+
+            authLogger.debug('Dev user logged in successfully');
+            res.json({ success: true, user: userSession });
+          });
+        });
+      } catch (error: any) {
+        authLogger.error('Dev login error', error);
+        res.status(500).json({ error: error.message || 'Dev login failed' });
+      }
+    });
+
+    authLogger.debug('Dev login endpoint registered at /api/auth/dev-login');
+  }
+
   // Get available OAuth providers
   app.get("/api/auth/providers", (req, res) => {
+    const hasOAuth = !!(process.env.GOOGLE_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.APPLE_SERVICE_ID);
     const providers = {
       google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
       facebook: !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
       apple: !!(process.env.APPLE_SERVICE_ID && process.env.APPLE_TEAM_ID && process.env.APPLE_KEY_ID && process.env.APPLE_PRIVATE_KEY),
+      devLogin: isDevelopment && !hasOAuth, // Dev login available when no OAuth is configured
     };
     res.json(providers);
   });

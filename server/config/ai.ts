@@ -1,55 +1,59 @@
 /**
- * AI Configuration for Hybrid Scout + Reasoning Architecture
+ * AI Configuration for Tiered Free/Pro Architecture
  * 
- * Three-tier AI system:
- * - Scout 4 (Llama 4): Fast queries for Free/Pro/Enterprise (90-95% of traffic)
- * - Sonnet 3.5: CFO-level analysis for Pro/Enterprise (5-10% of traffic)
- * - Opus 4.1: Advanced CFO analysis for Enterprise only (2-5% of traffic)
+ * Two-tier AI system:
+ * - Gemini Flash 2.0: FREE tier for all users (Free: 50/month, Pro: unlimited fast)
+ * - Claude Sonnet 4.5: PRO tier for advanced reasoning (Pro only)
  * 
- * Using Replit AI Integrations for Anthropic (no API key needed, billed to credits)
+ * Legacy models (deprecated but still available):
+ * - Scout (Groq Llama 4): Being replaced by Gemini
+ * - GPT-5: Optional for math-heavy queries
+ * - Opus 4.1: Enterprise only
  */
 
 // Model cost table (USD per 1K tokens)
-// Based on provider pricing as of November 2025
+// Based on provider pricing as of January 2026
 export const MODEL_COST_TABLE = {
-  // GPT-5 (OpenAI via Replit AI Integrations) - NEW DEFAULT
-  // 13x cheaper than Opus, superior math/reasoning, 90% token savings
+  // Gemini Flash 2.0 (Google) - FREE TIER
+  // Free for 2M tokens/day, perfect for Free users
+  'gemini-2.0-flash': {
+    input: 0,   // FREE
+    output: 0,  // FREE
+  },
+  'gemini-1.5-flash': {
+    input: 0,
+    output: 0,
+  },
+
+  // Claude Sonnet 4.5 (Anthropic) - PRO TIER
+  // ~$1.35 per 100 queries, excellent for reasoning
+  'claude-sonnet-4-5': {
+    input: 0.003,    // $3 per 1M input tokens
+    output: 0.015,   // $15 per 1M output tokens
+  },
+  'claude-sonnet-4-5-20250929': {
+    input: 0.003,
+    output: 0.015,
+  },
+
+  // Legacy: GPT-5 (OpenAI) - DEPRECATED
   'gpt-5': {
     input: 0.00125,  // $1.25 per 1M input tokens
-    output: 0.01,    // $10 per 1M output tokens (includes reasoning tokens)
+    output: 0.01,    // $10 per 1M output tokens
   },
-  'gpt-5-mini': {
-    input: 0.00025,  // $0.25 per 1M tokens
-    output: 0.002,   // $2 per 1M tokens
-  },
-  
-  // Scout models (Groq Llama 4) - LEGACY, being phased out
+
+  // Legacy: Scout models (Groq Llama 4) - DEPRECATED
   'meta-llama/llama-4-scout-17b-16e-instruct': {
     input: 0.00011,  // $0.11 per 1M tokens
     output: 0.00034, // $0.34 per 1M tokens
   },
-  
-  // Reasoning models (Anthropic via Replit AI Integrations)
-  // Enterprise tier ONLY - Opus 4.1 for precision-critical work
-  'claude-opus-4-1-20250805': {
+
+  // Legacy: Claude Opus 4.1 - ENTERPRISE ONLY
+  'claude-opus-4-1': {
     input: 0.015,    // $15 per 1M input tokens
     output: 0.075,   // $75 per 1M output tokens
   },
-  'claude-opus-4-1': {
-    input: 0.015,
-    output: 0.075,
-  },
-  
-  // Pro tier - Sonnet 4.5 (DEPRECATED, replaced by GPT-5)
-  'claude-sonnet-4-5-20250929': {
-    input: 0.003,    // $3 per 1M input tokens
-    output: 0.015,   // $15 per 1M output tokens
-  },
-  'claude-sonnet-4-5': {
-    input: 0.003,
-    output: 0.015,
-  },
-  
+
   // Fallback - Sonnet 3.5 (still supported)
   'claude-3-5-sonnet-20241022': {
     input: 0.003,
@@ -68,7 +72,7 @@ export interface AIConfig {
     maxTokens: number;
     temperature: number;
   };
-  
+
   // Reasoning model config (Anthropic)
   reasoning: {
     provider: 'anthropic';
@@ -78,10 +82,10 @@ export interface AIConfig {
     maxTokens: number;
     temperature: number;
   };
-  
+
   // Feature flags
   reasoningEnabled: boolean;
-  
+
   // Cost estimation helper
   estimateCost: (modelId: ModelId, tokensIn: number, tokensOut: number) => number;
 }
@@ -93,18 +97,20 @@ export function loadAIConfig(): AIConfig {
   // Scout config (Groq Llama 4)
   const scoutModel = process.env.AI_SCOUT_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct';
   const scoutApiKey = process.env.GROQ_API_KEY || '';
-  
+
   // Reasoning config (Anthropic via Replit AI Integrations)
-  // Default to Sonnet 4.5 for Pro tier, Opus 4.1 available for Enterprise
-  const reasoningModel = process.env.AI_REASON_MODEL || 'claude-sonnet-4-5';
+  // Use Claude Sonnet 4.5 for Pro tier (current available model - January 2026)
+  const reasoningModel = process.env.AI_REASON_MODEL || 'claude-sonnet-4-5-20250929';
   const reasoningApiKey = process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || '';
-  const reasoningBaseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL || '';
-  
+  const reasoningBaseURL = process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
+
+
+
   // Shared config
   const maxTokens = parseInt(process.env.AI_MAX_TOKENS || '8192', 10);
   const temperature = parseFloat(process.env.AI_TEMPERATURE || '0.7');
   const reasoningEnabled = process.env.AI_REASONING_ENABLED === 'true';
-  
+
   return {
     scout: {
       provider: 'groq',
@@ -128,11 +134,11 @@ export function loadAIConfig(): AIConfig {
         console.warn(`Unknown model ID: ${modelId}, returning 0 cost`);
         return 0;
       }
-      
+
       // Convert tokens to cost (table is per 1K tokens)
       const inputCost = (tokensIn / 1000) * costs.input;
       const outputCost = (tokensOut / 1000) * costs.output;
-      
+
       return inputCost + outputCost;
     },
   };
@@ -156,12 +162,12 @@ export function getAIConfig(): AIConfig {
  */
 export function validateAIConfig(config: AIConfig): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
-  
+
   // Scout validation
   if (!config.scout.apiKey) {
     errors.push('Missing GROQ_API_KEY for Scout model');
   }
-  
+
   // Reasoning validation (only if enabled)
   if (config.reasoningEnabled) {
     if (!config.reasoning.apiKey) {
@@ -171,7 +177,7 @@ export function validateAIConfig(config: AIConfig): { valid: boolean; errors: st
       errors.push('Missing AI_INTEGRATIONS_ANTHROPIC_BASE_URL for Reasoning model');
     }
   }
-  
+
   return {
     valid: errors.length === 0,
     errors,

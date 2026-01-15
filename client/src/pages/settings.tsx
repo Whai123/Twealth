@@ -1,484 +1,384 @@
-import { useState } from"react";
+import { useState } from "react";
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from"@tanstack/react-query";
-import { useForm } from"react-hook-form";
-import { zodResolver } from"@hookform/resolvers/zod";
-import { z } from"zod";
-import { Settings as SettingsIcon, Clock, DollarSign, TrendingUp, Save, Info, User, Palette, Shield, Database, Sparkles, Lock, CreditCard, Brain, Zap, Cog, CheckCircle2, AlertCircle, LogOut, Loader2 } from"lucide-react";
-import { useLocation } from"wouter";
-import { Button } from"@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from"@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from"@/components/ui/form";
-import { Input } from"@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from"@/components/ui/tabs";
-import { ScrollArea } from"@/components/ui/scroll-area";
-import { useToast } from"@/hooks/use-toast";
-import { apiRequest, queryClient } from"@/lib/queryClient";
-import UserPreferences from"@/components/settings/user-preferences";
-import FinancialPreferences from"@/components/settings/financial-preferences";
-import DataPrivacy from"@/components/settings/data-privacy";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import {
+    Moon, Sun, Monitor, Bell, Languages, DollarSign, Shield,
+    Download, Trash2, LogOut, Loader2, CheckCircle, ChevronRight
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getSupportedCurrencies } from "@/lib/currency";
 
-const settingsSchema = z.object({
- hourlyRate: z.string().min(1,"Hourly rate is required").refine(
-  (val) => !isNaN(Number(val)) && Number(val) > 0,
- "Hourly rate must be a positive number"
- ),
- currency: z.string().min(1,"Currency is required"),
- workHoursPerWeek: z.string().min(1,"Work hours per week is required").refine(
-  (val) => !isNaN(Number(val)) && Number(val) > 0 && Number(val) <= 168,
- "Work hours must be between 1 and 168 hours per week"
- ),
- timeValueStrategy: z.enum(["fixed","derived"], {
-  required_error:"Please select a time value strategy"
- })
-});
-
-type SettingsFormData = z.infer<typeof settingsSchema>;
+interface UserPreferences {
+    theme: 'light' | 'dark' | 'system';
+    language: string;
+    currency: string;
+    notifyGoalProgress: boolean;
+    allowAnalytics: boolean;
+    budgetWarningThreshold: number;
+}
 
 function Settings() {
- const { t } = useTranslation();
- const { toast } = useToast();
- const [isSaving, setIsSaving] = useState(false);
- const [activeTab, setActiveTab] = useState("account");
- const [, setLocation] = useLocation();
+    const { t, i18n } = useTranslation();
+    const { toast } = useToast();
+    const [, setLocation] = useLocation();
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
 
- const logoutMutation = useMutation({
-  mutationFn: async () => {
-   return await apiRequest('POST', '/api/auth/logout', {});
-  },
-  onSuccess: () => {
-   // Invalidate auth queries
-   queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-   queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
-   queryClient.clear(); // Clear all cached data on logout
-   
-   // Show success toast
-   toast({
-    title:"Signed out securely",
-    description:"You have been logged out successfully",
-   });
-   
-   // Redirect to login page
-   setTimeout(() => {
-    setLocation('/login');
-   }, 100);
-  },
-  onError: (error: any) => {
-   toast({
-    title:"Logout failed",
-    description: error.message ||"Please try again",
-    variant:"destructive",
-   });
-  },
- });
+    // Fetch preferences
+    const { data: prefs, isLoading } = useQuery<UserPreferences>({
+        queryKey: ["/api/user-preferences"],
+    });
 
- const handleLogout = () => {
-  logoutMutation.mutate();
- };
+    // Update preferences mutation
+    const updateMutation = useMutation({
+        mutationFn: async (updates: Partial<UserPreferences>) => {
+            return apiRequest("PUT", "/api/user-preferences", updates);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/user-preferences"] });
+            toast({ title: "Saved", description: "Your preferences have been updated." });
+        },
+        onError: () => {
+            toast({ title: "Error", description: "Failed to save changes.", variant: "destructive" });
+        },
+    });
 
- const { data: userSettings, isLoading } = useQuery({
-  queryKey: ["/api/user-settings"],
-  enabled: true,
- });
+    // Logout mutation
+    const logoutMutation = useMutation({
+        mutationFn: () => apiRequest('POST', '/api/auth/logout', {}),
+        onSuccess: () => {
+            queryClient.clear();
+            toast({ title: "Signed out", description: "You have been logged out." });
+            setTimeout(() => setLocation('/login'), 100);
+        },
+    });
 
- const form = useForm<SettingsFormData>({
-  resolver: zodResolver(settingsSchema),
-  defaultValues: {
-   hourlyRate:"50",
-   currency:"USD",
-   workHoursPerWeek:"40",
-   timeValueStrategy:"fixed" as const
-  },
-  values: userSettings ? {
-   hourlyRate: (userSettings as any).hourlyRate?.toString() ||"50",
-   currency: (userSettings as any).currency ||"USD",
-   workHoursPerWeek: (userSettings as any).workHoursPerWeek?.toString() ||"40",
-   timeValueStrategy: (userSettings as any).timeValueStrategy ||"fixed"
-  } : undefined
- });
+    // Export data mutation
+    const exportMutation = useMutation({
+        mutationFn: async (format: 'json' | 'csv') => {
+            return apiRequest("GET", `/api/user-data/export?format=${format}`);
+        },
+        onSuccess: (data, format) => {
+            const blob = new Blob([JSON.stringify(data)], { type: format === 'json' ? 'application/json' : 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `twealth-data.${format}`;
+            a.click();
+            toast({ title: "Downloaded", description: "Your data has been exported." });
+        },
+        onError: () => {
+            toast({ title: "Export failed", description: "Please try again.", variant: "destructive" });
+        },
+    });
 
- const updateSettingsMutation = useMutation({
-  mutationFn: async (data: SettingsFormData) => {
-   const payload = {
-    hourlyRate: parseFloat(data.hourlyRate),
-    currency: data.currency,
-    workHoursPerWeek: parseInt(data.workHoursPerWeek),
-    timeValueStrategy: data.timeValueStrategy
-   };
+    // Delete account mutation
+    const deleteMutation = useMutation({
+        mutationFn: () => apiRequest("DELETE", "/api/user-data"),
+        onSuccess: () => {
+            queryClient.clear();
+            toast({ title: "Account deleted", description: "Your data has been removed." });
+            setLocation('/');
+        },
+    });
 
-   const method = userSettings ?"PUT" :"POST";
-   return apiRequest(method,"/api/user-settings", payload);
-  },
-  onSuccess: () => {
-   queryClient.invalidateQueries({ queryKey: ["/api/user-settings"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/insights/time-value"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/dashboard/time-stats"] });
-   toast({
-    title:"Settings Updated!",
-    description:"Your time-value preferences have been saved successfully.",
-    icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
-   });
-   setIsSaving(false);
-  },
-  onError: (error: any) => {
-   toast({
-    title:"Update Failed",
-    description:"Failed to save your settings. Please try again.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-   setIsSaving(false);
-  },
- });
+    const handleUpdate = (updates: Partial<UserPreferences>) => {
+        updateMutation.mutate(updates);
+    };
 
- const onSubmit = async (data: SettingsFormData) => {
-  setIsSaving(true);
-  updateSettingsMutation.mutate(data);
- };
+    const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
+        handleUpdate({ theme });
+        // Apply theme immediately
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else if (theme === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.toggle('dark', prefersDark);
+        }
+    };
 
- const hourlyRate = parseFloat(form.watch("hourlyRate") ||"0");
- const workHoursPerWeek = parseInt(form.watch("workHoursPerWeek") ||"0");
- const selectedCurrency = form.watch("currency") ||"USD";
- const dailyValue = (hourlyRate * workHoursPerWeek) / 5;
- const monthlyValue = hourlyRate * workHoursPerWeek * 4.33;
+    const handleLanguageChange = (lang: string) => {
+        handleUpdate({ language: lang });
+        i18n.changeLanguage(lang);
+    };
 
- const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-   style: 'currency',
-   currency: selectedCurrency,
-   minimumFractionDigits: 2,
-   maximumFractionDigits: 2,
-  }).format(amount);
- };
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
 
- if (isLoading) {
-  return (
-   <div className="min-h-screen bg-background">
-    <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-     <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-6">
-      <div className="h-8 bg-muted/50 rounded w-32 mb-2" />
-      <div className="h-4 bg-muted/50 rounded w-48" />
-     </div>
-    </header>
-    <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
-     <div className="h-12 bg-muted/50 rounded-lg w-full max-w-lg mb-8" />
-     <div className="h-96 bg-muted/50 rounded-xl" />
-    </div>
-   </div>
-  );
- }
+    const currentPrefs = prefs || {
+        theme: 'system',
+        language: 'en',
+        currency: 'USD',
+        notifyGoalProgress: true,
+        allowAnalytics: true,
+        budgetWarningThreshold: 80,
+    };
 
- return (
-  <div className="min-h-screen-mobile bg-background pb-20 md:pb-0">
-   <header className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40 sticky top-0 z-30">
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
-     <div className="flex items-center justify-between gap-3">
-      <div className="flex-1 min-w-0">
-       <h1 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold tracking-tight text-foreground">
-        {t('settings.title', 'Settings')}
-       </h1>
-       <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">
-        {t('settings.subtitle', 'Manage your account and preferences')}
-       </p>
-      </div>
-      <Button
-       variant="outline"
-       size="sm"
-       onClick={handleLogout}
-       disabled={logoutMutation.isPending}
-       className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950 min-h-[44px] touch-target"
-       data-testid="button-logout"
-      >
-       {logoutMutation.isPending ? (
-        <Loader2 className="w-4 h-4 sm:mr-2 animate-spin" />
-       ) : (
-        <LogOut className="w-4 h-4 sm:mr-2" />
-       )}
-       <span className="hidden sm:inline">Sign out</span>
-      </Button>
-     </div>
-    </div>
-   </header>
-
-   <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-     <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-4 sm:mb-6 lg:mb-8 p-1 h-auto bg-muted/50">
-      <TabsTrigger 
-       value="account" 
-       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
-       data-testid="tab-account"
-      >
-       <User className="w-4 h-4" />
-       <span className="hidden sm:inline">Account</span>
-      </TabsTrigger>
-      <TabsTrigger 
-       value="preferences" 
-       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
-       data-testid="tab-preferences"
-      >
-       <Palette className="w-4 h-4" />
-       <span className="hidden sm:inline">Preferences</span>
-      </TabsTrigger>
-      <TabsTrigger 
-       value="financial" 
-       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
-       data-testid="tab-financial"
-      >
-       <CreditCard className="w-4 h-4" />
-       <span className="hidden sm:inline">Financial</span>
-      </TabsTrigger>
-      <TabsTrigger 
-       value="privacy" 
-       className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 text-xs sm:text-sm font-medium min-h-[44px] touch-target"
-       data-testid="tab-privacy"
-      >
-       <Shield className="w-4 h-4" />
-       <span className="hidden sm:inline">Privacy</span>
-      </TabsTrigger>
-     </TabsList>
-
-     {/* Account Tab */}
-     <TabsContent value="account" className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-3">
-       <div className="lg:col-span-2">
-        <Card className="border-border/50">
-         <CardHeader className="p-6">
-          <CardTitle className="text-lg font-semibold">
-           Time Value Configuration
-          </CardTitle>
-          <CardDescription>
-           Set your hourly rate and work schedule for time-value calculations
-          </CardDescription>
-         </CardHeader>
-         <CardContent className="p-6 pt-0">
-          <Form {...form}>
-           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-             control={form.control}
-             name="hourlyRate"
-             render={({ field }) => (
-              <FormItem>
-               <FormLabel className="text-sm font-medium">
-                Hourly Rate
-               </FormLabel>
-               <FormControl>
-                <div className="relative">
-                 <Input
-                  {...field}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="50.00"
-                  className="h-11 pl-9"
-                  data-testid="input-hourly-rate"
-                 />
-                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+    return (
+        <div className="min-h-screen bg-[#fafafa] dark:bg-[#0a0a0a] pb-20 md:pb-8">
+            {/* Header */}
+            <header className="sticky top-0 z-30 bg-[#fafafa]/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-black/[0.04] dark:border-white/[0.04]">
+                <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-[-0.02em]">
+                            {t('settings.title', 'Settings')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-0.5 hidden sm:block">
+                            Manage your preferences and account
+                        </p>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => logoutMutation.mutate()}
+                        disabled={logoutMutation.isPending}
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                        {logoutMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
+                        <span className="ml-2 hidden sm:inline">Sign out</span>
+                    </Button>
                 </div>
-               </FormControl>
-               <FormDescription className="text-xs">
-                The monetary value of one hour of your time
-               </FormDescription>
-               <FormMessage />
-              </FormItem>
-             )}
-            />
+            </header>
 
-            <FormField
-             control={form.control}
-             name="currency"
-             render={({ field }) => (
-              <FormItem>
-               <FormLabel className="text-sm font-medium">Currency</FormLabel>
-               <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <FormControl>
-                 <SelectTrigger className="h-11" data-testid="select-currency">
-                  <SelectValue placeholder="Select currency" />
-                 </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                 <SelectItem value="USD">USD ($)</SelectItem>
-                 <SelectItem value="THB">THB (฿)</SelectItem>
-                 <SelectItem value="EUR">EUR (€)</SelectItem>
-                 <SelectItem value="IDR">IDR (Rp)</SelectItem>
-                 <SelectItem value="VND">VND (₫)</SelectItem>
-                 <SelectItem value="INR">INR (₹)</SelectItem>
-                 <SelectItem value="PHP">PHP (₱)</SelectItem>
-                 <SelectItem value="BRL">BRL (R$)</SelectItem>
-                 <SelectItem value="MYR">MYR (RM)</SelectItem>
-                 <SelectItem value="MXN">MXN ($)</SelectItem>
-                 <SelectItem value="TRY">TRY (₺)</SelectItem>
-                 <SelectItem value="GBP">GBP (£)</SelectItem>
-                 <SelectItem value="JPY">JPY (¥)</SelectItem>
-                 <SelectItem value="CAD">CAD (C$)</SelectItem>
-                 <SelectItem value="AUD">AUD (A$)</SelectItem>
-                </SelectContent>
-               </Select>
-               <FormDescription className="text-xs">
-                Your preferred currency for financial calculations
-               </FormDescription>
-               <FormMessage />
-              </FormItem>
-             )}
-            />
+            <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-3xl mx-auto space-y-6">
 
-            <FormField
-             control={form.control}
-             name="workHoursPerWeek"
-             render={({ field }) => (
-              <FormItem>
-               <FormLabel className="text-sm font-medium">
-                Work Hours Per Week
-               </FormLabel>
-               <FormControl>
-                <div className="relative">
-                 <Input
-                  {...field}
-                  type="number"
-                  min="1"
-                  max="168"
-                  placeholder="40"
-                  className="h-11 pl-9"
-                  data-testid="input-work-hours"
-                 />
-                 <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                </div>
-               </FormControl>
-               <FormDescription className="text-xs">
-                Your typical working hours per week
-               </FormDescription>
-               <FormMessage />
-              </FormItem>
-             )}
-            />
+                {/* Appearance */}
+                <Card className="rounded-[20px] border-black/[0.04] dark:border-white/[0.06] shadow-sm">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-medium">Appearance</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                                    {currentPrefs.theme === 'dark' ? <Moon className="w-4 h-4" /> :
+                                        currentPrefs.theme === 'light' ? <Sun className="w-4 h-4" /> :
+                                            <Monitor className="w-4 h-4" />}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Theme</p>
+                                    <p className="text-xs text-muted-foreground">Choose your preferred look</p>
+                                </div>
+                            </div>
+                            <Select value={currentPrefs.theme} onValueChange={handleThemeChange}>
+                                <SelectTrigger className="w-28 h-9 rounded-xl text-sm">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="light">Light</SelectItem>
+                                    <SelectItem value="dark">Dark</SelectItem>
+                                    <SelectItem value="system">System</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-            <FormField
-             control={form.control}
-             name="timeValueStrategy"
-             render={({ field }) => (
-              <FormItem>
-               <FormLabel className="text-sm font-medium">
-                Time Value Strategy
-               </FormLabel>
-               <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <FormControl>
-                 <SelectTrigger className="h-11" data-testid="select-time-strategy">
-                  <SelectValue placeholder="Select strategy" />
-                 </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                 <SelectItem value="fixed">Fixed Rate</SelectItem>
-                 <SelectItem value="derived">Context-Derived</SelectItem>
-                </SelectContent>
-               </Select>
-               <FormDescription className="text-xs">
-                How time value should be calculated for different events
-               </FormDescription>
-               <FormMessage />
-              </FormItem>
-             )}
-            />
+                        <div className="h-px bg-black/[0.04] dark:bg-white/[0.06]" />
 
-            <Button
-             type="submit"
-             className="w-full h-11"
-             disabled={isSaving}
-             data-testid="button-save-settings"
-            >
-             {isSaving ? (
-              <>
-               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-               Saving...
-              </>
-             ) : (
-              <>
-               <Save className="w-4 h-4 mr-2" />
-               Save Settings
-              </>
-             )}
-            </Button>
-           </form>
-          </Form>
-         </CardContent>
-        </Card>
-       </div>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                                    <Languages className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Language</p>
+                                    <p className="text-xs text-muted-foreground">Display language</p>
+                                </div>
+                            </div>
+                            <Select value={currentPrefs.language} onValueChange={handleLanguageChange}>
+                                <SelectTrigger className="w-28 h-9 rounded-xl text-sm">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="en">English</SelectItem>
+                                    <SelectItem value="th">ไทย</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-       {/* Preview Panel */}
-       <div className="space-y-6">
-        <Card className="border-border/50">
-         <CardHeader className="p-6">
-          <CardTitle className="text-lg font-semibold">
-           Time Value Preview
-          </CardTitle>
-         </CardHeader>
-         <CardContent className="p-6 pt-0">
-          <div className="space-y-4">
-           <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
-            <span className="text-sm text-muted-foreground">Per Hour</span>
-            <span className="text-lg font-semibold" data-testid="text-preview-hourly">
-             {formatCurrency(hourlyRate)}
-            </span>
-           </div>
-           <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
-            <span className="text-sm text-muted-foreground">Per Day</span>
-            <span className="text-lg font-semibold" data-testid="text-preview-daily">
-             {formatCurrency(dailyValue)}
-            </span>
-           </div>
-           <div className="flex justify-between items-center p-4 rounded-lg bg-muted/50">
-            <span className="text-sm text-muted-foreground">Per Month</span>
-            <span className="text-lg font-semibold" data-testid="text-preview-monthly">
-             {formatCurrency(monthlyValue)}
-            </span>
-           </div>
-          </div>
-         </CardContent>
-        </Card>
+                        <div className="h-px bg-black/[0.04] dark:bg-white/[0.06]" />
 
-        <Card className="border-border/50">
-         <CardHeader className="p-6">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-           <Info className="w-4 h-4 text-muted-foreground" />
-           Strategy Guide
-          </CardTitle>
-         </CardHeader>
-         <CardContent className="p-6 pt-0 space-y-4 text-sm">
-          <div className="p-4 rounded-lg bg-muted/50">
-           <h4 className="font-medium mb-1">Fixed Rate</h4>
-           <p className="text-muted-foreground text-xs">
-            Uses your hourly rate consistently. Best for freelancers and consultants.
-           </p>
-          </div>
-          <div className="p-4 rounded-lg bg-muted/50">
-           <h4 className="font-medium mb-1">Context-Derived</h4>
-           <p className="text-muted-foreground text-xs">
-            Adjusts value based on event type and meeting importance.
-           </p>
-          </div>
-         </CardContent>
-        </Card>
-       </div>
-      </div>
-     </TabsContent>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                                    <DollarSign className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Currency</p>
+                                    <p className="text-xs text-muted-foreground">For financial display</p>
+                                </div>
+                            </div>
+                            <Select value={currentPrefs.currency} onValueChange={(v) => handleUpdate({ currency: v })}>
+                                <SelectTrigger className="w-28 h-9 rounded-xl text-sm">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[280px]">
+                                    {getSupportedCurrencies().map((c) => (
+                                        <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
 
-     {/* Preferences Tab */}
-     <TabsContent value="preferences" className="space-y-6">
-      <UserPreferences />
-     </TabsContent>
+                {/* Notifications */}
+                <Card className="rounded-[20px] border-black/[0.04] dark:border-white/[0.06] shadow-sm">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-medium">Notifications</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                                    <Bell className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Goal Progress</p>
+                                    <p className="text-xs text-muted-foreground">Notify when goals are reached</p>
+                                </div>
+                            </div>
+                            <Switch
+                                checked={currentPrefs.notifyGoalProgress}
+                                onCheckedChange={(v) => handleUpdate({ notifyGoalProgress: v })}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
 
-     {/* Financial Tab */}
-     <TabsContent value="financial" className="space-y-6">
-      <FinancialPreferences />
-     </TabsContent>
+                {/* Budget */}
+                <Card className="rounded-[20px] border-black/[0.04] dark:border-white/[0.06] shadow-sm">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-medium">Budget Alerts</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm">Warning threshold</p>
+                                <span className="text-sm font-medium">{currentPrefs.budgetWarningThreshold}%</span>
+                            </div>
+                            <Slider
+                                value={[currentPrefs.budgetWarningThreshold]}
+                                onValueChange={([v]) => handleUpdate({ budgetWarningThreshold: v })}
+                                min={50}
+                                max={100}
+                                step={5}
+                                className="w-full"
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Get warned when spending reaches this percentage of your budget
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
 
-     {/* Privacy Tab */}
-     <TabsContent value="privacy" className="space-y-6">
-      <DataPrivacy />
-     </TabsContent>
-    </Tabs>
-   </div>
-  </div>
- );
+                {/* Privacy & Data */}
+                <Card className="rounded-[20px] border-black/[0.04] dark:border-white/[0.06] shadow-sm">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base font-medium">Privacy & Data</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                                    <Shield className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium">Analytics</p>
+                                    <p className="text-xs text-muted-foreground">Help improve Twealth</p>
+                                </div>
+                            </div>
+                            <Switch
+                                checked={currentPrefs.allowAnalytics}
+                                onCheckedChange={(v) => handleUpdate({ allowAnalytics: v })}
+                            />
+                        </div>
+
+                        <div className="h-px bg-black/[0.04] dark:bg-white/[0.06]" />
+
+                        <button
+                            onClick={() => exportMutation.mutate('json')}
+                            disabled={exportMutation.isPending}
+                            className="w-full flex items-center justify-between p-3 -mx-3 rounded-xl hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center">
+                                    <Download className="w-4 h-4" />
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-sm font-medium">Export Data</p>
+                                    <p className="text-xs text-muted-foreground">Download your data as JSON</p>
+                                </div>
+                            </div>
+                            {exportMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                            ) : (
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            )}
+                        </button>
+
+                        <div className="h-px bg-black/[0.04] dark:bg-white/[0.06]" />
+
+                        {!deleteConfirm ? (
+                            <button
+                                onClick={() => setDeleteConfirm(true)}
+                                className="w-full flex items-center justify-between p-3 -mx-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                                        <Trash2 className="w-4 h-4 text-red-500" />
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="text-sm font-medium text-red-500">Delete Account</p>
+                                        <p className="text-xs text-muted-foreground">Permanently remove your data</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-red-400" />
+                            </button>
+                        ) : (
+                            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl space-y-3">
+                                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                                    Are you sure? This cannot be undone.
+                                </p>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setDeleteConfirm(false)}
+                                        className="flex-1"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => deleteMutation.mutate()}
+                                        disabled={deleteMutation.isPending}
+                                        className="flex-1"
+                                    >
+                                        {deleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+            </div>
+        </div>
+    );
 }
 
 export default Settings;

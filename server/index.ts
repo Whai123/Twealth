@@ -1,3 +1,6 @@
+// Load environment variables from .env FIRST
+import 'dotenv/config';
+
 import express, { type Request, Response, NextFunction } from "express";
 import path from "path";
 import { registerRoutes } from "./routes";
@@ -60,12 +63,14 @@ app.use((req, res, next) => {
 (async () => {
   // Auto-seed investment data if database is empty
   try {
-    const existingStrategies = await db.select().from(investmentStrategies).limit(1);
-    if (existingStrategies.length === 0) {
-      log("Investment data not found, seeding database...");
-      const { seedInvestments } = await import("./seed-investments");
-      await seedInvestments();
-      log("Investment data seeded successfully");
+    if (db) {
+      const existingStrategies = await db.select().from(investmentStrategies).limit(1);
+      if (existingStrategies.length === 0) {
+        log("Investment data not found, seeding database...");
+        const { seedInvestments } = await import("./seed-investments");
+        await seedInvestments();
+        log("Investment data seeded successfully");
+      }
     }
   } catch (error: any) {
     log("Failed to seed investment data:", error?.message || error);
@@ -88,7 +93,7 @@ app.use((req, res, next) => {
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     // Log error details for debugging (safe: no sensitive data)
     log(`[ERROR] ${req.method} ${req.path} - ${status}: ${err.message}`);
     if (!isProduction && err.stack) {
@@ -107,11 +112,11 @@ app.use((req, res, next) => {
       503: 'Service is currently unavailable. Please try again later.',
     };
 
-    const message = isProduction 
+    const message = isProduction
       ? (userMessages[status] || 'An unexpected error occurred.')
       : (err.message || 'Internal Server Error');
 
-    res.status(status).json({ 
+    res.status(status).json({
       message,
       ...(isProduction ? {} : { stack: err.stack?.split('\n').slice(0, 3) })
     });
@@ -127,19 +132,19 @@ app.use((req, res, next) => {
     // Serve /assets with dedicated middleware and proper cache headers
     // This prevents MIME type errors when old cached HTML requests stale JS chunks
     const distPath = path.resolve(import.meta.dirname, "public");
-    
+
     // Serve hashed assets with long cache headers (immutable)
     app.use("/assets", express.static(path.resolve(distPath, "assets"), {
       maxAge: "1y",
       immutable: true,
       etag: false,
     }));
-    
+
     // 404 guard for missing assets - prevents SPA fallback from returning HTML
     app.use("/assets", (_req, res) => {
       res.status(404).send("Asset not found");
     });
-    
+
     // Prevent caching of HTML pages to reduce stale chunk references
     app.use((req, res, next) => {
       const accept = req.headers.accept || "";
@@ -150,7 +155,7 @@ app.use((req, res, next) => {
       }
       next();
     });
-    
+
     serveStatic(app);
   }
 
@@ -158,12 +163,12 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
+  const port = parseInt(process.env.PORT || '5003', 10);
+  const host = process.env.HOST || '0.0.0.0';
   server.listen({
     port,
-    host: "0.0.0.0",
-    reusePort: true,
+    host,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`serving on http://${host}:${port}`);
   });
 })();

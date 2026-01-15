@@ -1,16 +1,18 @@
 /**
- * Hybrid AI Service - 4-Model Architecture (Scout/Sonnet/GPT-5/Opus)
+ * Hybrid AI Service - 2-Tier Architecture (Free/Pro)
  * 
- * This service integrates all hybrid AI components:
- * - Scout (Llama 4 via Groq): PRIMARY - Fast queries, budgeting, spending
- * - Sonnet 3.5/4.5 (Claude): REASONING - Multi-step logic, strategy
- * - GPT-5 (OpenAI): MATH - Projections, simulations, calculations
- * - Opus 4.1 (Claude): CFO-LEVEL - Portfolio analysis, high-stakes
+ * This service integrates all AI components:
+ * - Gemini Flash 2.0: FREE TIER - Fast queries for all users (Free: 50/mo)
+ * - Claude Sonnet 4.5: PRO TIER - Advanced reasoning for Pro users
+ * 
+ * Legacy models (deprecated but still available):
+ * - Scout (Llama 4 via Groq): Being replaced by Gemini
+ * - GPT-5 (OpenAI): Optional for math-heavy queries
+ * - Opus 4.1 (Claude): Enterprise only
  * 
  * Components:
- * - Smart router for complexity-based escalation
+ * - Tier-based router (Free → Gemini, Pro → Claude)
  * - Context builder for financial data normalization
- * - AI clients (Scout, Sonnet, GPT-5, Opus)
  * - Orchestrators for deep CFO-level analysis
  */
 
@@ -21,13 +23,16 @@ export const TESTING_MODE = false;
 import type { IStorage } from '../storage';
 import { buildFinancialContext, estimateContextTokens, type FinancialContext } from './contextBuilder';
 import { shouldEscalate, routeToModel, getRoutingReason, type ComplexitySignals } from './router';
-import { getGPT5Client, getScoutClient, getSonnetClient, getOpusClient, getReasoningClient } from './clients';
+import { getGeminiClient, getGPT5Client, getScoutClient, getSonnetClient, getOpusClient, getReasoningClient } from './clients';
 import { analyzeDebt } from './orchestrators/debt';
 import { analyzeRetirement } from './orchestrators/retirement';
 import { analyzeTax } from './orchestrators/tax';
 import { analyzePortfolio } from './orchestrators/portfolio';
 import { getTwealthTools, getTwealthIdentity } from './tools';
+import { detectLanguage } from '../financialCalculations';
 import { marketDataService } from '../marketDataService';
+import { processConversationForLearning } from './aiMemoryService';
+
 
 // Per-country cached market context to avoid repeated API calls
 const cachedMarketContextByCountry = new Map<string, { data: string; timestamp: number }>();
@@ -39,11 +44,11 @@ const MARKET_CONTEXT_CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
 async function getMarketContextForPrompt(userCountry: string = 'US'): Promise<string> {
   const cacheKey = userCountry.toUpperCase();
   const cached = cachedMarketContextByCountry.get(cacheKey);
-  
+
   if (cached && Date.now() - cached.timestamp < MARKET_CONTEXT_CACHE_DURATION) {
     return cached.data;
   }
-  
+
   try {
     const context = await marketDataService.getMarketContextForAI(userCountry);
     cachedMarketContextByCountry.set(cacheKey, { data: context, timestamp: Date.now() });
@@ -56,9 +61,9 @@ async function getMarketContextForPrompt(userCountry: string = 'US'): Promise<st
 
 /**
  * Model access levels (matches tier system)
- * Scout is PRIMARY, others are for escalation based on complexity
+ * Gemini is FREE tier, Sonnet is PRO tier
  */
-export type ModelAccess = 'scout' | 'sonnet' | 'gpt5' | 'opus';
+export type ModelAccess = 'gemini' | 'scout' | 'sonnet' | 'gpt5' | 'opus';
 
 /**
  * Conversation message for memory
@@ -84,8 +89,8 @@ export interface GenerateAdviceOptions {
  */
 export interface HybridAIResponse {
   answer: string; // Natural language response
-  modelUsed: 'scout' | 'sonnet' | 'gpt5' | 'opus' | 'reasoning'; // Which model was used (maps to quota counter)
-  modelSlug: string; // Exact model identifier (e.g., 'gpt-5', 'claude-opus-4-1')
+  modelUsed: 'gemini' | 'scout' | 'sonnet' | 'gpt5' | 'opus' | 'reasoning'; // Which model was used (maps to quota counter)
+  modelSlug: string; // Exact model identifier (e.g., 'gemini-2.0-flash', 'claude-sonnet-4-5')
   tokensIn: number; // Input tokens
   tokensOut: number; // Output tokens
   cost: number; // Cost in USD
@@ -94,7 +99,7 @@ export interface HybridAIResponse {
   orchestratorUsed?: string; // Which orchestrator was called (if any)
   structuredData?: any; // Structured data from orchestrator (if any)
   tierDowngraded?: boolean; // Whether tier logic downgraded the model
-  actualModel?: 'scout' | 'sonnet' | 'gpt5' | 'opus'; // Actual model used (fallback for determineModelFromSlug)
+  actualModel?: 'gemini' | 'scout' | 'sonnet' | 'gpt5' | 'opus'; // Actual model used (fallback for determineModelFromSlug)
   toolCalls?: Array<{ id: string; type: 'function'; function: { name: string; arguments: any } }>; // Tool calls for action execution
 }
 
@@ -114,18 +119,23 @@ export async function generateHybridAdvice(
   options: GenerateAdviceOptions = {}
 ): Promise<HybridAIResponse> {
   const { forceModel, preselectedContext, skipAutoEscalation, conversationHistory = [], skipTools = false } = options;
-  
+
   // Step 1: Build or use pre-selected financial context
   const context = preselectedContext || await buildFinancialContext(userId, storage);
-  
+
+  // AUTO-DETECT LANGUAGE from user message (critical for Thai/Spanish/etc responses)
+  const detectedLanguage = detectLanguage(userMessage);
+  (context as any).detectedLanguage = detectedLanguage;
+  (context as any).userMessage = userMessage; // Store for prompt building
+
   // Add conversation history and skipTools flag to context for handlers
   (context as any).conversationHistory = conversationHistory;
   (context as any).skipTools = skipTools;
-  
+
   // Step 2: Determine which model to use
   let targetModel: ModelAccess;
   let routingReason: string | undefined;
-  
+
   if (forceModel) {
     // Tier-aware router has pre-selected the model
     targetModel = forceModel;
@@ -143,16 +153,18 @@ export async function generateHybridAdvice(
       messageLength: userMessage.length,
       contextTokens,
     };
-    
+
     const escalate = shouldEscalate(signals);
     routingReason = escalate ? getRoutingReason(signals) : undefined;
-    
+
     // Default to Scout for simple, Opus for complex (tierAwareRouter will override this)
     targetModel = escalate ? 'opus' : 'scout';
   }
-  
+
   // Step 3: Route to appropriate model/orchestrator
-  if (targetModel === 'scout') {
+  if (targetModel === 'gemini') {
+    return await handleGeminiQuery(userMessage, context);
+  } else if (targetModel === 'scout') {
     return await handleScoutQuery(userMessage, context);
   } else if (targetModel === 'sonnet') {
     return await handleReasoningQuery(userMessage, context, routingReason, 'sonnet');
@@ -162,9 +174,56 @@ export async function generateHybridAdvice(
     // Opus uses reasoning path with orchestrators
     return await handleReasoningQuery(userMessage, context, routingReason, 'opus');
   } else {
-    // Fallback to Scout
-    return await handleScoutQuery(userMessage, context);
+    // Fallback to Gemini (free tier default)
+    return await handleGeminiQuery(userMessage, context);
   }
+}
+
+/**
+ * Handle queries with Gemini Flash 2.0 (Google AI)
+ * FREE TIER MODEL - Fast queries for all Free users (50/month limit on Twealth)
+ */
+async function handleGeminiQuery(
+  userMessage: string,
+  context: any
+): Promise<HybridAIResponse> {
+  const client = getGeminiClient();
+
+  // Fetch market context for smarter financial advice
+  const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
+
+  // Use Scout system prompt (Gemini is similar in capability)
+  const systemPrompt = buildScoutSystemPrompt(context, marketContext);
+
+  // Build messages array with conversation history (last 6 messages for context)
+  const conversationHistory = (context.conversationHistory || []).slice(-6);
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    { role: 'system', content: systemPrompt },
+    ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
+    { role: 'user', content: userMessage },
+  ];
+
+  // Only pass tools if not in skipTools mode
+  const skipTools = context.skipTools === true;
+
+  const response = await client.chat({
+    messages,
+    temperature: 0.7,
+    maxTokens: 1000,
+    tools: skipTools ? undefined : getTwealthTools(),
+  });
+
+  return {
+    answer: response.text,
+    modelUsed: 'gemini',
+    modelSlug: response.model,
+    tokensIn: response.tokensIn,
+    tokensOut: response.tokensOut,
+    cost: response.cost, // Always 0 for Gemini
+    escalated: false,
+    actualModel: 'gemini',
+    toolCalls: response.toolCalls,
+  };
 }
 
 /**
@@ -176,13 +235,13 @@ async function handleGPT5Query(
   context: any
 ): Promise<HybridAIResponse> {
   const client = getGPT5Client();
-  
+
   // Fetch market context for smarter financial advice
   const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
-  
+
   // Build optimized prompt with financial context
   const systemPrompt = buildGPT5SystemPrompt(context, marketContext);
-  
+
   // Build messages array with conversation history (last 6 messages for context)
   const conversationHistory = (context.conversationHistory || []).slice(-6);
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
@@ -190,12 +249,12 @@ async function handleGPT5Query(
     ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
     { role: 'user', content: userMessage },
   ];
-  
+
   const response = await client.chat({
     messages,
     tools: getTwealthTools(), // Pass tools for action-taking
   });
-  
+
   return {
     answer: response.text,
     modelUsed: 'gpt5', // CRITICAL: Use gpt5 to increment correct quota counter
@@ -218,13 +277,13 @@ async function handleScoutQuery(
   context: any
 ): Promise<HybridAIResponse> {
   const client = getScoutClient();
-  
+
   // Fetch market context for smarter financial advice
   const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
-  
+
   // Build simple prompt with context
   const systemPrompt = buildScoutSystemPrompt(context, marketContext);
-  
+
   // Build messages array with conversation history (last 6 messages for context)
   const conversationHistory = (context.conversationHistory || []).slice(-6);
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
@@ -232,17 +291,17 @@ async function handleScoutQuery(
     ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
     { role: 'user', content: userMessage },
   ];
-  
+
   // Only pass tools if not in skipTools mode (for plain text/JSON responses)
   const skipTools = context.skipTools === true;
-  
+
   const response = await client.chat({
     messages,
     temperature: 0.7,
     maxTokens: 1000,
     tools: skipTools ? undefined : getTwealthTools(), // Skip tools for playbook generation
   });
-  
+
   return {
     answer: response.text,
     modelUsed: 'scout',
@@ -269,7 +328,7 @@ async function handleReasoningQuery(
 ): Promise<HybridAIResponse> {
   // Detect which orchestrator to use based on keywords
   const orchestrator = detectOrchestrator(userMessage, context);
-  
+
   if (orchestrator) {
     // Call specialized orchestrator
     return await callOrchestrator(orchestrator, userMessage, context, routingReason, targetModel);
@@ -284,42 +343,42 @@ async function handleReasoningQuery(
  */
 function detectOrchestrator(userMessage: string, context: any): string | null {
   const msgLower = userMessage.toLowerCase();
-  
+
   // Debt-related keywords
-  if (context.debts.length > 0 && 
-      (msgLower.includes('debt') || 
-       msgLower.includes('pay off') || 
-       msgLower.includes('snowball') || 
-       msgLower.includes('avalanche'))) {
+  if (context.debts.length > 0 &&
+    (msgLower.includes('debt') ||
+      msgLower.includes('pay off') ||
+      msgLower.includes('snowball') ||
+      msgLower.includes('avalanche'))) {
     return 'debt';
   }
-  
+
   // Retirement-related keywords
-  if (msgLower.includes('retire') || 
-      msgLower.includes('retirement') || 
-      msgLower.includes('glidepath') || 
-      msgLower.includes('401k') || 
-      msgLower.includes('ira')) {
+  if (msgLower.includes('retire') ||
+    msgLower.includes('retirement') ||
+    msgLower.includes('glidepath') ||
+    msgLower.includes('401k') ||
+    msgLower.includes('ira')) {
     return 'retirement';
   }
-  
+
   // Tax-related keywords
-  if (msgLower.includes('tax') || 
-      msgLower.includes('roth') || 
-      msgLower.includes('traditional') || 
-      msgLower.includes('bracket')) {
+  if (msgLower.includes('tax') ||
+    msgLower.includes('roth') ||
+    msgLower.includes('traditional') ||
+    msgLower.includes('bracket')) {
     return 'tax';
   }
-  
+
   // Portfolio-related keywords
-  if (context.assets.length > 0 && 
-      (msgLower.includes('portfolio') || 
-       msgLower.includes('asset allocation') || 
-       msgLower.includes('rebalance') || 
-       msgLower.includes('diversif'))) {
+  if (context.assets.length > 0 &&
+    (msgLower.includes('portfolio') ||
+      msgLower.includes('asset allocation') ||
+      msgLower.includes('rebalance') ||
+      msgLower.includes('diversif'))) {
     return 'portfolio';
   }
-  
+
   return null;
 }
 
@@ -337,10 +396,10 @@ async function callOrchestrator(
   let tokensIn = 0;
   let tokensOut = 0;
   let cost = 0;
-  
+
   // Determine model slug for the target model
   const modelSlug = targetModel === 'sonnet' ? 'claude-sonnet-4-5' : 'claude-opus-4-1';
-  
+
   try {
     switch (orchestrator) {
       case 'debt':
@@ -353,35 +412,35 @@ async function callOrchestrator(
         const outputCost = targetModel === 'sonnet' ? 0.015 : 0.075; // $15 vs $75 per 1M
         cost = (tokensIn / 1000) * inputCost + (tokensOut / 1000) * outputCost;
         break;
-      
+
       case 'retirement':
         structuredData = await analyzeRetirement(context, userMessage);
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) + 
-               (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
+        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) +
+          (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
         break;
-      
+
       case 'tax':
         structuredData = await analyzeTax(context, userMessage);
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) + 
-               (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
+        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) +
+          (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
         break;
-      
+
       case 'portfolio':
         structuredData = await analyzePortfolio(context, userMessage);
         tokensIn = Math.ceil((userMessage.length + JSON.stringify(context).length) / 4);
         tokensOut = Math.ceil(structuredData.summary.length / 4);
-        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) + 
-               (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
+        cost = (tokensIn / 1000) * (targetModel === 'sonnet' ? 0.003 : 0.015) +
+          (tokensOut / 1000) * (targetModel === 'sonnet' ? 0.015 : 0.075);
         break;
-      
+
       default:
         throw new Error(`Unknown orchestrator: ${orchestrator}`);
     }
-    
+
     return {
       answer: structuredData.summary,
       modelUsed: 'reasoning',
@@ -413,13 +472,13 @@ async function handleGenericReasoningQuery(
 ): Promise<HybridAIResponse> {
   // Select the appropriate client based on target model
   const client = targetModel === 'sonnet' ? getSonnetClient() : getOpusClient();
-  
+
   // Fetch market context for smarter financial advice
   const marketContext = await getMarketContextForPrompt(context.countryContext?.countryCode || 'US');
-  
+
   // Build comprehensive prompt with context
   const systemPrompt = buildReasoningSystemPrompt(context, marketContext);
-  
+
   // Build messages array with conversation history (last 6 messages for context)
   const conversationHistory = (context.conversationHistory || []).slice(-6);
   const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
@@ -427,14 +486,14 @@ async function handleGenericReasoningQuery(
     ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
     { role: 'user', content: userMessage },
   ];
-  
+
   const response = await client.chat({
     messages,
     temperature: 0.5,
     maxTokens: 2000,
     tools: getTwealthTools(), // Pass tools for action-taking
   });
-  
+
   return {
     answer: response.text,
     modelUsed: 'reasoning',
@@ -455,7 +514,7 @@ async function handleGenericReasoningQuery(
 function buildCountryContextSection(context: any): string {
   const cc = context.countryContext;
   if (!cc) return '';
-  
+
   return `
 **Country-Specific Financial Context (${cc.countryName}):**
 - Currency: ${cc.currency} (${cc.currencySymbol})
@@ -479,6 +538,54 @@ IMPORTANT: Use ${cc.currencySymbol} (${cc.currency}) for all monetary values. Ap
 }
 
 /**
+ * Build language instruction for prompts (put at TOP of system prompt)
+ * This ensures AI responds in the same language the user writes in
+ */
+function buildLanguageInstruction(context: any): string {
+  const detectedLang = context.detectedLanguage || 'en';
+
+  // Map language codes to full language names and native greetings
+  const langMap: Record<string, { name: string; nativeName: string; greeting: string; currency: string }> = {
+    'th': { name: 'Thai', nativeName: 'ภาษาไทย', greeting: 'สวัสดี', currency: '฿' },
+    'es': { name: 'Spanish', nativeName: 'Español', greeting: 'Hola', currency: '$' },
+    'pt': { name: 'Portuguese', nativeName: 'Português', greeting: 'Olá', currency: 'R$' },
+    'id': { name: 'Indonesian', nativeName: 'Bahasa Indonesia', greeting: 'Halo', currency: 'Rp' },
+    'vi': { name: 'Vietnamese', nativeName: 'Tiếng Việt', greeting: 'Xin chào', currency: '₫' },
+    'zh': { name: 'Chinese', nativeName: '中文', greeting: '你好', currency: '¥' },
+    'ja': { name: 'Japanese', nativeName: '日本語', greeting: 'こんにちは', currency: '¥' },
+    'ko': { name: 'Korean', nativeName: '한국어', greeting: '안녕하세요', currency: '₩' },
+    'hi': { name: 'Hindi', nativeName: 'हिन्दी', greeting: 'नमस्ते', currency: '₹' },
+    'ar': { name: 'Arabic', nativeName: 'العربية', greeting: 'مرحبا', currency: '$' },
+    'tr': { name: 'Turkish', nativeName: 'Türkçe', greeting: 'Merhaba', currency: '₺' },
+    'en': { name: 'English', nativeName: 'English', greeting: 'Hello', currency: '$' },
+  };
+
+  const lang = langMap[detectedLang] || langMap['en'];
+
+  // If English detected, return minimal instruction
+  if (detectedLang === 'en') {
+    return `**RESPONSE LANGUAGE: English**
+Respond fully in English.`;
+  }
+
+  // For non-English languages, be VERY explicit
+  return `🔴 **MANDATORY RESPONSE LANGUAGE: ${lang.name} (${lang.nativeName})** 🔴
+
+THE USER WROTE IN ${lang.name.toUpperCase()}. YOU MUST RESPOND 100% IN ${lang.name.toUpperCase()}.
+
+RULES:
+1. Your ENTIRE response must be in ${lang.name} - every single word
+2. Do NOT use English for any part of your response
+3. Use ${lang.currency} for currency unless user specifies otherwise
+4. Technical terms should use ${lang.name} equivalents when available
+5. This is NON-NEGOTIABLE - responding in English is WRONG
+
+Example greeting in ${lang.name}: "${lang.greeting}"
+
+NOW RESPOND IN ${lang.name.toUpperCase()} ONLY.`;
+}
+
+/**
  * Build system prompt for GPT-5 (optimized for financial reasoning)
  */
 function buildGPT5SystemPrompt(context: any, marketContext?: string): string {
@@ -488,11 +595,16 @@ function buildGPT5SystemPrompt(context: any, marketContext?: string): string {
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   const netWorth = totalAssets - totalDebts;
   const monthlySurplus = monthlyIncome - monthlyExpenses;
-  
+
   const countryContext = buildCountryContextSection(context);
   const currencySymbol = context.countryContext?.currencySymbol || '$';
-  
-  let prompt = `${getTwealthIdentity()}
+
+  // Build language instruction at TOP of prompt (critical for Thai/other languages)
+  const langInstruction = buildLanguageInstruction(context);
+
+  let prompt = `${langInstruction}
+
+${getTwealthIdentity()}
 ${countryContext}
 **CRITICAL: YOU HAVE FULL ACCESS TO THIS USER'S FINANCIAL DATA IN TWEALTH**
 You are their personal CFO with complete visibility into their finances. Reference their actual data below.
@@ -550,7 +662,7 @@ When user gives a command with enough info, JUST DO IT:
 - "I spent 200 on food" → IMMEDIATELY call add_transaction  
 - The user's command IS their confirmation - execute immediately, don't ask for confirmation
 - Calculate dates automatically: "next year" = 1 year from today
-- Understand ALL languages including Thai, Chinese, Spanish, etc.
+- **LANGUAGE MATCHING (CRITICAL)**: RESPOND in the EXACT SAME LANGUAGE the user writes in. If Thai → reply 100% in Thai. If Spanish → reply 100% in Spanish. If Chinese → reply 100% in Chinese. NEVER default to English unless the user writes in English.
 
 Your strengths:
 - Superior mathematical reasoning (94.6% on AIME 2025)
@@ -612,12 +724,17 @@ function buildScoutSystemPrompt(context: any, marketContext?: string): string {
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
   const netWorth = totalAssets - totalDebts;
   const monthlySurplus = monthlyIncome - monthlyExpenses;
-  
+
   const countryContext = buildCountryContextSection(context);
   const currencySymbol = context.countryContext?.currencySymbol || '$';
   const countryName = context.countryContext?.countryName || 'United States';
-  
-  let prompt = `${getTwealthIdentity()}
+
+  // Build language instruction at TOP of prompt (critical for Thai/other languages)
+  const langInstruction = buildLanguageInstruction(context);
+
+  let prompt = `${langInstruction}
+
+${getTwealthIdentity()}
 ${countryContext}
 **CRITICAL: YOU HAVE FULL ACCESS TO THIS USER'S FINANCIAL DATA IN TWEALTH**
 You are NOT a generic chatbot. You ARE their personal CFO with complete visibility into their finances.
@@ -641,7 +758,7 @@ Reference it directly. Never say "I don't have access" - you DO have access belo
       const progress = g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
       const yearsRemaining = Math.floor(g.horizonMonths / 12);
       const monthsRemaining = g.horizonMonths % 12;
-      const timeStr = yearsRemaining > 0 
+      const timeStr = yearsRemaining > 0
         ? `${yearsRemaining}y ${monthsRemaining}m`
         : `${monthsRemaining}m`;
       prompt += `${i + 1}. **${g.name}**: ${currencySymbol}${g.current.toLocaleString()} / ${currencySymbol}${g.target.toLocaleString()} (${progress}% saved, ${timeStr} remaining)\n`;
@@ -650,6 +767,74 @@ Reference it directly. Never say "I don't have access" - you DO have access belo
   } else {
     prompt += `**User's Financial Goals:** No goals set yet. Offer to help create one!\n\n`;
   }
+
+  // Include Twealth Index 4-pillar scores if available (enhanced for score improvement advice)
+  const ti = context.analytics?.twealthIndex;
+  if (ti) {
+    // Find the weakest pillar for priority focus
+    const pillars = [
+      { name: 'Cashflow', score: ti.cashflowScore, drivers: ti.drivers?.cashflow?.drivers || [], action: ti.drivers?.cashflow?.action || '' },
+      { name: 'Stability', score: ti.stabilityScore, drivers: ti.drivers?.stability?.drivers || [], action: ti.drivers?.stability?.action || '' },
+      { name: 'Growth', score: ti.growthScore, drivers: ti.drivers?.growth?.drivers || [], action: ti.drivers?.growth?.action || '' },
+      { name: 'Behavior', score: ti.behaviorScore, drivers: ti.drivers?.behavior?.drivers || [], action: ti.drivers?.behavior?.action || '' },
+    ];
+    const sortedPillars = [...pillars].sort((a, b) => a.score - b.score);
+    const weakestPillar = sortedPillars[0];
+    const secondWeakest = sortedPillars[1];
+
+    prompt += `
+═══════════════════════════════════════════════════════════════════════════
+🎯 **TWEALTH INDEX™ SCORE BREAKDOWN** (CRITICAL FOR ADVICE)
+═══════════════════════════════════════════════════════════════════════════
+
+**OVERALL SCORE: ${ti.overallScore}/100 (${ti.band})**
+Confidence: ${ti.confidence || 'N/A'} based on data completeness
+
+**📊 PILLAR-BY-PILLAR ANALYSIS (sorted by priority):**
+
+1. **🔴 WEAKEST - ${weakestPillar.name} Pillar: ${weakestPillar.score}/100**
+   Issues: ${weakestPillar.drivers.join('; ') || 'None detected'}
+   Action: ${weakestPillar.action}
+
+2. **⚠️ ${secondWeakest.name} Pillar: ${secondWeakest.score}/100**
+   Issues: ${secondWeakest.drivers.join('; ') || 'None detected'}
+   Action: ${secondWeakest.action}
+
+3. **Cashflow Pillar: ${ti.cashflowScore}/100** - ${ti.drivers?.cashflow?.drivers?.[0] || 'Healthy'}
+4. **Stability Pillar: ${ti.stabilityScore}/100** - ${ti.drivers?.stability?.drivers?.[0] || 'Healthy'}
+5. **Growth Pillar: ${ti.growthScore}/100** - ${ti.drivers?.growth?.drivers?.[0] || 'Healthy'}
+6. **Behavior Pillar: ${ti.behaviorScore}/100** - ${ti.drivers?.behavior?.drivers?.[0] || 'Healthy'}
+
+**📋 PRIORITY ACTION FROM SCORING ENGINE:**
+${ti.drivers?.overall?.action || 'Continue tracking finances'}
+
+═══════════════════════════════════════════════════════════════════════════
+**🚨 HOW TO ANSWER "IMPROVE MY SCORE" QUESTIONS:**
+═══════════════════════════════════════════════════════════════════════════
+
+When user asks about improving their score, you MUST follow this structure:
+
+1. **STATE THEIR CURRENT SCORE**: "Your Twealth Index is ${ti.overallScore}/100 (${ti.band})"
+
+2. **IDENTIFY WEAKEST PILLAR**: "Your biggest opportunity is the ${weakestPillar.name} pillar at ${weakestPillar.score}/100"
+
+3. **CITE SPECIFIC ISSUES**: Reference the exact driver text above (e.g., "${weakestPillar.drivers[0] || 'N/A'}")
+
+4. **GIVE SCORING ENGINE ACTION**: "${weakestPillar.action}"
+
+5. **PROVIDE NUMERIC TARGET**: Based on their income of ${currencySymbol}${monthlyIncome.toLocaleString()}/mo, calculate specific savings/investment amounts
+
+**NEVER give generic advice like "use 50/30/20 rule" without connecting it to their specific pillar deficiency.**
+**ALWAYS reference their actual scores and driver messages from above.**
+
+Example good response for "${weakestPillar.name}" issues:
+"Your ${weakestPillar.name} pillar is ${weakestPillar.score}/100 because: ${weakestPillar.drivers[0] || 'data is limited'}. 
+To improve this, ${weakestPillar.action}. Based on your ${currencySymbol}${monthlyIncome.toLocaleString()}/mo income, 
+aim to [specific numeric action]."
+
+`;
+  }
+
 
   // Include user's debts
   if (context.debts && context.debts.length > 0) {
@@ -715,7 +900,7 @@ CRITICAL BEHAVIORS:
 2. When user asks about THEIR goals, spending, debts, assets - REFERENCE THE DATA ABOVE directly
 3. NEVER say "I don't have access to your data" - you DO have access (see above)
 4. Calculate dates automatically: "next year" = 1 year from today, "in 6 months" = 6 months from today
-5. Understand ALL languages including Thai, Chinese, Spanish, etc. Process them the same as English
+5. **LANGUAGE MATCHING (CRITICAL)**: RESPOND in the EXACT SAME LANGUAGE the user writes in. If Thai → reply 100% in Thai. If Spanish → reply 100% in Spanish. NEVER default to English unless the user writes in English.
 
 Handle:
 - General budgeting advice & spending analysis using their actual data
@@ -753,8 +938,14 @@ message: Specific insight based on their data
 
 Keep responses focused. Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you.`;
 
+  // Include AI Learning Context if available (memory, patterns, style preferences)
+  if (context.aiLearningContext?.fullContext) {
+    prompt += `\n${context.aiLearningContext.fullContext}`;
+  }
+
   return prompt;
 }
+
 
 /**
  * Build system prompt for Reasoning (complex queries)
@@ -764,12 +955,17 @@ function buildReasoningSystemPrompt(context: any, marketContext?: string): strin
   const monthlyExpenses = context.expenses.monthly;
   const totalDebts = context.debts.reduce((sum: number, d: any) => sum + d.balance, 0);
   const totalAssets = context.assets.reduce((sum: number, a: any) => sum + a.value, 0);
-  
+
   const countryContext = buildCountryContextSection(context);
   const currencySymbol = context.countryContext?.currencySymbol || '$';
   const countryName = context.countryContext?.countryName || 'United States';
-  
-  let prompt = `${getTwealthIdentity()}
+
+  // Build language instruction at TOP of prompt (critical for Thai/other languages)
+  const langInstruction = buildLanguageInstruction(context);
+
+  let prompt = `${langInstruction}
+
+${getTwealthIdentity()}
 ${countryContext}
 **CRITICAL: YOU HAVE FULL ACCESS TO THIS USER'S FINANCIAL DATA IN TWEALTH**
 You are their personal CFO with complete visibility into their finances. Reference their actual data below.
@@ -784,7 +980,7 @@ Never say "I don't have access" - you DO have access to all their financial data
 - Net Worth: ${currencySymbol}${(totalAssets - totalDebts).toLocaleString()}
 
 `;
-  
+
   if (context.debts && context.debts.length > 0) {
     prompt += `**User's Debts (${context.debts.length} accounts):**\n`;
     context.debts.forEach((d: any, i: number) => {
@@ -792,7 +988,7 @@ Never say "I don't have access" - you DO have access to all their financial data
     });
     prompt += `\n`;
   }
-  
+
   if (context.assets && context.assets.length > 0) {
     prompt += `**User's Assets (${context.assets.length} items):**\n`;
     context.assets.forEach((a: any, i: number) => {
@@ -800,21 +996,60 @@ Never say "I don't have access" - you DO have access to all their financial data
     });
     prompt += `\n`;
   }
-  
+
   if (context.goals && context.goals.length > 0) {
     prompt += `**User's Financial Goals (${context.goals.length} active):**\n`;
     context.goals.forEach((g: any, i: number) => {
       const progress = g.target > 0 ? Math.round((g.current / g.target) * 100) : 0;
       const yearsRemaining = Math.floor(g.horizonMonths / 12);
       const monthsRemaining = g.horizonMonths % 12;
-      const timeStr = yearsRemaining > 0 
+      const timeStr = yearsRemaining > 0
         ? `${yearsRemaining}y ${monthsRemaining}m`
         : `${monthsRemaining}m`;
       prompt += `${i + 1}. **${g.name}**: ${currencySymbol}${g.current.toLocaleString()} / ${currencySymbol}${g.target.toLocaleString()} (${progress}% saved, ${timeStr} remaining)\n`;
     });
     prompt += `\n`;
   }
-  
+
+  // Include Twealth Index 4-pillar scores if available (enhanced for score improvement advice)
+  const ti = context.analytics?.twealthIndex;
+  if (ti) {
+    // Find the weakest pillar for priority focus
+    const pillars = [
+      { name: 'Cashflow', score: ti.cashflowScore, drivers: ti.drivers?.cashflow?.drivers || [], action: ti.drivers?.cashflow?.action || '' },
+      { name: 'Stability', score: ti.stabilityScore, drivers: ti.drivers?.stability?.drivers || [], action: ti.drivers?.stability?.action || '' },
+      { name: 'Growth', score: ti.growthScore, drivers: ti.drivers?.growth?.drivers || [], action: ti.drivers?.growth?.action || '' },
+      { name: 'Behavior', score: ti.behaviorScore, drivers: ti.drivers?.behavior?.drivers || [], action: ti.drivers?.behavior?.action || '' },
+    ];
+    const sortedPillars = [...pillars].sort((a, b) => a.score - b.score);
+    const weakestPillar = sortedPillars[0];
+    const secondWeakest = sortedPillars[1];
+
+    prompt += `
+═══════════════════════════════════════════════════════════════════════════
+🎯 **TWEALTH INDEX™ SCORE BREAKDOWN** (USE THIS FOR PERSONALIZED ADVICE)
+═══════════════════════════════════════════════════════════════════════════
+
+**OVERALL SCORE: ${ti.overallScore}/100 (${ti.band})**
+
+**📊 PRIORITY PILLARS (weakest first):**
+
+1. **🔴 WEAKEST - ${weakestPillar.name}: ${weakestPillar.score}/100**
+   Issues: ${weakestPillar.drivers.join('; ') || 'None detected'}
+   Action: ${weakestPillar.action}
+
+2. **⚠️ ${secondWeakest.name}: ${secondWeakest.score}/100**
+   Issues: ${secondWeakest.drivers.join('; ') || 'None detected'}
+   Action: ${secondWeakest.action}
+
+**All Pillars:** Cashflow ${ti.cashflowScore} | Stability ${ti.stabilityScore} | Growth ${ti.growthScore} | Behavior ${ti.behaviorScore}
+
+**🚨 FOR SCORE IMPROVEMENT QUESTIONS:**
+Always cite their weakest pillar (${weakestPillar.name} at ${weakestPillar.score}/100) and give the specific action: "${weakestPillar.action}"
+
+`;
+  }
+
   // Include live market data context (only if available)
   if (marketContext && marketContext.trim().length > 0) {
     prompt += `\n**LIVE MARKET DATA (Use for context-aware advice):**\n${marketContext}\n`;
@@ -835,7 +1070,7 @@ CRITICAL BEHAVIORS:
 2. When user asks about THEIR goals, spending, debts, assets - REFERENCE THE DATA ABOVE directly
 3. NEVER say "I don't have access to your data" - you DO have access (see above)
 4. Be proactive - analyze their situation and provide specific recommendations
-5. Understand ALL languages including Thai, Chinese, Spanish, etc. Process them the same as English
+5. **LANGUAGE MATCHING (CRITICAL)**: RESPOND in the EXACT SAME LANGUAGE the user writes in. If Thai → reply 100% in Thai. If Spanish → reply 100% in Spanish. NEVER default to English unless the user writes in English.
 
 Your strengths:
 - Multi-step reasoning for debt payoff strategies using local interest rates
@@ -880,6 +1115,6 @@ message: Based on your data, specific insight about their situation
 3. Question about long-term implications
 
 Use available tools to provide detailed, well-reasoned analysis with specific numbers in ${currencySymbol} (${context.countryContext?.currency || 'USD'}). Apply local tax rates and financial regulations. Think step-by-step through complex problems.`;
-  
+
   return prompt;
 }

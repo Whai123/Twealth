@@ -1,69 +1,78 @@
-import { useState, useEffect } from"react";
-import { useQuery } from"@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { UserPreferences } from "@shared/schema";
 
 interface OnboardingStatus {
- needsOnboarding: boolean;
- hasFinancialData: boolean;
- hasGoals: boolean;
+    needsOnboarding: boolean;
+    hasFinancialData: boolean;
+    hasGoals: boolean;
 }
 
 export function useOnboarding() {
- const [showOnboarding, setShowOnboarding] = useState(false);
- const [onboardingComplete, setOnboardingComplete] = useState(false);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [onboardingComplete, setOnboardingComplete] = useState(false);
 
- // Check if user has financial data
- const { data: stats } = useQuery({
-  queryKey: ["/api/dashboard/stats"],
- });
+    // Check if user has financial data
+    const { data: stats } = useQuery({
+        queryKey: ["/api/dashboard/stats"],
+    });
 
- // Check if user has any goals
- const { data: goals } = useQuery({
-  queryKey: ["/api/financial-goals"],
- });
+    // Check if user has any goals
+    const { data: goals } = useQuery({
+        queryKey: ["/api/financial-goals"],
+    });
 
- // Check onboarding status from localStorage
- useEffect(() => {
-  const completed = localStorage.getItem("onboarding_completed");
-  setOnboardingComplete(completed ==="true");
- }, []);
+    // Check user preferences (database-level onboarding status)
+    const { data: userPreferences } = useQuery<UserPreferences>({
+        queryKey: ["/api/user-preferences"],
+    });
 
- // Determine if onboarding is needed
- useEffect(() => {
-  if (onboardingComplete) {
-   setShowOnboarding(false);
-   return;
-  }
+    // Check onboarding status from localStorage OR database
+    useEffect(() => {
+        const localCompleted = localStorage.getItem("onboarding_completed") === "true";
+        const dbCompleted = userPreferences?.hasCompletedOnboarding === true;
 
-  if (!stats || !goals) return;
+        // Consider complete if EITHER localStorage or database says so
+        setOnboardingComplete(localCompleted || dbCompleted);
+    }, [userPreferences]);
 
-  const hasFinancialData = 
-   (stats as any)?.monthlyIncome > 0 || 
-   (stats as any)?.monthlyExpenses > 0 || 
-   (stats as any)?.totalSavings > 0;
-  
-  const hasGoals = Array.isArray(goals) && goals.length > 0;
+    // Determine if onboarding is needed
+    useEffect(() => {
+        if (onboardingComplete) {
+            setShowOnboarding(false);
+            return;
+        }
 
-  // Show onboarding if user has no financial data AND no goals
-  if (!hasFinancialData && !hasGoals) {
-   setShowOnboarding(true);
-  }
- }, [stats, goals, onboardingComplete]);
+        if (!stats || !goals) return;
 
- const completeOnboarding = () => {
-  localStorage.setItem("onboarding_completed","true");
-  setOnboardingComplete(true);
-  setShowOnboarding(false);
- };
+        const hasFinancialData =
+            (stats as any)?.monthlyIncome > 0 ||
+            (stats as any)?.monthlyExpenses > 0 ||
+            (stats as any)?.totalSavings > 0;
 
- const skipOnboarding = () => {
-  localStorage.setItem("onboarding_completed","true");
-  setOnboardingComplete(true);
-  setShowOnboarding(false);
- };
+        const hasGoals = Array.isArray(goals) && goals.length > 0;
 
- return {
-  showOnboarding,
-  completeOnboarding,
-  skipOnboarding,
- };
+        // Show onboarding if user has no financial data AND no goals
+        if (!hasFinancialData && !hasGoals) {
+            setShowOnboarding(true);
+        }
+    }, [stats, goals, onboardingComplete]);
+
+    const completeOnboarding = () => {
+        localStorage.setItem("onboarding_completed", "true");
+        setOnboardingComplete(true);
+        setShowOnboarding(false);
+    };
+
+    const skipOnboarding = () => {
+        localStorage.setItem("onboarding_completed", "true");
+        setOnboardingComplete(true);
+        setShowOnboarding(false);
+    };
+
+    return {
+        showOnboarding,
+        completeOnboarding,
+        skipOnboarding,
+    };
 }

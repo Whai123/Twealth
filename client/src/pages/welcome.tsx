@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProgressiveOnboardingWizard } from "@/components/onboarding/progressive-onboarding-wizard";
 import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Check, Zap, Target, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Check, Zap, Target, ArrowRight, Sparkles, Loader2, Clock, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getSupportedCurrencies } from "@/lib/currency";
@@ -35,51 +36,55 @@ const expressFormSchema = z.object({
 
 type ExpressFormData = z.infer<typeof expressFormSchema>;
 
-function GradientMeshBackground() {
+// Detect user's likely currency from browser locale
+function detectCurrency(): string {
+  try {
+    const locale = navigator.language || "en-US";
+    const regionMap: Record<string, string> = {
+      TH: "THB", US: "USD", GB: "GBP", EU: "EUR", JP: "JPY",
+      CN: "CNY", KR: "KRW", IN: "INR", AU: "AUD", CA: "CAD",
+      SG: "SGD", MY: "MYR", ID: "IDR", PH: "PHP", VN: "VND",
+    };
+    const region = locale.split("-")[1]?.toUpperCase() || "US";
+    return regionMap[region] || "USD";
+  } catch {
+    return "USD";
+  }
+}
+
+// Mini Twealth Score Ring (preview)
+function ScorePreview() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(75), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const circumference = 2 * Math.PI * 36;
+  const offset = circumference - (progress / 100) * circumference;
+
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" />
-      
-      <div 
-        className="absolute inset-0 opacity-60"
-        style={{
-          background: `
-            radial-gradient(ellipse 80% 50% at 20% 40%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 40% at 80% 60%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 30% at 40% 80%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
-            radial-gradient(ellipse 40% 50% at 70% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)
-          `
-        }}
-      />
-      
-      <div 
-        className="absolute top-0 left-0 w-full h-full opacity-30 motion-safe:animate-[meshFloat_20s_ease-in-out_infinite]"
-        style={{
-          background: `
-            radial-gradient(circle at 30% 20%, rgba(59, 130, 246, 0.2) 0%, transparent 25%),
-            radial-gradient(circle at 70% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 25%)
-          `
-        }}
-      />
-      
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-blue-600/8 rounded-full blur-3xl motion-safe:animate-[gentlePulse_8s_ease-in-out_infinite]" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-indigo-600/8 rounded-full blur-3xl motion-safe:animate-[gentlePulse_8s_ease-in-out_infinite_2s]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-600/5 to-indigo-600/5 rounded-full blur-3xl" />
-      
-      <div 
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px'
-        }}
-      />
+    <div className="relative w-24 h-24">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="36" fill="none" strokeWidth="6" className="stroke-white/10" />
+        <circle
+          cx="40" cy="40" r="36"
+          fill="none"
+          strokeWidth="6"
+          strokeLinecap="round"
+          className="stroke-emerald-500 transition-all duration-1000 ease-out"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-white">80+</span>
+        <span className="text-[10px] text-white/60 uppercase tracking-wider">Goal</span>
+      </div>
     </div>
   );
 }
-
 
 export default function WelcomePage() {
   const [, setLocation] = useLocation();
@@ -91,16 +96,14 @@ export default function WelcomePage() {
     resolver: zodResolver(expressFormSchema),
     defaultValues: {
       fullName: "",
-      currency: "USD",
+      currency: detectCurrency(),
     },
   });
 
   const savePreferencesMutation = useMutation({
     mutationFn: async (data: { fullName: string; currency: string }) => {
       return apiRequest("PUT", "/api/user-preferences", {
-        onboardingData: {
-          fullName: data.fullName,
-        },
+        onboardingData: { fullName: data.fullName },
         currency: data.currency,
         hasCompletedOnboarding: true,
       });
@@ -123,62 +126,40 @@ export default function WelcomePage() {
     },
   });
 
-  const handleOnboardingComplete = () => {
-    setLocation("/");
-  };
+  const handleOnboardingComplete = () => setLocation("/");
+  const handleExpressSubmit = (data: ExpressFormData) => savePreferencesMutation.mutate(data);
 
-  const handleExpressSubmit = (data: ExpressFormData) => {
-    savePreferencesMutation.mutate(data);
-  };
-
-  const handleSelectExpress = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMode('express');
-  };
-
-  const handleSelectFull = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMode('full');
-  };
-
+  // EXPRESS MODE
   if (mode === 'express') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <GradientMeshBackground />
-        
-        <div className="w-full max-w-md mx-auto relative z-10">
-          <div className="text-center mb-10">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full scale-150 motion-safe:animate-[gentlePulse_4s_ease-in-out_infinite]" />
-                <img src={logoUrl} alt="Twealth" className="w-12 h-12 relative drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
-              </div>
-              <span className="text-2xl font-semibold text-white tracking-tight">Twealth</span>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2.5 mb-6">
+              <img src={logoUrl} alt="Twealth" className="w-10 h-10" />
+              <span className="text-xl font-semibold text-white">Twealth</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
-              Quick Setup
-            </h1>
-            <p className="text-slate-400 text-lg">
-              Just two quick questions to get started
-            </p>
+            <h1 className="text-3xl font-bold text-white tracking-[-0.02em] mb-2">Quick Setup</h1>
+            <p className="text-white/60">Just two questions to get started</p>
           </div>
 
-          <div className="bg-gradient-to-b from-slate-900 to-slate-900/80 border border-slate-700/80 rounded-3xl p-8 backdrop-blur-sm">
+          {/* Card */}
+          <div className="relative rounded-[24px] bg-white/[0.03] border border-white/[0.06] p-6 sm:p-8">
+            <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[24px] bg-gradient-to-r from-blue-500 via-violet-500 to-emerald-500" />
+
             <Form {...expressForm}>
-              <form onSubmit={expressForm.handleSubmit(handleExpressSubmit)} className="space-y-6">
+              <form onSubmit={expressForm.handleSubmit(handleExpressSubmit)} className="space-y-5">
                 <FormField
                   control={expressForm.control}
                   name="fullName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-200">What should we call you?</FormLabel>
+                      <FormLabel className="text-white/80 text-sm">What should we call you?</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter your name"
-                          className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500 h-12"
-                          data-testid="input-name"
+                          className="h-12 bg-white/[0.04] border-white/10 text-white placeholder:text-white/30 rounded-xl"
                           {...field}
                         />
                       </FormControl>
@@ -192,24 +173,17 @@ export default function WelcomePage() {
                   name="currency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-200">Preferred currency</FormLabel>
+                      <FormLabel className="text-white/80 text-sm">Preferred currency</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger 
-                            className="bg-slate-800/50 border-slate-600 text-white h-12"
-                            data-testid="select-currency"
-                          >
+                          <SelectTrigger className="h-12 bg-white/[0.04] border-white/10 text-white rounded-xl">
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-slate-800 border-slate-600 max-h-[300px]">
-                          {getSupportedCurrencies().map((currency) => (
-                            <SelectItem 
-                              key={currency.code} 
-                              value={currency.code}
-                              className="text-white hover:bg-slate-700"
-                            >
-                              {currency.code} - {currency.name}
+                        <SelectContent className="bg-[#1a1a1a] border-white/10 max-h-[280px]">
+                          {getSupportedCurrencies().map((c) => (
+                            <SelectItem key={c.code} value={c.code} className="text-white hover:bg-white/10">
+                              {c.code} - {c.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -222,33 +196,21 @@ export default function WelcomePage() {
                 <Button
                   type="submit"
                   disabled={savePreferencesMutation.isPending}
-                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-500/30 text-base mt-4"
-                  data-testid="button-submit-express"
+                  className="w-full h-12 mt-2 bg-white text-black hover:bg-white/90 font-semibold rounded-xl"
                 >
                   {savePreferencesMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Setting up...
-                    </>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Setting up...</>
                   ) : (
-                    <>
-                      Get Started
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </>
+                    <>Get Started <ArrowRight className="ml-2 h-4 w-4" /></>
                   )}
                 </Button>
               </form>
             </Form>
           </div>
 
-          <div className="mt-8 text-center">
-            <Button 
-              variant="ghost" 
-              onClick={() => setMode('choice')}
-              className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
-              data-testid="button-back-to-choice"
-            >
-              Back to options
+          <div className="mt-6 text-center">
+            <Button variant="ghost" onClick={() => setMode('choice')} className="text-white/40 hover:text-white/60 text-sm">
+              ← Back to options
             </Button>
           </div>
         </div>
@@ -256,36 +218,23 @@ export default function WelcomePage() {
     );
   }
 
+  // FULL/GUIDED MODE
   if (mode === 'full') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <GradientMeshBackground />
-        
-        <div className="w-full max-w-3xl mx-auto relative z-10">
-          <div className="text-center mb-10">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500/30 blur-xl rounded-full scale-150 motion-safe:animate-[gentlePulse_4s_ease-in-out_infinite]" />
-                <img src={logoUrl} alt="Twealth" className="w-12 h-12 relative drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
-              </div>
-              <span className="text-2xl font-semibold text-white tracking-tight">Twealth</span>
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+        <div className="w-full max-w-3xl">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2.5 mb-6">
+              <img src={logoUrl} alt="Twealth" className="w-10 h-10" />
+              <span className="text-xl font-semibold text-white">Twealth</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 tracking-tight">
-              Let's personalize your experience
-            </h1>
-            <p className="text-slate-400 text-lg">
-              This will only take a minute
-            </p>
+            <h1 className="text-3xl font-bold text-white tracking-[-0.02em] mb-2">Personalize Your Experience</h1>
+            <p className="text-white/60">This will only take a minute</p>
           </div>
           <ProgressiveOnboardingWizard onComplete={handleOnboardingComplete} />
-          <div className="mt-8 text-center">
-            <Button 
-              variant="ghost" 
-              onClick={() => setMode('choice')}
-              className="text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all duration-200"
-              data-testid="button-back-to-choice"
-            >
-              Back to options
+          <div className="mt-6 text-center">
+            <Button variant="ghost" onClick={() => setMode('choice')} className="text-white/40 hover:text-white/60 text-sm">
+              ← Back to options
             </Button>
           </div>
         </div>
@@ -293,135 +242,136 @@ export default function WelcomePage() {
     );
   }
 
+  // CHOICE MODE (default)
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      <GradientMeshBackground />
-      
-      <div className="w-full max-w-4xl mx-auto relative z-10">
-        <div className="text-center mb-12 sm:mb-16">
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-blue-500/40 blur-xl rounded-full scale-150 motion-safe:animate-[gentlePulse_4s_ease-in-out_infinite]" />
-              <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full scale-200 motion-safe:animate-[gentlePulse_6s_ease-in-out_infinite_1s]" />
-              <img src={logoUrl} alt="Twealth" className="w-14 h-14 relative drop-shadow-[0_0_20px_rgba(59,130,246,0.4)]" />
-            </div>
-            <span className="text-3xl font-semibold text-white tracking-tight drop-shadow-[0_0_30px_rgba(59,130,246,0.2)]">Twealth</span>
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-2.5 mb-8">
+            <img src={logoUrl} alt="Twealth" className="w-12 h-12" />
+            <span className="text-2xl font-semibold text-white">Twealth</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4 tracking-tight">
-            <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(59,130,246,0.3)]">
-              Welcome to Twealth
-            </span>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-[-0.02em] mb-4">
+            Welcome to Twealth
           </h1>
-          <p className="text-xl text-slate-400 max-w-md mx-auto">
-            Choose how you'd like to get started
-          </p>
+          <p className="text-lg text-white/50">Choose how you'd like to get started</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
-          <div 
-            className="relative group cursor-pointer pt-5"
-            onClick={handleSelectExpress}
-            data-testid="card-express-start"
+        {/* Two Cards */}
+        <div className="grid md:grid-cols-2 gap-5">
+          {/* Express Start */}
+          <div
+            onClick={() => setMode('express')}
+            className="relative group cursor-pointer"
           >
-            <div className="absolute top-0 left-6 z-10">
-              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white text-xs font-semibold rounded-full shadow-lg shadow-blue-600/30 border border-blue-400/20">
-                <Sparkles className="w-3.5 h-3.5" />
-                Recommended
+            {/* Recommended Badge */}
+            <div className="absolute -top-3 left-5 z-10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-blue-500 to-violet-500 text-white text-xs font-medium rounded-full">
+                <Sparkles className="w-3 h-3" /> Recommended
               </span>
             </div>
-            <div className="h-full bg-gradient-to-b from-slate-900 to-slate-900/80 border border-slate-700/80 rounded-3xl p-7 sm:p-9 pt-10 transition-all duration-300 group-hover:border-blue-500/70 group-hover:shadow-2xl group-hover:shadow-blue-500/20 group-hover:-translate-y-1 backdrop-blur-sm">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="p-3 bg-gradient-to-br from-blue-600/20 to-blue-700/20 rounded-2xl border border-blue-500/20 shadow-inner">
-                  <Zap className="h-7 w-7 text-blue-400" />
+
+            <div className="h-full rounded-[24px] bg-white/[0.03] border border-white/[0.06] p-6 pt-8 transition-all group-hover:border-white/[0.12] group-hover:bg-white/[0.04]">
+              {/* Gradient accent */}
+              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[24px] bg-gradient-to-r from-blue-500 via-violet-500 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-blue-400" />
                 </div>
-                <h3 className="text-2xl font-semibold text-white">Express Start</h3>
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Express Start</h3>
+                  <p className="text-xs text-white/40">~30 seconds</p>
+                </div>
               </div>
-              <p className="text-slate-400 mb-7 text-base">
-                Get started in seconds with smart defaults
-              </p>
-              <ul className="space-y-4 mb-9">
-                <li className="flex items-center gap-4 text-slate-200">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-700/20 flex items-center justify-center border border-blue-500/30">
-                    <Check className="w-3.5 h-3.5 text-blue-400" />
-                  </div>
-                  <span className="text-base">Just name & currency</span>
-                </li>
-                <li className="flex items-center gap-4 text-slate-200">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-700/20 flex items-center justify-center border border-blue-500/30">
-                    <Check className="w-3.5 h-3.5 text-blue-400" />
-                  </div>
-                  <span className="text-base">AI learns as you use the app</span>
-                </li>
-                <li className="flex items-center gap-4 text-slate-200">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-blue-600/30 to-blue-700/20 flex items-center justify-center border border-blue-500/30">
-                    <Check className="w-3.5 h-3.5 text-blue-400" />
-                  </div>
-                  <span className="text-base">Customize anytime in settings</span>
-                </li>
+
+              <p className="text-white/50 text-sm mb-5">Get started in seconds with smart defaults</p>
+
+              <ul className="space-y-3 mb-6">
+                {["Just name & currency", "AI learns as you use the app", "Customize anytime"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-sm text-white/70">
+                    <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-blue-400" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
               </ul>
-              <Button 
-                onClick={handleSelectExpress}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-500/30 text-base"
-                data-testid="button-express-start"
-              >
-                Start Now
-                <ArrowRight className="ml-2 h-5 w-5" />
+
+              <Button className="w-full h-11 bg-white text-black hover:bg-white/90 font-medium rounded-xl">
+                Start Now <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>
 
-          <div 
-            className="relative group cursor-pointer pt-5"
-            onClick={handleSelectFull}
-            data-testid="card-guided-setup"
+          {/* Guided Setup */}
+          <div
+            onClick={() => setMode('full')}
+            className="relative group cursor-pointer"
           >
-            <div className="h-full bg-gradient-to-b from-slate-900 to-slate-900/80 border border-slate-700/80 rounded-3xl p-7 sm:p-9 pt-10 transition-all duration-300 group-hover:border-slate-500/70 group-hover:shadow-2xl group-hover:shadow-slate-500/10 group-hover:-translate-y-1 backdrop-blur-sm">
-              <div className="flex items-center gap-4 mb-5">
-                <div className="p-3 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-2xl border border-slate-600/30 shadow-inner">
-                  <Target className="h-7 w-7 text-slate-300" />
+            <div className="h-full rounded-[24px] bg-white/[0.03] border border-white/[0.06] p-6 pt-8 transition-all group-hover:border-white/[0.12] group-hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 rounded-xl bg-white/[0.06] flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white/60" />
                 </div>
-                <h3 className="text-2xl font-semibold text-white">Guided Setup</h3>
+                <div>
+                  <h3 className="text-xl font-semibold text-white">Guided Setup</h3>
+                  <p className="text-xs text-white/40 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> ~3 minutes
+                  </p>
+                </div>
               </div>
-              <p className="text-slate-400 mb-7 text-base">
-                Personalize your experience step by step
-              </p>
-              <ul className="space-y-4 mb-9">
-                <li className="flex items-center gap-4 text-slate-200">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-slate-700/50 to-slate-800/30 flex items-center justify-center border border-slate-600/40">
-                    <Check className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                  <span className="text-base">Set your financial goals</span>
-                </li>
-                <li className="flex items-center gap-4 text-slate-200">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-slate-700/50 to-slate-800/30 flex items-center justify-center border border-slate-600/40">
-                    <Check className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                  <span className="text-base">Configure AI preferences</span>
-                </li>
-                <li className="flex items-center gap-4 text-slate-200">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-slate-700/50 to-slate-800/30 flex items-center justify-center border border-slate-600/40">
-                    <Check className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                  <span className="text-base">Get tailored insights faster</span>
-                </li>
+
+              <p className="text-white/50 text-sm mb-5">Personalize your experience step by step</p>
+
+              <ul className="space-y-3 mb-6">
+                {["Set your financial goals", "Configure AI preferences", "Get tailored insights faster"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-sm text-white/70">
+                    <div className="w-5 h-5 rounded-full bg-white/[0.06] flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-white/40" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
               </ul>
-              <Button 
-                onClick={handleSelectFull}
-                variant="outline"
-                className="w-full h-14 bg-transparent border-2 border-slate-600 text-white hover:bg-slate-800/50 hover:border-slate-500 font-semibold rounded-2xl transition-all duration-300 text-base"
-                data-testid="button-guided-setup"
-              >
-                Customize Now
-                <ArrowRight className="ml-2 h-5 w-5" />
+
+              <Button variant="outline" className="w-full h-11 bg-transparent border-white/10 text-white hover:bg-white/5 font-medium rounded-xl">
+                Customize Now <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="mt-14 text-center">
-          <p className="text-base text-slate-500">
-            Join thousands of users building their financial future with AI
-          </p>
+        {/* Twealth Index Preview */}
+        <div className="mt-10 flex flex-col items-center">
+          <div className="flex items-center gap-6 p-5 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
+            <ScorePreview />
+            <div>
+              <p className="text-sm text-white/60 mb-1">Build your Twealth Index™</p>
+              <p className="text-white font-medium flex items-center gap-2">
+                <span className="text-white/40">Starting:</span> 0
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-400">80+</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-10 text-center">
+          <p className="text-sm text-white/30 mb-3">Join thousands building their financial future with AI</p>
+          <button
+            onClick={async () => {
+              await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+              queryClient.clear();
+              setLocation('/');
+              window.location.reload();
+            }}
+            className="inline-flex items-center gap-2 text-xs text-white/30 hover:text-white/50 transition-colors"
+          >
+            <LogOut className="w-3 h-3" /> Sign out
+          </button>
         </div>
       </div>
     </div>

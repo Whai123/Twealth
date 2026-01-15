@@ -42,31 +42,54 @@ export async function calculateFinancialHealth(
       storage.getFinancialGoalsByUserId(userId)
     ]);
 
-    const monthlyIncome = stats.monthlyIncome || 
+    // Detect new users with no meaningful financial data
+    const hasNoTransactions = transactions.length === 0;
+    const hasNoIncome = !stats.monthlyIncome && !prefs?.monthlyIncomeEstimate;
+    const hasNoGoals = goals.length === 0;
+    const isNewUser = hasNoTransactions && hasNoIncome && hasNoGoals;
+
+    // For new users, return a welcoming "Getting Started" state
+    if (isNewUser) {
+      return {
+        overall: 50, // Neutral starting score
+        breakdown: {
+          savingsRate: { score: 50, value: 0, label: 'Getting Started', recommendation: 'Add your income and expenses to track your savings rate.' },
+          emergencyFund: { score: 50, months: 0, label: 'Getting Started', recommendation: 'Tell us about your savings to calculate your emergency fund coverage.' },
+          debtRatio: { score: 100, ratio: 0, label: 'No Debt Detected', recommendation: 'Great! No debt payments found. Keep it that way!' },
+          netWorthGrowth: { score: 50, growth: 0, label: 'Getting Started', recommendation: 'As you add transactions, we will track your financial growth.' },
+          budgetAdherence: { score: 50, adherence: 50, label: 'Getting Started', recommendation: 'Set up a budget to see how well you\'re sticking to it.' }
+        },
+        grade: 'Getting Started' as any,
+        summary: 'Welcome to Twealth! Add your first transaction or set up your financial profile to get personalized insights and track your progress.',
+        topPriority: 'Start by adding a transaction or setting your monthly income in Settings.'
+      };
+    }
+
+    const monthlyIncome = stats.monthlyIncome ||
       parseFloat(prefs?.monthlyIncomeEstimate?.toString() || '0');
-    
+
     // Calculate actual monthly expenses from last 30 days
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const recentExpenses = transactions
       .filter(t => t.type === 'expense' && t.date >= thirtyDaysAgo)
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    
-    const monthlyExpenses = recentExpenses > 0 
-      ? recentExpenses 
+
+    const monthlyExpenses = recentExpenses > 0
+      ? recentExpenses
       : parseFloat(prefs?.monthlyExpensesEstimate?.toString() || '0');
 
-    const totalSavings = stats.totalSavings || 
+    const totalSavings = stats.totalSavings ||
       parseFloat(prefs?.currentSavingsEstimate?.toString() || '0');
 
     // 1. Savings Rate Score (30% weight)
-    const savingsRate = monthlyIncome > 0 
-      ? ((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100 
+    const savingsRate = monthlyIncome > 0
+      ? ((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100
       : 0;
-    
+
     let savingsScore = 0;
     let savingsLabel = '';
     let savingsRec = '';
-    
+
     if (savingsRate >= 20) {
       savingsScore = 100;
       savingsLabel = 'Excellent';
@@ -95,11 +118,11 @@ export async function calculateFinancialHealth(
 
     // 2. Emergency Fund Score (25% weight)
     const emergencyFundMonths = monthlyExpenses > 0 ? totalSavings / monthlyExpenses : 0;
-    
+
     let emergencyScore = 0;
     let emergencyLabel = '';
     let emergencyRec = '';
-    
+
     if (emergencyFundMonths >= 6) {
       emergencyScore = 100;
       emergencyLabel = 'Excellent';
@@ -126,19 +149,19 @@ export async function calculateFinancialHealth(
     // Calculate debt payments from transaction history
     const debtCategories = ['credit card', 'loan', 'debt', 'mortgage'];
     const monthlyDebtPayments = transactions
-      .filter(t => 
-        t.type === 'expense' && 
+      .filter(t =>
+        t.type === 'expense' &&
         t.date >= thirtyDaysAgo &&
         debtCategories.some(cat => t.category.toLowerCase().includes(cat))
       )
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
     const debtRatio = monthlyIncome > 0 ? (monthlyDebtPayments / monthlyIncome) * 100 : 0;
-    
+
     let debtScore = 0;
     let debtLabel = '';
     let debtRec = '';
-    
+
     if (debtRatio === 0) {
       debtScore = 100;
       debtLabel = 'Debt Free';
@@ -167,7 +190,7 @@ export async function calculateFinancialHealth(
     const oldIncome = transactions
       .filter(t => t.type === 'income' && t.date >= sixtyDaysAgo && t.date < thirtyDaysAgo)
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    
+
     const oldExpenses = transactions
       .filter(t => t.type === 'expense' && t.date >= sixtyDaysAgo && t.date < thirtyDaysAgo)
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
@@ -203,7 +226,7 @@ export async function calculateFinancialHealth(
 
     // 5. Budget Adherence Score (10% weight)
     const budgetEstimate = parseFloat(prefs?.monthlyExpensesEstimate?.toString() || '0');
-    const budgetAdherence = budgetEstimate > 0 
+    const budgetAdherence = budgetEstimate > 0
       ? Math.max(0, 100 - Math.abs((monthlyExpenses - budgetEstimate) / budgetEstimate * 100))
       : (monthlyExpenses > 0 ? 50 : 100);
 
@@ -245,7 +268,7 @@ export async function calculateFinancialHealth(
       { name: 'budget adherence', score: budgetScore, rec: budgetRec }
     ];
 
-    const topPriority = scores.reduce((min, curr) => 
+    const topPriority = scores.reduce((min, curr) =>
       curr.score < min.score ? curr : min
     );
 

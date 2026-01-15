@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   Send,
   Brain,
   Zap,
@@ -110,7 +110,7 @@ interface StarterPrompt {
 
 function AnimatedNumber({ value, className }: { value: number; className?: string }) {
   const [displayValue, setDisplayValue] = useState(0);
-  
+
   useEffect(() => {
     const duration = 800;
     const steps = 30;
@@ -131,10 +131,10 @@ function AnimatedNumber({ value, className }: { value: number; className?: strin
   return <span className={className}>{displayValue}</span>;
 }
 
-function CircularProgress({ value, max, size = 44, strokeWidth = 3, color = "blue" }: { 
-  value: number; 
-  max: number; 
-  size?: number; 
+function CircularProgress({ value, max, size = 44, strokeWidth = 3, color = "blue" }: {
+  value: number;
+  max: number;
+  size?: number;
   strokeWidth?: number;
   color?: string;
 }) {
@@ -143,7 +143,7 @@ function CircularProgress({ value, max, size = 44, strokeWidth = 3, color = "blu
   const clampedValue = Math.max(0, Math.min(value, max));
   const percentage = max > 0 ? Math.min((clampedValue / max) * 100, 100) : 0;
   const offset = circumference - (percentage / 100) * circumference;
-  
+
   const colorMap: Record<string, string> = {
     blue: "stroke-blue-500",
     emerald: "stroke-emerald-500",
@@ -180,52 +180,52 @@ function CircularProgress({ value, max, size = 44, strokeWidth = 3, color = "blu
   );
 }
 
-function QuotaCard({ 
-  name, 
-  badge, 
-  used, 
-  limit, 
+function QuotaCard({
+  name,
+  badge,
+  used,
+  limit,
   color,
   locked = false,
   lockText = "Pro tier"
-}: { 
-  name: string; 
-  badge: string; 
-  used: number; 
-  limit: number; 
+}: {
+  name: string;
+  badge: string;
+  used: number;
+  limit: number;
   color: string;
   locked?: boolean;
   lockText?: string;
 }) {
   const isUnlimited = limit === 999999;
   const remaining = Math.max(0, limit - used);
-  
+
   const colorMap: Record<string, { bg: string; text: string; badge: string; border: string }> = {
-    blue: { 
-      bg: "bg-blue-50 dark:bg-blue-950/30", 
+    blue: {
+      bg: "bg-blue-50 dark:bg-blue-950/30",
       text: "text-blue-600 dark:text-blue-400",
       badge: "bg-blue-600 text-white",
       border: "border-blue-200/50 dark:border-blue-800/50"
     },
-    emerald: { 
-      bg: "bg-emerald-50 dark:bg-emerald-950/30", 
+    emerald: {
+      bg: "bg-emerald-50 dark:bg-emerald-950/30",
       text: "text-emerald-600 dark:text-emerald-400",
       badge: "bg-emerald-600 text-white",
       border: "border-emerald-200/50 dark:border-emerald-800/50"
     },
-    amber: { 
-      bg: "bg-amber-50 dark:bg-amber-950/30", 
+    amber: {
+      bg: "bg-amber-50 dark:bg-amber-950/30",
       text: "text-amber-600 dark:text-amber-400",
       badge: "bg-amber-600 text-white",
       border: "border-amber-200/50 dark:border-amber-800/50"
     }
   };
-  
+
   const colors = colorMap[color] || colorMap.blue;
 
   if (locked) {
     return (
-      <motion.div 
+      <motion.div
         className="flex flex-col sm:flex-row items-center sm:justify-between p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 border-dashed border-border/40 bg-muted/5 gap-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -245,7 +245,7 @@ function QuotaCard({
   }
 
   return (
-    <motion.div 
+    <motion.div
       className={`relative p-3 sm:p-4 rounded-lg sm:rounded-xl border ${colors.border} ${colors.bg} overflow-hidden`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -254,9 +254,9 @@ function QuotaCard({
     >
       <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2">
         <div className="flex items-center gap-2 sm:gap-3">
-          <CircularProgress 
-            value={isUnlimited ? 100 : remaining} 
-            max={isUnlimited ? 100 : limit} 
+          <CircularProgress
+            value={isUnlimited ? 100 : remaining}
+            max={isUnlimited ? 100 : limit}
             color={color}
             size={36}
             strokeWidth={3}
@@ -339,9 +339,9 @@ export default function AIAssistantPage() {
 
     const handleFocus = () => {
       setTimeout(() => {
-        textarea.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center' 
+        textarea.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
         });
       }, 300);
     };
@@ -359,7 +359,7 @@ export default function AIAssistantPage() {
 
   const getUpgradeMessage = (exceededModel?: string) => {
     const tier = getCurrentTier();
-    
+
     if (exceededModel === 'opus') {
       return {
         title: "Opus Quota Exceeded",
@@ -367,7 +367,7 @@ export default function AIAssistantPage() {
         benefits: "Opus provides the most advanced analysis for complex financial decisions."
       };
     }
-    
+
     if (exceededModel === 'gpt5') {
       if (tier === 'enterprise') {
         return {
@@ -382,7 +382,7 @@ export default function AIAssistantPage() {
         benefits: "Enterprise includes: 10 GPT-5 queries, 20 Opus queries, 60 Sonnet queries, Unlimited Scout"
       };
     }
-    
+
     if (exceededModel === 'sonnet') {
       return {
         title: "Upgrade to Enterprise",
@@ -390,7 +390,7 @@ export default function AIAssistantPage() {
         benefits: "Enterprise includes: 20 Opus queries, 10 GPT-5 queries, 60 Sonnet queries, Unlimited Scout"
       };
     }
-    
+
     if (tier === 'pro') {
       return {
         title: "Upgrade to Enterprise",
@@ -398,7 +398,7 @@ export default function AIAssistantPage() {
         benefits: "Enterprise includes: 20 Opus queries, 10 GPT-5 queries, 60 Sonnet queries, Unlimited Scout"
       };
     }
-    
+
     return {
       title: "Upgrade to Pro",
       description: "Get access to Sonnet for deep reasoning and GPT-5 for math analysis.",
@@ -409,27 +409,27 @@ export default function AIAssistantPage() {
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       let conversationId = currentConversationId;
-      
+
       if (!conversationId) {
-        const response = await apiRequest("POST", "/api/chat/conversations", { 
+        const response = await apiRequest("POST", "/api/chat/conversations", {
           title: content.slice(0, 50) + (content.length > 50 ? '...' : '')
         });
         const conversation = await response.json();
         conversationId = conversation.id;
         setCurrentConversationId(conversationId);
       }
-      
-      const messageResponse = await apiRequest("POST", `/api/chat/conversations/${conversationId}/messages`, { 
+
+      const messageResponse = await apiRequest("POST", `/api/chat/conversations/${conversationId}/messages`, {
         content,
         isDeepAnalysis: analysisMode === 'deep'
       });
-      
+
       if (messageResponse.status === 429) {
         const errorData = await messageResponse.json();
         const exceededModel = errorData.exceededModel;
         throw { isQuotaError: true, exceededModel, message: errorData.message };
       }
-      
+
       return await messageResponse.json();
     },
     onSuccess: () => {
@@ -451,14 +451,14 @@ export default function AIAssistantPage() {
         const upgradeMsg = getUpgradeMessage(error.exceededModel);
         const tier = getCurrentTier();
         const needsUpgrade = tier === 'free' || (tier === 'pro' && error.exceededModel === 'sonnet');
-        
+
         toast({
           title: upgradeMsg.title,
           description: upgradeMsg.description,
           variant: "destructive",
           duration: 10000,
           action: needsUpgrade ? (
-            <ToastAction 
+            <ToastAction
               altText="Upgrade"
               onClick={() => setLocation('/subscription')}
             >
@@ -479,16 +479,16 @@ export default function AIAssistantPage() {
 
   const handleSendMessage = () => {
     if (!currentMessage.trim() || sendMessageMutation.isPending || isStreaming || rateLimitRetryAfter > 0) return;
-    
+
     const isLimitExceeded = usage && usage.chatUsage.used >= usage.chatUsage.limit;
-    
+
     if (isLimitExceeded) {
       toast({
         title: "Upgrade Required",
         description: "You've reached your AI chat limit. Upgrade to continue.",
         variant: "destructive",
         action: (
-          <ToastAction 
+          <ToastAction
             altText="Upgrade"
             onClick={() => setLocation('/subscription')}
           >
@@ -506,26 +506,26 @@ export default function AIAssistantPage() {
       sendMessageMutation.mutate(currentMessage);
     }
   };
-  
+
   const sendStreamingMessage = async (content: string) => {
     let conversationId = currentConversationId;
-    
+
     try {
       setIsStreaming(true);
       setStreamingContent("");
       setCurrentMessage("");
-      
+
       if (!conversationId) {
-        const response = await apiRequest("POST", "/api/chat/conversations", { 
+        const response = await apiRequest("POST", "/api/chat/conversations", {
           title: content.slice(0, 50) + (content.length > 50 ? '...' : '')
         });
         const conversation = await response.json();
         conversationId = conversation.id;
         setCurrentConversationId(conversationId);
       }
-      
+
       abortControllerRef.current = new AbortController();
-      
+
       const response = await fetch(`/api/chat/conversations/${conversationId}/messages/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -533,28 +533,28 @@ export default function AIAssistantPage() {
         credentials: 'include',
         signal: abortControllerRef.current.signal
       });
-      
+
       if (!response.ok) {
         throw new Error('Streaming failed');
       }
-      
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      
+
       if (!reader) {
         throw new Error('No response body');
       }
-      
+
       let buffer = '';
-      
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
+
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-        
+
         for (const line of lines) {
           if (line.startsWith('event: ')) {
             continue;
@@ -570,11 +570,11 @@ export default function AIAssistantPage() {
           }
         }
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", conversationId] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
-      
+
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         toast({
@@ -611,7 +611,7 @@ export default function AIAssistantPage() {
   useEffect(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     setSpeechSupported(!!SpeechRecognition);
-    
+
     // Cleanup on unmount
     return () => {
       if (recognitionRef.current) {
@@ -678,19 +678,19 @@ export default function AIAssistantPage() {
     }
 
     const title = currentConversation.title || 'AI Conversation';
-    const date = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const date = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
 
     let content = `# ${title}\n`;
     content += `**Exported:** ${date}\n\n---\n\n`;
 
     exportMessages.forEach((msg) => {
-      const time = new Date(msg.createdAt).toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      const time = new Date(msg.createdAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
       });
       if (msg.role === 'user') {
         content += `### You (${time})\n${msg.content}\n\n`;
@@ -816,7 +816,7 @@ export default function AIAssistantPage() {
         <header className="shrink-0 border-b border-border/40 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
           <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-              <motion.div 
+              <motion.div
                 className="flex items-center gap-2.5 min-w-0"
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -829,7 +829,7 @@ export default function AIAssistantPage() {
                   <p className="text-[10px] text-muted-foreground font-medium hidden sm:block">Your Personal CFO</p>
                 </div>
               </motion.div>
-              
+
               <Select value={analysisMode} onValueChange={(v: 'quick' | 'deep') => setAnalysisMode(v)}>
                 <SelectTrigger className="w-[120px] sm:w-[150px] h-9 text-xs sm:text-sm bg-muted/30 border-border/50" data-testid="select-analysis-mode">
                   <SelectValue />
@@ -875,7 +875,7 @@ export default function AIAssistantPage() {
                   </Button>
                 </>
               )}
-              
+
               <Button
                 variant="ghost"
                 size="icon"
@@ -887,11 +887,11 @@ export default function AIAssistantPage() {
               </Button>
 
               {usage && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                 >
-                  <Badge 
+                  <Badge
                     className={`
                       text-xs font-semibold px-3 py-1 rounded-full shadow-sm
                       ${tier === 'enterprise' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-0' : ''}
@@ -999,9 +999,9 @@ export default function AIAssistantPage() {
 
         <div className="flex-1 overflow-y-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto py-6 sm:py-8 space-y-6">
-            
+
             {usage && !hasMessages && (
-              <motion.div 
+              <motion.div
                 className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1046,13 +1046,13 @@ export default function AIAssistantPage() {
             )}
 
             {!hasMessages ? (
-              <motion.div 
+              <motion.div
                 className="flex flex-col items-center justify-center min-h-[45vh] text-center px-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <motion.div 
+                <motion.div
                   className="relative mb-8"
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -1063,8 +1063,8 @@ export default function AIAssistantPage() {
                     <Brain className="w-10 h-10 text-white" />
                   </div>
                 </motion.div>
-                
-                <motion.h2 
+
+                <motion.h2
                   className="text-3xl sm:text-4xl font-bold mb-3 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1072,7 +1072,7 @@ export default function AIAssistantPage() {
                 >
                   Your Personal CFO
                 </motion.h2>
-                <motion.p 
+                <motion.p
                   className="text-muted-foreground text-base sm:text-lg mb-2 max-w-md font-medium"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1080,7 +1080,7 @@ export default function AIAssistantPage() {
                 >
                   Expert financial advice powered by AI
                 </motion.p>
-                <motion.p 
+                <motion.p
                   className="text-sm text-muted-foreground/70 mb-10 max-w-lg"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1089,7 +1089,7 @@ export default function AIAssistantPage() {
                   Ask me anything about budgeting, investing, debt payoff, retirement, or financial planning
                 </motion.p>
 
-                <motion.div 
+                <motion.div
                   className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 w-full max-w-4xl"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1127,7 +1127,7 @@ export default function AIAssistantPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.0 }}
                 >
-                  <ProactiveInsightsPanel 
+                  <ProactiveInsightsPanel
                     maxItems={3}
                     onAskAbout={(prompt) => {
                       setCurrentMessage(prompt);
@@ -1178,9 +1178,9 @@ export default function AIAssistantPage() {
                     />
                   ))}
                 </AnimatePresence>
-                
+
                 {sendMessageMutation.isPending && <TypingIndicator isDeepAnalysis={analysisMode === 'deep'} />}
-                
+
                 {isStreaming && streamingContent && (
                   <MessageBubble
                     role="assistant"
@@ -1188,9 +1188,9 @@ export default function AIAssistantPage() {
                     isStreaming={true}
                   />
                 )}
-                
+
                 {isStreaming && !streamingContent && <TypingIndicator isDeepAnalysis={false} />}
-                
+
                 <div ref={messagesEndRef} />
               </div>
             )}
@@ -1198,8 +1198,8 @@ export default function AIAssistantPage() {
         </div>
 
         {/* Fixed bottom input area - positioned above mobile nav on small screens */}
-        <div 
-          className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" 
+        <div
+          className="shrink-0 border-t border-border/40 bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
           style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
         >
           {/* Quick action chips - compact on mobile, full on desktop */}
@@ -1223,11 +1223,10 @@ export default function AIAssistantPage() {
               {currentMessage.trim() && (
                 <motion.button
                   onClick={() => toggleSavePrompt(currentMessage)}
-                  className={`shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full transition-colors min-h-[32px] sm:min-h-[36px] touch-target border ${
-                    savedPrompts.includes(currentMessage)
-                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
-                  }`}
+                  className={`shrink-0 flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-medium rounded-full transition-colors min-h-[32px] sm:min-h-[36px] touch-target border ${savedPrompts.includes(currentMessage)
+                    ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/50'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700'
+                    }`}
                   data-testid="button-save-current-prompt"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -1250,12 +1249,11 @@ export default function AIAssistantPage() {
 
           {/* Input box */}
           <div className="max-w-3xl mx-auto px-3 sm:px-6 pb-1 sm:pb-3">
-            <motion.div 
-              className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${
-                inputFocused 
-                  ? 'ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10' 
-                  : 'shadow-md hover:shadow-lg'
-              }`}
+            <motion.div
+              className={`relative rounded-xl sm:rounded-2xl transition-all duration-300 ${inputFocused
+                ? 'ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10'
+                : 'shadow-md hover:shadow-lg'
+                }`}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -1271,7 +1269,7 @@ export default function AIAssistantPage() {
                 rows={1}
                 data-testid="input-message"
               />
-              
+
               {/* Voice and Send buttons */}
               <div className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 flex items-center gap-1">
                 {speechSupported && (
@@ -1281,28 +1279,26 @@ export default function AIAssistantPage() {
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-all ${
-                        isListening 
-                          ? 'bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 animate-pulse' 
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }`}
+                      className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg transition-all ${isListening
+                        ? 'bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 animate-pulse'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
                       data-testid="button-voice-input"
                     >
                       {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                     </Button>
                   </motion.div>
                 )}
-                
+
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
                     onClick={handleSendMessage}
                     disabled={!currentMessage.trim() || sendMessageMutation.isPending || isStreaming || rateLimitRetryAfter > 0}
                     size="icon"
-                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${
-                      currentMessage.trim() 
-                        ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30' 
-                        : 'bg-gray-200 dark:bg-gray-800'
-                    }`}
+                    className={`h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl transition-all duration-300 touch-target ${currentMessage.trim()
+                      ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30'
+                      : 'bg-gray-200 dark:bg-gray-800'
+                      }`}
                     data-testid="button-send-message"
                     title={rateLimitRetryAfter > 0 ? `Wait ${rateLimitRetryAfter}s` : undefined}
                   >

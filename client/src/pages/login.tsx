@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
-import { Shield, Lock, Eye, Loader2, ArrowLeft } from "lucide-react";
+import { Shield, Lock, Eye, Loader2, ArrowLeft, Code2 } from "lucide-react";
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 interface AuthProviders {
   google: boolean;
   facebook: boolean;
   apple: boolean;
+  devLogin?: boolean;
 }
 
 export default function Login() {
@@ -19,25 +20,37 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
 
   const { data: providers, isLoading: providersLoading, isError: providersError } = useQuery<AuthProviders>({
     queryKey: ["/api/auth/providers"],
     retry: 2,
   });
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      setIsAlreadyLoggedIn(false);
+      window.location.reload();
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
   useEffect(() => {
     fetch("/api/auth/status")
       .then(res => res.json())
       .then(data => {
         if (data.authenticated) {
-          setLocation("/");
+          // User is already logged in - show option to logout instead of redirecting
+          setIsAlreadyLoggedIn(true);
         }
       })
       .catch((err) => {
         console.warn('[Auth] Failed to check auth status:', err.message);
       })
       .finally(() => setIsCheckingAuth(false));
-  }, [setLocation]);
+  }, []);
 
   const handleGoogleLogin = () => {
     setLoadingProvider("google");
@@ -58,7 +71,29 @@ export default function Login() {
     form.submit();
   };
 
-  const hasAnyProvider = providers?.google || providers?.facebook || providers?.apple;
+  const handleDevLogin = async () => {
+    setLoadingProvider("dev");
+    try {
+      const response = await fetch("/api/auth/dev-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Use full page reload to ensure session cookie is picked up
+        window.location.href = "/";
+      } else {
+        console.error("Dev login failed:", data.error);
+        setLoadingProvider(null);
+      }
+    } catch (error) {
+      console.error("Dev login error:", error);
+      setLoadingProvider(null);
+    }
+  };
+
+  const hasAnyProvider = providers?.google || providers?.facebook || providers?.apple || providers?.devLogin;
 
   if (isCheckingAuth || providersLoading) {
     return (
@@ -68,10 +103,37 @@ export default function Login() {
     );
   }
 
+  // Show a message and logout option if user is already logged in
+  if (isAlreadyLoggedIn) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center space-y-6 p-8">
+          <h2 className="text-2xl font-bold text-white">You're already signed in</h2>
+          <p className="text-slate-400">You can continue to the app or sign out to switch accounts.</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={() => window.location.href = "/"}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Continue to App
+            </Button>
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+            >
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950">
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950" />
-      
+
       <div className="relative min-h-screen flex flex-col">
         <header className="px-6 py-4">
           <button
@@ -88,9 +150,9 @@ export default function Login() {
           <div className="w-full max-w-md">
             <div className="text-center mb-10">
               <div className="inline-flex items-center justify-center mb-6">
-                <img 
-                  src={logoUrl} 
-                  alt="Twealth" 
+                <img
+                  src={logoUrl}
+                  alt="Twealth"
                   className="w-14 h-14 object-contain"
                 />
               </div>
@@ -122,6 +184,25 @@ export default function Login() {
                     <p className="text-slate-400 mb-2">{t('login.authConfiguring')}</p>
                     <p className="text-sm text-slate-500">{t('login.checkBackSoon')}</p>
                   </div>
+                ) : providers?.devLogin ? (
+                  <>
+                    <Button
+                      onClick={handleDevLogin}
+                      disabled={loadingProvider !== null}
+                      className="w-full h-12 font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
+                      data-testid="button-dev-login"
+                    >
+                      {loadingProvider === "dev" ? (
+                        <Loader2 className="mr-3 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Code2 className="mr-3 h-4 w-4" />
+                      )}
+                      Dev Login (Local Development)
+                    </Button>
+                    <p className="text-xs text-center text-amber-400 mt-2">
+                      ⚠️ Development mode - No database or OAuth configured
+                    </p>
+                  </>
                 ) : (
                   <>
                     {providers?.google && (
@@ -224,7 +305,7 @@ export default function Login() {
               </p>
 
               <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                <button 
+                <button
                   onClick={() => setLocation("/terms")}
                   className="hover:text-slate-300 transition-colors"
                   data-testid="link-terms"
@@ -232,7 +313,7 @@ export default function Login() {
                   {t('login.terms')}
                 </button>
                 <span className="w-1 h-1 rounded-full bg-slate-600" />
-                <button 
+                <button
                   onClick={() => setLocation("/privacy")}
                   className="hover:text-slate-300 transition-colors"
                   data-testid="link-privacy"

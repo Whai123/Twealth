@@ -4,16 +4,15 @@
  * Wraps the hybrid AI service with subscription tier checking and quota enforcement.
  * Ensures users only access models they're allowed to use based on their plan.
  * 
- * Tier Access Matrix (4-Model System):
- * - Free: Scout only (50/month) - NO Sonnet, NO GPT-5, NO Opus
- * - Pro: Scout (unlimited) + Sonnet (25/month) + GPT-5 (5/month) - NO Opus
- * - Enterprise: Scout (unlimited) + Sonnet (60/month) + GPT-5 (10/month) + Opus (20/month)
+ * Tier Access Matrix (2-Tier System with Legacy Support):
+ * - Free: Gemini only (50/month) - FREE Google AI
+ * - Pro: Gemini (unlimited) + Claude Sonnet (25/month) - PRO reasoning
+ * - Enterprise: All models (Gemini, Sonnet, GPT-5, Opus)
  * 
  * Model Usage Rules:
- * - Scout (Llama 4): PRIMARY - Fast queries, budgeting, spending, goals (Fast)
- * - Sonnet 3.5/4.5: REASONING - Multi-step logic, investment, debt strategy (Smart)
- * - GPT-5: MATH - Projections, simulations, compound interest, retirement (Math)
- * - Opus 4.1: CFO-LEVEL - Portfolio analysis, high-stakes decisions (CFO)
+ * - Gemini Flash 2.0: FREE TIER - Fast queries for all users
+ * - Sonnet 4.5: PRO TIER - Advanced reasoning for Pro users
+ * - Legacy (Scout, GPT-5, Opus): Still supported for enterprise/backward compatibility
  */
 
 import type { IStorage } from '../storage';
@@ -43,80 +42,79 @@ export type TierAwareResponse = HybridAIResponse | QuotaExceededError;
 
 /**
  * Map subscription tier to allowed models
- * Scout is PRIMARY model for all tiers (unlimited for Pro/Enterprise)
+ * Gemini is PRIMARY model for Free tier, Sonnet for Pro
  */
 export function resolveAllowedModels(tier: SubscriptionTier): ModelAccess[] {
   switch (tier) {
     case 'free':
-      return ['scout']; // Scout only, 50/month limit
+      return ['gemini']; // Gemini only, 50/month limit (FREE)
     case 'pro':
-      return ['scout', 'sonnet', 'gpt5']; // Unlimited Scout + Sonnet + GPT-5
+      return ['gemini', 'sonnet']; // Unlimited Gemini + Sonnet (25/month)
     case 'enterprise':
-      return ['scout', 'sonnet', 'gpt5', 'opus']; // All models available
+      return ['gemini', 'sonnet', 'gpt5', 'opus']; // All models available
     default:
-      return ['scout']; // Default to Scout
+      return ['gemini']; // Default to Gemini (free)
   }
 }
 
 /**
  * Get models in descending priority order (highest to lowest)
  * Used for cascading fallback when preferred model lacks quota
- * Scout is ALWAYS the final fallback (unlimited for paid tiers)
+ * Gemini is ALWAYS the final fallback (free, unlimited for paid tiers)
  */
 function getModelsByPriority(tier: SubscriptionTier): ModelAccess[] {
   switch (tier) {
     case 'free':
-      return ['scout']; // Scout only
+      return ['gemini']; // Gemini only
     case 'pro':
-      return ['gpt5', 'sonnet', 'scout']; // Try GPT-5/Sonnet first, fall back to Scout
+      return ['sonnet', 'gemini']; // Try Sonnet first, fall back to Gemini
     case 'enterprise':
-      return ['opus', 'gpt5', 'sonnet', 'scout']; // Try premium models, fall back to Scout
+      return ['opus', 'gpt5', 'sonnet', 'gemini']; // Try premium models, fall back to Gemini
     default:
-      return ['scout'];
+      return ['gemini'];
   }
 }
 
 /**
- * Build fallback list: preferred first, then other specialty models, Scout LAST
+ * Build fallback list: preferred first, then other specialty models, Gemini LAST
  * 
  * Strategy:
  * 1. Try preferred model (selected for quality/capability match)
  * 2. Fall back to other allowed specialty models in ascending cost order
- * 3. Fall back to Scout LAST as final fallback (unlimited for Pro/Enterprise)
+ * 3. Fall back to Gemini LAST as final fallback (free, unlimited for Pro/Enterprise)
  * 
  * Examples:
- * - Free any query: preferred=scout → [scout]
- * - Pro simple query: preferred=scout → [scout, gpt5, sonnet]
- * - Pro reasoning query: preferred=sonnet → [sonnet, gpt5, scout] (Scout LAST!)
- * - Pro math query: preferred=gpt5 → [gpt5, sonnet, scout] (Scout LAST!)
- * - Enterprise CFO query: preferred=opus → [opus, gpt5, sonnet, scout] (Scout LAST!)
+ * - Free any query: preferred=gemini → [gemini]
+ * - Pro simple query: preferred=gemini → [gemini, sonnet]
+ * - Pro reasoning query: preferred=sonnet → [sonnet, gemini] (Gemini LAST!)
+ * - Enterprise CFO query: preferred=opus → [opus, gpt5, sonnet, gemini] (Gemini LAST!)
  */
 function buildFallbackList(preferredModel: ModelAccess, tier: SubscriptionTier): ModelAccess[] {
   // Get tier-allowed models as a Set for efficient membership checks
   const allowedModelsArray = resolveAllowedModels(tier);
   const allowedModels = new Set(allowedModelsArray);
-  
-  // Free tier: only Scout available
+
+  // Free tier: only Gemini available
   if (tier === 'free') {
-    return ['scout'];
+    return ['gemini'];
   }
-  
+
   // Start with preferred model
   const fallbackOrder: ModelAccess[] = [preferredModel];
-  
+
   // Add remaining specialty models in ascending cost order (GPT-5 < Sonnet < Opus)
   const costOrderedModels: ModelAccess[] = ['gpt5', 'sonnet', 'opus'];
   const specialtyModels = costOrderedModels.filter(
     m => m !== preferredModel && allowedModels.has(m)
   ) as ModelAccess[];
-  
+
   fallbackOrder.push(...specialtyModels);
-  
-  // Add Scout as FINAL fallback (unlimited for paid tiers, cheapest)
-  if (preferredModel !== 'scout' && allowedModels.has('scout')) {
-    fallbackOrder.push('scout');
+
+  // Add Gemini as FINAL fallback (free for all, unlimited for paid tiers)
+  if (preferredModel !== 'gemini' && allowedModels.has('gemini')) {
+    fallbackOrder.push('gemini');
   }
-  
+
   return fallbackOrder;
 }
 
@@ -138,7 +136,7 @@ function getNextTier(currentTier: SubscriptionTier): SubscriptionTier | null {
 
 /**
  * Check if user has quota remaining for a specific model
- * Scout is unlimited for Pro/Enterprise (scoutLimit = 999999)
+ * Gemini uses scoutLimit for now (shared quota counter)
  */
 function hasQuota(
   usage: { scoutUsed: number; sonnetUsed: number; gpt5Used: number; opusUsed: number },
@@ -146,8 +144,10 @@ function hasQuota(
   model: ModelAccess
 ): boolean {
   switch (model) {
+    case 'gemini':
+      return usage.scoutUsed < limits.scoutLimit; // Gemini shares scoutLimit (50 for free, 999999 for paid)
     case 'scout':
-      return usage.scoutUsed < limits.scoutLimit; // Unlimited for paid (999999)
+      return usage.scoutUsed < limits.scoutLimit; // Legacy: still check scout limit
     case 'sonnet':
       return usage.sonnetUsed < limits.sonnetLimit;
     case 'gpt5':
@@ -155,47 +155,39 @@ function hasQuota(
     case 'opus':
       return usage.opusUsed < limits.opusLimit;
     default:
-      return false;
+      return true; // Unknown models default to allowed (Gemini is free)
   }
 }
 
 /**
  * Select the best model based on complexity and tier (ignoring quotas)
  * 
- * Model Selection Strategy (Scout-First):
- * 1. Analyze query complexity and keywords
- * 2. Route to appropriate model based on use case:
- *    - Scout: Simple queries (spending, budgeting, goals, transactions)
- *    - Sonnet: Multi-step reasoning (debt strategy, investment basics, risk assessment)
- *    - GPT-5: Advanced math (projections, simulations, compound interest, retirement)
- *    - Opus: CFO-level (portfolio analysis, macroeconomics, high-stakes decisions)
- * 3. Quota checking happens separately in routeWithTierCheck
+ * Model Selection Strategy (Gemini-First):
+ * 1. Free tier: Always Gemini (free, fast)
+ * 2. Pro tier: Gemini for simple, Sonnet for complex
+ * 3. Enterprise tier: Use premium models based on query type
  */
 function selectModelForTier(
   signals: ComplexitySignals,
   tier: SubscriptionTier
 ): ModelAccess {
   const msgLower = typeof signals.message === 'string' ? signals.message.toLowerCase() : '';
-  
-  // Free tier: Always Scout (no escalation allowed)
+
+  // Free tier: Always Gemini (free)
   if (tier === 'free') {
-    return 'scout';
+    return 'gemini';
   }
-  
-  // Pro tier: Scout, Sonnet, or GPT-5 based on query type
+
+  // Pro tier: Gemini or Sonnet based on query type
   if (tier === 'pro') {
-    // GPT-5 for advanced math/projections
-    if (isMathQuery(msgLower)) {
-      return 'gpt5';
-    }
     // Sonnet for reasoning/strategy
     if (isReasoningQuery(msgLower) || shouldEscalate(signals)) {
       return 'sonnet';
     }
-    // Default to Scout for simple queries
-    return 'scout';
+    // Default to Gemini for simple queries (free + fast)
+    return 'gemini';
   }
-  
+
   // Enterprise tier: All models available
   if (tier === 'enterprise') {
     // Opus for CFO-level analysis
@@ -210,12 +202,12 @@ function selectModelForTier(
     if (isReasoningQuery(msgLower) || shouldEscalate(signals)) {
       return 'sonnet';
     }
-    // Default to Scout
-    return 'scout';
+    // Default to Gemini (free)
+    return 'gemini';
   }
-  
-  // Default fallback
-  return 'scout';
+
+  // Default fallback to Gemini
+  return 'gemini';
 }
 
 /**
@@ -275,6 +267,13 @@ export interface ConversationMessage {
   role: 'user' | 'assistant';
   content: string;
 }
+/**
+ * Options for routeWithTierCheck
+ */
+export interface RouteOptions {
+  conversationHistory?: ConversationMessage[];
+  forceDeepAnalysis?: boolean; // When true, force Claude Sonnet for Pro/Enterprise users
+}
 
 /**
  * Main orchestrator: Routes AI queries with tier-based access control
@@ -283,25 +282,27 @@ export async function routeWithTierCheck(
   userId: string,
   message: string,
   storage: IStorage,
-  conversationHistory: ConversationMessage[] = []
+  options: RouteOptions = {}
 ): Promise<TierAwareResponse> {
+  const { conversationHistory = [], forceDeepAnalysis = false } = options;
+
   try {
     // CRITICAL: Sanitize message at entry point to prevent TypeError
     // This ensures all downstream code receives a safe string
     const sanitizedMessage = typeof message === 'string' ? message : '';
-    
+
     // 1. Fetch user subscription and usage
     const subData = await storage.getUserSubscriptionWithUsage(userId);
-    
+
     if (!subData) {
       throw new Error('User subscription not found');
     }
-    
+
     const { subscription, usage, plan } = subData;
-    
+
     // Determine tier
     const tier: SubscriptionTier = (plan.name?.toLowerCase() as SubscriptionTier) || 'free';
-    
+
     // Current usage
     const currentUsage = {
       scoutUsed: usage?.scoutQueriesUsed || 0,
@@ -309,7 +310,7 @@ export async function routeWithTierCheck(
       gpt5Used: usage?.gpt5QueriesUsed || 0,
       opusUsed: usage?.opusQueriesUsed || 0,
     };
-    
+
     // Plan limits
     const limits = {
       scoutLimit: plan.scoutLimit || 0,
@@ -317,10 +318,10 @@ export async function routeWithTierCheck(
       gpt5Limit: plan.gpt5Limit || 0,
       opusLimit: plan.opusLimit || 0,
     };
-    
+
     // 2. Build financial context once
     const context = await buildFinancialContext(userId, storage);
-    
+
     // 3. Create complexity signals for model selection using sanitized message
     const signals: ComplexitySignals = {
       message: sanitizedMessage,
@@ -329,17 +330,25 @@ export async function routeWithTierCheck(
       messageLength: sanitizedMessage.length,
       contextTokens: estimateContextTokens(context),
     };
-    
+
     // 4. Select preferred model for tier based on complexity
-    const preferredModel = selectModelForTier(signals, tier);
-    
+    // If forceDeepAnalysis is true and user is Pro/Enterprise, force Sonnet
+    let preferredModel: ModelAccess;
+    if (forceDeepAnalysis && (tier === 'pro' || tier === 'enterprise')) {
+      preferredModel = 'sonnet';
+      console.log('[TierRouter] Deep Analysis mode forced - selecting Sonnet');
+    } else {
+      preferredModel = selectModelForTier(signals, tier);
+    }
+
+
     // 5. Build fallback list: preferred first, then lower-priority models
     const fallbackModels = buildFallbackList(preferredModel, tier);
-    
+
     // 6. Find first model with available quota (try preferred, then fall back)
     let selectedModel: ModelAccess | null = null;
     let downgradedFrom: ModelAccess | null = null;
-    
+
     // TESTING MODE: Bypass quota checks and grant access to all models
     if (TESTING_MODE) {
       selectedModel = preferredModel; // Use preferred model directly
@@ -356,7 +365,7 @@ export async function routeWithTierCheck(
           break;
         }
       }
-      
+
       // 7. If no model has quota, return quota_exceeded
       if (!selectedModel) {
         // All tier models exhausted
@@ -371,7 +380,7 @@ export async function routeWithTierCheck(
         };
       }
     }
-    
+
     // 8. Route to AI service with selected model and pre-built context
     const options: GenerateAdviceOptions = {
       forceModel: selectedModel,
@@ -379,22 +388,21 @@ export async function routeWithTierCheck(
       skipAutoEscalation: true, // Tier router has already decided
       conversationHistory, // Pass conversation history for context
     };
-    
+
     const response = await generateHybridAdvice(userId, sanitizedMessage, storage, options);
-    
+
     // 9. Add downgrade warning if we fell back to a lower model
     if (downgradedFrom) {
-      const warning = `Note: Your ${downgradedFrom} quota is exhausted. Using ${selectedModel} instead. ${
-        getNextTier(tier) ? `Upgrade to ${getNextTier(tier)} for more ${downgradedFrom} queries.` : ''
-      }`;
+      const warning = `Note: Your ${downgradedFrom} quota is exhausted. Using ${selectedModel} instead. ${getNextTier(tier) ? `Upgrade to ${getNextTier(tier)} for more ${downgradedFrom} queries.` : ''
+        }`;
       response.answer = `${warning}\n\n${response.answer}`;
       response.tierDowngraded = true;
     }
-    
+
     // 7. Track usage synchronously
     try {
       await trackUsage(userId, sanitizedMessage, response, subscription.id, tier, storage);
-      
+
       // Increment usage counters based on actual model used
       const actualModel = determineModelFromSlug(response.modelSlug);
       await storage.incrementUsageCounters(
@@ -406,7 +414,7 @@ export async function routeWithTierCheck(
       console.error('[TierAwareRouter] Failed to track usage:', error);
       // Don't fail the request if logging fails
     }
-    
+
     return response;
   } catch (error) {
     console.error('[TierAwareRouter] Error routing query:', error);
@@ -420,35 +428,41 @@ export async function routeWithTierCheck(
  */
 function determineModelFromSlug(modelSlug: string): 'scout' | 'sonnet' | 'gpt5' | 'opus' {
   const slug = modelSlug.toLowerCase();
-  
-  // Scout (Groq Llama models) - PRIMARY model
+
+  // Gemini (Google AI models) - FREE tier, uses scout quota counter
+  if (slug.includes('gemini')) {
+    return 'scout'; // Map gemini to scout counter for now
+  }
+
+  // Scout (Groq Llama models) - Legacy PRIMARY model
   if (slug.includes('llama') || slug.includes('scout') || slug.includes('groq')) {
     return 'scout';
   }
-  
+
   // Sonnet (Claude Sonnet models) - REASONING
   if (slug.includes('sonnet')) {
     return 'sonnet';
   }
-  
+
   // GPT-5 (OpenAI models) - MATH/PROJECTIONS
   if (slug.includes('gpt-5') || slug.includes('gpt5') || slug.includes('openai')) {
     return 'gpt5';
   }
-  
+
   // Opus (Claude Opus models) - CFO-LEVEL (Enterprise only)
   if (slug.includes('opus')) {
     return 'opus';
   }
-  
+
   // Unknown Claude model - log warning and default to Sonnet tier
   if (slug.includes('claude')) {
     console.warn(`[TierAwareRouter] Unknown Claude model: ${modelSlug}, defaulting to Sonnet tier`);
     return 'sonnet';
   }
-  
-  // Completely unknown model - throw error to prevent silent quota theft
-  throw new Error(`[TierAwareRouter] Unknown AI model slug: ${modelSlug}. Cannot determine tier for quota tracking.`);
+
+  // Unknown model - default to scout (free) to prevent errors
+  console.warn(`[TierAwareRouter] Unknown model: ${modelSlug}, defaulting to scout tier`);
+  return 'scout';
 }
 
 /**
@@ -464,7 +478,7 @@ async function trackUsage(
 ): Promise<void> {
   // Determine model type from modelSlug (accurate, not heuristic)
   const modelUsed = determineModelFromSlug(response.modelSlug);
-  
+
   await storage.insertAIUsageLog({
     userId,
     subscriptionId,
