@@ -1021,30 +1021,65 @@ export default function AIAssistantPage() {
         <div className="flex-1 overflow-y-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto py-6 sm:py-8 space-y-6">
 
+            {/* Premium AI Model Cards */}
             {usage && !hasMessages && (
               <motion.div
-                className="flex justify-center gap-3 sm:gap-4"
-                initial={{ opacity: 0, y: 20 }}
+                className="flex justify-center gap-4 sm:gap-6"
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 }}
+                transition={{ duration: 0.6, delay: 0.1 }}
                 data-testid="quota-display"
               >
-                <QuotaCard
-                  name="Gemini"
-                  badge="Free"
-                  used={scoutUsed}
-                  limit={999999}
-                  color="blue"
-                />
-                <QuotaCard
-                  name="Claude"
-                  badge="Pro"
-                  used={sonnetUsed}
-                  limit={sonnetLimit}
-                  color="emerald"
-                  locked={sonnetLimit === 0}
-                  lockText="Upgrade to Pro"
-                />
+                {/* Gemini Card - Free */}
+                <motion.div
+                  className="relative group"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
+                  <div className="relative px-6 py-4 bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Gemini</p>
+                        <p className="text-xs text-blue-400">Unlimited</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-blue-500/20 text-blue-400 rounded-full">FREE</span>
+                      <span className="text-xs text-white/60">⚡ Instant responses</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Claude Card - Pro */}
+                <motion.div
+                  className="relative group cursor-pointer"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => sonnetLimit === 0 && setLocation('/subscription')}
+                >
+                  <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur ${sonnetLimit === 0 ? 'opacity-20' : 'opacity-30 group-hover:opacity-60'} transition duration-500`} />
+                  <div className={`relative px-6 py-4 bg-zinc-900/90 backdrop-blur-xl rounded-2xl border border-white/10 ${sonnetLimit === 0 ? 'opacity-60' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${sonnetLimit === 0 ? 'bg-zinc-700' : 'bg-gradient-to-br from-emerald-500 to-teal-500'}`}>
+                        {sonnetLimit === 0 ? <Crown className="w-5 h-5 text-zinc-400" /> : <Brain className="w-5 h-5 text-white" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">Claude</p>
+                        <p className={`text-xs ${sonnetLimit === 0 ? 'text-zinc-500' : 'text-emerald-400'}`}>
+                          {sonnetLimit === 0 ? 'Locked' : `${sonnetLimit - sonnetUsed} remaining`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${sonnetLimit === 0 ? 'bg-zinc-700/50 text-zinc-500' : 'bg-emerald-500/20 text-emerald-400'}`}>PRO</span>
+                      <span className="text-xs text-white/60">{sonnetLimit === 0 ? '🔒 Upgrade to unlock' : '🔬 Deep analysis'}</span>
+                    </div>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
 
