@@ -1023,45 +1023,27 @@ export default function AIAssistantPage() {
 
             {usage && !hasMessages && (
               <motion.div
-                className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3"
+                className="flex justify-center gap-3 sm:gap-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
                 data-testid="quota-display"
               >
                 <QuotaCard
-                  name="Scout"
-                  badge="Fast"
+                  name="Gemini"
+                  badge="Free"
                   used={scoutUsed}
-                  limit={scoutLimit}
+                  limit={999999}
                   color="blue"
                 />
                 <QuotaCard
-                  name="Sonnet"
-                  badge="Smart"
+                  name="Claude"
+                  badge="Pro"
                   used={sonnetUsed}
                   limit={sonnetLimit}
-                  color="blue"
-                  locked={sonnetLimit === 0}
-                  lockText="Pro tier"
-                />
-                <QuotaCard
-                  name="GPT-5"
-                  badge="Math"
-                  used={gpt5Used}
-                  limit={gpt5Limit}
                   color="emerald"
-                  locked={gpt5Limit === 0}
-                  lockText="Pro tier"
-                />
-                <QuotaCard
-                  name="Opus"
-                  badge="CFO"
-                  used={opusUsed}
-                  limit={opusLimit}
-                  color="amber"
-                  locked={opusLimit === 0}
-                  lockText="Enterprise"
+                  locked={sonnetLimit === 0}
+                  lockText="Upgrade to Pro"
                 />
               </motion.div>
             )}
@@ -1327,8 +1309,8 @@ export default function AIAssistantPage() {
               <div className="absolute -top-3 left-4 z-10">
                 <motion.div
                   className={`px-2.5 py-0.5 text-[10px] font-semibold rounded-full shadow-sm ${analysisMode === 'deep'
-                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
-                      : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                    : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                     }`}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
