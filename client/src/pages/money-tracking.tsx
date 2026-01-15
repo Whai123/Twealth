@@ -49,10 +49,13 @@ export default function MoneyTracking() {
   const [timeRange, setTimeRange] = useState("30");
   const [showFilters, setShowFilters] = useState(false);
 
-  const { data: transactions = [], isLoading } = useQuery({
+  const { data: transactionsData, isLoading } = useQuery({
     queryKey: ["/api/transactions"],
     queryFn: () => fetch(`/api/transactions?limit=100`).then(res => res.json()),
   });
+
+  // Ensure transactions is always an array
+  const transactions = Array.isArray(transactionsData) ? transactionsData : [];
 
   const { data: stats } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -60,7 +63,7 @@ export default function MoneyTracking() {
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
-    if (!transactions) return [];
+    if (!transactions || !Array.isArray(transactions)) return [];
     return transactions.filter((t: any) => {
       const typeMatch = activeTab === 'all' || t.type === activeTab;
       const transactionDate = new Date(t.date);
@@ -126,8 +129,8 @@ export default function MoneyTracking() {
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 py-2 text-sm font-medium rounded-full transition-all capitalize ${activeTab === tab
-                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                       }`}
                   >
                     {tab}
@@ -291,8 +294,8 @@ export default function MoneyTracking() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${transaction.type === 'income'
-                              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                            ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                             }`}>
                             {getCategoryIcon(transaction.category)}
                           </div>
@@ -302,8 +305,8 @@ export default function MoneyTracking() {
                           </div>
                         </div>
                         <p className={`font-semibold text-right ${transaction.type === 'income'
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-zinc-900 dark:text-white'
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-zinc-900 dark:text-white'
                           }`}>
                           {transaction.type === 'income' ? '+' : '-'}{formatAmount(parseFloat(transaction.amount))}
                         </p>
