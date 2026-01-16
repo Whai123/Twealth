@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { SiGoogle, SiFacebook, SiApple } from "react-icons/si";
-import { Shield, Lock, Eye, Loader2, ArrowLeft, Code2 } from "lucide-react";
+import { Shield, Lock, Loader2, ArrowLeft, Code2 } from "lucide-react";
 import logoUrl from "@assets/5-removebg-preview_1761748275134.png";
 
 interface AuthProviders {
@@ -16,50 +15,33 @@ interface AuthProviders {
 }
 
 export default function Login() {
-  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [isAlreadyLoggedIn, setIsAlreadyLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const { data: providers, isLoading: providersLoading, isError: providersError } = useQuery<AuthProviders>({
+  const { data: providers, isLoading, isError } = useQuery<AuthProviders>({
     queryKey: ["/api/auth/providers"],
     retry: 2,
   });
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      setIsAlreadyLoggedIn(false);
-      window.location.reload();
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-  };
-
   useEffect(() => {
     fetch("/api/auth/status")
       .then(res => res.json())
-      .then(data => {
-        if (data.authenticated) {
-          // User is already logged in - show option to logout instead of redirecting
-          setIsAlreadyLoggedIn(true);
-        }
-      })
-      .catch((err) => {
-        console.warn('[Auth] Failed to check auth status:', err.message);
-      })
+      .then(data => setIsLoggedIn(data.authenticated))
+      .catch(() => { })
       .finally(() => setIsCheckingAuth(false));
   }, []);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    setIsLoggedIn(false);
+    window.location.reload();
+  };
 
   const handleGoogleLogin = () => {
     setLoadingProvider("google");
     window.location.assign("/api/auth/google");
-  };
-
-  const handleFacebookLogin = () => {
-    setLoadingProvider("facebook");
-    window.location.assign("/api/auth/facebook");
   };
 
   const handleAppleLogin = () => {
@@ -71,261 +53,209 @@ export default function Login() {
     form.submit();
   };
 
+  const handleFacebookLogin = () => {
+    setLoadingProvider("facebook");
+    window.location.assign("/api/auth/facebook");
+  };
+
   const handleDevLogin = async () => {
     setLoadingProvider("dev");
-    try {
-      const response = await fetch("/api/auth/dev-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      const data = await response.json();
-      if (data.success) {
-        // Use full page reload to ensure session cookie is picked up
-        window.location.href = "/";
-      } else {
-        console.error("Dev login failed:", data.error);
-        setLoadingProvider(null);
-      }
-    } catch (error) {
-      console.error("Dev login error:", error);
+    const res = await fetch("/api/auth/dev-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.location.href = "/";
+    } else {
       setLoadingProvider(null);
     }
   };
 
-  const hasAnyProvider = providers?.google || providers?.facebook || providers?.apple || providers?.devLogin;
+  const hasProvider = providers?.google || providers?.facebook || providers?.apple || providers?.devLogin;
 
-  if (isCheckingAuth || providersLoading) {
+  if (isCheckingAuth || isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
       </div>
     );
   }
 
-  // Show a message and logout option if user is already logged in
-  if (isAlreadyLoggedIn) {
+  if (isLoggedIn) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center space-y-6 p-8">
-          <h2 className="text-2xl font-bold text-white">You're already signed in</h2>
-          <p className="text-slate-400">You can continue to the app or sign out to switch accounts.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
+        <motion.div
+          className="text-center max-w-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+            <Shield className="w-8 h-8 text-emerald-500" />
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-2">You're signed in</h2>
+          <p className="text-zinc-400 mb-8">Continue to the app or switch accounts</p>
+          <div className="flex flex-col gap-3">
             <Button
               onClick={() => window.location.href = "/"}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium"
             >
               Continue to App
             </Button>
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              className="h-12 border-zinc-700 text-zinc-300 hover:bg-zinc-800 rounded-xl"
             >
               Sign Out
             </Button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950" />
+    <div className="min-h-screen bg-zinc-950">
+      {/* Back button */}
+      <div className="absolute top-6 left-6">
+        <button
+          onClick={() => setLocation("/")}
+          className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+      </div>
 
-      <div className="relative min-h-screen flex flex-col">
-        <header className="px-6 py-4">
-          <button
-            onClick={() => setLocation("/")}
-            className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
-            data-testid="button-back-home"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('login.backToHome')}
-          </button>
-        </header>
-
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center mb-6">
-                <img
-                  src={logoUrl}
-                  alt="Twealth"
-                  className="w-14 h-14 object-contain"
-                />
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-                {t('login.title')}
-              </h1>
-              <p className="text-slate-400">
-                {t('login.subtitle')}
-              </p>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <motion.div
+          className="w-full max-w-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {/* Header */}
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <img src={logoUrl} alt="Twealth" className="w-12 h-12" />
             </div>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
+            <p className="text-zinc-400">Sign in to continue to Twealth</p>
+          </div>
 
-            <div className="rounded-2xl border border-slate-700 bg-slate-900 shadow-xl">
-              <div className="p-8 space-y-4">
-                {providersError ? (
-                  <div className="text-center py-6">
-                    <p className="text-red-400 mb-2">{t('login.unableToLoad')}</p>
-                    <p className="text-sm text-slate-500">{t('login.refreshPage')}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.location.reload()}
-                      className="mt-4 border-slate-600 text-slate-300"
-                    >
-                      {t('login.refresh')}
-                    </Button>
-                  </div>
-                ) : !hasAnyProvider ? (
-                  <div className="text-center py-6">
-                    <p className="text-slate-400 mb-2">{t('login.authConfiguring')}</p>
-                    <p className="text-sm text-slate-500">{t('login.checkBackSoon')}</p>
-                  </div>
-                ) : providers?.devLogin ? (
-                  <>
-                    <Button
-                      onClick={handleDevLogin}
-                      disabled={loadingProvider !== null}
-                      className="w-full h-12 font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
-                      data-testid="button-dev-login"
-                    >
-                      {loadingProvider === "dev" ? (
-                        <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Code2 className="mr-3 h-4 w-4" />
-                      )}
-                      Dev Login (Local Development)
-                    </Button>
-                    <p className="text-xs text-center text-amber-400 mt-2">
-                      ⚠️ Development mode - No database or OAuth configured
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    {providers?.google && (
-                      <Button
-                        onClick={handleGoogleLogin}
-                        disabled={loadingProvider !== null}
-                        variant="outline"
-                        className="w-full h-12 font-medium border-slate-600 bg-slate-800 hover:bg-slate-700 text-white rounded-xl"
-                        data-testid="button-google-login"
-                      >
-                        {loadingProvider === "google" ? (
-                          <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                        ) : (
-                          <SiGoogle className="mr-3 h-4 w-4" />
-                        )}
-                        {t('login.google')}
-                      </Button>
+          {/* Auth Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            {isError ? (
+              <div className="text-center py-6">
+                <p className="text-red-400 mb-4">Unable to load sign-in options</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                  className="border-zinc-700 text-zinc-300"
+                >
+                  Try Again
+                </Button>
+              </div>
+            ) : !hasProvider ? (
+              <div className="text-center py-6">
+                <p className="text-zinc-400">Authentication is being configured...</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {providers?.devLogin && (
+                  <Button
+                    onClick={handleDevLogin}
+                    disabled={loadingProvider !== null}
+                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium"
+                  >
+                    {loadingProvider === "dev" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Code2 className="mr-2 h-4 w-4" />
                     )}
-
-                    {providers?.apple && (
-                      <Button
-                        onClick={handleAppleLogin}
-                        disabled={loadingProvider !== null}
-                        variant="outline"
-                        className="w-full h-12 font-medium border-slate-600 bg-slate-800 hover:bg-slate-700 text-white rounded-xl"
-                        data-testid="button-apple-login"
-                      >
-                        {loadingProvider === "apple" ? (
-                          <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                        ) : (
-                          <SiApple className="mr-3 h-4 w-4" />
-                        )}
-                        {t('login.apple')}
-                      </Button>
-                    )}
-
-                    {providers?.facebook && (
-                      <Button
-                        onClick={handleFacebookLogin}
-                        disabled={loadingProvider !== null}
-                        variant="outline"
-                        className="w-full h-12 font-medium border-slate-600 bg-slate-800 hover:bg-slate-700 text-white rounded-xl"
-                        data-testid="button-facebook-login"
-                      >
-                        {loadingProvider === "facebook" ? (
-                          <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                        ) : (
-                          <SiFacebook className="mr-3 h-4 w-4 text-[#1877F2]" />
-                        )}
-                        {t('login.facebook')}
-                      </Button>
-                    )}
-                  </>
+                    Continue with Dev Login
+                  </Button>
                 )}
 
-                <div className="relative my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full bg-slate-700" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-slate-900 px-3 text-slate-500">
-                      {t('login.enterpriseSecurity')}
-                    </span>
-                  </div>
-                </div>
+                {providers?.google && (
+                  <Button
+                    onClick={handleGoogleLogin}
+                    disabled={loadingProvider !== null}
+                    className="w-full h-12 bg-white hover:bg-zinc-100 text-zinc-900 rounded-xl font-medium"
+                  >
+                    {loadingProvider === "google" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <SiGoogle className="mr-2 h-4 w-4" />
+                    )}
+                    Continue with Google
+                  </Button>
+                )}
 
-                <div className="grid grid-cols-3 gap-4 pt-2">
-                  <div className="text-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                      <Lock className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-xs text-slate-400">{t('login.encryption')}</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                      <Shield className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-xs text-slate-400">{t('login.soc2')}</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-2">
-                      <Eye className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-xs text-slate-400">{t('login.gdpr')}</p>
-                  </div>
-                </div>
+                {providers?.apple && (
+                  <Button
+                    onClick={handleAppleLogin}
+                    disabled={loadingProvider !== null}
+                    className="w-full h-12 bg-white hover:bg-zinc-100 text-zinc-900 rounded-xl font-medium"
+                  >
+                    {loadingProvider === "apple" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <SiApple className="mr-2 h-4 w-4" />
+                    )}
+                    Continue with Apple
+                  </Button>
+                )}
+
+                {providers?.facebook && (
+                  <Button
+                    onClick={handleFacebookLogin}
+                    disabled={loadingProvider !== null}
+                    className="w-full h-12 bg-[#1877F2] hover:bg-[#1565D8] text-white rounded-xl font-medium"
+                  >
+                    {loadingProvider === "facebook" ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <SiFacebook className="mr-2 h-4 w-4" />
+                    )}
+                    Continue with Facebook
+                  </Button>
+                )}
               </div>
-            </div>
+            )}
 
-            <div className="mt-8 space-y-4">
-              <p className="text-center text-sm text-slate-400">
-                {t('login.newToTwealth')}{" "}
-                <button
-                  onClick={() => setLocation("/welcome")}
-                  className="text-white font-medium hover:underline"
-                  data-testid="link-learn-more"
-                >
-                  {t('login.learnMore')}
-                </button>
-              </p>
-
-              <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                <button
-                  onClick={() => setLocation("/terms")}
-                  className="hover:text-slate-300 transition-colors"
-                  data-testid="link-terms"
-                >
-                  {t('login.terms')}
-                </button>
-                <span className="w-1 h-1 rounded-full bg-slate-600" />
-                <button
-                  onClick={() => setLocation("/privacy")}
-                  className="hover:text-slate-300 transition-colors"
-                  data-testid="link-privacy"
-                >
-                  {t('login.privacy')}
-                </button>
-                <span className="w-1 h-1 rounded-full bg-slate-600" />
-                <span>{t('login.copyright')}</span>
+            {/* Security badges */}
+            <div className="flex items-center justify-center gap-6 mt-6 pt-6 border-t border-zinc-800">
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                <Lock className="w-3.5 h-3.5" />
+                <span>256-bit SSL</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                <Shield className="w-3.5 h-3.5" />
+                <span>SOC 2</span>
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Footer */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-zinc-500 mb-4">
+              New to Twealth?{" "}
+              <button onClick={() => setLocation("/")} className="text-white hover:underline">
+                Learn more
+              </button>
+            </p>
+            <div className="flex items-center justify-center gap-4 text-xs text-zinc-600">
+              <span>Terms</span>
+              <span className="w-1 h-1 rounded-full bg-zinc-700" />
+              <span>Privacy</span>
+              <span className="w-1 h-1 rounded-full bg-zinc-700" />
+              <span>© 2026 Twealth</span>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
