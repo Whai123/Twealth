@@ -1,278 +1,225 @@
-import { useState } from"react";
-import { useForm } from"react-hook-form";
-import { zodResolver } from"@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from"@tanstack/react-query";
-import { z } from"zod";
-import { Button } from"@/components/ui/button";
-import { Input } from"@/components/ui/input";
-import { Textarea } from"@/components/ui/textarea";
-import { Label } from"@/components/ui/label";
-import { DialogHeader, DialogTitle, DialogDescription } from"@/components/ui/dialog";
-import { apiRequest } from"@/lib/queryClient";
-import { useToast } from"@/hooks/use-toast";
-import { useUser } from"@/lib/userContext";
-import { Loader2, CheckCircle2, AlertCircle } from"lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/userContext";
+import { Loader2, Plus, TrendingUp, Target } from "lucide-react";
 
 const addFundsFormSchema = z.object({
- amount: z.string().min(1,"Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,"Must be a valid positive number"),
- description: z.string().optional(),
- date: z.string().min(1,"Date is required"),
+  amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be positive"),
+  description: z.string().optional(),
+  date: z.string().min(1, "Date is required"),
 });
 
 type AddFundsFormData = z.infer<typeof addFundsFormSchema>;
 
 interface AddFundsFormProps {
- goalId: string;
- goalTitle: string;
- currentAmount: string;
- targetAmount: string;
- onSuccess?: () => void;
+  goalId: string;
+  goalTitle: string;
+  currentAmount: string;
+  targetAmount: string;
+  onSuccess?: () => void;
 }
 
+const QUICK_AMOUNTS = [50, 100, 250, 500];
+
 export default function AddFundsForm({ goalId, goalTitle, currentAmount, targetAmount, onSuccess }: AddFundsFormProps) {
- const [isSubmitting, setIsSubmitting] = useState(false);
- const { toast } = useToast();
- const queryClient = useQueryClient();
- const { user, isLoading: userLoading } = useUser();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { user } = useUser();
 
- const {
-  register,
-  handleSubmit,
-  formState: { errors },
-  reset,
- } = useForm<AddFundsFormData>({
-  resolver: zodResolver(addFundsFormSchema),
-  defaultValues: {
-   date: new Date().toISOString().split('T')[0],
-  },
- });
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<AddFundsFormData>({
+    resolver: zodResolver(addFundsFormSchema),
+    defaultValues: {
+      date: new Date().toISOString().split('T')[0],
+    },
+  });
 
- const createTransactionMutation = useMutation({
-  mutationFn: (data: AddFundsFormData) => 
-   apiRequest("POST","/api/transactions", {
-    userId: user?.id,
-    amount: parseFloat(data.amount),
-    type:"transfer", // Use transfer type so the storage layer updates the goal
-    category:"savings",
-    description: data.description || `Added funds to ${goalTitle}`,
-    goalId: goalId,
-    date: new Date(data.date).toISOString(),
-   }),
-  onMutate: async (newFunds: AddFundsFormData) => {
-   // Cancel outgoing refetches
-   await queryClient.cancelQueries({ queryKey: ["/api/financial-goals"] });
-   await queryClient.cancelQueries({ queryKey: ["/api/transactions"] });
-   
-   // Snapshot previous data
-   const previousGoals = queryClient.getQueryData(["/api/financial-goals"]);
-   const previousTransactions = queryClient.getQueryData(["/api/transactions"]);
-   
-   const amountToAdd = parseFloat(newFunds.amount);
-   
-   // Optimistically update goal's current amount
-   queryClient.setQueryData(["/api/financial-goals"], (old: any) => {
-    if (!Array.isArray(old)) return old;
-    return old.map((goal: any) => 
-     goal.id === goalId 
-      ? { ...goal, currentAmount: (parseFloat(goal.currentAmount) + amountToAdd).toString() }
-      : goal
-    );
-   });
-   
-   // Optimistically add transaction
-   const optimisticTransaction = {
-    id: `temp-${Date.now()}`,
-    userId: user?.id,
-    type:"transfer",
-    amount: amountToAdd,
-    category:"savings",
-    description: newFunds.description || `Added funds to ${goalTitle}`,
-    goalId: goalId,
-    date: new Date(newFunds.date).toISOString(),
-    createdAt: new Date().toISOString(),
-   };
-   
-   queryClient.setQueryData(["/api/transactions"], (old: any) => 
-    Array.isArray(old) ? [optimisticTransaction, ...old] : [optimisticTransaction]
-   );
-   
-   return { previousGoals, previousTransactions };
-  },
-  onSuccess: (data, variables) => {
-   queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/goal-milestones"] });
-   toast({
-    title:"Funds added successfully",
-    description: `$${parseFloat(variables.amount).toLocaleString()} has been added to your ${goalTitle} goal.`,
-    icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
-   });
-   reset();
-   onSuccess?.();
-  },
-  onError: (error: any, _variables, context) => {
-   // Rollback on error
-   if (context?.previousGoals) {
-    queryClient.setQueryData(["/api/financial-goals"], context.previousGoals);
-   }
-   if (context?.previousTransactions) {
-    queryClient.setQueryData(["/api/transactions"], context.previousTransactions);
-   }
-   
-   const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
-   const isAmountError = error.message?.includes('amount') || error.message?.includes('number');
-   
-   toast({
-    title:"Couldn't Add Funds",
-    description: isNetworkError 
-     ?"Check your internet connection and try again."
-     : isAmountError
-     ?"Please enter a valid amount (numbers only, no symbols)."
-     : error.message ||"Something went wrong. Your contribution wasn't saved - please try again.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-  },
-  onSettled: () => {
-   setIsSubmitting(false);
-  },
- });
+  const currentValue = parseFloat(currentAmount) || 0;
+  const targetValue = parseFloat(targetAmount) || 0;
+  const progress = targetValue > 0 ? (currentValue / targetValue) * 100 : 0;
+  const remaining = targetValue - currentValue;
+  const enteredAmount = parseFloat(watch("amount") || "0");
+  const newProgress = targetValue > 0 ? ((currentValue + enteredAmount) / targetValue) * 100 : 0;
 
- const onSubmit = (data: AddFundsFormData) => {
-  if (!user) {
-   toast({
-    title:"Sign In Required",
-    description:"Please sign in to contribute to your financial goals.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-   return;
-  }
-  
-  // Validate date is not in the future
-  if (new Date(data.date) > new Date()) {
-   toast({
-    title:"Invalid date",
-    description:"Transaction date cannot be in the future.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-   return;
-  }
+  const createTransactionMutation = useMutation({
+    mutationFn: (data: AddFundsFormData) =>
+      apiRequest("POST", "/api/transactions", {
+        userId: user?.id,
+        amount: parseFloat(data.amount),
+        type: "transfer",
+        category: "savings",
+        description: data.description || `Added funds to ${goalTitle}`,
+        goalId: goalId,
+        date: new Date(data.date).toISOString(),
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({ title: `$${parseFloat(variables.amount).toLocaleString()} added to ${goalTitle}!` });
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+    onSettled: () => setIsSubmitting(false),
+  });
 
-  setIsSubmitting(true);
-  createTransactionMutation.mutate(data);
- };
+  const onSubmit = (data: AddFundsFormData) => {
+    if (!user) {
+      toast({ title: "Sign in required", variant: "destructive" });
+      return;
+    }
+    if (new Date(data.date) > new Date()) {
+      toast({ title: "Invalid date", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    createTransactionMutation.mutate(data);
+  };
 
- if (userLoading) {
   return (
-   <div className="p-6">
-    <div>
-     <div className="h-6 bg-muted rounded w-3/4 mb-4"></div>
-     <div className="h-10 bg-muted rounded mb-4"></div>
-     <div className="h-10 bg-muted rounded mb-4"></div>
-     <div className="h-10 bg-muted rounded mb-4"></div>
+    <div className="p-1">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center">
+          <Plus className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Add Funds</h2>
+          <p className="text-sm text-zinc-500">{goalTitle}</p>
+        </div>
+      </div>
+
+      {/* Progress Card */}
+      <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-zinc-400" />
+            <span className="text-sm text-zinc-500">Progress</span>
+          </div>
+          <span className="text-sm font-semibold text-zinc-900 dark:text-white">
+            ${currentValue.toLocaleString()} / ${targetValue.toLocaleString()}
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="h-3 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-emerald-500 rounded-full relative"
+            initial={{ width: `${progress}%` }}
+            animate={{ width: `${Math.min(newProgress, 100)}%` }}
+          >
+            {enteredAmount > 0 && (
+              <motion.div
+                className="absolute right-0 top-0 h-full w-1 bg-emerald-300"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+              />
+            )}
+          </motion.div>
+        </div>
+
+        <div className="flex justify-between mt-2 text-xs text-zinc-500">
+          <span>{Math.round(progress)}% saved</span>
+          <span>${remaining.toLocaleString()} to go</span>
+        </div>
+
+        {/* Preview */}
+        {enteredAmount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-700 flex items-center gap-2"
+          >
+            <TrendingUp className="w-4 h-4 text-emerald-500" />
+            <span className="text-sm text-emerald-600 dark:text-emerald-400">
+              +${enteredAmount.toLocaleString()} → {Math.round(newProgress)}% complete
+            </span>
+          </motion.div>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Quick Amounts */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Quick Add</Label>
+          <div className="flex gap-2 mt-2">
+            {QUICK_AMOUNTS.map((amount) => (
+              <motion.button
+                key={amount}
+                type="button"
+                onClick={() => setValue("amount", amount.toString())}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${watch("amount") === amount.toString()
+                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400"
+                    : "border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
+                  }`}
+                whileTap={{ scale: 0.95 }}
+              >
+                ${amount}
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Amount */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Amount</Label>
+          <div className="relative mt-2">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-medium text-zinc-400">$</span>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              {...register("amount")}
+              placeholder="0.00"
+              className="h-14 pl-10 text-2xl font-bold rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+          </div>
+          {errors.amount && <p className="text-sm text-red-500 mt-1">{errors.amount.message}</p>}
+        </div>
+
+        {/* Date */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Date</Label>
+          <Input
+            type="date"
+            {...register("date")}
+            className="mt-2 h-12 rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        {/* Submit */}
+        <Button
+          type="submit"
+          disabled={isSubmitting || !watch("amount")}
+          className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-base"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adding...
+            </>
+          ) : (
+            `Add $${enteredAmount.toLocaleString() || "0"}`
+          )}
+        </Button>
+      </form>
     </div>
-   </div>
   );
- }
-
- return (
-  <>
-   <DialogHeader>
-    <DialogTitle>Add Funds to Goal</DialogTitle>
-    <DialogDescription>
-     Record a contribution towards your goal
-    </DialogDescription>
-   </DialogHeader>
-   
-   <div className="space-y-4">
-    {/* Goal Info */}
-    <div className="p-4 bg-muted/50 rounded-lg">
-     <p className="text-sm text-muted-foreground">Goal: {goalTitle}</p>
-     <p className="text-sm text-muted-foreground">
-      Current: ${parseFloat(currentAmount).toLocaleString()} / 
-      Target: ${parseFloat(targetAmount).toLocaleString()}
-     </p>
-     <div className="mt-2">
-      <div className="text-xs text-muted-foreground mb-1">
-       Progress: {Math.round((parseFloat(currentAmount) / parseFloat(targetAmount)) * 100)}%
-      </div>
-     </div>
-    </div>
-
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-     <div className="grid grid-cols-2 gap-4">
-      <div>
-       <Label htmlFor="amount">Amount ($)</Label>
-       <Input
-        id="amount"
-        type="number"
-        step="0.01"
-        min="0"
-        {...register("amount")}
-        placeholder="0.00"
-        data-testid="input-add-funds-amount"
-       />
-       {errors.amount && (
-        <p className="text-sm text-destructive mt-1">{errors.amount.message}</p>
-       )}
-      </div>
-
-      <div>
-       <Label htmlFor="date">Date</Label>
-       <Input
-        id="date"
-        type="date"
-        {...register("date")}
-        data-testid="input-add-funds-date"
-       />
-       {errors.date && (
-        <p className="text-sm text-destructive mt-1">{errors.date.message}</p>
-       )}
-      </div>
-     </div>
-
-     <div>
-      <Label htmlFor="description">Description (Optional)</Label>
-      <Textarea
-       id="description"
-       {...register("description")}
-       placeholder={`Add a note about this contribution to ${goalTitle}`}
-       rows={3}
-       data-testid="input-add-funds-description"
-      />
-     </div>
-
-     <div className="flex justify-end space-x-2 pt-4">
-      <Button
-       type="button"
-       variant="outline"
-       onClick={onSuccess}
-       disabled={isSubmitting}
-       data-testid="button-cancel-add-funds"
-      >
-       Cancel
-      </Button>
-      <Button
-       type="submit"
-       disabled={isSubmitting}
-       className="min-w-[140px]"
-       data-testid="button-confirm-add-funds"
-      >
-       {isSubmitting ? (
-        <>
-         <Loader2 className="mr-2 h-4 w-4" />
-         Adding...
-        </>
-       ) : (
-       "Add Funds"
-       )}
-      </Button>
-     </div>
-    </form>
-   </div>
-  </>
- );
 }

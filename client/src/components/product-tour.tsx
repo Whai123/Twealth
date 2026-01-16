@@ -236,10 +236,10 @@ export function ProductTour() {
                     key={idx}
                     onClick={() => setCurrentStep(idx)}
                     className={`h-1.5 rounded-full transition-all ${idx === currentStep
-                        ? "w-6 bg-blue-500"
-                        : idx < currentStep
-                          ? "w-1.5 bg-blue-500/50"
-                          : "w-1.5 bg-zinc-200 dark:bg-zinc-700"
+                      ? "w-6 bg-blue-500"
+                      : idx < currentStep
+                        ? "w-1.5 bg-blue-500/50"
+                        : "w-1.5 bg-zinc-200 dark:bg-zinc-700"
                       }`}
                   />
                 ))}

@@ -1,387 +1,278 @@
-import { useState } from"react";
-import { useForm } from"react-hook-form";
-import { zodResolver } from"@hookform/resolvers/zod";
-import { useMutation, useQueryClient, useQuery } from"@tanstack/react-query";
-import { z } from"zod";
-import { Button } from"@/components/ui/button";
-import { Input } from"@/components/ui/input";
-import { Textarea } from"@/components/ui/textarea";
-import { Label } from"@/components/ui/label";
-import { DialogHeader, DialogTitle, DialogDescription } from"@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select";
-import { apiRequest } from"@/lib/queryClient";
-import { useToast } from"@/hooks/use-toast";
-import { useUser } from"@/lib/userContext";
-import { Loader2, CheckCircle2, AlertCircle } from"lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/lib/userContext";
+import { Loader2, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, ShoppingBag, Coffee, Car, Home, Zap, Film, Heart, Briefcase, Gift, Wallet } from "lucide-react";
 
 const transactionFormSchema = z.object({
- amount: z.string().min(1,"Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,"Must be a valid positive number"),
- type: z.enum(["income","expense","transfer"]),
- category: z.string().optional(), // Optional - backend will auto-categorize if not provided
- description: z.string().optional(),
- goalId: z.string().optional(),
- destination: z.string().optional(),
- date: z.string().min(1,"Date is required"),
+    amount: z.string().min(1, "Amount is required").refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, "Must be positive"),
+    type: z.enum(["income", "expense", "transfer"]),
+    category: z.string().optional(),
+    description: z.string().optional(),
+    goalId: z.string().optional(),
+    destination: z.string().optional(),
+    date: z.string().min(1, "Date is required"),
 });
 
 type TransactionFormData = z.infer<typeof transactionFormSchema>;
 
 interface TransactionFormProps {
- onSuccess?: () => void;
+    onSuccess?: () => void;
 }
 
-const TRANSACTION_CATEGORIES = {
- income: [
-  { value:"salary", label:"Salary" },
-  { value:"freelance", label:"Freelance" },
-  { value:"investment", label:"Investment Returns" },
-  { value:"gift", label:"Gift" },
-  { value:"other", label:"Other Income" }
- ],
- expense: [
-  { value:"rent", label:"Rent/Mortgage" },
-  { value:"utilities", label:"Utilities" },
-  { value:"groceries", label:"Groceries" },
-  { value:"dining", label:"Dining Out" },
-  { value:"transport", label:"Transportation" },
-  { value:"healthcare", label:"Healthcare" },
-  { value:"entertainment", label:"Entertainment" },
-  { value:"shopping", label:"Shopping" },
-  { value:"other", label:"Other Expenses" }
- ],
- transfer: [
-  { value:"savings", label:"Savings" },
-  { value:"investment", label:"Investment" },
-  { value:"goal_contribution", label:"Goal Contribution" }
- ]
-};
+const EXPENSE_CATEGORIES = [
+    { value: "groceries", label: "Groceries", icon: ShoppingBag },
+    { value: "dining", label: "Dining", icon: Coffee },
+    { value: "transport", label: "Transport", icon: Car },
+    { value: "rent", label: "Rent", icon: Home },
+    { value: "utilities", label: "Utilities", icon: Zap },
+    { value: "entertainment", label: "Fun", icon: Film },
+    { value: "healthcare", label: "Health", icon: Heart },
+    { value: "shopping", label: "Shopping", icon: ShoppingBag },
+];
+
+const INCOME_CATEGORIES = [
+    { value: "salary", label: "Salary", icon: Briefcase },
+    { value: "freelance", label: "Freelance", icon: Wallet },
+    { value: "investment", label: "Investment", icon: ArrowUpRight },
+    { value: "gift", label: "Gift", icon: Gift },
+];
 
 export default function TransactionForm({ onSuccess }: TransactionFormProps) {
- const [isSubmitting, setIsSubmitting] = useState(false);
- const { toast } = useToast();
- const queryClient = useQueryClient();
- const { user, isLoading: userLoading } = useUser();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const { user } = useUser();
 
- const { data: goals } = useQuery({
-  queryKey: ["/api/financial-goals"],
-  queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
- });
+    const { data: goals } = useQuery({
+        queryKey: ["/api/financial-goals"],
+        queryFn: () => fetch("/api/financial-goals").then(res => res.json()),
+    });
 
- const {
-  register,
-  handleSubmit,
-  setValue,
-  watch,
-  formState: { errors },
-  reset,
- } = useForm<TransactionFormData>({
-  resolver: zodResolver(transactionFormSchema),
-  defaultValues: {
-   type:"expense",
-   date: new Date().toISOString().split('T')[0],
-  },
- });
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors },
+    } = useForm<TransactionFormData>({
+        resolver: zodResolver(transactionFormSchema),
+        defaultValues: {
+            type: "expense",
+            date: new Date().toISOString().split('T')[0],
+        },
+    });
 
- const selectedType = watch("type");
- const selectedCategory = watch("category");
+    const selectedType = watch("type");
+    const selectedCategory = watch("category");
 
- const createTransactionMutation = useMutation({
-  mutationFn: (data: TransactionFormData) => 
-   apiRequest("POST","/api/transactions", {
-    ...data,
-    userId: user?.id, // Use actual user ID from context
-    amount: parseFloat(data.amount),
-    date: new Date(data.date).toISOString(),
-   }),
-  onMutate: async (newTransaction: TransactionFormData) => {
-   // Cancel outgoing refetches
-   await queryClient.cancelQueries({ queryKey: ["/api/transactions"] });
-   
-   // Snapshot previous data
-   const previousTransactions = queryClient.getQueryData(["/api/transactions"]);
-   
-   // Create optimistic transaction with temporary ID
-   const optimisticTransaction = {
-    id: `temp-${Date.now()}`,
-    userId: user?.id,
-    type: newTransaction.type,
-    amount: parseFloat(newTransaction.amount),
-    category: newTransaction.category,
-    description: newTransaction.description ||"",
-    date: new Date(newTransaction.date).toISOString(),
-    destination: newTransaction.destination,
-    goalId: newTransaction.goalId,
-    createdAt: new Date().toISOString(),
-   };
-   
-   // Optimistically update cache
-   queryClient.setQueryData(["/api/transactions"], (old: any) => 
-    Array.isArray(old) ? [optimisticTransaction, ...old] : [optimisticTransaction]
-   );
-   
-   return { previousTransactions };
-  },
-  onSuccess: () => {
-   queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
-   queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
-   toast({
-    title:"Transaction added",
-    description:"Your transaction has been recorded successfully.",
-    icon: <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />,
-   });
-   onSuccess?.();
-  },
-  onError: (error: any, _variables, context) => {
-   // Rollback on error
-   if (context?.previousTransactions) {
-    queryClient.setQueryData(["/api/transactions"], context.previousTransactions);
-   }
-   
-   const isValidationError = error.message?.includes('validation') || error.message?.includes('required');
-   const isNetworkError = error.message?.includes('fetch') || error.message?.includes('network');
-   
-   toast({
-    title:"Couldn't Add Transaction",
-    description: isNetworkError 
-     ?"Check your internet connection and try again."
-     : isValidationError
-     ?"Please check that all required fields are filled correctly."
-     : error.message ||"Something went wrong. Please try again in a moment.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-  },
-  onSettled: () => {
-   setIsSubmitting(false);
-  },
- });
+    const createTransactionMutation = useMutation({
+        mutationFn: (data: TransactionFormData) =>
+            apiRequest("POST", "/api/transactions", {
+                ...data,
+                userId: user?.id,
+                amount: parseFloat(data.amount),
+                date: new Date(data.date).toISOString(),
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/financial-goals"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+            toast({ title: "Transaction added!" });
+            onSuccess?.();
+        },
+        onError: (error: any) => {
+            toast({ title: "Error", description: error.message, variant: "destructive" });
+        },
+        onSettled: () => setIsSubmitting(false),
+    });
 
- const onSubmit = (data: TransactionFormData) => {
-  if (!user) {
-   toast({
-    title:"Sign In Required",
-    description:"Please sign in to track your income and expenses.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-   return;
-  }
-  
-  // Validate date is not in the future
-  if (new Date(data.date) > new Date()) {
-   toast({
-    title:"Invalid date",
-    description:"Transaction date cannot be in the future.",
-    variant:"destructive",
-    icon: <AlertCircle className="h-5 w-5" />,
-   });
-   return;
-  }
+    const onSubmit = (data: TransactionFormData) => {
+        if (!user) {
+            toast({ title: "Sign in required", variant: "destructive" });
+            return;
+        }
+        if (new Date(data.date) > new Date()) {
+            toast({ title: "Invalid date", description: "Can't be in the future", variant: "destructive" });
+            return;
+        }
+        setIsSubmitting(true);
+        createTransactionMutation.mutate(data);
+    };
 
-  setIsSubmitting(true);
-  createTransactionMutation.mutate(data);
- };
+    const handleTypeChange = (type: string) => {
+        setValue("type", type as any);
+        setValue("category", "");
+    };
 
- // Reset category when type changes
- const handleTypeChange = (type: string) => {
-  setValue("type", type as any);
-  setValue("category","");
-  setValue("goalId", undefined);
-  setValue("destination", undefined);
- };
+    const categories = selectedType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
- // Reset destination when category changes
- const handleCategoryChange = (category: string) => {
-  setValue("category", category);
-  setValue("goalId", undefined);
-  setValue("destination", undefined);
- };
+    return (
+        <div className="p-1">
+            {/* Type Tabs */}
+            <div className="flex gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl mb-6">
+                {[
+                    { value: "expense", label: "Expense", icon: ArrowDownLeft, color: "text-red-500" },
+                    { value: "income", label: "Income", icon: ArrowUpRight, color: "text-emerald-500" },
+                    { value: "transfer", label: "Transfer", icon: ArrowLeftRight, color: "text-blue-500" },
+                ].map((type) => (
+                    <button
+                        key={type.value}
+                        type="button"
+                        onClick={() => handleTypeChange(type.value)}
+                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium text-sm transition-all ${selectedType === type.value
+                                ? "bg-white dark:bg-zinc-900 shadow-sm"
+                                : "hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                            }`}
+                    >
+                        <type.icon className={`w-4 h-4 ${selectedType === type.value ? type.color : "text-zinc-400"}`} />
+                        <span className={selectedType === type.value ? "text-zinc-900 dark:text-white" : "text-zinc-500"}>
+                            {type.label}
+                        </span>
+                    </button>
+                ))}
+            </div>
 
- const availableCategories = TRANSACTION_CATEGORIES[selectedType] || [];
- const activeGoals = goals?.filter((goal: any) => goal.status ==="active") || [];
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {/* Amount */}
+                <div>
+                    <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Amount</Label>
+                    <div className="relative mt-2">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-medium text-zinc-400">$</span>
+                        <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            {...register("amount")}
+                            placeholder="0.00"
+                            className="h-16 pl-12 text-3xl font-bold rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                    </div>
+                    {errors.amount && <p className="text-sm text-red-500 mt-1">{errors.amount.message}</p>}
+                </div>
 
- return (
-  <>
-   <DialogHeader>
-    <DialogTitle>Add Transaction</DialogTitle>
-    <DialogDescription>
-     Record a new income, expense, or transfer transaction
-    </DialogDescription>
-   </DialogHeader>
-   
-   <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-    {/* Transaction Type - First Choice */}
-    <div>
-     <Label htmlFor="type" className="text-base font-semibold">Is this money in or out?</Label>
-     <Select value={selectedType} onValueChange={handleTypeChange}>
-      <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-type">
-       <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-       <SelectItem value="income">Money In (Income)</SelectItem>
-       <SelectItem value="expense">Money Out (Expense)</SelectItem>
-       <SelectItem value="transfer">Transfer/Savings</SelectItem>
-      </SelectContent>
-     </Select>
-     {errors.type && (
-      <p className="text-sm text-destructive mt-1">{errors.type.message}</p>
-     )}
-    </div>
+                {/* Description */}
+                <div>
+                    <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Description <span className="text-zinc-400 font-normal">(helps AI categorize)</span>
+                    </Label>
+                    <Input
+                        {...register("description")}
+                        placeholder="e.g., Starbucks, Gas station, Netflix..."
+                        className="mt-2 h-12 rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                </div>
 
-    {/* Amount - Most Important */}
-    <div>
-     <Label htmlFor="amount" className="text-base font-semibold">How much?</Label>
-     <div className="relative mt-2">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">$</span>
-      <Input
-       id="amount"
-       type="number"
-       step="0.01"
-       min="0"
-       {...register("amount")}
-       placeholder="0.00"
-       className="h-12 pl-8 text-lg"
-       data-testid="input-transaction-amount"
-      />
-     </div>
-     {errors.amount && (
-      <p className="text-sm text-destructive mt-1">{errors.amount.message}</p>
-     )}
-    </div>
+                {/* Category Grid */}
+                {selectedType !== "transfer" && (
+                    <div>
+                        <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Category</Label>
+                        <div className="grid grid-cols-4 gap-2 mt-2">
+                            {categories.map((cat) => (
+                                <motion.button
+                                    key={cat.value}
+                                    type="button"
+                                    onClick={() => setValue("category", cat.value)}
+                                    className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1.5 ${selectedCategory === cat.value
+                                            ? selectedType === "income"
+                                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                                                : "border-red-400 bg-red-50 dark:bg-red-900/20"
+                                            : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
+                                        }`}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <cat.icon className={`w-5 h-5 ${selectedCategory === cat.value
+                                            ? selectedType === "income" ? "text-emerald-500" : "text-red-500"
+                                            : "text-zinc-400"
+                                        }`} />
+                                    <span className={`text-xs font-medium ${selectedCategory === cat.value
+                                            ? selectedType === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                                            : "text-zinc-600 dark:text-zinc-400"
+                                        }`}>
+                                        {cat.label}
+                                    </span>
+                                </motion.button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-    {/* Description/Merchant - For auto-categorization */}
-    <div>
-     <Label htmlFor="description" className="text-base font-semibold">
-      What's this for? <span className="text-sm font-normal text-muted-foreground">(helps AI categorize)</span>
-     </Label>
-     <Input
-      id="description"
-      {...register("description")}
-      placeholder="e.g., Starbucks, Gas station, Netflix..."
-      className="mt-2 h-12 text-base"
-      data-testid="input-transaction-description"
-     />
-     {errors.description && (
-      <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
-     )}
-    </div>
+                {/* Transfer Options */}
+                {selectedType === "transfer" && (
+                    <div>
+                        <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Transfer to</Label>
+                        <Select value={selectedCategory || ""} onValueChange={(val) => setValue("category", val)}>
+                            <SelectTrigger className="mt-2 h-12 rounded-xl">
+                                <SelectValue placeholder="Select destination" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="savings">Savings Account</SelectItem>
+                                <SelectItem value="investment">Investment Account</SelectItem>
+                                <SelectItem value="goal_contribution">Financial Goal</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
 
-    {/* Category - Optional, AI will auto-categorize */}
-    <div>
-     <Label htmlFor="category" className="text-base font-semibold">
-      What category? <span className="text-sm font-normal text-muted-foreground">(optional - AI will detect)</span>
-     </Label>
-     <Select value={selectedCategory ||""} onValueChange={handleCategoryChange}>
-      <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-transaction-category">
-       <SelectValue placeholder="Leave blank for auto-categorization" />
-      </SelectTrigger>
-      <SelectContent>
-       {availableCategories.map((category) => (
-        <SelectItem key={category.value} value={category.value}>
-         {category.label}
-        </SelectItem>
-       ))}
-      </SelectContent>
-     </Select>
-     {errors.category && (
-      <p className="text-sm text-destructive mt-1">{errors.category.message}</p>
-     )}
-    </div>
+                {/* Goal Selection for Goal Contribution */}
+                {selectedType === "transfer" && selectedCategory === "goal_contribution" && (
+                    <div>
+                        <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Which goal?</Label>
+                        <Select value={watch("goalId") || ""} onValueChange={(val) => setValue("goalId", val)}>
+                            <SelectTrigger className="mt-2 h-12 rounded-xl">
+                                <SelectValue placeholder="Select a goal" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {(goals || []).filter((g: any) => g.status === "active").map((goal: any) => (
+                                    <SelectItem key={goal.id} value={goal.id}>
+                                        {goal.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
 
-    {/* Destination - Only for Transfer/Savings */}
-    {selectedType ==="transfer" && selectedCategory ==="goal_contribution" && (
-     <div>
-      <Label htmlFor="goalId" className="text-base font-semibold">Which financial goal?</Label>
-      <Select value={watch("goalId") ||""} onValueChange={(value) => setValue("goalId", value)}>
-       <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-goal">
-        <SelectValue placeholder="Select a goal" />
-       </SelectTrigger>
-       <SelectContent>
-        {activeGoals.length === 0 ? (
-         <SelectItem value="none" disabled>No active goals yet</SelectItem>
-        ) : (
-         activeGoals.map((goal: any) => (
-          <SelectItem key={goal.id} value={goal.id}>
-           {goal.title} (${parseFloat(goal.currentAmount || '0').toFixed(0)} / ${parseFloat(goal.targetAmount).toFixed(0)})
-          </SelectItem>
-         ))
-        )}
-       </SelectContent>
-      </Select>
-     </div>
-    )}
+                {/* Date */}
+                <div>
+                    <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Date</Label>
+                    <Input
+                        type="date"
+                        {...register("date")}
+                        className="mt-2 h-12 rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                </div>
 
-    {selectedType ==="transfer" && selectedCategory ==="savings" && (
-     <div>
-      <Label htmlFor="destination" className="text-base font-semibold">Where is this money going?</Label>
-      <Select value={watch("destination") ||""} onValueChange={(value) => setValue("destination", value)}>
-       <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-destination">
-        <SelectValue placeholder="Select destination" />
-       </SelectTrigger>
-       <SelectContent>
-        <SelectItem value="emergency_fund">Emergency Fund</SelectItem>
-        <SelectItem value="general_savings">General Savings</SelectItem>
-        <SelectItem value="vacation_fund">Vacation Fund</SelectItem>
-        <SelectItem value="down_payment">Down Payment</SelectItem>
-        <SelectItem value="other">Other Savings</SelectItem>
-       </SelectContent>
-      </Select>
-     </div>
-    )}
-
-    {selectedType ==="transfer" && selectedCategory ==="investment" && (
-     <div>
-      <Label htmlFor="destination" className="text-base font-semibold">Which investment account?</Label>
-      <Select value={watch("destination") ||""} onValueChange={(value) => setValue("destination", value)}>
-       <SelectTrigger className="mt-2 h-12 text-base" data-testid="select-destination">
-        <SelectValue placeholder="Select account" />
-       </SelectTrigger>
-       <SelectContent>
-        <SelectItem value="brokerage">Brokerage Account</SelectItem>
-        <SelectItem value="401k">401(k)</SelectItem>
-        <SelectItem value="roth_ira">Roth IRA</SelectItem>
-        <SelectItem value="crypto">Cryptocurrency</SelectItem>
-        <SelectItem value="real_estate">Real Estate</SelectItem>
-        <SelectItem value="other">Other Investment</SelectItem>
-       </SelectContent>
-      </Select>
-     </div>
-    )}
-
-    {/* Date - Secondary */}
-    <div>
-     <Label htmlFor="date" className="text-sm font-medium">When? (optional)</Label>
-     <Input
-      id="date"
-      type="date"
-      {...register("date")}
-      className="mt-1.5 h-11"
-      data-testid="input-transaction-date"
-     />
-     {errors.date && (
-      <p className="text-sm text-destructive mt-1">{errors.date.message}</p>
-     )}
-    </div>
-
-    <div className="flex justify-end space-x-2 pt-4">
-     <Button
-      type="submit"
-      disabled={isSubmitting}
-      className="min-w-[160px]"
-      data-testid="button-submit-transaction"
-     >
-      {isSubmitting ? (
-       <>
-        <Loader2 className="mr-2 h-4 w-4" />
-        Adding...
-       </>
-      ) : (
-      "Add Transaction"
-      )}
-     </Button>
-    </div>
-   </form>
-  </>
- );
+                {/* Submit */}
+                <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full h-12 rounded-xl font-medium text-base ${selectedType === "income"
+                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            : selectedType === "expense"
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-blue-600 hover:bg-blue-700"
+                        } text-white`}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Adding...
+                        </>
+                    ) : (
+                        `Add ${selectedType.charAt(0).toUpperCase() + selectedType.slice(1)}`
+                    )}
+                </Button>
+            </form>
+        </div>
+    );
 }

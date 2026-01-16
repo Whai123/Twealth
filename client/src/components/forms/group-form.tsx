@@ -3,15 +3,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/lib/userContext";
-import { Home, Car, PiggyBank, Target } from "lucide-react";
+import { Users, Home, Car, PiggyBank, Target, Loader2 } from "lucide-react";
 
 const groupFormSchema = z.object({
   name: z.string().min(1, "Group name is required"),
@@ -31,11 +31,18 @@ interface GroupFormProps {
   onSuccess?: () => void;
 }
 
+const CATEGORIES = [
+  { value: "house", label: "House", icon: Home, color: "text-blue-500" },
+  { value: "car", label: "Vehicle", icon: Car, color: "text-emerald-500" },
+  { value: "savings", label: "Savings", icon: PiggyBank, color: "text-amber-500" },
+  { value: "other", label: "Other", icon: Target, color: "text-violet-500" },
+];
+
 export default function GroupForm({ onSuccess }: GroupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, isLoading: userLoading } = useUser();
+  const { user } = useUser();
 
   const {
     register,
@@ -52,135 +59,124 @@ export default function GroupForm({ onSuccess }: GroupFormProps) {
     },
   });
 
+  const watchCategory = watch("category");
+
   const createGroupMutation = useMutation({
-    mutationFn: (data: GroupFormData) => 
-      apiRequest("POST", "/api/groups", data),
+    mutationFn: (data: GroupFormData) => apiRequest("POST", "/api/groups", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-      toast({
-        title: "Group created",
-        description: "Your shared goal group has been created successfully.",
-      });
+      toast({ title: "Group created!" });
       onSuccess?.();
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
+    onSettled: () => setIsSubmitting(false),
   });
 
   const onSubmit = (data: GroupFormData) => {
     if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to create a group.",
-        variant: "destructive",
-      });
+      toast({ title: "Sign in required", variant: "destructive" });
       return;
     }
     setIsSubmitting(true);
     createGroupMutation.mutate(data);
   };
 
-  const categoryOptions = [
-    { value: "house", label: "House / Property", icon: Home, description: "Down payment, renovation" },
-    { value: "car", label: "Vehicle", icon: Car, description: "Car, motorcycle, boat" },
-    { value: "savings", label: "Group Savings", icon: PiggyBank, description: "Vacation, event, gift" },
-    { value: "other", label: "Other Goal", icon: Target, description: "Custom shared goal" },
-  ];
-
-  const watchCategory = watch("category");
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-      <div>
-        <Label htmlFor="name">Group Name</Label>
-        <Input
-          id="name"
-          {...register("name")}
-          placeholder="e.g., Beach House Fund, Tesla Model 3"
-          className="h-11"
-          data-testid="input-group-name"
-        />
-        {errors.name && (
-          <p className="text-sm text-destructive mt-1">{errors.name.message}</p>
-        )}
-      </div>
-
-      <div>
-        <Label>Goal Category</Label>
-        <div className="grid grid-cols-2 gap-2 mt-1.5">
-          {categoryOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = watchCategory === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => setValue("category", option.value as any)}
-                className={`p-3 rounded-lg border text-left transition-all ${
-                  isSelected 
-                    ? "border-primary bg-primary/5 ring-1 ring-primary" 
-                    : "border-border hover:border-primary/50"
-                }`}
-                data-testid={`button-category-${option.value}`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon className={`w-4 h-4 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
-                  <span className="text-sm font-medium">{option.label}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{option.description}</p>
-              </button>
-            );
-          })}
+    <div className="p-1">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-2xl bg-violet-500 flex items-center justify-center">
+          <Users className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-white">New Group</h2>
+          <p className="text-sm text-zinc-500">Collaborate on a shared goal</p>
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="budget">Target Amount (Optional)</Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Name */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Group Name</Label>
           <Input
-            id="budget"
-            type="number"
-            {...register("budget")}
-            placeholder="0.00"
-            className="h-11 pl-7"
-            data-testid="input-group-budget"
+            {...register("name")}
+            placeholder="e.g., Beach House Fund"
+            className="mt-2 h-12 rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+          />
+          {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>}
+        </div>
+
+        {/* Category Grid */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Category</Label>
+          <div className="grid grid-cols-4 gap-2 mt-2">
+            {CATEGORIES.map((cat) => (
+              <motion.button
+                key={cat.value}
+                type="button"
+                onClick={() => setValue("category", cat.value as any)}
+                className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1.5 ${watchCategory === cat.value
+                    ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20"
+                    : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300"
+                  }`}
+                whileTap={{ scale: 0.95 }}
+              >
+                <cat.icon className={`w-5 h-5 ${watchCategory === cat.value ? "text-violet-500" : "text-zinc-400"}`} />
+                <span className={`text-xs font-medium ${watchCategory === cat.value ? "text-violet-600 dark:text-violet-400" : "text-zinc-600 dark:text-zinc-400"}`}>
+                  {cat.label}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+
+        {/* Target Amount */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Target Amount <span className="text-zinc-400 font-normal">(optional)</span>
+          </Label>
+          <div className="relative mt-2">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-medium text-zinc-400">$</span>
+            <Input
+              type="number"
+              {...register("budget")}
+              placeholder="0.00"
+              className="h-12 pl-10 rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-violet-500"
+            />
+          </div>
+        </div>
+
+        {/* Description */}
+        <div>
+          <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Description <span className="text-zinc-400 font-normal">(optional)</span>
+          </Label>
+          <Textarea
+            {...register("description")}
+            placeholder="What's this group for?"
+            rows={2}
+            className="mt-2 rounded-xl border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 focus:ring-2 focus:ring-violet-500"
           />
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Set a target to track progress toward your goal
-        </p>
-      </div>
 
-      <div>
-        <Label htmlFor="description">Description (Optional)</Label>
-        <Textarea
-          id="description"
-          {...register("description")}
-          placeholder="Describe your shared goal..."
-          rows={2}
-          data-testid="textarea-group-description"
-        />
-      </div>
-
-      <div className="flex justify-end pt-2">
+        {/* Submit */}
         <Button
           type="submit"
-          disabled={isSubmitting || userLoading || !user}
-          className="min-h-[44px] min-w-[120px]"
-          data-testid="button-submit-group"
+          disabled={isSubmitting}
+          className="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-medium text-base"
         >
-          {isSubmitting ? "Creating..." : userLoading ? "Loading..." : "Create Group"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            "Create Group"
+          )}
         </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }
