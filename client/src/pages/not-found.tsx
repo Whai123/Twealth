@@ -1,102 +1,80 @@
-import { Card, CardContent } from"@/components/ui/card";
-import { Button } from"@/components/ui/button";
-import { ArrowLeft, Home, Search, Compass, Sparkles, TrendingUp } from"lucide-react";
-import { useLocation } from"wouter";
-import { useTranslation } from 'react-i18next';
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Home, TrendingUp, Sparkles, Target } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function NotFound() {
- const [, setLocation] = useLocation();
- const { t } = useTranslation();
+    const [, setLocation] = useLocation();
 
- const handleGoHome = () => setLocation("/");
- const handleGoBack = () => window.history.back();
+    const quickLinks = [
+        { icon: Home, label: "Dashboard", path: "/", color: "bg-blue-500" },
+        { icon: TrendingUp, label: "Money", path: "/money-tracking", color: "bg-emerald-500" },
+        { icon: Sparkles, label: "AI Assistant", path: "/ai-assistant", color: "bg-violet-500" },
+        { icon: Target, label: "Goals", path: "/financial-goals", color: "bg-amber-500" },
+    ];
 
- const quickActions = [
- { icon: Home, label: t('navigation.dashboard'), path:"/", color:"bg-blue-500" },
- { icon: TrendingUp, label: t('navigation.money'), path:"/money-tracking", color:"bg-green-500" },
- { icon: Sparkles, label: t('navigation.aiAssistant'), path:"/ai-assistant", color:"bg-blue-500" },
- { icon: Compass, label: t('navigation.goals'), path:"/financial-goals", color:"bg-orange-500" }
- ];
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
+            <div className="max-w-md w-full text-center space-y-8">
+                {/* 404 */}
+                <div className="relative">
+                    <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-3xl" />
+                    <h1 className="relative text-8xl font-bold text-blue-600 dark:text-blue-400">
+                        404
+                    </h1>
+                </div>
 
- return (
- <div className="min-h-screen w-full flex items-center justify-center bg-blue-50 dark:bg-gray-900 p-4">
- <div className="max-w-2xl w-full text-center space-y-8">
- {/* Animated 404 */}
- <div className="relative">
- <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl"></div>
- <div className="relative">
- <h1 className="text-8xl md:text-9xl font-bold text-blue-600 dark:text-blue-400">
- 404
- </h1>
- </div>
- </div>
+                {/* Message */}
+                <div className="space-y-3">
+                    <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">
+                        Page Not Found
+                    </h2>
+                    <p className="text-zinc-500 dark:text-zinc-400">
+                        The page you're looking for doesn't exist or has been moved.
+                    </p>
+                </div>
 
- {/* Modern messaging */}
- <div className="space-y-4">
- <h2 className="text-3xl md:text-4xl font-bold text-foreground">
- {t('notFound.title')}
- </h2>
- <p className="text-lg text-muted-foreground max-w-md mx-auto">
- {t('notFound.message')}
- </p>
- </div>
+                {/* Actions */}
+                <div className="flex gap-3 justify-center">
+                    <Button
+                        onClick={() => window.history.back()}
+                        variant="outline"
+                        className="h-11 px-5 rounded-xl"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Go Back
+                    </Button>
+                    <Button
+                        onClick={() => setLocation("/")}
+                        className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700"
+                    >
+                        <Home className="w-4 h-4 mr-2" />
+                        Dashboard
+                    </Button>
+                </div>
 
- {/* Action buttons */}
- <div className="flex flex-col sm:flex-row gap-4 justify-center">
- <Button 
- onClick={handleGoBack}
- variant="outline"
- size="lg"
- className="group transition-all"
- data-testid="button-go-back"
- >
- <ArrowLeft className="w-5 h-5 mr-2 group-" />
- {t('notFound.goBack')}
- </Button>
- 
- <Button 
- onClick={handleGoHome}
- size="lg"
- className="bg-primary text-primary-foreground shadow-lg"
- data-testid="button-go-home"
- >
- <Home className="w-5 h-5 mr-2" />
- {t('notFound.backToDashboard')}
- </Button>
- </div>
-
- {/* Quick navigation */}
- <Card className="bg-card/95 backdrop-blur-sm border border-border/50 p-6">
- <h3 className="text-xl font-semibold mb-4 text-foreground">{t('notFound.quickAccess')}</h3>
- <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
- {quickActions.map((action, index) => (
- <Button
- key={index}
- variant="ghost"
- onClick={() => setLocation(action.path)}
- className="h-auto p-4 flex flex-col items-center gap-2 transition-all"
- data-testid={`button-quick-${action.label.toLowerCase().replace(/\s+/g, '-')}`}
- >
- <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
- <action.icon className="w-5 h-5 text-white dark:text-white" />
- </div>
- <span className="text-sm font-medium">{action.label}</span>
- </Button>
- ))}
- </div>
- </Card>
-
- {/* Helpful tip */}
- <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/50">
- <div className="flex items-center gap-2 mb-2">
- <Search className="w-5 h-5 text-blue-600 dark:text-blue-400" />
- <span className="font-medium text-blue-900 dark:text-blue-100">{t('notFound.proTip')}</span>
- </div>
- <p className="text-sm text-blue-700 dark:text-blue-300">
- {t('notFound.proTipMessage')}
- </p>
- </div>
- </div>
- </div>
- );
+                {/* Quick Links */}
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
+                    <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-4">
+                        Quick Access
+                    </p>
+                    <div className="grid grid-cols-4 gap-3">
+                        {quickLinks.map((link) => (
+                            <button
+                                key={link.path}
+                                onClick={() => setLocation(link.path)}
+                                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+                            >
+                                <div className={`w-10 h-10 rounded-xl ${link.color} flex items-center justify-center`}>
+                                    <link.icon className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                                    {link.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
