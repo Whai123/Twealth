@@ -8,7 +8,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerTrigger, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import GoalForm from "@/components/forms/goal-form";
@@ -109,21 +108,13 @@ export default function FinancialGoals() {
               <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Goals</h1>
               <p className="text-zinc-500 dark:text-zinc-400 mt-1">Track your savings progress</p>
             </div>
-            <Drawer open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DrawerTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 font-medium shadow-sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Goal
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent className="max-h-[90vh]">
-                <div className="p-4 pb-6">
-                  <DrawerTitle className="text-xl font-semibold mb-2">Create New Goal</DrawerTitle>
-                  <DrawerDescription className="text-zinc-500 mb-4">Set up a new savings goal</DrawerDescription>
-                  <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
-                </div>
-              </DrawerContent>
-            </Drawer>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 font-medium shadow-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Goal
+            </Button>
           </div>
         </div>
       </header>
@@ -183,8 +174,8 @@ export default function FinancialGoals() {
                     key={filter}
                     onClick={() => setActiveFilter(filter)}
                     className={`px-4 py-2 text-sm font-medium rounded-full transition-all capitalize ${activeFilter === filter
-                        ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                      ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                       }`}
                   >
                     {filter}
@@ -326,6 +317,12 @@ export default function FinancialGoals() {
               onSuccess={() => setIsAddFundsDialogOpen(false)}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <GoalForm onSuccess={() => setIsCreateDialogOpen(false)} />
         </DialogContent>
       </Dialog>
     </div>
