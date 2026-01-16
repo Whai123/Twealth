@@ -1,222 +1,152 @@
-import { useState, useEffect, memo, useMemo, useCallback } from"react";
-import { Link, useLocation } from"wouter";
-import { useTranslation } from 'react-i18next';
-import { 
- Home, 
- Target, 
- DollarSign,
- Plus,
- Brain,
- Crown,
- Wallet
-} from"lucide-react";
-import { cn } from"../lib/utils";
-import { Button } from"./ui/button";
+import { useState, useEffect, memo, useMemo } from "react";
+import { Link, useLocation } from "wouter";
+import { motion, AnimatePresence } from "framer-motion";
 import {
- Drawer,
- DrawerContent,
- DrawerDescription,
- DrawerTitle,
-} from"./ui/drawer";
-import GoalForm from"./forms/goal-form";
-import TransactionForm from"./forms/transaction-form";
+    Home,
+    Target,
+    Plus,
+    Brain,
+    Wallet,
+    X
+} from "lucide-react";
+import { cn } from "../lib/utils";
+import { Dialog, DialogContent } from "./ui/dialog";
+import GoalForm from "./forms/goal-form";
+import TransactionForm from "./forms/transaction-form";
 
-const getNavigation = (t: (key: string) => string) => [
- { name: t('navigation.dashboard'), href:"/", icon: Home, label: t('navigation.labels.home') },
- { name: t('navigation.aiAssistant'), href:"/ai-assistant", icon: Brain, label: t('navigation.labels.ai') },
- { name:"My Money", href:"/money-tracking", icon: Wallet, label:"Money" },
- { name: t('navigation.goals'), href:"/financial-goals", icon: Target, label:"Goals" },
- { name: t('navigation.premium'), href:"/subscription", icon: Crown, label: t('navigation.labels.premium') },
+const NAV_ITEMS = [
+    { name: "Home", href: "/", icon: Home },
+    { name: "AI", href: "/ai-assistant", icon: Brain },
+    { name: "Money", href: "/money-tracking", icon: Wallet },
+    { name: "Goals", href: "/financial-goals", icon: Target },
 ];
 
 function MobileNavigationComponent() {
- const [location] = useLocation();
- const { t } = useTranslation();
- 
- // Memoize navigation to avoid recalculation on every render
- const navigation = useMemo(() => getNavigation(t), [t]);
- 
- const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
- const [activeAction, setActiveAction] = useState<'goal' | 'transaction' | null>(null);
- 
- // Only render on mobile viewports
- const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
- 
- useEffect(() => {
- const checkMobile = () => setIsMobile(window.innerWidth < 768);
- checkMobile();
- window.addEventListener('resize', checkMobile);
- return () => window.removeEventListener('resize', checkMobile);
- }, []);
+    const [location] = useLocation();
+    const [showQuickAdd, setShowQuickAdd] = useState(false);
+    const [activeForm, setActiveForm] = useState<'goal' | 'transaction' | null>(null);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
 
- // Memoize quick actions to avoid recreation on each render
- const quickActions = useMemo(() => [
- {
- id:"add-goal",
- title: t('quickActions.newGoal'),
- description: t('quickActions.newGoalDesc'),
- icon: Target,
- color:"text-primary",
- bgColor:"bg-primary/10",
- action: () => { setActiveAction('goal'); setIsQuickActionsOpen(false); }
- },
- {
- id:"add-transaction",
- title: t('quickActions.addTransaction'),
- description: t('quickActions.addTransactionDesc'),
- icon: DollarSign,
- color:"text-success",
- bgColor:"bg-success/10",
- action: () => { setActiveAction('transaction'); setIsQuickActionsOpen(false); }
- }
- ], [t]);
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
- // Don't render at all on desktop
- if (!isMobile) {
- return null;
- }
+    if (!isMobile) return null;
 
- return (
- <>
- {/* Floating Action Button - positioned well above bottom nav */}
- <div 
- className="fixed left-4 z-50 md:hidden"
- style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
- >
- <Button
- size="lg"
- onClick={() => setIsQuickActionsOpen(true)}
- className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-full shadow-lg bg-primary text-primary-foreground border-0"
- aria-label={t('quickActions.addNew')}
- data-testid="fab-add"
- >
- <Plus size={22} />
- </Button>
- </div>
+    return (
+        <>
+            {/* Floating Add Button */}
+            <motion.button
+                onClick={() => setShowQuickAdd(true)}
+                className="fixed left-4 z-50 md:hidden w-12 h-12 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg flex items-center justify-center"
+                style={{ bottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+            >
+                <Plus className="w-5 h-5" />
+            </motion.button>
 
- {/* Quick Actions Drawer */}
- <Drawer open={isQuickActionsOpen} onOpenChange={setIsQuickActionsOpen}>
- <DrawerContent className="max-h-[85vh] overflow-y-auto">
- <div className="p-4 pb-6">
- <DrawerTitle className="text-xl font-semibold mb-2">{t('quickActions.title')}</DrawerTitle>
- <DrawerDescription className="text-muted-foreground mb-4">
- {t('quickActions.description')}
- </DrawerDescription>
- <div className="grid grid-cols-3 gap-3">
- {quickActions.map((action) => (
- <Button
- key={action.id}
- variant="ghost"
- onClick={action.action}
- className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-accent border"
- data-testid={`button-${action.id}`}
- >
- <div className={`w-12 h-12 rounded-xl ${action.bgColor} ${action.color} flex items-center justify-center`}>
- <action.icon size={24} />
- </div>
- <p className="font-medium text-xs text-center leading-tight">
- {action.title}
- </p>
- </Button>
- ))}
- </div>
- </div>
- </DrawerContent>
- </Drawer>
+            {/* Quick Add Menu */}
+            <AnimatePresence>
+                {showQuickAdd && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center md:hidden"
+                        onClick={() => setShowQuickAdd(false)}
+                    >
+                        <motion.div
+                            initial={{ y: 100, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 100, opacity: 0 }}
+                            className="bg-white dark:bg-zinc-900 rounded-t-3xl p-6 w-full max-w-md"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="w-10 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto mb-6" />
+                            <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4">Quick Add</h3>
+                            <div className="flex gap-3">
+                                <motion.button
+                                    onClick={() => { setActiveForm('transaction'); setShowQuickAdd(false); }}
+                                    className="flex-1 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800"
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <Wallet className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+                                    <p className="text-sm font-medium text-zinc-900 dark:text-white">Transaction</p>
+                                </motion.button>
+                                <motion.button
+                                    onClick={() => { setActiveForm('goal'); setShowQuickAdd(false); }}
+                                    className="flex-1 p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800"
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <Target className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                                    <p className="text-sm font-medium text-zinc-900 dark:text-white">Goal</p>
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
- {/* Goal Creation Drawer */}
- <Drawer open={activeAction === 'goal'} onOpenChange={(open) => !open && setActiveAction(null)}>
- <DrawerContent className="max-h-[85vh] overflow-y-auto">
- <div className="p-4 pb-6">
- <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
- <Target className="h-5 w-5 text-primary" />
- Create New Goal
- </DrawerTitle>
- <DrawerDescription className="text-muted-foreground mb-4">
- Set a savings target and track your progress
- </DrawerDescription>
- <GoalForm onSuccess={() => setActiveAction(null)} />
- </div>
- </DrawerContent>
- </Drawer>
+            {/* Form Dialogs */}
+            <Dialog open={activeForm === 'transaction'} onOpenChange={(open) => !open && setActiveForm(null)}>
+                <DialogContent className="max-w-md">
+                    <TransactionForm onSuccess={() => setActiveForm(null)} />
+                </DialogContent>
+            </Dialog>
 
- {/* Transaction Creation Drawer */}
- <Drawer open={activeAction === 'transaction'} onOpenChange={(open) => !open && setActiveAction(null)}>
- <DrawerContent className="max-h-[85vh] overflow-y-auto">
- <div className="p-4 pb-6">
- <DrawerTitle className="text-xl font-semibold mb-2 flex items-center gap-2">
- <DollarSign className="h-5 w-5 text-success" />
- {t('moneyTracking.addNew')}
- </DrawerTitle>
- <DrawerDescription className="text-muted-foreground mb-4">
- {t('moneyTracking.addNewDesc')}
- </DrawerDescription>
- <TransactionForm onSuccess={() => setActiveAction(null)} />
- </div>
- </DrawerContent>
- </Drawer>
+            <Dialog open={activeForm === 'goal'} onOpenChange={(open) => !open && setActiveForm(null)}>
+                <DialogContent className="max-w-md">
+                    <GoalForm onSuccess={() => setActiveForm(null)} />
+                </DialogContent>
+            </Dialog>
 
+            {/* Bottom Tab Bar */}
+            <nav
+                className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-900 md:hidden z-40"
+                style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
+            >
+                <div className="flex items-center justify-around px-2 py-2">
+                    {NAV_ITEMS.map((item) => {
+                        const isActive = location === item.href ||
+                            (item.href !== "/" && location.startsWith(item.href));
 
- {/* Bottom Tab Bar - Compact Design */}
- <nav 
- className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border md:hidden z-40"
- style={{ 
- paddingBottom: 'env(safe-area-inset-bottom, 8px)'
- }}
- >
- <div className="flex items-center justify-around px-1 py-1.5">
- {navigation.map((item) => {
- const isActive = location === item.href || 
- (item.href !=="/" && location.startsWith(item.href));
- 
- return (
- <Link 
- key={item.name} 
- href={item.href}
- aria-current={isActive ?"page" : undefined}
- aria-label={`${item.name} tab`}
- >
- <div
- className={cn(
-"relative flex flex-col items-center justify-center min-w-[52px] min-h-[48px] rounded-xl ease-out group",
- isActive
- ?"text-primary"
- :"text-muted-foreground hover:text-foreground"
- )}
- data-testid={`mobile-nav-${item.name.toLowerCase()}`}
- >
- {/* Active indicator */}
- {isActive && (
- <div className="absolute inset-0 bg-primary/10 rounded-xl" />
- )}
- 
- {/* Icon and label */}
- <div className="relative z-10 flex flex-col items-center gap-0.5">
- <item.icon size={18} className="transition-all" />
- <span 
- className={cn(
-"text-[10px] font-medium leading-none",
- isActive 
- ?"text-primary font-semibold" 
- :"text-muted-foreground"
- )}
- >
- {item.label}
- </span>
- </div>
- </div>
- </Link>
- );
- })}
- </div>
- </nav>
+                        return (
+                            <Link key={item.name} href={item.href}>
+                                <motion.div
+                                    className={cn(
+                                        "flex flex-col items-center justify-center w-16 py-2 rounded-2xl",
+                                        isActive
+                                            ? "bg-zinc-900 dark:bg-white"
+                                            : ""
+                                    )}
+                                    whileTap={{ scale: 0.9 }}
+                                >
+                                    <item.icon className={cn(
+                                        "w-5 h-5 mb-0.5",
+                                        isActive ? "text-white dark:text-zinc-900" : "text-zinc-400"
+                                    )} />
+                                    <span className={cn(
+                                        "text-[10px] font-medium",
+                                        isActive ? "text-white dark:text-zinc-900" : "text-zinc-400"
+                                    )}>
+                                        {item.name}
+                                    </span>
+                                </motion.div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </nav>
 
- {/* Safe area padding for mobile bottom navigation */}
- <div className="h-20 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }} />
- </>
- );
+            {/* Spacer */}
+            <div className="h-20 md:hidden" />
+        </>
+    );
 }
 
-// Memoize MobileNavigation to prevent unnecessary re-renders during page navigation
 const MobileNavigation = memo(MobileNavigationComponent);
 export default MobileNavigation;
