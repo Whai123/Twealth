@@ -13,6 +13,11 @@ import {
   Target,
   Crown,
   MessageSquare,
+  Plus,
+  Clock,
+  Trash2,
+  ChevronLeft,
+  History,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
@@ -43,7 +48,6 @@ interface ChatConversation {
   messages?: ChatMessage[];
 }
 
-// Suggested prompts data
 const suggestedPrompts = [
   { icon: Target, title: "Savings Plan", prompt: "Help me create a monthly savings plan" },
   { icon: PiggyBank, title: "Emergency Fund", prompt: "How much should I save for emergencies?" },
@@ -60,6 +64,7 @@ export default function AIAssistantPage() {
   const [inputFocused, setInputFocused] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -67,6 +72,11 @@ export default function AIAssistantPage() {
   const { data: usage } = useQuery<UsageInfo>({
     queryKey: ["/api/subscription/usage"],
     refetchInterval: 5 * 60 * 1000,
+  });
+
+  // Fetch all conversations for history
+  const { data: conversations } = useQuery<ChatConversation[]>({
+    queryKey: ["/api/chat/conversations"],
   });
 
   const { data: currentConversation } = useQuery<ChatConversation>({
@@ -89,6 +99,19 @@ export default function AIAssistantPage() {
   }, [currentMessage]);
 
   const tier = usage?.sonnetUsage?.limit && usage.sonnetUsage.limit > 0 ? 'pro' : 'free';
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (conversationId: string) => {
+      await apiRequest("DELETE", `/api/chat/conversations/${conversationId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
+      if (currentConversationId) {
+        setCurrentConversationId(null);
+      }
+      toast({ title: "Conversation deleted" });
+    }
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -117,40 +140,26 @@ export default function AIAssistantPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", currentConversationId] });
       setCurrentMessage("");
     },
     onError: (error: any) => {
       if (error instanceof RateLimitError) {
-        toast({
-          title: "Rate Limit",
-          description: `Please wait ${error.retryAfter} seconds.`,
-          variant: "destructive",
-        });
+        toast({ title: "Rate Limit", description: `Please wait ${error.retryAfter} seconds.`, variant: "destructive" });
       } else if (error.isQuotaError) {
         toast({
-          title: "Upgrade to Pro",
-          description: "Unlock deep analysis with Claude.",
-          variant: "destructive",
-          action: (
-            <ToastAction altText="Upgrade" onClick={() => setLocation('/subscription')}>
-              Upgrade
-            </ToastAction>
-          )
+          title: "Upgrade to Pro", description: "Unlock deep analysis with Claude.", variant: "destructive",
+          action: <ToastAction altText="Upgrade" onClick={() => setLocation('/subscription')}>Upgrade</ToastAction>
         });
       } else {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to send message",
-          variant: "destructive"
-        });
+        toast({ title: "Error", description: error.message || "Failed to send message", variant: "destructive" });
       }
     }
   });
 
   const handleSendMessage = () => {
     if (!currentMessage.trim() || sendMessageMutation.isPending || isStreaming) return;
-
     if (analysisMode === 'quick') {
       sendStreamingMessage(currentMessage);
     } else {
@@ -215,6 +224,7 @@ export default function AIAssistantPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/chat/conversations", conversationId] });
 
     } catch (error: any) {
@@ -234,52 +244,167 @@ export default function AIAssistantPage() {
     }
   };
 
+  const startNewConversation = () => {
+    setCurrentConversationId(null);
+    setShowHistory(false);
+  };
+
+  const selectConversation = (conversationId: string) => {
+    setCurrentConversationId(conversationId);
+    setShowHistory(false);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
   const messages = currentConversation?.messages || [];
   const hasMessages = messages.length > 0;
+  const sortedConversations = [...(conversations || [])].sort((a, b) =>
+    new Date(b.lastMessageAt || b.createdAt).getTime() - new Date(a.lastMessageAt || a.createdAt).getTime()
+  );
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950">
       {/* Hero Header */}
       <header className="border-b border-zinc-100 dark:border-zinc-900">
-        <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-1">Twealth AI</p>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Your Personal CFO</h1>
+            <div className="flex items-center gap-4">
+              {/* History Button */}
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`p-2.5 rounded-xl transition-colors ${showHistory
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                  : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
+              >
+                <History className="w-5 h-5" />
+              </button>
+              <div>
+                <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-0.5">Twealth AI</p>
+                <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Your Personal CFO</h1>
+              </div>
             </div>
 
-            {/* Pill Toggle */}
-            <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-full">
-              <button
-                onClick={() => setAnalysisMode('quick')}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all ${analysisMode === 'quick'
-                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                  }`}
+            <div className="flex items-center gap-3">
+              {/* New Chat Button */}
+              <Button
+                onClick={startNewConversation}
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-full border-zinc-200 dark:border-zinc-700"
               >
-                Quick
-              </button>
-              <button
-                onClick={() => setAnalysisMode('deep')}
-                className={`px-4 py-2 text-sm font-medium rounded-full transition-all flex items-center gap-1.5 ${analysisMode === 'deep'
+                <Plus className="w-4 h-4 mr-1.5" />
+                New Chat
+              </Button>
+
+              {/* Mode Toggle */}
+              <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-full">
+                <button
+                  onClick={() => setAnalysisMode('quick')}
+                  className={`px-3.5 py-1.5 text-sm font-medium rounded-full transition-all ${analysisMode === 'quick'
                     ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-                  }`}
-              >
-                Deep
-                {tier === 'free' && <Crown className="w-3 h-3 text-amber-500" />}
-              </button>
+                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                >
+                  Quick
+                </button>
+                <button
+                  onClick={() => setAnalysisMode('deep')}
+                  className={`px-3.5 py-1.5 text-sm font-medium rounded-full transition-all flex items-center gap-1.5 ${analysisMode === 'deep'
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+                >
+                  Deep
+                  {tier === 'free' && <Crown className="w-3 h-3 text-amber-500" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-6xl mx-auto px-6 py-6">
+        <div className="flex gap-6">
+          {/* History Sidebar */}
+          <AnimatePresence>
+            {showHistory && (
+              <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 280, opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden flex-shrink-0"
+              >
+                <div className="w-[280px] bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4 h-[600px] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Chat History</h3>
+                    <span className="text-xs text-zinc-500">{sortedConversations.length} chats</span>
+                  </div>
 
-          {/* Chat Card - Left Side (2 cols) */}
-          <div className="lg:col-span-2">
+                  {sortedConversations.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Clock className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-3" />
+                      <p className="text-sm text-zinc-500">No conversations yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {sortedConversations.map((conv) => (
+                        <motion.button
+                          key={conv.id}
+                          onClick={() => selectConversation(conv.id)}
+                          className={`w-full p-3 text-left rounded-xl transition-colors group ${currentConversationId === conv.id
+                              ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
+                              : 'bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                            }`}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium truncate ${currentConversationId === conv.id
+                                  ? 'text-white dark:text-zinc-900'
+                                  : 'text-zinc-900 dark:text-white'
+                                }`}>
+                                {conv.title}
+                              </p>
+                              <p className={`text-xs mt-0.5 ${currentConversationId === conv.id
+                                  ? 'text-zinc-300 dark:text-zinc-600'
+                                  : 'text-zinc-500'
+                                }`}>
+                                {formatDate(conv.lastMessageAt || conv.createdAt)}
+                              </p>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteConversationMutation.mutate(conv.id);
+                              }}
+                              className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${currentConversationId === conv.id
+                                  ? 'hover:bg-white/20 text-white dark:text-zinc-900'
+                                  : 'hover:bg-zinc-200 dark:hover:bg-zinc-600 text-zinc-400'
+                                }`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </motion.button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Chat Area */}
+          <div className="flex-1">
             <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-zinc-100 dark:border-zinc-800 overflow-hidden h-[600px] flex flex-col">
 
               {/* Chat Messages Area */}
@@ -290,11 +415,23 @@ export default function AIAssistantPage() {
                       <MessageSquare className="w-8 h-8 text-white dark:text-zinc-900" />
                     </div>
                     <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">
-                      Start a conversation
+                      {currentConversationId ? 'Continue chatting' : 'Start a conversation'}
                     </h3>
-                    <p className="text-zinc-500 dark:text-zinc-400 max-w-sm">
+                    <p className="text-zinc-500 dark:text-zinc-400 max-w-sm mb-6">
                       Ask me anything about budgeting, investing, or financial planning.
                     </p>
+                    {/* Quick Prompts */}
+                    <div className="flex flex-wrap gap-2 justify-center max-w-md">
+                      {suggestedPrompts.map((prompt, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentMessage(prompt.prompt)}
+                          className="px-3 py-1.5 text-sm bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full hover:border-zinc-400 dark:hover:border-zinc-500 transition-colors"
+                        >
+                          {prompt.title}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -326,9 +463,8 @@ export default function AIAssistantPage() {
               {/* Input Area */}
               <div className="border-t border-zinc-100 dark:border-zinc-800 p-4">
                 <div className={`relative rounded-2xl transition-all ${inputFocused
-                    ? 'ring-2 ring-zinc-900 dark:ring-white ring-offset-2 ring-offset-zinc-50 dark:ring-offset-zinc-900'
-                    : ''
-                  }`}>
+                  ? 'ring-2 ring-zinc-900 dark:ring-white ring-offset-2 ring-offset-zinc-50 dark:ring-offset-zinc-900'
+                  : ''}`}>
                   <Textarea
                     ref={textareaRef}
                     value={currentMessage}
@@ -344,9 +480,8 @@ export default function AIAssistantPage() {
                     onClick={handleSendMessage}
                     disabled={!currentMessage.trim() || sendMessageMutation.isPending || isStreaming}
                     className={`absolute right-2 bottom-2 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${currentMessage.trim()
-                        ? 'bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100'
-                        : 'bg-zinc-200 dark:bg-zinc-700'
-                      }`}
+                      ? 'bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-100'
+                      : 'bg-zinc-200 dark:bg-zinc-700'}`}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -363,71 +498,6 @@ export default function AIAssistantPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Right Side - Prompts & Summary */}
-          <div className="space-y-6">
-
-            {/* Suggested Prompts */}
-            <div>
-              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-4">Suggested</h3>
-              <div className="space-y-3">
-                {suggestedPrompts.map((prompt, index) => (
-                  <motion.button
-                    key={index}
-                    onClick={() => setCurrentMessage(prompt.prompt)}
-                    className="w-full p-4 text-left bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 hover:shadow-sm transition-all group"
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.99 }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-900 dark:group-hover:bg-white transition-colors">
-                        <prompt.icon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-white dark:group-hover:text-zinc-900 transition-colors" />
-                      </div>
-                      <span className="font-medium text-zinc-900 dark:text-white">{prompt.title}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Weekly Summary Card */}
-            <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-200 rounded-3xl p-6 text-white dark:text-zinc-900">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="w-5 h-5" />
-                <span className="text-sm font-medium opacity-80">Weekly Insight</span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Financial Summary</h3>
-              <p className="text-sm opacity-70 mb-6">
-                Get a comprehensive analysis of your spending, savings, and goals from the past 7 days.
-              </p>
-              <Button
-                onClick={() => setCurrentMessage("Give me a detailed weekly financial summary")}
-                className="w-full bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl h-11 font-medium"
-              >
-                View Summary
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </div>
-
-            {/* Upgrade Card (for free users) */}
-            {tier === 'free' && (
-              <motion.button
-                onClick={() => setLocation('/subscription')}
-                className="w-full p-5 text-left bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 transition-all group"
-                whileHover={{ y: -2 }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-zinc-900 dark:text-white mb-1">Upgrade to Pro</p>
-                    <p className="text-sm text-zinc-500">Unlock deep analysis with Claude</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                    <Crown className="w-5 h-5 text-amber-600 dark:text-amber-500" />
-                  </div>
-                </div>
-              </motion.button>
-            )}
           </div>
         </div>
       </main>
