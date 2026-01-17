@@ -4,7 +4,6 @@
  * Sets up:
  * - TanStack Query Provider
  * - Auth state management
- * - Global styles (NativeWind)
  * - Stack navigator for auth/main app
  */
 
@@ -12,10 +11,9 @@ import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { queryClient } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
-import '../global.css';
 
 function RootLayoutNav() {
     const { isAuthenticated, isLoading } = useAuth();
@@ -38,7 +36,7 @@ function RootLayoutNav() {
 
     if (isLoading) {
         return (
-            <View className="flex-1 items-center justify-center bg-slate-900">
+            <View style={styles.loading}>
                 <ActivityIndicator size="large" color="#3b82f6" />
             </View>
         );
@@ -62,3 +60,12 @@ export default function RootLayout() {
         </QueryClientProvider>
     );
 }
+
+const styles = StyleSheet.create({
+    loading: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#0f172a',
+    },
+});

@@ -3,17 +3,9 @@
  * 
  * Uses Upstash Redis for production-ready multi-instance deployments.
  * Codes are single-use, TTL 60 seconds, deleted after redemption.
+ * 
+ * Falls back to in-memory store if Redis is not configured.
  */
-
-import { Redis } from '@upstash/redis';
-
-// Initialize Redis client (Upstash)
-const redis = process.env.UPSTASH_REDIS_URL && process.env.UPSTASH_REDIS_TOKEN
-    ? new Redis({
-        url: process.env.UPSTASH_REDIS_URL,
-        token: process.env.UPSTASH_REDIS_TOKEN,
-    })
-    : null;
 
 // In-memory fallback for local development (DO NOT USE IN PRODUCTION)
 const localStore = new Map<string, { userId: string; expiresAt: number }>();
@@ -21,12 +13,42 @@ const localStore = new Map<string, { userId: string; expiresAt: number }>();
 const CODE_PREFIX = 'mobile_auth_code:';
 const CODE_TTL_SECONDS = 60; // 60 seconds
 
+// Lazy-loaded Redis client to prevent top-level import errors
+let redisClient: any = null;
+let redisInitialized = false;
+
+async function getRedis() {
+    if (redisInitialized) return redisClient;
+
+    redisInitialized = true;
+
+    if (process.env.UPSTASH_REDIS_URL && process.env.UPSTASH_REDIS_TOKEN) {
+        try {
+            const { Redis } = await import('@upstash/redis');
+            redisClient = new Redis({
+                url: process.env.UPSTASH_REDIS_URL,
+                token: process.env.UPSTASH_REDIS_TOKEN,
+            });
+            console.log('[MobileAuth] Redis client initialized');
+        } catch (error) {
+            console.log('[MobileAuth] Redis initialization failed, using memory store:', error);
+            redisClient = null;
+        }
+    } else {
+        console.log('[MobileAuth] No Redis configured, using memory store');
+    }
+
+    return redisClient;
+}
+
 /**
  * Store a one-time auth code
  * @param code - The one-time code
  * @param userId - The user ID to associate with the code
  */
 export async function storeAuthCode(code: string, userId: string): Promise<void> {
+    const redis = await getRedis();
+
     if (redis) {
         // Production: Use Redis with TTL
         await redis.set(`${CODE_PREFIX}${code}`, userId, { ex: CODE_TTL_SECONDS });
@@ -50,6 +72,8 @@ export async function storeAuthCode(code: string, userId: string): Promise<void>
  * @returns The user ID or null
  */
 export async function redeemAuthCode(code: string): Promise<string | null> {
+    const redis = await getRedis();
+
     if (redis) {
         // Production: Use Redis
         const key = `${CODE_PREFIX}${code}`;
@@ -91,7 +115,8 @@ export async function redeemAuthCode(code: string): Promise<string | null> {
 /**
  * Check if Redis is available
  */
-export function isRedisAvailable(): boolean {
+export async function isRedisAvailable(): Promise<boolean> {
+    const redis = await getRedis();
     return redis !== null;
 }
 
@@ -100,12 +125,10 @@ export function isRedisAvailable(): boolean {
  * In production, Redis TTL handles this automatically
  */
 export function cleanupExpiredCodes(): void {
-    if (!redis) {
-        const now = Date.now();
-        for (const [code, entry] of localStore.entries()) {
-            if (entry.expiresAt < now) {
-                localStore.delete(code);
-            }
+    const now = Date.now();
+    for (const [code, entry] of localStore.entries()) {
+        if (entry.expiresAt < now) {
+            localStore.delete(code);
         }
     }
 }
