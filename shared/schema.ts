@@ -634,6 +634,23 @@ export const scoreSnapshots = pgTable("score_snapshots", {
   unique("unique_scores_user_month").on(table.userId, table.month),
 ]);
 
+// ═══════════════════════════════════════════════════════════════════════════
+// MOBILE AUTH - Refresh Tokens for JWT-based authentication
+// ═══════════════════════════════════════════════════════════════════════════
+
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull().unique(), // SHA-256 hash
+  expiresAt: timestamp("expires_at").notNull(),
+  deviceInfo: text("device_info"), // Optional: store device/platform info
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_refresh_tokens_user").on(table.userId),
+  index("idx_refresh_tokens_hash").on(table.tokenHash),
+  index("idx_refresh_tokens_expires").on(table.expiresAt),
+]);
+
 // Insert schemas for Replit Auth
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,

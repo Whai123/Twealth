@@ -3,12 +3,14 @@ import 'dotenv/config';
 
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
+import cors from "cors";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
 import { investmentStrategies } from "@shared/schema";
 import { getSession, setupAuth } from "./customAuth";
+import mobileAuthRoutes from "./mobileAuth";
 
 // ==================== GLOBAL ERROR HANDLERS ====================
 // Catch unhandled promise rejections (critical for production stability)
@@ -32,6 +34,26 @@ const app = express();
 // Trust proxy - required for secure cookies behind Replit's proxy
 app.set('trust proxy', 1);
 
+// ==================== CORS CONFIGURATION ====================
+// Allow Expo dev origins in development, strict in production
+const corsOptions: cors.CorsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://twealth.ltd', 'https://www.twealth.ltd']
+    : [
+      'http://localhost:3000',
+      'http://localhost:5000',
+      'http://localhost:8081',        // Expo dev server
+      'http://localhost:19000',       // Expo Go
+      'http://localhost:19006',       // Expo web
+      /^exp:\/\/.*$/,                 // Expo Go deep links
+      /^http:\/\/192\.168\..*:8081$/, // Expo on local network
+    ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+app.use(cors(corsOptions));
+
 // Enable gzip compression for all responses (60-80% smaller transfers)
 app.use(compression());
 
@@ -44,8 +66,11 @@ app.use(express.urlencoded({ extended: false }));
 // Session middleware (must be before routes)
 app.use(getSession());
 
-// Setup OAuth authentication routes
+// Setup OAuth authentication routes (web - cookie based)
 setupAuth(app);
+
+// Mobile Auth Routes (JWT based) - mounted at /api/auth
+app.use('/api/auth', mobileAuthRoutes);
 
 // Production-grade request logging middleware
 app.use((req, res, next) => {
