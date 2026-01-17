@@ -22,6 +22,7 @@ import type {
   Transaction,
 } from '@shared/schema';
 import { countryKnowledgeService, type CountryFinancialContext } from '../services/countryKnowledge';
+import { buildCountryIntelligenceContext } from '../services/countryFinancialIntelligence';
 import type { ScoreDrivers } from '@shared/schema';
 import { buildAILearningContext } from './aiMemoryService';
 
@@ -198,6 +199,8 @@ export interface FinancialContext {
     economicSystem: string;
     financialRegulations: string[];
   };
+  // Deep country-specific financial intelligence
+  countryIntelligenceContext?: string;
   // AI Learning Context - Memory, patterns, and style preferences
   aiLearningContext?: {
     memoryContext: string;
@@ -710,6 +713,8 @@ export async function buildFinancialContext(
     },
     insights,
     countryContext,
+    // Deep country-specific financial intelligence (retirement, tax strategies, etc.)
+    countryIntelligenceContext: buildCountryIntelligenceContext(countryCode),
     // AI Learning Context - Memory, patterns, and style preferences
     aiLearningContext: aiLearningContext || undefined,
   };

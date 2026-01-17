@@ -1036,6 +1036,11 @@ message: Specific insight based on their data
 
 Keep responses focused. Always use the user's local currency (${currencySymbol}). Use available tools to take actions when users command you.`;
 
+  // Include country-specific financial intelligence (retirement, tax strategies, etc.)
+  if (context.countryIntelligenceContext) {
+    prompt += `\n${context.countryIntelligenceContext}`;
+  }
+
   // Include AI Learning Context if available (memory, patterns, style preferences)
   if (context.aiLearningContext?.fullContext) {
     prompt += `\n${context.aiLearningContext.fullContext}`;
