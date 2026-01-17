@@ -16,11 +16,20 @@ import { eq, and, lt } from 'drizzle-orm';
 // Token configuration
 const ACCESS_TOKEN_TTL = '15m';
 const REFRESH_TOKEN_TTL_DAYS = 7;
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-    console.error('[CRITICAL] JWT_SECRET not set in production!');
-    process.exit(1);
+// JWT_SECRET handling - warn if not set, but don't crash the server
+let JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        // In production without JWT_SECRET, generate a random one
+        // Mobile auth won't persist across restarts, but web auth still works
+        console.warn('[JWT] WARNING: JWT_SECRET not set in production! Mobile auth tokens will not persist across restarts. Add JWT_SECRET to your environment variables.');
+        JWT_SECRET = require('crypto').randomBytes(32).toString('hex');
+    } else {
+        // Dev mode - use a static dev secret
+        JWT_SECRET = 'dev-secret-change-in-production';
+    }
 }
 
 export interface TokenPair {
