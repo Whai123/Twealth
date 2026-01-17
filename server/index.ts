@@ -2,6 +2,7 @@
 import 'dotenv/config';
 
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -30,6 +31,9 @@ const app = express();
 
 // Trust proxy - required for secure cookies behind Replit's proxy
 app.set('trust proxy', 1);
+
+// Enable gzip compression for all responses (60-80% smaller transfers)
+app.use(compression());
 
 // Raw body middleware for Stripe webhooks (MUST come before express.json())
 app.use('/api/webhooks/stripe', express.raw({ type: 'application/json' }));
