@@ -30,6 +30,46 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    // Optimize chunks for faster loading
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Split vendor chunks by package
+          if (id.includes('node_modules')) {
+            // React core
+            if (id.includes('react-dom') || id.includes('/react/')) {
+              return 'vendor-react';
+            }
+            // Animation
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+            // Charts
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts';
+            }
+            // UI components (Radix)
+            if (id.includes('@radix-ui')) {
+              return 'vendor-ui';
+            }
+            // Data fetching
+            if (id.includes('@tanstack')) {
+              return 'vendor-query';
+            }
+            // Forms
+            if (id.includes('react-hook-form') || id.includes('zod') || id.includes('@hookform')) {
+              return 'vendor-forms';
+            }
+            // Icons
+            if (id.includes('lucide-react') || id.includes('react-icons')) {
+              return 'vendor-icons';
+            }
+          }
+        },
+      },
+    },
+    // Adjust chunk size warning
+    chunkSizeWarningLimit: 250,
   },
   server: {
     host: "0.0.0.0",
