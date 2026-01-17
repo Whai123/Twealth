@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Copy, 
-  ThumbsUp, 
-  ThumbsDown, 
+import {
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
   RefreshCw,
   Check,
   Sparkles,
@@ -68,7 +68,7 @@ const parseAIResponse = (content: string): ParsedContent => {
   const suggestions: string[] = [];
   const calculations: ParsedCalculation[] = [];
   const progressBars: ParsedProgress[] = [];
-  
+
   // Extract insight section
   const insightMatch = content.match(/---INSIGHT---\s*\n?([\s\S]*?)(?=---SUGGESTIONS---|---CALCULATION---|---PROGRESS---|$)/i);
   if (insightMatch) {
@@ -76,7 +76,7 @@ const parseAIResponse = (content: string): ParsedContent => {
     const typeMatch = insightBlock.match(/type:\s*(warning|opportunity|milestone)/i);
     const titleMatch = insightBlock.match(/title:\s*(.+?)(?:\n|$)/i);
     const messageMatch = insightBlock.match(/message:\s*([\s\S]+?)(?=\n\n|$)/i);
-    
+
     if (typeMatch && titleMatch && messageMatch) {
       insight = {
         type: typeMatch[1].toLowerCase() as 'warning' | 'opportunity' | 'milestone',
@@ -85,7 +85,7 @@ const parseAIResponse = (content: string): ParsedContent => {
       };
     }
   }
-  
+
   // Extract calculation sections (can have multiple)
   const calcMatches = Array.from(content.matchAll(/---CALCULATION---\s*\n?([\s\S]*?)(?=---CALCULATION---|---SUGGESTIONS---|---PROGRESS---|---INSIGHT---|$)/gi));
   for (const match of calcMatches) {
@@ -93,7 +93,7 @@ const parseAIResponse = (content: string): ParsedContent => {
     const titleMatch = calcBlock.match(/title:\s*(.+?)(?:\n|$)/i);
     const itemsMatch = calcBlock.match(/items:\s*([\s\S]*?)(?=result:|$)/i);
     const resultMatch = calcBlock.match(/result:\s*(.+?)\s*=\s*(.+?)(?:\n|$)/i);
-    
+
     if (titleMatch) {
       const items: Array<{ label: string; value: string; highlight?: boolean }> = [];
       if (itemsMatch) {
@@ -109,7 +109,7 @@ const parseAIResponse = (content: string): ParsedContent => {
           }
         });
       }
-      
+
       calculations.push({
         title: titleMatch[1].trim(),
         items,
@@ -117,7 +117,7 @@ const parseAIResponse = (content: string): ParsedContent => {
       });
     }
   }
-  
+
   // Extract progress bar sections
   const progressMatches = Array.from(content.matchAll(/---PROGRESS---\s*\n?([\s\S]*?)(?=---PROGRESS---|---SUGGESTIONS---|---CALCULATION---|---INSIGHT---|$)/gi));
   for (const match of progressMatches) {
@@ -126,7 +126,7 @@ const parseAIResponse = (content: string): ParsedContent => {
     const currentMatch = progBlock.match(/current:\s*(\d+(?:\.\d+)?)/i);
     const targetMatch = progBlock.match(/target:\s*(\d+(?:\.\d+)?)/i);
     const unitMatch = progBlock.match(/unit:\s*(.+?)(?:\n|$)/i);
-    
+
     if (titleMatch && currentMatch && targetMatch) {
       progressBars.push({
         title: titleMatch[1].trim(),
@@ -136,7 +136,7 @@ const parseAIResponse = (content: string): ParsedContent => {
       });
     }
   }
-  
+
   // Extract suggestions section
   const suggestionsMatch = content.match(/---SUGGESTIONS---\s*\n?([\s\S]*?)$/i);
   if (suggestionsMatch) {
@@ -149,15 +149,17 @@ const parseAIResponse = (content: string): ParsedContent => {
       }
     });
   }
-  
+
   // Remove all special sections from main content
   mainContent = content
     .replace(/---INSIGHT---[\s\S]*?(?=---SUGGESTIONS---|---CALCULATION---|---PROGRESS---|$)/gi, '')
     .replace(/---CALCULATION---[\s\S]*?(?=---CALCULATION---|---SUGGESTIONS---|---PROGRESS---|---INSIGHT---|$)/gi, '')
     .replace(/---PROGRESS---[\s\S]*?(?=---PROGRESS---|---SUGGESTIONS---|---CALCULATION---|---INSIGHT---|$)/gi, '')
     .replace(/---SUGGESTIONS---[\s\S]*$/i, '')
+    // Clean up ACTION tags - these are executed on backend, don't show to user
+    .replace(/\[ACTION:(CREATE_GOAL|ADD_TRANSACTION|ADD_DEBT|CREATE_BUDGET|SET_REMINDER|UPDATE_PROFILE)\|[^\]]+\]/g, '')
     .trim();
-  
+
   // Fallback suggestions if none parsed
   if (suggestions.length === 0) {
     if (content.toLowerCase().includes('budget') || content.toLowerCase().includes('spending')) {
@@ -170,7 +172,7 @@ const parseAIResponse = (content: string): ParsedContent => {
       suggestions.push("Tell me more", "What should I do next?");
     }
   }
-  
+
   return {
     mainContent,
     insight,
@@ -194,11 +196,11 @@ const CalculationBlock = ({ calculation }: { calculation: ParsedCalculation }) =
         </div>
         <h4 className="text-sm font-semibold text-foreground">{calculation.title}</h4>
       </div>
-      
+
       <div className="space-y-2 mb-3">
         {calculation.items.map((item, idx) => (
-          <div 
-            key={idx} 
+          <div
+            key={idx}
             className={`flex justify-between items-center text-sm ${item.highlight ? 'font-medium text-foreground' : 'text-muted-foreground'}`}
           >
             <span>{item.label}</span>
@@ -206,7 +208,7 @@ const CalculationBlock = ({ calculation }: { calculation: ParsedCalculation }) =
           </div>
         ))}
       </div>
-      
+
       {calculation.result && (
         <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
           <div className="flex justify-between items-center">
@@ -222,7 +224,7 @@ const CalculationBlock = ({ calculation }: { calculation: ParsedCalculation }) =
 const ProgressBarBlock = ({ progress }: { progress: ParsedProgress }) => {
   const percentage = Math.min(100, Math.max(0, (progress.current / progress.target) * 100));
   const isComplete = percentage >= 100;
-  
+
   return (
     <motion.div
       className="my-4 p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/60 dark:border-blue-800/40 shadow-sm"
@@ -241,14 +243,14 @@ const ProgressBarBlock = ({ progress }: { progress: ParsedProgress }) => {
           {percentage.toFixed(0)}%
         </span>
       </div>
-      
+
       <div className="relative">
-        <Progress 
-          value={percentage} 
+        <Progress
+          value={percentage}
           className={`h-3 ${isComplete ? '[&>div]:bg-emerald-500' : '[&>div]:bg-blue-500'}`}
         />
       </div>
-      
+
       <div className="flex justify-between mt-2 text-xs text-muted-foreground">
         <span>{progress.unit ? `${progress.current.toLocaleString()} ${progress.unit}` : progress.current.toLocaleString()}</span>
         <span>Target: {progress.unit ? `${progress.target.toLocaleString()} ${progress.unit}` : progress.target.toLocaleString()}</span>
@@ -283,10 +285,10 @@ const InsightCard = ({ insight }: { insight: ParsedInsight }) => {
       title: 'text-blue-800 dark:text-blue-200'
     }
   };
-  
+
   const Icon = iconMap[insight.type];
   const colors = colorMap[insight.type];
-  
+
   return (
     <motion.div
       className={`mt-4 p-4 rounded-xl border ${colors.bg} ${colors.border}`}
@@ -311,7 +313,7 @@ function StreamingText({ content, onComplete }: { content: string; onComplete?: 
   const [displayedContent, setDisplayedContent] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const contentRef = useRef(content);
-  
+
   useEffect(() => {
     if (content !== contentRef.current) {
       contentRef.current = content;
@@ -322,10 +324,10 @@ function StreamingText({ content, onComplete }: { content: string; onComplete?: 
 
   useEffect(() => {
     if (isComplete) return;
-    
+
     const words = content.split(' ');
     let currentIndex = 0;
-    
+
     const interval = setInterval(() => {
       if (currentIndex < words.length) {
         setDisplayedContent(words.slice(0, currentIndex + 1).join(' '));
@@ -336,7 +338,7 @@ function StreamingText({ content, onComplete }: { content: string; onComplete?: 
         clearInterval(interval);
       }
     }, 25);
-    
+
     return () => clearInterval(interval);
   }, [content, isComplete, onComplete]);
 
@@ -355,13 +357,13 @@ const EXACT_ERROR_MESSAGES = [
 const isExactErrorMessage = (content: string): boolean => {
   const trimmedContent = content.trim();
   const lowerContent = trimmedContent.toLowerCase();
-  
+
   // Must be a short message (backend errors are typically concise)
   if (trimmedContent.length > 100) return false;
-  
+
   // Must not contain markdown formatting (real AI responses have this)
   if (/^#{1,3}\s|^\*\*|^-\s|^\d+\.\s|\n\n/m.test(trimmedContent)) return false;
-  
+
   // Must exactly match one of our known error messages
   return EXACT_ERROR_MESSAGES.some(pattern => lowerContent === pattern);
 };
@@ -373,19 +375,19 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
   const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
   const [streamComplete, setStreamComplete] = useState(!isLatest);
   const [isRetrying, setIsRetrying] = useState(false);
-  
+
   // Detect if this is an exact error message (very specific backend error responses only)
   const isError = role === 'assistant' && isExactErrorMessage(content);
-  
+
   // Parse AI response to extract main content, insights, and suggestions
   const parsedContent = role === 'assistant' ? parseAIResponse(content) : null;
-  
+
   const handleRetry = () => {
     setIsRetrying(true);
     onRegenerate?.();
     setTimeout(() => setIsRetrying(false), 2000);
   };
-  
+
   useEffect(() => {
     if (isLatest && role === 'assistant') {
       const timer = setTimeout(() => setShowActions(true), 800);
@@ -417,15 +419,15 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
 
   if (role === 'user') {
     return (
-      <motion.div 
-        className="flex justify-end gap-3 group" 
+      <motion.div
+        className="flex justify-end gap-3 group"
         data-testid="message-user"
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="flex flex-col items-end max-w-[85%] sm:max-w-[75%]">
-          <motion.div 
+          <motion.div
             className="relative bg-black dark:bg-white text-white dark:text-black rounded-2xl rounded-tr-sm px-4 py-3 shadow-lg shadow-black/5"
             whileHover={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
@@ -433,7 +435,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed font-medium">{content}</p>
           </motion.div>
           {timestamp && (
-            <motion.span 
+            <motion.span
               className="text-[10px] text-muted-foreground/60 mt-1.5 font-medium"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -443,7 +445,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
             </motion.span>
           )}
         </div>
-        <motion.div 
+        <motion.div
           className="w-9 h-9 rounded-full bg-black dark:bg-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/10"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -456,14 +458,14 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
   }
 
   return (
-    <motion.div 
-      className="flex gap-3 group" 
+    <motion.div
+      className="flex gap-3 group"
       data-testid="message-assistant"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     >
-      <motion.div 
+      <motion.div
         className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -472,7 +474,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
         <Brain className="w-4 h-4 text-white" />
       </motion.div>
       <div className="flex-1 min-w-0 space-y-3">
-        <motion.div 
+        <motion.div
           className="relative bg-white dark:bg-zinc-900 rounded-2xl rounded-tl-sm px-5 py-4 border border-border/50 shadow-lg shadow-black/[0.03]"
           initial={{ scale: 0.98 }}
           animate={{ scale: 1 }}
@@ -585,7 +587,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               />
             )}
           </div>
-          
+
           {/* Calculation Blocks - displayed for financial calculations */}
           {parsedContent?.calculations && parsedContent.calculations.length > 0 && (
             <div className="space-y-2">
@@ -594,7 +596,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               ))}
             </div>
           )}
-          
+
           {/* Progress Bars - displayed for goal/budget progress */}
           {parsedContent?.progressBars && parsedContent.progressBars.length > 0 && (
             <div className="space-y-2">
@@ -603,15 +605,15 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               ))}
             </div>
           )}
-          
+
           {/* Insight Card - displayed when AI detects something important */}
           {parsedContent?.insight && (
             <InsightCard insight={parsedContent.insight} />
           )}
-          
+
           {/* Inline Retry Banner - for error messages only, doesn't hide content */}
           {isError && onRegenerate && (
-            <motion.div 
+            <motion.div
               className="mt-3 p-3 rounded-lg bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -648,10 +650,10 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
             </motion.div>
           )}
         </motion.div>
-        
+
         <AnimatePresence>
           {followUpSuggestions.length > 0 && onFollowUp && showActions && (
-            <motion.div 
+            <motion.div
               className="flex flex-wrap gap-2"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -681,8 +683,8 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
             </motion.div>
           )}
         </AnimatePresence>
-        
-        <motion.div 
+
+        <motion.div
           className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300"
           initial={{ opacity: 0 }}
           animate={{ opacity: showActions ? undefined : 0 }}
@@ -701,7 +703,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               <Copy className="w-3.5 h-3.5 text-muted-foreground" />
             )}
           </Button>
-          
+
           {isLatest && onRegenerate && (
             <Button
               variant="ghost"
@@ -715,7 +717,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
               <RefreshCw className={`w-3.5 h-3.5 text-muted-foreground ${isRegenerating ? 'animate-spin' : ''}`} />
             </Button>
           )}
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -727,7 +729,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
           >
             <ThumbsUp className={`w-3.5 h-3.5 ${feedbackGiven === 'positive' ? 'text-green-500' : 'text-muted-foreground hover:text-green-500'}`} />
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
@@ -739,7 +741,7 @@ export function MessageBubble({ role, content, timestamp, onRegenerate, isLatest
           >
             <ThumbsDown className={`w-3.5 h-3.5 ${feedbackGiven === 'negative' ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'}`} />
           </Button>
-          
+
           {timestamp && (
             <span className="text-[10px] text-muted-foreground/60 ml-2 font-medium">
               {new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -763,25 +765,25 @@ export function TypingIndicator({ isDeepAnalysis = false }: { isDeepAnalysis?: b
 
   useEffect(() => {
     if (!isDeepAnalysis) return;
-    
+
     const interval = setInterval(() => {
       setStageIndex((prev) => (prev + 1) % analysisStages.length);
     }, 2500);
-    
+
     return () => clearInterval(interval);
   }, [isDeepAnalysis]);
 
   const currentStage = analysisStages[stageIndex];
 
   return (
-    <motion.div 
-      className="flex gap-3" 
+    <motion.div
+      className="flex gap-3"
       data-testid="typing-indicator"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
     >
-      <motion.div 
+      <motion.div
         className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/20"
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
@@ -789,7 +791,7 @@ export function TypingIndicator({ isDeepAnalysis = false }: { isDeepAnalysis?: b
       >
         <Brain className="w-4 h-4 text-white" />
       </motion.div>
-      <motion.div 
+      <motion.div
         className="relative bg-white dark:bg-zinc-900 rounded-2xl rounded-tl-sm px-5 py-4 border border-border/50 shadow-lg shadow-black/[0.03] overflow-hidden"
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
@@ -799,32 +801,32 @@ export function TypingIndicator({ isDeepAnalysis = false }: { isDeepAnalysis?: b
         <div className="relative flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <motion.div 
+              <motion.div
                 className="w-2 h-2 bg-blue-500 rounded-full"
-                animate={{ 
+                animate={{
                   scale: [1, 1.3, 1],
                   opacity: [0.5, 1, 0.5]
                 }}
                 transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
               />
-              <motion.div 
+              <motion.div
                 className="w-2 h-2 bg-blue-500 rounded-full"
-                animate={{ 
+                animate={{
                   scale: [1, 1.3, 1],
                   opacity: [0.5, 1, 0.5]
                 }}
                 transition={{ duration: 1.2, repeat: Infinity, delay: 0.2 }}
               />
-              <motion.div 
+              <motion.div
                 className="w-2 h-2 bg-blue-500 rounded-full"
-                animate={{ 
+                animate={{
                   scale: [1, 1.3, 1],
                   opacity: [0.5, 1, 0.5]
                 }}
                 transition={{ duration: 1.2, repeat: Infinity, delay: 0.4 }}
               />
             </div>
-            <motion.span 
+            <motion.span
               className="text-xs text-muted-foreground font-medium"
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -832,9 +834,9 @@ export function TypingIndicator({ isDeepAnalysis = false }: { isDeepAnalysis?: b
               {isDeepAnalysis ? "Deep Analysis in progress..." : "Twealth is thinking..."}
             </motion.span>
           </div>
-          
+
           {isDeepAnalysis && (
-            <motion.div 
+            <motion.div
               className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400"
               key={stageIndex}
               initial={{ opacity: 0, x: -10 }}
