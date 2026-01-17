@@ -10,7 +10,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import { db } from "./db";
 import { investmentStrategies } from "@shared/schema";
 import { getSession, setupAuth } from "./customAuth";
-import mobileAuthRoutes from "./mobileAuth";
+// TEMPORARILY DISABLED - causing production crash
+// import mobileAuthRoutes from "./mobileAuth";
 
 // ==================== GLOBAL ERROR HANDLERS ====================
 // Catch unhandled promise rejections (critical for production stability)
@@ -69,8 +70,9 @@ app.use(getSession());
 // Setup OAuth authentication routes (web - cookie based)
 setupAuth(app);
 
+// TEMPORARILY DISABLED - causing production crash
 // Mobile Auth Routes (JWT based) - mounted at /api/auth
-app.use('/api/auth', mobileAuthRoutes);
+// app.use('/api/auth', mobileAuthRoutes);
 
 // Production-grade request logging middleware
 app.use((req, res, next) => {
