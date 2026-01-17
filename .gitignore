@@ -4,3 +4,9 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Mobile app - separate deployment
+twealth-mobile/node_modules
+twealth-mobile/.expo
+twealth-mobile/ios
+twealth-mobile/android
