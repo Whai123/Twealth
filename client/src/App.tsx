@@ -71,10 +71,14 @@ import { OfflineIndicator } from "./components/pwa/offline-indicator";
 import { PWAInstallPrompt } from "./components/pwa/install-prompt";
 import { RTLProvider } from "./components/rtl-provider";
 import { SidebarProvider } from "./components/ui/sidebar";
+import { useCountryDetection } from "./hooks/use-country-detection";
 
 function Router() {
     const [location] = useLocation();
     const { isAuthenticated, isLoading } = useAuth();
+
+    // Auto-detect and set user's country/currency on first load
+    useCountryDetection();
 
     // Show loading screen while checking authentication
     if (isLoading) {
