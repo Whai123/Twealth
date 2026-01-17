@@ -544,20 +544,115 @@ IMPORTANT: Use ${cc.currencySymbol} (${cc.currency}) for all monetary values. Ap
 function buildLanguageInstruction(context: any): string {
   const detectedLang = context.detectedLanguage || 'en';
 
-  // Map language codes to full language names and native greetings
-  const langMap: Record<string, { name: string; nativeName: string; greeting: string; currency: string }> = {
-    'th': { name: 'Thai', nativeName: 'ภาษาไทย', greeting: 'สวัสดี', currency: '฿' },
-    'es': { name: 'Spanish', nativeName: 'Español', greeting: 'Hola', currency: '$' },
-    'pt': { name: 'Portuguese', nativeName: 'Português', greeting: 'Olá', currency: 'R$' },
-    'id': { name: 'Indonesian', nativeName: 'Bahasa Indonesia', greeting: 'Halo', currency: 'Rp' },
-    'vi': { name: 'Vietnamese', nativeName: 'Tiếng Việt', greeting: 'Xin chào', currency: '₫' },
-    'zh': { name: 'Chinese', nativeName: '中文', greeting: '你好', currency: '¥' },
-    'ja': { name: 'Japanese', nativeName: '日本語', greeting: 'こんにちは', currency: '¥' },
-    'ko': { name: 'Korean', nativeName: '한국어', greeting: '안녕하세요', currency: '₩' },
-    'hi': { name: 'Hindi', nativeName: 'हिन्दी', greeting: 'नमस्ते', currency: '₹' },
-    'ar': { name: 'Arabic', nativeName: 'العربية', greeting: 'مرحبا', currency: '$' },
-    'tr': { name: 'Turkish', nativeName: 'Türkçe', greeting: 'Merhaba', currency: '₺' },
-    'en': { name: 'English', nativeName: 'English', greeting: 'Hello', currency: '$' },
+  // Map language codes to full language names, native greetings, and financial vocabulary
+  const langMap: Record<string, {
+    name: string;
+    nativeName: string;
+    greeting: string;
+    currency: string;
+    financialTerms: string;
+  }> = {
+    'th': {
+      name: 'Thai',
+      nativeName: 'ภาษาไทย',
+      greeting: 'สวัสดีครับ/ค่ะ',
+      currency: '฿',
+      financialTerms: `
+**ศัพท์การเงินไทย (ใช้คำเหล่านี้):**
+- รายได้ = income, เงินเดือน = salary
+- รายจ่าย = expenses, ค่าใช้จ่าย = costs  
+- เงินออม = savings, บัญชีออมทรัพย์ = savings account
+- หนี้สิน = debt/liabilities, สินเชื่อ = loan/credit
+- สินทรัพย์ = assets, ทรัพย์สิน = property
+- งบประมาณ = budget, เป้าหมาย = goal
+- ดอกเบี้ย = interest, APR = อัตราดอกเบี้ยต่อปี
+- กองทุนฉุกเฉิน = emergency fund
+- การลงทุน = investment, หุ้น = stocks
+- กองทุนรวม = mutual funds, ETF = กองทุนดัชนี
+- เกษียณ = retirement, บำนาญ = pension
+- ภาษี = tax, ประกัน = insurance
+- รายได้สุทธิ = net income, รายได้รวม = gross income
+- อัตราส่วนหนี้ต่อรายได้ = debt-to-income ratio
+- มูลค่าสุทธิ = net worth
+`
+    },
+    'es': {
+      name: 'Spanish',
+      nativeName: 'Español',
+      greeting: 'Hola',
+      currency: '$',
+      financialTerms: `Use Spanish financial terms: ingresos, gastos, ahorros, deudas, presupuesto, metas, inversiones, jubilación.`
+    },
+    'pt': {
+      name: 'Portuguese',
+      nativeName: 'Português',
+      greeting: 'Olá',
+      currency: 'R$',
+      financialTerms: `Use Portuguese financial terms: renda, despesas, poupança, dívidas, orçamento, metas, investimentos, aposentadoria.`
+    },
+    'id': {
+      name: 'Indonesian',
+      nativeName: 'Bahasa Indonesia',
+      greeting: 'Halo',
+      currency: 'Rp',
+      financialTerms: `Use Indonesian financial terms: pendapatan, pengeluaran, tabungan, hutang, anggaran, tujuan, investasi, pensiun.`
+    },
+    'vi': {
+      name: 'Vietnamese',
+      nativeName: 'Tiếng Việt',
+      greeting: 'Xin chào',
+      currency: '₫',
+      financialTerms: `Use Vietnamese financial terms: thu nhập, chi tiêu, tiết kiệm, nợ, ngân sách, mục tiêu, đầu tư, nghỉ hưu.`
+    },
+    'zh': {
+      name: 'Chinese',
+      nativeName: '中文',
+      greeting: '你好',
+      currency: '¥',
+      financialTerms: `Use Chinese financial terms: 收入, 支出, 储蓄, 债务, 预算, 目标, 投资, 退休, 资产净值.`
+    },
+    'ja': {
+      name: 'Japanese',
+      nativeName: '日本語',
+      greeting: 'こんにちは',
+      currency: '¥',
+      financialTerms: `Use Japanese financial terms: 収入, 支出, 貯蓄, 負債, 予算, 目標, 投資, 退職, 純資産.`
+    },
+    'ko': {
+      name: 'Korean',
+      nativeName: '한국어',
+      greeting: '안녕하세요',
+      currency: '₩',
+      financialTerms: `Use Korean financial terms: 수입, 지출, 저축, 부채, 예산, 목표, 투자, 은퇴, 순자산.`
+    },
+    'hi': {
+      name: 'Hindi',
+      nativeName: 'हिन्दी',
+      greeting: 'नमस्ते',
+      currency: '₹',
+      financialTerms: `Use Hindi financial terms: आय, व्यय, बचत, कर्ज, बजट, लक्ष्य, निवेश, सेवानिवृत्ति.`
+    },
+    'ar': {
+      name: 'Arabic',
+      nativeName: 'العربية',
+      greeting: 'مرحبا',
+      currency: '$',
+      financialTerms: `Use Arabic financial terms: دخل, مصروفات, مدخرات, ديون, ميزانية, أهداف, استثمار, تقاعد.`
+    },
+    'tr': {
+      name: 'Turkish',
+      nativeName: 'Türkçe',
+      greeting: 'Merhaba',
+      currency: '₺',
+      financialTerms: `Use Turkish financial terms: gelir, gider, tasarruf, borç, bütçe, hedef, yatırım, emeklilik.`
+    },
+    'en': {
+      name: 'English',
+      nativeName: 'English',
+      greeting: 'Hello',
+      currency: '$',
+      financialTerms: ''
+    },
   };
 
   const lang = langMap[detectedLang] || langMap['en'];
@@ -568,7 +663,7 @@ function buildLanguageInstruction(context: any): string {
 Respond fully in English.`;
   }
 
-  // For non-English languages, be VERY explicit
+  // For non-English languages, be VERY explicit with financial vocabulary
   return `🔴 **MANDATORY RESPONSE LANGUAGE: ${lang.name} (${lang.nativeName})** 🔴
 
 THE USER WROTE IN ${lang.name.toUpperCase()}. YOU MUST RESPOND 100% IN ${lang.name.toUpperCase()}.
@@ -579,6 +674,9 @@ RULES:
 3. Use ${lang.currency} for currency unless user specifies otherwise
 4. Technical terms should use ${lang.name} equivalents when available
 5. This is NON-NEGOTIABLE - responding in English is WRONG
+6. Numbers should use local formatting (e.g., ฿15,000 not 15000 baht)
+
+${lang.financialTerms}
 
 Example greeting in ${lang.name}: "${lang.greeting}"
 
