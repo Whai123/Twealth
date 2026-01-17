@@ -1,0 +1,45 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "ESNext",
+        "lib": [
+            "ESNext"
+        ],
+        "jsx": "react-native",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "./*"
+            ],
+            "@components/*": [
+                "./components/*"
+            ],
+            "@hooks/*": [
+                "./hooks/*"
+            ],
+            "@lib/*": [
+                "./lib/*"
+            ],
+            "@constants/*": [
+                "./constants/*"
+            ],
+            "@types/*": [
+                "./types/*"
+            ]
+        }
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        ".expo/types/**/*.ts",
+        "expo-env.d.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
