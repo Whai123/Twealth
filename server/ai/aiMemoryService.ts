@@ -50,10 +50,10 @@ export function extractFactsFromConversation(
     }> = [
             // Job/profession
             {
-                regex: /(?:i am|i'm|i work as|my job is|my profession is) (?:a |an )?(\w+(?:\s+\w+)?)/i,
+                regex: /(?:i am|i'm|i work as|my job is|my profession is) (?:a |an )?([\w\s]+?)(?:\.|,|$|\s(?:and|at|in|for))/i,
                 factType: 'personal',
                 factKey: 'job_title',
-                extract: (m) => m[1],
+                extract: (m) => m[1].trim(),
             },
             // Family mentions
             {
@@ -70,44 +70,113 @@ export function extractFactsFromConversation(
             },
             // Age
             {
-                regex: /i(?:'m| am) (\d{2,3}) years old/i,
+                regex: /i(?:'m| am) (\d{2,3})(?: years old)?/i,
                 factType: 'personal',
                 factKey: 'age',
                 extract: (m) => m[1],
             },
             // Location
             {
-                regex: /i live in (\w+(?:\s+\w+)?(?:,\s*\w+)?)/i,
+                regex: /i live in ([\w\s]+?)(?:\.|,|$)/i,
                 factType: 'context',
                 factKey: 'location',
-                extract: (m) => m[1],
+                extract: (m) => m[1].trim(),
             },
-            // Income mentions
+            // Income mentions (various formats including Thai baht)
             {
-                regex: /(?:my |i )(?:earn|make|salary is|income is)[^\d]*(\d[\d,]*)/i,
+                regex: /(?:my |i )(?:earn|make|salary is|income is)[^\d]*([\d,]+)\s*(?:baht|บาท|thb|\$|per month|\/month|a month)?/i,
                 factType: 'financial_goal',
-                factKey: 'mentioned_income',
+                factKey: 'monthly_income',
                 extract: (m) => m[1].replace(/,/g, ''),
+            },
+            {
+                regex: /(?:รายได้|เงินเดือน|ได้เงิน)[^\d]*([\d,]+)\s*(?:บาท|baht)?/i,
+                factType: 'financial_goal',
+                factKey: 'monthly_income',
+                extract: (m) => m[1].replace(/,/g, ''),
+            },
+            // Savings goals
+            {
+                regex: /(?:i want to|i'm trying to|my goal is to) save[^\d]*([\d,]+)/i,
+                factType: 'financial_goal',
+                factKey: 'savings_goal',
+                extract: (m) => m[1].replace(/,/g, ''),
+            },
+            // Retirement age
+            {
+                regex: /(?:retire|retirement) (?:at|by|when i'm) (\d{2})/i,
+                factType: 'preference',
+                factKey: 'target_retirement_age',
+                extract: (m) => m[1],
             },
             // Investment preferences
             {
-                regex: /i (?:prefer|like|want) (?:to invest in |)(\w+(?:\s+\w+)?)(?: investments?| stocks?)?/i,
+                regex: /i (?:prefer|like|want|invest in) (?:to invest in |)(stocks?|bonds?|real estate|crypto|index funds?|etfs?|mutual funds?)/i,
                 factType: 'preference',
                 factKey: 'investment_preference',
                 extract: (m) => m[1],
             },
             // Risk tolerance
             {
-                regex: /(?:i am|i'm) (?:a )?(conservative|moderate|aggressive) investor/i,
+                regex: /(?:i am|i'm) (?:a )?(conservative|moderate|aggressive|risk-averse|risk averse) (?:investor|when it comes to|with my)/i,
                 factType: 'preference',
                 factKey: 'risk_tolerance',
                 extract: (m) => m[1],
             },
             // Life events
             {
-                regex: /(?:i'm |we're |we are )(?:planning to |going to )?(get(?:ting)? married|hav(?:e|ing) a baby|buying a house|retir(?:e|ing))/i,
+                regex: /(?:i'm |we're |we are |planning to )(?:planning to |going to )?(get(?:ting)? married|hav(?:e|ing) a baby|buying a house|retir(?:e|ing)|start(?:ing)? a business|mov(?:e|ing)|divorce)/i,
                 factType: 'life_event',
                 factKey: 'upcoming_life_event',
+                extract: (m) => m[1],
+            },
+            // Debt mentions
+            {
+                regex: /i (?:have|owe) (?:about )?\$?([\d,]+)\s*(?:in |of )?(?:debt|student loans?|credit card|mortgage)/i,
+                factType: 'financial_goal',
+                factKey: 'total_debt',
+                extract: (m) => m[1].replace(/,/g, ''),
+            },
+            // Emergency fund status
+            {
+                regex: /(?:emergency fund|rainy day fund|savings) (?:of |is )?(?:about )?\$?([\d,]+)/i,
+                factType: 'financial_goal',
+                factKey: 'emergency_fund',
+                extract: (m) => m[1].replace(/,/g, ''),
+            },
+            // Monthly expenses
+            {
+                regex: /(?:spend|expenses?|spending) (?:about |around )?\$?([\d,]+)\s*(?:per month|monthly|a month|\/month)/i,
+                factType: 'financial_goal',
+                factKey: 'monthly_expenses',
+                extract: (m) => m[1].replace(/,/g, ''),
+            },
+            // Home ownership
+            {
+                regex: /i (?:own|bought|have) (?:a |my )(house|home|condo|apartment)/i,
+                factType: 'context',
+                factKey: 'home_ownership',
+                extract: (m) => `owns ${m[1]}`,
+            },
+            // Renting
+            {
+                regex: /i (?:rent|am renting|currently rent)/i,
+                factType: 'context',
+                factKey: 'home_ownership',
+                extract: () => 'renting',
+            },
+            // FIRE interest
+            {
+                regex: /(?:fire|financial independence|retire early|coast fire|lean fire)/i,
+                factType: 'preference',
+                factKey: 'fire_interest',
+                extract: (m) => 'interested in FIRE',
+            },
+            // Specific financial worries
+            {
+                regex: /(?:worried about|concerned about|struggling with) ((?:my )?(?:debt|retirement|savings|spending|budget|finances))/i,
+                factType: 'context',
+                factKey: 'financial_concern',
                 extract: (m) => m[1],
             },
         ];
